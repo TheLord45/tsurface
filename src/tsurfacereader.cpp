@@ -15,45 +15,35 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#include <QFileDialog>
 
 #include <filesystem>
+#include <cjson/cJSON.h>
+#include <archive.h>
 
-#include "tsurface.h"
-#include "ui_tsurface.h"
-#include "moc_tsurface.cpp"
-
+#include "tsurfacereader.h"
 #include "terror.h"
 
 namespace fs = std::filesystem;
+using std::string;
 
-TSurface::TSurface(QWidget *parent)
-    : QMainWindow(parent)
-    , m_ui(new Ui::tsurface)
+TSurfaceReader::TSurfaceReader(const string& file)
+    : mFile(file)
 {
-    DECL_TRACER("TSurface::TSurface(QWidget *parent)");
-
-    m_ui->setupUi(this);
-
-    char *home = getenv("HOME");
-
-    if (home)
-        mLastOpenPath = home;
-    else
-        mLastOpenPath = QString::fromStdString(fs::current_path());
+    DECL_TRACER("TSurfaceReader::TSurfaceReader(const string& file)");
 }
 
-TSurface::~TSurface() = default;
-
-void TSurface::on_actionOpen_triggered()
+TSurfaceReader::~TSurfaceReader()
 {
-    DECL_TRACER("TSurface::on_actionOpen_triggered()");
+    DECL_TRACER("TSurfaceReader::~TSurfaceReader()");
+}
 
-    QString file = QFileDialog::getOpenFileName(this, tr("Open Logfile"), mLastOpenPath, tr("Surface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
-    qsizetype pos = file.lastIndexOf("/");
+bool TSurfaceReader::dismantleFile()
+{
+    DECL_TRACER("TSurfaceReader::dismantleFile()");
 
-    if (pos > 0)
-        mLastOpenPath = file.left(pos);
-
-    fs::is_regular_file()
+    if (mFile.empty() || !fs::is_regular_file(mFile))
+    {
+        MSG_ERROR("File " << mFile << " doesn't exist or is not readable!");
+        return false;
+    }
 }

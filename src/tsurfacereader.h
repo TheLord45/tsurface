@@ -15,31 +15,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TSURFACE_H
-#define TSURFACE_H
 
-#include <QMainWindow>
+#ifndef TSURFACEREADER_H
+#define TSURFACEREADER_H
 
-#include <memory>
+#include <string>
 
-namespace Ui {
-class tsurface;
-}
-
-class TSurface : public QMainWindow
+/**
+ * @todo write docs
+ */
+class TSurfaceReader
 {
-    Q_OBJECT
-
     public:
-        explicit TSurface(QWidget *parent = nullptr);
-        ~TSurface() override;
+        /**
+        * Default constructor
+        */
+        TSurfaceReader(const std::string& file);
 
-    private slots:
-        void on_actionOpen_triggered();
+        /**
+        * Destructor
+        */
+        ~TSurfaceReader();
+
+    protected:
+        bool dismantleFile();
 
     private:
-        const std::unique_ptr<Ui::tsurface> m_ui;
-        QString mLastOpenPath;
+        std::string mFile;
 };
 
-#endif // TSURFACE_H
+#endif // TSURFACEREADER_H

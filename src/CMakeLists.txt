@@ -2,6 +2,10 @@ qt_add_executable(tsurface
     main.cpp
     tsurface.ui
     tsurface.cpp
+    tsurfacereader.cpp
+    tsurfacereader.h
+    terror.cpp
+    terror.h
 )
 
 # Use the Widgets module from Qt 6.
