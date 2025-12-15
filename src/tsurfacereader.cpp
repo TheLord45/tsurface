@@ -17,8 +17,8 @@
  */
 
 #include <filesystem>
-#include <cjson/cJSON.h>
-#include <archive.h>
+//#include <cjson/cJSON.h>
+//#include <archive.h>
 
 #include "tsurfacereader.h"
 #include "terror.h"

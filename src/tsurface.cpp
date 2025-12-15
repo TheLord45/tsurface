@@ -55,5 +55,4 @@ void TSurface::on_actionOpen_triggered()
     if (pos > 0)
         mLastOpenPath = file.left(pos);
 
-    fs::is_regular_file()
 }
