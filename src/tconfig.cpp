@@ -22,11 +22,14 @@
 #include "tconfig.h"
 #include "terror.h"
 
+#define CONFIGFILE  "tsurface.conf"
+
 namespace  fs = std::filesystem;
 using std::string;
 using std::ifstream;
 using std::ofstream;
 using std::ios;
+using std::cout;
 using std::endl;
 using std::to_string;
 using std::to_integer;
@@ -35,8 +38,28 @@ TConfig *TConfig::mCurrent = nullptr;
 
 TConfig::TConfig()
 {
-    DECL_TRACER("TConfig::TConfig()");
+}
 
+/**
+ * @brief TConfig::Current - Initialize singleton class
+ * This method creates a new instance of this class, which is a
+ * singleton class. This makes sure that it exists only one time.
+ *
+ * @return A pointer to this class.
+ */
+TConfig &TConfig::Current()
+{
+    if (!mCurrent)
+    {
+        mCurrent = new TConfig;
+        mCurrent->init();
+    }
+
+    return *mCurrent;
+}
+
+void TConfig::init()
+{
     initDefaults();
     // Search for configuration file
     char *home = getenv("HOME");
@@ -60,7 +83,10 @@ TConfig::TConfig()
         }
 
         if (!readConfig())
+        {
             initDefaults();
+            saveConfig();
+        }
         else
             setLogging();
     }
@@ -71,18 +97,8 @@ TConfig::TConfig()
     }
 }
 
-TConfig *TConfig::getCurrent()
-{
-    if (!mCurrent)
-        mCurrent = new TConfig;
-
-    return mCurrent;
-}
-
 void TConfig::initDefaults()
 {
-    DECL_TRACER("TConfig::initDefaults()");
-
     char *home = getenv("HOME");
     string sHome;
 
@@ -91,20 +107,18 @@ void TConfig::initDefaults()
     else
         sHome = "/";
 
-    mConfigFile = sHome + "/.config/tsurface.rc";
+    mConfigFile = sHome + "/.config/" + CONFIGFILE;
     mLastDirectory = sHome;
-    mPosition.left = 0;
-    mPosition.top = 0;
-    mPosition.width = 600;
-    mPosition.height = 400;
+    mPosition.left = 10;
+    mPosition.top = 10;
+    mPosition.width = 1100;
+    mPosition.height = 800;
 
     setLogging();
 }
 
 void TConfig::setLogging()
 {
-    DECL_TRACER("TConfig::setLogging()");
-
     mLogLevel = "PROTOCOL";
     char *logfile = getenv("TSLOGFILE");
 
@@ -121,6 +135,8 @@ void TConfig::setLogging()
         mLogLevel = loglevel;
         TStreamError::setLogLevel(mLogLevel);
     }
+    else
+        TStreamError::setLogLevel(mLogLevel);
 }
 
 void TConfig::saveConfig()
@@ -131,14 +147,22 @@ void TConfig::saveConfig()
 
     try
     {
-        file.open(mConfigFile, ios::binary | ios::trunc);
-        file << mLastDirectory << endl;
-        file << to_string(mPosition.left) << endl;
-        file << to_string(mPosition.top) << endl;
-        file << to_string(mPosition.width) << endl;
-        file << to_string(mPosition.height) << endl;
-        file << mLogLevel << endl;
-        file << mLogFile << endl;
+        file.open(mConfigFile, ios::trunc | ios::out);
+        cout << "Last directory:  " << mLastDirectory << endl
+             << "Position left:   " << to_string(mPosition.left) << endl
+             << "Position top:    " << to_string(mPosition.top) << endl
+             << "Position width:  " << to_string(mPosition.width) << endl
+             << "Position height: " << to_string(mPosition.height) << endl
+             << "Log level:       " << mLogLevel << endl
+             << "Log file:        " << mLogFile << endl;
+
+        file << mLastDirectory << endl
+             << to_string(mPosition.left) << endl
+             << to_string(mPosition.top) << endl
+             << to_string(mPosition.width) << endl
+             << to_string(mPosition.height) << endl
+             << mLogLevel << endl
+             << mLogFile << endl;
         file.close();
     }
     catch (std::exception& e)
@@ -158,11 +182,13 @@ bool TConfig::readConfig()
 
     try
     {
-        file.open(mConfigFile, ios::binary);
+        file.open(mConfigFile, ios::in);
         int zeile = 0;
 
         for (string line; getline(file, line);)
         {
+            zeile++;
+
             switch(zeile)
             {
                 case 1: mLastDirectory   = line; break;
@@ -173,8 +199,6 @@ bool TConfig::readConfig()
                 case 6: mLogLevel        = line; break;
                 case 7: mLogFile         = line; break;
             }
-
-            zeile++;
         }
 
         file.close();

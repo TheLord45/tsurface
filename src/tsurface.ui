@@ -14,45 +14,225 @@
    <string>tsurface</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="verticalLayoutWidget_2">
+   <widget class="QSplitter" name="splitter">
     <property name="geometry">
      <rect>
-      <x>-1</x>
-      <y>-1</y>
-      <width>901</width>
-      <height>621</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1111</width>
+      <height>721</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayoutMDI">
-     <property name="sizeConstraint">
-      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
-     </property>
-     <property name="leftMargin">
-      <number>2</number>
-     </property>
-     <property name="rightMargin">
-      <number>1</number>
-     </property>
-     <property name="bottomMargin">
-      <number>2</number>
-     </property>
-     <item>
-      <widget class="QMdiArea" name="mdiArea">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>600</width>
-         <height>400</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Orientation::Horizontal</enum>
+    </property>
+    <widget class="QWidget" name="verticalLayoutWidget_7">
+     <layout class="QVBoxLayout" name="verticalLayoutLeft">
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QLabel" name="labelWorkspace">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(85, 170, 255);</string>
+        </property>
+        <property name="text">
+         <string>Workspace</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetWorkspace">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tabPages">
+         <attribute name="title">
+          <string>Pages</string>
+         </attribute>
+         <widget class="QTreeView" name="treeViewPages">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>231</width>
+            <height>251</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="tabFunctionMap">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <attribute name="title">
+          <string>Function map</string>
+         </attribute>
+         <widget class="QTreeView" name="treeViewFunctionMap">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>231</width>
+            <height>251</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelProperties">
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(85, 170, 255);</string>
+        </property>
+        <property name="text">
+         <string>Button properties</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxElement">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <item>
+         <property name="text">
+          <string>Neues Element</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetProperties">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tabProgramming">
+         <attribute name="title">
+          <string>Programming</string>
+         </attribute>
+         <widget class="QColumnView" name="columnViewProgramming">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>231</width>
+            <height>251</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="tabGeneral">
+         <attribute name="title">
+          <string>General</string>
+         </attribute>
+         <widget class="QColumnView" name="columnViewGeneral">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>231</width>
+            <height>251</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="tabStates">
+         <attribute name="title">
+          <string>States</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tabEvents">
+         <attribute name="title">
+          <string>Events</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="verticalLayoutWidget_2">
+     <layout class="QVBoxLayout" name="verticalLayoutMidi">
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QMdiArea" name="mdiArea">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>600</width>
+          <height>400</height>
+         </size>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="tabsMovable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -61,7 +241,7 @@
      <x>0</x>
      <y>0</y>
      <width>1112</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -110,215 +290,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidgetLeft">
-   <property name="minimumSize">
-    <size>
-     <width>203</width>
-     <height>400</height>
-    </size>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>8</pointsize>
-    </font>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetFeature::DockWidgetClosable|QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::DockWidgetArea::AllDockWidgetAreas</set>
-   </property>
-   <property name="windowTitle">
-    <string>Workspace</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContentsLeft">
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>202</width>
-       <height>601</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayoutLeft">
-      <item>
-       <widget class="QTabWidget" name="tabWidgetWorkspace">
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>200</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tabPages">
-         <attribute name="title">
-          <string>Pages</string>
-         </attribute>
-         <widget class="QWidget" name="verticalLayoutWidget_3">
-          <property name="geometry">
-           <rect>
-            <x>-1</x>
-            <y>-1</y>
-            <width>201</width>
-            <height>231</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QTreeView" name="treeViewPages"/>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tabFunctionMap">
-         <attribute name="title">
-          <string>Function map</string>
-         </attribute>
-         <widget class="QWidget" name="verticalLayoutWidget_4">
-          <property name="geometry">
-           <rect>
-            <x>-1</x>
-            <y>-1</y>
-            <width>201</width>
-            <height>231</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="QTreeView" name="treeViewFunctionMap"/>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="labelProperties">
-        <property name="font">
-         <font>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Button properties</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="comboBoxElement">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <item>
-         <property name="text">
-          <string>Neues Element</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="tabWidgetProperties">
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>200</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tabGeneral">
-         <attribute name="title">
-          <string>General</string>
-         </attribute>
-         <widget class="QWidget" name="verticalLayoutWidget_5">
-          <property name="geometry">
-           <rect>
-            <x>-1</x>
-            <y>-1</y>
-            <width>201</width>
-            <height>231</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutGeneral">
-           <item>
-            <widget class="QColumnView" name="columnViewGeneral"/>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tabProgramming">
-         <attribute name="title">
-          <string>Programming</string>
-         </attribute>
-         <widget class="QWidget" name="verticalLayoutWidget_6">
-          <property name="geometry">
-           <rect>
-            <x>-1</x>
-            <y>-1</y>
-            <width>201</width>
-            <height>231</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayoutProgramming">
-           <item>
-            <widget class="QColumnView" name="columnViewProgramming"/>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tabStates">
-         <attribute name="title">
-          <string>States</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="tabEvents">
-         <attribute name="title">
-          <string>Events</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidgetBottom">
-   <property name="minimumSize">
-    <size>
-     <width>600</width>
-     <height>100</height>
-    </size>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>8</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContentsBottom"/>
-  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
@@ -430,5 +401,22 @@
   </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>tsurface</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>555</x>
+     <y>395</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

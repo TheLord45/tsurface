@@ -34,6 +34,9 @@ class TSurface : public QMainWindow
         explicit TSurface(QWidget *parent = nullptr);
         ~TSurface() override;
 
+    protected:
+        void resizeEvent(QResizeEvent *event) override;
+
     private slots:
         void on_actionOpen_triggered();
 

@@ -16,11 +16,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include "tsurface.h"
-
+#include "tconfig.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
+    char *pname = basename(*argv);
+    TConfig::Current().setProgName(pname);
+
     QApplication app(argc, argv);
 
     TSurface w;

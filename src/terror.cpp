@@ -190,18 +190,18 @@ class androidbuf : public std::streambuf
 
 TStreamError::TStreamError(const string& logFile, const std::string& logLevel)
 {
-    if (!TConfig::getCurrent()->isInitialized())
+    if (!TConfig::Current().isInitialized())
         return;
 
     if (!logFile.empty())
         mLogfile = logFile;
-    else if (!TConfig::getCurrent()->getLogFile().empty())
-        mLogfile = TConfig::getCurrent()->getLogFile();
+    else if (!TConfig::Current().getLogFile().empty())
+        mLogfile = TConfig::Current().getLogFile();
 
     if (!logLevel.empty())
         setLogLevel(logLevel);
-    else if (!TConfig::getCurrent()->getLogLevel().empty())
-        setLogLevel(TConfig::getCurrent()->getLogLevel());
+    else if (!TConfig::Current().getLogLevel().empty())
+        setLogLevel(TConfig::Current().getLogLevel());
 
     _init();
 }
@@ -291,7 +291,7 @@ void TStreamError::setLogLevel(const std::string& slv)
 
 bool TStreamError::checkFilter(terrtype_t err)
 {
-    if (!TConfig::getCurrent()->isInitialized())
+    if (!TConfig::Current().isInitialized())
         return false;
 
     if (err == TERRINFO && (mLogLevel & HLOG_INFO) != 0)
@@ -311,7 +311,7 @@ bool TStreamError::checkFilter(terrtype_t err)
 
 bool TStreamError::checkFilter(unsigned int lv)
 {
-    if (!TConfig::getCurrent()->isInitialized())
+    if (!TConfig::Current().isInitialized())
         return false;
 
     if ((mLogLevel & HLOG_INFO) != 0 &&
@@ -364,7 +364,7 @@ unsigned int TStreamError::_getLevel(const std::string& slv)
 
 void TStreamError::_init(bool reinit)
 {
-    if (!TConfig::getCurrent()->isInitialized() || mInitialized)
+    if (!TConfig::Current().isInitialized() || mInitialized)
         return;
 
     mInitialized = true;
@@ -494,12 +494,12 @@ void TStreamError::_init(bool reinit)
     if (mLogLevel > 0)
         *mStream << "Logfile started at " << getTime() << std::endl;
 
-    *mStream << "TSurface version " << VERSION_STRING() << std::endl;
+    *mStream << TConfig::Current().getProgName() << " version " << VERSION_STRING() << std::endl;
     *mStream << "(C) Copyright by Andreas Theofilu <andreas@theosys.at>\n" << std::endl;
 
     if (mLogLevel > 0)
     {
-        if (TConfig::getCurrent()->isLongFormat())
+        if (TConfig::Current().isLongFormat())
             *mStream << "Timestamp          , Type LNr., File name           , ThreadID, Message" << std::endl;
         else
             *mStream << "Type LNr., ThreadID, Message" << std::endl;
@@ -697,7 +697,7 @@ std::mutex tracer_mutex;
 TTracer::TTracer(const std::string& msg, int line, const char *file, threadID_t tid)
     : mThreadID(tid)
 {
-    if (!TConfig::getCurrent()->isInitialized() || !TStreamError::checkFilter(HLOG_TRACE))
+    if (!TConfig::Current().isInitialized() || !TStreamError::checkFilter(HLOG_TRACE))
         return;
 
     std::lock_guard<mutex> guard(tracer_mutex);
@@ -711,7 +711,7 @@ TTracer::TTracer(const std::string& msg, int line, const char *file, threadID_t 
     TError::setErrorType(TERRTRACE);
     std::lock_guard<mutex> guardm(message_mutex);
 
-    if (!TConfig::getCurrent()->isLongFormat())
+    if (!TConfig::Current().isLongFormat())
         *TError::Current()->getStream() << "TRC, " << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "{entry " << msg << std::endl;
     else
         *TError::Current()->getStream() << TStreamError::getTime() <<  ", TRC, " << std::setw(5) << std::right << line << ", " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "{entry " << msg << std::endl;
@@ -722,13 +722,13 @@ TTracer::TTracer(const std::string& msg, int line, const char *file, threadID_t 
 
 //    __android_log_print(ANDROID_LOG_INFO, "tpanel", "[TRACE] %s", msg.c_str());
 
-    if (TConfig::getCurrent()->getProfiling())
+    if (TConfig::Current().getProfiling())
         mTimePoint = std::chrono::steady_clock::now();
 }
 
 TTracer::~TTracer()
 {
-    if (!TConfig::getCurrent()->isInitialized() || !TStreamError::checkFilter(HLOG_TRACE))
+    if (!TConfig::Current().isInitialized() || !TStreamError::checkFilter(HLOG_TRACE))
         return;
 
     std::lock_guard<mutex> guard(tracer_mutex);
@@ -736,7 +736,7 @@ TTracer::~TTracer()
     TError::Current()->decIndent();
     string nanosecs;
 
-    if (TConfig::getCurrent()->getProfiling())
+    if (TConfig::Current().getProfiling())
     {
         std::chrono::steady_clock::time_point endPoint = std::chrono::steady_clock::now();
         std::chrono::nanoseconds difftime = endPoint - mTimePoint;
@@ -749,16 +749,16 @@ TTracer::~TTracer()
 
     std::lock_guard<mutex> guardm(message_mutex);
 
-    if (TConfig::getCurrent()->getProfiling())
+    if (TConfig::Current().getProfiling())
     {
-        if (!TConfig::getCurrent()->isLongFormat())
+        if (!TConfig::Current().isLongFormat())
             *TError::Current()->getStream() << "TRC,      , " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << " Elapsed time: " << nanosecs << std::endl;
         else
             *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << " Elapsed time: " << nanosecs << std::endl;
     }
     else
     {
-        if (!TConfig::getCurrent()->isLongFormat())
+        if (!TConfig::Current().isLongFormat())
             *TError::Current()->getStream() << "TRC,      , " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << std::endl;
         else
             *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << std::endl;
@@ -782,7 +782,7 @@ TError::~TError()
 TStreamError* TError::Current()
 {
     if (!mCurrent)
-        mCurrent = new TStreamError(TConfig::getCurrent()->getLogFile(), TConfig::getCurrent()->getLogLevel());
+        mCurrent = new TStreamError(TConfig::Current().getLogFile(), TConfig::Current().getLogLevel());
 
     return mCurrent;
 }
@@ -917,7 +917,7 @@ std::ostream & TError::append(int lv, int line, const std::string& file, std::os
 {
     Current();
 
-    if (!TConfig::getCurrent()->isInitialized() && (lv == HLOG_ERROR || lv == HLOG_WARNING))
+    if (!TConfig::Current().isInitialized() && (lv == HLOG_ERROR || lv == HLOG_WARNING))
     {
         std::cerr << append(lv, line, file);
         return std::cerr;
@@ -951,7 +951,7 @@ std::string TError::append(int lv, int line, const std::string& file)
     if (pos != string::npos)
         f = f.substr(pos + 1);
 
-    if (!TConfig::getCurrent()->isLongFormat())
+    if (!TConfig::Current().isLongFormat())
         s << prefix << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", ";
     else
         s << TStreamError::getTime() << ", " << prefix << std::setw(5) << std::right << line << ", " << std::setw(20) << std::left << f << ", " << _threadIDtoStr(mThreadID) << ", ";

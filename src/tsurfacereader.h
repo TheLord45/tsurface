@@ -20,6 +20,7 @@
 #define TSURFACEREADER_H
 
 #include <string>
+#include <archive.h>
 
 /**
  * @todo write docs
@@ -37,11 +38,17 @@ class TSurfaceReader
         */
         ~TSurfaceReader();
 
+        std::string& getTarget() { return mTarget; }
+
     protected:
         bool dismantleFile();
+        void extract(const std::string& target_file_name);
+        void handle_errors(archive *a, int r, const std::string& msg);
+        int copy_data(struct archive *ar, struct archive *aw);
 
     private:
         std::string mFile;
+        std::string mTarget;
 };
 
 #endif // TSURFACEREADER_H

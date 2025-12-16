@@ -36,7 +36,8 @@ class TConfig
     public:
         TConfig();
 
-        static TConfig *getCurrent();
+        static TConfig& Current();
+        void saveConfig();
 
         typedef struct WINSIZE_t
         {
@@ -55,24 +56,28 @@ class TConfig
         std::string getLogFile() { return mLogFile; }
         std::string getLogLevel() { return mLogLevel; }
         bool getProfiling() { return mProfiling; }
+        void setProgName(const std::string& name) { mProgName = name; }
+        std::string& getProgName() { return mProgName; }
 
     protected:
+        void init();
         void initDefaults();
-        void saveConfig();
         bool readConfig();
         void setLogging();
 
     private:
-        static TConfig *mCurrent;
-        bool mInitialized{false};
+        static TConfig *mCurrent;           // Pointer to self.
+
+        std::string mProgName;              // The real name of this program
+        bool mInitialized{false};           // TRUE = Configuration was initialized
         std::string mConfigFile;            // The path and name of the configuration file
         std::string mLastDirectory;         // The last directory a file was loaded from
         WINSIZE_t mPosition;                // The last position and size of the main window
         // Debugging options
         std::string mLogFile;               // An optional logfile
         std::string mLogLevel;              // The loglevels
-        bool mLongFormat{false};
-        bool mProfiling{false};
+        bool mLongFormat{false};            // TRUE = Logging is written in long format (recomended)
+        bool mProfiling{false};             // TRUE = Profiling information is logged for each method
 };
 
 #endif // TCONFIG_H

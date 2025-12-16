@@ -17,11 +17,16 @@
  */
 
 #include <filesystem>
-//#include <cjson/cJSON.h>
-//#include <archive.h>
+#include <cjson/cJSON.h>
+#include <iostream>
+#include <cstdio>
+#include <stdexcept>
+#include <archive.h>
+#include <archive_entry.h>
 
 #include "tsurfacereader.h"
 #include "terror.h"
+#include "tconfig.h"
 
 namespace fs = std::filesystem;
 using std::string;
@@ -30,6 +35,8 @@ TSurfaceReader::TSurfaceReader(const string& file)
     : mFile(file)
 {
     DECL_TRACER("TSurfaceReader::TSurfaceReader(const string& file)");
+
+    dismantleFile();
 }
 
 TSurfaceReader::~TSurfaceReader()
@@ -41,9 +48,145 @@ bool TSurfaceReader::dismantleFile()
 {
     DECL_TRACER("TSurfaceReader::dismantleFile()");
 
+    MSG_INFO("Reading file " << mFile << "...");
+
     if (mFile.empty() || !fs::is_regular_file(mFile))
     {
         MSG_ERROR("File " << mFile << " doesn't exist or is not readable!");
         return false;
+    }
+
+    fs::path p = fs::temp_directory_path();
+    string target = TConfig::Current().getProgName() + "Extract";
+    MSG_DEBUG("Target: " << target);
+
+    try
+    {
+        p = p / target;     // Append a name
+        fs::create_directories(p);
+        fs::current_path(p);
+        mTarget = p;
+        extract(mFile);
+        MSG_PROTOCOL("File was extracted to " << mTarget);
+    }
+    catch (std::exception& e)
+    {
+        MSG_ERROR("Error extracting file " << mFile << ": " << e.what());
+
+        if (fs::exists(p))
+            fs::remove(p);
+
+        return false;
+    }
+
+    return true;
+}
+
+void TSurfaceReader::extract(const string& target_file_name)
+{
+    DECL_TRACER("TSurfaceReader::extract(const string& target_file_name)");
+
+    struct archive *a = nullptr;
+    struct archive *ext = nullptr;
+    struct archive_entry *entry = nullptr;
+    int flags, r;
+
+    /* Select which attributes we want to restore. */
+    flags = ARCHIVE_EXTRACT_TIME;
+    flags |= ARCHIVE_EXTRACT_UNLINK;
+    flags |= ARCHIVE_EXTRACT_SECURE_NODOTDOT;
+
+    a = archive_read_new();
+
+    if (!a)
+    {
+        throw std::runtime_error("Cannot archive_read_new");
+    }
+
+    archive_read_support_format_tar(a);
+    archive_read_support_filter_gzip(a);
+
+    ext = archive_write_disk_new();
+
+    if (!ext)
+    {
+        throw std::runtime_error("Cannot archive_write_disk_new");
+    }
+
+    archive_write_disk_set_options(ext, flags);
+    archive_write_disk_set_standard_lookup(ext);
+
+    if ((r = archive_read_open_filename(a, target_file_name.c_str(), 10240)))
+    {
+        throw std::runtime_error("Cannot archive_read_open_filename");
+    }
+
+    for (;;)
+    {
+        r = archive_read_next_header(a, &entry);
+
+        if (r == ARCHIVE_EOF)
+            break;
+
+        handle_errors(a, r, "Encountered error while reading header.");
+        r = archive_write_header(ext, entry);
+
+        if (r < ARCHIVE_OK)
+        {
+            MSG_ERROR(archive_error_string(ext));
+        }
+        else if (archive_entry_size(entry) > 0)
+        {
+            r = copy_data(a, ext);
+            handle_errors(ext, r, "Encountered error while copy data.");
+        }
+
+        r = archive_write_finish_entry(ext);
+        handle_errors(ext, r, "Encountered error while finishing entry.");
+    }
+}
+
+int TSurfaceReader::copy_data(struct archive *ar, struct archive *aw)
+{
+    DECL_TRACER("TSurfaceReader::copy_data(struct archive * ar, struct archive * aw)");
+
+    int r;
+    size_t size;
+    const void *buff;
+    int64_t offset;
+
+    for (;;)
+    {
+        r = archive_read_data_block(ar, &buff, &size, &offset);
+
+        if (r == ARCHIVE_EOF)
+            return (ARCHIVE_OK);
+        else if (r < ARCHIVE_OK)
+            return (r);
+
+        r = archive_write_data_block(aw, buff, size, offset);
+
+        if (r < ARCHIVE_OK)
+        {
+            MSG_ERROR(archive_error_string(aw));
+            return (r);
+        }
+    }
+
+    return 0;   // Should never come here!
+}
+
+void TSurfaceReader::handle_errors(archive *a, int r, const string& msg)
+{
+    DECL_TRACER("TSurfaceReader::handle_errors(archive *a, int r, const string& msg)");
+
+    if (r < ARCHIVE_OK)
+    {
+        MSG_ERROR(archive_error_string(a));
+    }
+
+    if (r < ARCHIVE_WARN)
+    {
+        throw std::runtime_error(msg);
     }
 }
