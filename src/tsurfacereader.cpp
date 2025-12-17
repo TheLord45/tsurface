@@ -25,6 +25,7 @@
 #include <archive_entry.h>
 
 #include "tsurfacereader.h"
+#include "tconfmain.h"
 #include "terror.h"
 #include "tconfig.h"
 
@@ -82,6 +83,16 @@ bool TSurfaceReader::dismantleFile()
     return true;
 }
 
+/**
+ * @brief TSurfaceReader::extract - Extract files from a tar.gz file.
+ * This method takes the name of a file in the format tar or tar.gz, where
+ * the extension doesn't matter. It creates a temporary directory and
+ * extracts all files there. Directories are created as needed.
+ *
+ * In case of an error the method throws an exception.
+ *
+ * @param target_file_name  The name of a file archive.
+ */
 void TSurfaceReader::extract(const string& target_file_name)
 {
     DECL_TRACER("TSurfaceReader::extract(const string& target_file_name)");
@@ -116,7 +127,7 @@ void TSurfaceReader::extract(const string& target_file_name)
     archive_write_disk_set_options(ext, flags);
     archive_write_disk_set_standard_lookup(ext);
 
-    if ((r = archive_read_open_filename(a, target_file_name.c_str(), 10240)))
+    if (archive_read_open_filename(a, target_file_name.c_str(), 10240))
     {
         throw std::runtime_error("Cannot archive_read_open_filename");
     }

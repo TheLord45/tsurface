@@ -22,6 +22,7 @@
 
 #include "tsurface.h"
 #include "tsurfacereader.h"
+#include "tconfmain.h"
 #include "tconfig.h"
 #include "ui_tsurface.h"
 #include "moc_tsurface.cpp"
@@ -75,6 +76,13 @@ void TSurface::on_actionOpen_triggered()
     {
         TSurfaceReader sreader(file.toStdString());
     }
+}
+
+void TSurface::on_actionNew_triggered()
+{
+    DECL_TRACER("TSurface::on_actionNew_triggered()");
+
+    TConfMain& cmain = TConfMain::Current();
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

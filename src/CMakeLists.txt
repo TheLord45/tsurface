@@ -8,6 +8,8 @@ qt_add_executable(tsurface
     terror.h
     tconfig.h
     tconfig.cpp
+    tconfmain.h
+    tconfmain.cpp
 )
 
 # Use the Widgets module from Qt 6.

@@ -15,35 +15,53 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TSURFACE_H
-#define TSURFACE_H
+#include <QJsonObject>
+#include <QJsonDocument>
 
-#include <QMainWindow>
+#include "tconfmain.h"
+#include "terror.h"
 
-#include <memory>
+using namespace ConfigMain;
 
-namespace Ui {
-class tsurface;
+TConfMain *TConfMain::mCurrent{nullptr};
+
+TConfMain::TConfMain()
+{
+    DECL_TRACER("TConfMain::TConfMain()");
 }
 
-class TSurface : public QMainWindow
+TConfMain::~TConfMain()
 {
-    Q_OBJECT
+    DECL_TRACER("TConfMain::~TConfMain()");
 
-    public:
-        explicit TSurface(QWidget *parent = nullptr);
-        ~TSurface() override;
+    if (mConfMain)
+    {
+        delete mConfMain;
+        mConfMain = nullptr;
+    }
+}
 
-    protected:
-        void resizeEvent(QResizeEvent *event) override;
+TConfMain& TConfMain::Current()
+{
+    if (!mCurrent)
+        mCurrent = new TConfMain;
 
-    private slots:
-        void on_actionOpen_triggered();
-        void on_actionNew_triggered();
+    return *mCurrent;
+}
 
-    private:
-        const std::unique_ptr<Ui::tsurface> m_ui;
-        QString mLastOpenPath;
-};
+void TConfMain::createNew()
+{
+    DECL_TRACER("TConfMain::createNew()");
 
-#endif // TSURFACE_H
+    if (mConfMain)
+        delete mConfMain;
+
+    mConfMain = new CONFMAIN_t;
+}
+
+bool TConfMain::readMain(const QString& path)
+{
+    DECL_TRACER("TConfMain::readMain(const QString& path)");
+
+    return false;
+}
