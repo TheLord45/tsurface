@@ -83,6 +83,8 @@ void TSurface::on_actionNew_triggered()
     DECL_TRACER("TSurface::on_actionNew_triggered()");
 
     TConfMain& cmain = TConfMain::Current();
+    cmain.setTreeView(m_ui->treeViewPages);
+    cmain.createNew();
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

@@ -15,6 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <QTreeView>
+#include <QStandardItemModel>
 #include <QJsonObject>
 #include <QJsonDocument>
 
@@ -57,6 +59,36 @@ void TConfMain::createNew()
         delete mConfMain;
 
     mConfMain = new CONFMAIN_t;
+
+    if (!mTreeView)
+    {
+        MSG_WARNING("There is no tree view set. Can't update the tree of pages!");
+        return;
+    }
+
+    // If there exists already a tree model, we must delete it first.
+    mTreeView->reset();
+
+    if (!mItemModel)
+        mItemModel = new QStandardItemModel;
+
+    QStandardItem *parentItem = mItemModel->invisibleRootItem();
+    QStandardItem *pages = new QStandardItem("Pages");
+    pages->setEditable(false);
+    pages->setData(1);
+    parentItem->appendRow(pages);
+    QStandardItem *subpages = new QStandardItem("Sub pages");
+    pages->setEditable(false);
+    pages->setData(2);
+    parentItem->appendRow(subpages);
+
+    if (!mHaveModel)
+        mTreeView->setModel(mItemModel);
+    else
+    {
+        mHaveModel = true;
+        mTreeView->show();
+    }
 }
 
 bool TConfMain::readMain(const QString& path)

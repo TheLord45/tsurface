@@ -22,6 +22,9 @@
 #include <QDateTime>
 #include <QList>
 
+class QTreeView;
+class QStandardItemModel;
+
 namespace ConfigMain
 {
     typedef struct PROJECTINFO_t
@@ -105,6 +108,7 @@ class TConfMain
 
         static TConfMain& Current();
 
+        void setTreeView(QTreeView *tv) { mTreeView = tv; };
         void createNew();
         bool readMain(const QString& path);
 
@@ -117,6 +121,9 @@ class TConfMain
         static TConfMain *mCurrent;
 
         ConfigMain::CONFMAIN_t *mConfMain{nullptr};
+        QTreeView *mTreeView{nullptr};
+        QStandardItemModel *mItemModel{nullptr};
+        bool mHaveModel{false};
 };
 
 #endif // TCONFMAIN_H
