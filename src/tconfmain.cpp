@@ -73,11 +73,11 @@ void TConfMain::createNew()
         mItemModel = new QStandardItemModel;
 
     QStandardItem *parentItem = mItemModel->invisibleRootItem();
-    QStandardItem *pages = new QStandardItem("Pages");
+    QStandardItem *pages = new QStandardItem(tr("Pages"));
     pages->setEditable(false);
     pages->setData(1);
     parentItem->appendRow(pages);
-    QStandardItem *subpages = new QStandardItem("Sub pages");
+    QStandardItem *subpages = new QStandardItem(tr("Popup pages"));
     pages->setEditable(false);
     pages->setData(2);
     parentItem->appendRow(subpages);

@@ -10,6 +10,7 @@ qt_add_executable(tsurface
     tconfig.cpp
     tconfmain.h
     tconfmain.cpp
+    tnewprojectdialog.h tnewprojectdialog.cpp tnewprojectdialog.ui
 )
 
 # Use the Widgets module from Qt 6.

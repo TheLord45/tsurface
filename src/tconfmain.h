@@ -102,6 +102,8 @@ namespace ConfigMain
 
 class TConfMain
 {
+    Q_OBJECT
+
     public:
         TConfMain();
         ~TConfMain();
