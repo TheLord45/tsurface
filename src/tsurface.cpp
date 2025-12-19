@@ -23,11 +23,11 @@
 #include "tsurface.h"
 #include "tsurfacereader.h"
 #include "tconfmain.h"
+#include "tnewprojectdialog.h"
 #include "tconfig.h"
+#include "terror.h"
 #include "ui_tsurface.h"
 #include "moc_tsurface.cpp"
-
-#include "terror.h"
 
 namespace fs = std::filesystem;
 using std::cout;
@@ -81,6 +81,12 @@ void TSurface::on_actionOpen_triggered()
 void TSurface::on_actionNew_triggered()
 {
     DECL_TRACER("TSurface::on_actionNew_triggered()");
+
+    TNewProjectDialog npd(this);
+    int ret = npd.exec();
+
+    if (ret == QDialog::Rejected)
+        return;
 
     TConfMain& cmain = TConfMain::Current();
     cmain.setTreeView(m_ui->treeViewPages);

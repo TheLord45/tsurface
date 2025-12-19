@@ -1,3 +1,14 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(tsurface VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
@@ -10,7 +21,12 @@ qt_add_executable(tsurface
     tconfig.cpp
     tconfmain.h
     tconfmain.cpp
-    tnewprojectdialog.h tnewprojectdialog.cpp tnewprojectdialog.ui
+    tnewprojectdialog.h
+    tnewprojectdialog.cpp
+    tnewprojectdialog.ui
+    tpaneltypes.cpp
+    tpaneltypes.h
+    tsurface.qrc
 )
 
 # Use the Widgets module from Qt 6.

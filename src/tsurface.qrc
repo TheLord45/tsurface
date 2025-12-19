@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/md-702.png</file>
+        <file>images/md-1002.png</file>
+        <file>images/mt-702.png</file>
+        <file>images/mt-1002.png</file>
+        <file>images/mt-2002.png</file>
+        <file>images/mxd-701.png</file>
+        <file>images/mxd-1001.png</file>
+        <file>images/mxd-1901-pan.png</file>
+        <file>images/mxd-2001-pan.png</file>
+        <file>images/mxr-1001.png</file>
+        <file>images/mxt-701.png</file>
+        <file>images/mxt-1001.png</file>
+        <file>images/mxt-1901-pan.png</file>
+        <file>images/mxt-2001-pan.png</file>
+        <file>images/varia-80.png</file>
+        <file>images/varia-100.png</file>
+        <file>images/varia-150.png</file>
+        <file>images/varia-sl50.png</file>
+        <file>images/varia-sl80.png</file>
+    </qresource>
+</RCC>

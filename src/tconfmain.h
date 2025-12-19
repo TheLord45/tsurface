@@ -100,7 +100,7 @@ namespace ConfigMain
     }CONFMAIN_t;
 };
 
-class TConfMain
+class TConfMain : public QObject
 {
     Q_OBJECT
 
