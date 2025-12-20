@@ -20,7 +20,7 @@
 
 #include <QPixmap>
 #include <QMessageBox>
-
+#include <QColorDialog>
 #include "tnewprojectdialog.h"
 #include "ui_tnewprojectdialog.h"
 
@@ -29,6 +29,7 @@
 
 using std::string;
 using std::vector;
+using std::to_string;
 
 TNewProjectDialog::TNewProjectDialog(QWidget *parent)
     : QDialog(parent),
@@ -38,9 +39,48 @@ TNewProjectDialog::TNewProjectDialog(QWidget *parent)
 
     ui->setupUi(this);
     ui->labelDescription->setWordWrap(true);
-    ui->pushButtonPrevious->setEnabled(false);
+    mColorBackground = palette().color(QPalette::Base);
+    mColorText = palette().color(QPalette::Text);
+    ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
+    MSG_DEBUG("Backgroud color: \"background-color: " << mColorBackground.name().toStdString() << "\"");
+    ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
+    MSG_DEBUG("Text color: \"background-color: " << mColorText.name().toStdString() << "\"");
+    mFont = parent->font();
+    mFont.setPointSize(mSize);
+    MSG_DEBUG("Current font: " << mFont.family().toStdString() << " (" << mSize << ")");
+
+    int idx = 0;
+    bool set = false;
+    int index = 0;
+
+    for (int i = 6; i < 37; i += 2)
+    {
+        MSG_DEBUG("Setting size " << i);
+
+        if ((mSize % 2) == 0 && i == mSize)
+        {
+            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
+            ui->comboBoxSize->setCurrentIndex(idx);
+            index = idx;
+            set = true;
+        }
+        else if (!set && i > mSize)
+        {
+            ui->comboBoxSize->addItem(QString::fromStdString(to_string(mSize)), mSize);
+            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
+            set = true;
+            index = idx;
+        }
+        else
+            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
+
+        idx++;
+    }
+
     mPanelType = new TPanelType;
     on_comboBoxPanelTypes_currentIndexChanged(0);
+    mInitialized = true;
+    on_comboBoxSize_currentIndexChanged(index);
 }
 
 TNewProjectDialog::~TNewProjectDialog()
@@ -49,6 +89,13 @@ TNewProjectDialog::~TNewProjectDialog()
 
     delete ui;
     delete mPanelType;
+}
+
+void TNewProjectDialog::init()
+{
+    DECL_TRACER("TNewProjectDialog::init()");
+
+
 }
 
 void TNewProjectDialog::on_lineEditJobName_textChanged(const QString &arg1)
@@ -111,24 +158,10 @@ void TNewProjectDialog::on_comboBoxResolutions_currentIndexChanged(int index)
     MSG_DEBUG("Selected resolution: " << mResolution.width() << "x" << mResolution.height());
 }
 
-
 void TNewProjectDialog::on_checkBoxGenFiles_stateChanged(int arg1)
 {
     DECL_TRACER("TNewProjectDialog::on_checkBoxGenFiles_stateChanged(int arg1)");
 }
-
-
-void TNewProjectDialog::on_pushButtonPrevious_clicked()
-{
-    DECL_TRACER("TNewProjectDialog::on_pushButtonPrevious_clicked()");
-}
-
-
-void TNewProjectDialog::on_pushButtonNext_clicked()
-{
-    DECL_TRACER("TNewProjectDialog::on_pushButtonNext_clicked()");
-}
-
 
 void TNewProjectDialog::on_pushButtonFinish_clicked()
 {
@@ -149,5 +182,105 @@ void TNewProjectDialog::on_pushButtonCancel_clicked()
     DECL_TRACER("TNewProjectDialog::on_pushButtonCancel_clicked()");
 
     close();
+}
+
+void TNewProjectDialog::on_toolButtonColorBackground_clicked()
+{
+    DECL_TRACER("TNewProjectDialog::on_toolButtonColorBackground_clicked()");
+
+    QColorDialog color(this);
+    color.setCurrentColor(mColorBackground);
+    color.exec();
+    mColorBackground = color.selectedColor();
+    ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
+}
+
+
+void TNewProjectDialog::on_toolButtonColorText_clicked()
+{
+    DECL_TRACER("TNewProjectDialog::on_toolButtonColorText_clicked()");
+
+    QColorDialog color(this);
+    color.setCurrentColor(mColorText);
+    color.exec();
+    mColorText = color.selectedColor();
+    ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
+}
+
+
+void TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)
+{
+    DECL_TRACER("TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)");
+
+    mFont = f;
+    mSize = f.pointSize();
+    int max = ui->comboBoxSize->count();
+
+    for (int i = 0; i < max; ++i)
+    {
+        if (ui->comboBoxSize->itemData(i).toInt() == mSize)
+        {
+            ui->comboBoxSize->setCurrentIndex(i);
+            break;
+        }
+    }
+
+    mFont.setPointSize(mSize);
+    ui->labelFontSample->setFont(mFont);
+    ui->labelFontSample->setText(mFont.family() + " <Lorem Ipsum>");
+}
+
+
+void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
+{
+    DECL_TRACER("TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)");
+
+    if (!mInitialized)
+        return;
+
+    mSize = ui->comboBoxSize->itemData(index).toInt();
+    mFont.setPointSize(mSize);
+    ui->labelFontSample->setFont(mFont);
+    ui->labelFontSample->setText(mFont.family() + " <Lorem Ipsum>");
+}
+
+
+void TNewProjectDialog::on_lineEditDesigner_textChanged(const QString &arg1)
+{
+    DECL_TRACER("TNewProjectDialog::on_lineEditDesigner_textChanged(const QString &arg1)");
+
+    mDesigner = arg1;
+}
+
+
+void TNewProjectDialog::on_lineEditDealer_textChanged(const QString &arg1)
+{
+    DECL_TRACER("TNewProjectDialog::on_lineEditDealer_textChanged(const QString &arg1)");
+
+    mDealer = arg1;
+}
+
+
+void TNewProjectDialog::on_lineEditRevision_textChanged(const QString &arg1)
+{
+    DECL_TRACER("TNewProjectDialog::on_lineEditRevision_textChanged(const QString &arg1)");
+
+    mRevision = arg1;
+}
+
+
+void TNewProjectDialog::on_plainTextEditComments_textChanged()
+{
+    DECL_TRACER("TNewProjectDialog::on_plainTextEditComments_textChanged()");
+
+    mComment = ui->plainTextEditComments->toPlainText();
+}
+
+
+void TNewProjectDialog::on_lineEditPageName_textChanged(const QString &arg1)
+{
+    DECL_TRACER("TNewProjectDialog::on_lineEditPageName_textChanged(const QString &arg1)");
+
+    mPageName = arg1;
 }
 

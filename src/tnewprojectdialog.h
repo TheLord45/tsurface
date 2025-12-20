@@ -34,17 +34,46 @@ class TNewProjectDialog : public QDialog
         explicit TNewProjectDialog(QWidget *parent = nullptr);
         ~TNewProjectDialog();
 
+        void init();
+
         QString& getProjectName() { return mProjectName; }
+        void setProjectName(const QString& name) { mProjectName = name; }
         QString& getPanelName() { return mPanelName; }
+        void setPanelName(const QString& name) { mPanelName = name; }
         QSize& getResolution() { return mResolution; }
+        QString& getPageName() { return mPageName; }
+        void setPageName(const QString& text) { mPageName = text; }
+        QString& getDesigner() { return mDesigner; }
+        void setDesigner(const QString& text) { mDesigner = text; }
+        QString& getDealer() { return mDealer; }
+        void setDealer(const QString& text) { mDealer = text; }
+        QString& getRevision() { return mRevision; }
+        void setRevision(const QString& rev) { mRevision = rev; }
+        QString& getComment() { return mComment; }
+        void setComment(const QString& text) { mComment = text; }
+        QColor& getColorBackground() { return mColorBackground; }
+        void setColorBackground(const QColor& color) { mColorBackground = color; }
+        QColor& getColorText() { return mColorText; }
+        void setColorText(const QColor& color) { mColorText = color; }
+        QFont& getFontName() { return mFont; }
+        void setFont(const QFont& font) { mFont = font; }
+        int getFontSize() { return mSize; }
+        void setFontSize(int pt) { mSize = pt; }
 
     private slots:
         void on_lineEditJobName_textChanged(const QString &arg1);
         void on_comboBoxPanelTypes_currentIndexChanged(int index);
         void on_comboBoxResolutions_currentIndexChanged(int index);
         void on_checkBoxGenFiles_stateChanged(int arg1);
-        void on_pushButtonPrevious_clicked();
-        void on_pushButtonNext_clicked();
+        void on_toolButtonColorBackground_clicked();
+        void on_toolButtonColorText_clicked();
+        void on_fontComboBox_currentFontChanged(const QFont &f);
+        void on_comboBoxSize_currentIndexChanged(int index);
+        void on_lineEditDesigner_textChanged(const QString &arg1);
+        void on_lineEditDealer_textChanged(const QString &arg1);
+        void on_lineEditRevision_textChanged(const QString &arg1);
+        void on_plainTextEditComments_textChanged();
+        void on_lineEditPageName_textChanged(const QString &arg1);
         void on_pushButtonFinish_clicked();
         void on_pushButtonCancel_clicked();
 
@@ -52,10 +81,19 @@ class TNewProjectDialog : public QDialog
         Ui::TNewProjectDialog *ui;
         TPanelType *mPanelType{nullptr};
         std::vector<QSize> mResolutions;
+        bool mInitialized{false};
         QString mProjectName;
         QString mPanelName;
+        QString mPageName;
+        QColor mColorBackground;
+        QColor mColorText;
+        QFont mFont;
+        int mSize{10};
         QSize mResolution;
-
+        QString mDesigner;
+        QString mDealer;
+        QString mRevision;
+        QString mComment;
 };
 
 #endif // TNEWPROJECTDIALOG_H

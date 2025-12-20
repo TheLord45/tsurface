@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>374</height>
+    <height>393</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageJob">
       <property name="geometry">
@@ -25,7 +25,7 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>212</height>
+        <height>231</height>
        </rect>
       </property>
       <attribute name="label">
@@ -34,34 +34,15 @@
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>541</width>
+         <x>10</x>
+         <y>10</y>
+         <width>521</width>
          <height>212</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0" columnminimumwidth="0,0,0,0">
-        <item row="2" column="2" colspan="2">
-         <widget class="QLabel" name="labelPanelImage">
-          <property name="frameShape">
-           <enum>QFrame::Shape::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Shadow::Sunken</enum>
-          </property>
-          <property name="lineWidth">
-           <number>3</number>
-          </property>
-          <property name="midLineWidth">
-           <number>0</number>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
+        <item row="0" column="1" colspan="3">
+         <widget class="QLineEdit" name="lineEditJobName"/>
         </item>
         <item row="2" column="0" colspan="2">
          <widget class="QGroupBox" name="groupBox">
@@ -91,8 +72,27 @@
           </layout>
          </widget>
         </item>
-        <item row="0" column="1" colspan="3">
-         <widget class="QLineEdit" name="lineEditJobName"/>
+        <item row="2" column="2" colspan="2">
+         <widget class="QLabel" name="labelPanelImage">
+          <property name="frameShape">
+           <enum>QFrame::Shape::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Shadow::Sunken</enum>
+          </property>
+          <property name="lineWidth">
+           <number>3</number>
+          </property>
+          <property name="midLineWidth">
+           <number>0</number>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="labelJobName">
@@ -101,22 +101,8 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="labelResolution">
-          <property name="text">
-           <string>Resolution</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="3">
          <widget class="QComboBox" name="comboBoxResolutions"/>
-        </item>
-        <item row="3" column="0" colspan="2">
-         <widget class="QCheckBox" name="checkBoxGenFiles">
-          <property name="text">
-           <string>Use system generated file name</string>
-          </property>
-         </widget>
         </item>
         <item row="1" column="1">
          <widget class="QComboBox" name="comboBoxPanelTypes">
@@ -222,10 +208,24 @@
           </item>
          </widget>
         </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="labelResolution">
+          <property name="text">
+           <string>Resolution</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="labelPanelType">
           <property name="text">
            <string>Panel type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QCheckBox" name="checkBoxGenFiles">
+          <property name="text">
+           <string>Use system generated file name</string>
           </property>
          </widget>
         </item>
@@ -237,8 +237,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>530</width>
-        <height>220</height>
+        <width>544</width>
+        <height>231</height>
        </rect>
       </property>
       <attribute name="label">
@@ -257,11 +257,20 @@
              <layout class="QGridLayout" name="gridLayoutColors">
               <item row="0" column="1">
                <widget class="QFrame" name="frameColorBackground">
+                <property name="minimumSize">
+                 <size>
+                  <width>25</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="frameShape">
                  <enum>QFrame::Shape::StyledPanel</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Raised</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>2</number>
                 </property>
                </widget>
               </item>
@@ -288,11 +297,20 @@
               </item>
               <item row="1" column="1">
                <widget class="QFrame" name="frameColorText">
+                <property name="minimumSize">
+                 <size>
+                  <width>25</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="frameShape">
                  <enum>QFrame::Shape::StyledPanel</enum>
                 </property>
                 <property name="frameShadow">
-                 <enum>QFrame::Shadow::Raised</enum>
+                 <enum>QFrame::Shadow::Plain</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>2</number>
                 </property>
                </widget>
               </item>
@@ -317,7 +335,7 @@
             <item row="0" column="0">
              <layout class="QFormLayout" name="formLayout">
               <item row="0" column="0">
-               <widget class="QLabel" name="label">
+               <widget class="QLabel" name="labelFontName">
                 <property name="text">
                  <string>Name</string>
                 </property>
@@ -340,31 +358,37 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QLabel" name="label_2">
+               <widget class="QLabel" name="labelFontSize">
                 <property name="text">
                  <string>Size</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="comboBox"/>
+               <widget class="QComboBox" name="comboBoxSize"/>
               </item>
               <item row="2" column="0" colspan="2">
-               <widget class="QGroupBox" name="groupBox_2">
+               <widget class="QGroupBox" name="groupBoxSample">
                 <property name="title">
                  <string>Sample</string>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_3">
                  <item>
-                  <widget class="QLabel" name="label_3">
+                  <widget class="QLabel" name="labelFontSample">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="lineWidth">
+                    <number>-2</number>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -377,7 +401,7 @@
           </widget>
          </item>
          <item row="1" column="1" colspan="3">
-          <widget class="QLineEdit" name="lineEdit"/>
+          <widget class="QLineEdit" name="lineEditPageName"/>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="labelName">
@@ -396,12 +420,64 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>212</height>
+        <height>231</height>
        </rect>
       </property>
       <attribute name="label">
        <string>Vendor settings</string>
       </attribute>
+      <widget class="QWidget" name="formLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>521</width>
+         <height>211</height>
+        </rect>
+       </property>
+       <layout class="QFormLayout" name="formLayoutVendor">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelDesigner">
+          <property name="text">
+           <string>Designer ID</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditDesigner"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelDealer">
+          <property name="text">
+           <string>Dealer ID</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditDealer"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelRevision">
+          <property name="text">
+           <string>File revision</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEditRevision"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelComment">
+          <property name="text">
+           <string>Job comments</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QPlainTextEdit" name="plainTextEditComments"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>
@@ -462,7 +538,15 @@
   <tabstop>lineEditJobName</tabstop>
   <tabstop>comboBoxPanelTypes</tabstop>
   <tabstop>comboBoxResolutions</tabstop>
-  <tabstop>checkBoxGenFiles</tabstop>
+  <tabstop>lineEditPageName</tabstop>
+  <tabstop>toolButtonColorBackground</tabstop>
+  <tabstop>toolButtonColorText</tabstop>
+  <tabstop>fontComboBox</tabstop>
+  <tabstop>comboBoxSize</tabstop>
+  <tabstop>lineEditDesigner</tabstop>
+  <tabstop>lineEditDealer</tabstop>
+  <tabstop>lineEditRevision</tabstop>
+  <tabstop>plainTextEditComments</tabstop>
   <tabstop>pushButtonFinish</tabstop>
   <tabstop>pushButtonCancel</tabstop>
  </tabstops>
