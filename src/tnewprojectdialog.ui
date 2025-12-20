@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>326</height>
+    <height>374</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,196 +15,395 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0" columnminimumwidth="0,0,0,0">
-     <item row="1" column="1">
-      <widget class="QComboBox" name="comboBoxPanelTypes">
-       <item>
-        <property name="text">
-         <string>VARIA-SL50</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>VARIA-SL80</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>VARIA-80</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>VARIA-100</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>VARIA-150</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MT-702</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MD-702</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MT-1002</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MD-1002</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MT-2002</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXT-701</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXD-701</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXT-1001</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXR-1001</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXD-1001</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXT-1901-PAN</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXD-1901-PAN</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXT-2001-PAN</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>MXD-2001-PAN</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>TheoSys</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QComboBox" name="comboBoxResolutions"/>
-     </item>
-     <item row="1" column="2">
-      <widget class="QLabel" name="labelResolution">
-       <property name="text">
-        <string>Resolution</string>
+    <widget class="QToolBox" name="toolBox">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="pageJob">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>544</width>
+        <height>212</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Job settings</string>
+      </attribute>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>541</width>
+         <height>212</height>
+        </rect>
        </property>
-      </widget>
-     </item>
-     <item row="0" column="1" colspan="3">
-      <widget class="QLineEdit" name="lineEditJobName"/>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelJobName">
-       <property name="text">
-        <string>Job name</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="labelPanelType">
-       <property name="text">
-        <string>Panel type</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2" colspan="2">
-      <widget class="QLabel" name="labelPanelImage">
-       <property name="frameShape">
-        <enum>QFrame::Shape::Panel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Shadow::Sunken</enum>
-       </property>
-       <property name="lineWidth">
-        <number>3</number>
-       </property>
-       <property name="midLineWidth">
-        <number>0</number>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QGroupBox" name="groupBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>120</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>Description</string>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item alignment="Qt::AlignmentFlag::AlignTop">
-         <widget class="QLabel" name="labelDescription">
+       <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0" columnminimumwidth="0,0,0,0">
+        <item row="2" column="2" colspan="2">
+         <widget class="QLabel" name="labelPanelImage">
+          <property name="frameShape">
+           <enum>QFrame::Shape::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Shadow::Sunken</enum>
+          </property>
+          <property name="lineWidth">
+           <number>3</number>
+          </property>
+          <property name="midLineWidth">
+           <number>0</number>
+          </property>
           <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>120</height>
+           </size>
+          </property>
+          <property name="title">
            <string>Description</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item alignment="Qt::AlignmentFlag::AlignTop">
+            <widget class="QLabel" name="labelDescription">
+             <property name="text">
+              <string>Description</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="3">
+         <widget class="QLineEdit" name="lineEditJobName"/>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelJobName">
+          <property name="text">
+           <string>Job name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="labelResolution">
+          <property name="text">
+           <string>Resolution</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QComboBox" name="comboBoxResolutions"/>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QCheckBox" name="checkBoxGenFiles">
+          <property name="text">
+           <string>Use system generated file name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="comboBoxPanelTypes">
+          <item>
+           <property name="text">
+            <string>VARIA-SL50</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>VARIA-SL80</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>VARIA-80</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>VARIA-100</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>VARIA-150</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MT-702</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MD-702</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MT-1002</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MD-1002</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MT-2002</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXT-701</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXD-701</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXT-1001</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXR-1001</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXD-1001</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXT-1901-PAN</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXD-1901-PAN</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXT-2001-PAN</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MXD-2001-PAN</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>TheoSys</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelPanelType">
+          <property name="text">
+           <string>Panel type</string>
           </property>
          </widget>
         </item>
        </layout>
       </widget>
-     </item>
-     <item row="3" column="0" colspan="2">
-      <widget class="QCheckBox" name="checkBoxGenFiles">
-       <property name="text">
-        <string>Use system generated file name</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     </widget>
+     <widget class="QWidget" name="pageColor">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>530</width>
+        <height>220</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Other settings</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayoutOthers">
+         <item row="2" column="0" colspan="2">
+          <widget class="QGroupBox" name="groupBoxColors">
+           <property name="title">
+            <string>Colors</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="gridLayoutColors">
+              <item row="0" column="1">
+               <widget class="QFrame" name="frameColorBackground">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Shadow::Raised</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QToolButton" name="toolButtonColorBackground">
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="labelColorBackground">
+                <property name="text">
+                 <string>Page background</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="labelColorText">
+                <property name="text">
+                 <string>Text</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QFrame" name="frameColorText">
+                <property name="frameShape">
+                 <enum>QFrame::Shape::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Shadow::Raised</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QToolButton" name="toolButtonColorText">
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="2" colspan="2">
+          <widget class="QGroupBox" name="groupBoxFont">
+           <property name="title">
+            <string>Font</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <layout class="QFormLayout" name="formLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Name</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QFontComboBox" name="fontComboBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox"/>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QGroupBox" name="groupBox_2">
+                <property name="title">
+                 <string>Sample</string>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>TextLabel</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="3">
+          <widget class="QLineEdit" name="lineEdit"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelName">
+           <property name="text">
+            <string>Name</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageVendor">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>544</width>
+        <height>212</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Vendor settings</string>
+      </attribute>
+     </widget>
+    </widget>
    </item>
    <item>
     <widget class="QFrame" name="frameButtons">
@@ -227,20 +426,6 @@
       <enum>QFrame::Shadow::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QPushButton" name="pushButtonPrevious">
-        <property name="text">
-         <string>Previous</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButtonNext">
-        <property name="text">
-         <string>Next</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -278,8 +463,6 @@
   <tabstop>comboBoxPanelTypes</tabstop>
   <tabstop>comboBoxResolutions</tabstop>
   <tabstop>checkBoxGenFiles</tabstop>
-  <tabstop>pushButtonPrevious</tabstop>
-  <tabstop>pushButtonNext</tabstop>
   <tabstop>pushButtonFinish</tabstop>
   <tabstop>pushButtonCancel</tabstop>
  </tabstops>
