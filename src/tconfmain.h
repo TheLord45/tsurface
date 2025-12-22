@@ -21,6 +21,9 @@
 #include <QString>
 #include <QDateTime>
 #include <QList>
+#include <QColor>
+
+#include "tpaneltypes.h"
 
 class QTreeView;
 class QStandardItemModel;
@@ -32,9 +35,12 @@ namespace ConfigMain
         bool protection{false};
         QString password;
         QString panelType;
+        QString revision;
         QString designer;
+        QString dealer;
         QString company;
         QString copyright;
+        QString comment;
         QDateTime date;
         QDateTime lastDate;
         QString logLevel;
@@ -111,7 +117,7 @@ class TConfMain : public QObject
         static TConfMain& Current();
 
         void setTreeView(QTreeView *tv) { mTreeView = tv; };
-        void createNew();
+        void createNew(const QString& file, const QString& pname);
         bool readMain(const QString& path);
 
         // Setter
@@ -126,6 +132,12 @@ class TConfMain : public QObject
         QTreeView *mTreeView{nullptr};
         QStandardItemModel *mItemModel{nullptr};
         bool mHaveModel{false};
+        QString mFileName;
+        QString mJobName;
+        QString mPageName;
+        TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
+        QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
+        QColor mColorText{qRgb(0, 0, 0)};
 };
 
 #endif // TCONFMAIN_H

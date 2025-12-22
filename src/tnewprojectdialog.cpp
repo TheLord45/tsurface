@@ -120,10 +120,46 @@ void TNewProjectDialog::init()
     ui->lineEditRevision->setText(mRevision);
 }
 
+QString TNewProjectDialog::getFileName()
+{
+    DECL_TRACER("TNewProjectDialog::getFileName()");
+
+    if (!mGenFile)
+        return mProjectName + ".tsf";
+
+    QString fileName;
+
+    if (!mDealer.isEmpty())
+    {
+        qsizetype pos;
+
+        if ((pos = mDealer.indexOf(' ')) != -1)
+            fileName += mDealer.first(pos);
+    }
+
+    if (!mProjectName.isEmpty())
+    {
+        if (!fileName.isEmpty())
+            fileName.append("_");
+
+        fileName.append(mProjectName);
+    }
+
+    if (!mRevision.isEmpty())
+    {
+        if (!fileName.isEmpty())
+            fileName.append("_");
+
+        fileName.append(mRevision);
+    }
+
+    fileName.append(".tsf");
+    MSG_DEBUG("Generated file name: " << fileName.toStdString());
+    return fileName;
+}
+
 void TNewProjectDialog::on_lineEditJobName_textChanged(const QString &arg1)
 {
-    DECL_TRACER("TNewProjectDialog::on_lineEditJobName_textChanged(const QString &arg1)");
-
     mProjectName = arg1;
 }
 
@@ -183,13 +219,18 @@ void TNewProjectDialog::on_comboBoxResolutions_currentIndexChanged(int index)
 void TNewProjectDialog::on_checkBoxGenFiles_stateChanged(int arg1)
 {
     DECL_TRACER("TNewProjectDialog::on_checkBoxGenFiles_stateChanged(int arg1)");
+
+    if (arg1 == Qt::Checked)
+        mGenFile = true;
+    else
+        mGenFile = false;
 }
 
 void TNewProjectDialog::on_pushButtonFinish_clicked()
 {
     DECL_TRACER("TNewProjectDialog::on_pushButtonFinish_clicked()");
 
-    if (mProjectName.isEmpty() && !ui->checkBoxGenFiles->isChecked())
+    if (mProjectName.isEmpty())
     {
         QMessageBox::critical(this, tr("Error"), tr("No project name defined!"), QMessageBox::Ok);
         return;
@@ -269,40 +310,30 @@ void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
 
 void TNewProjectDialog::on_lineEditDesigner_textChanged(const QString &arg1)
 {
-    DECL_TRACER("TNewProjectDialog::on_lineEditDesigner_textChanged(const QString &arg1)");
-
     mDesigner = arg1;
 }
 
 
 void TNewProjectDialog::on_lineEditDealer_textChanged(const QString &arg1)
 {
-    DECL_TRACER("TNewProjectDialog::on_lineEditDealer_textChanged(const QString &arg1)");
-
     mDealer = arg1;
 }
 
 
 void TNewProjectDialog::on_lineEditRevision_textChanged(const QString &arg1)
 {
-    DECL_TRACER("TNewProjectDialog::on_lineEditRevision_textChanged(const QString &arg1)");
-
     mRevision = arg1;
 }
 
 
 void TNewProjectDialog::on_plainTextEditComments_textChanged()
 {
-    DECL_TRACER("TNewProjectDialog::on_plainTextEditComments_textChanged()");
-
     mComment = ui->plainTextEditComments->toPlainText();
 }
 
 
 void TNewProjectDialog::on_lineEditPageName_textChanged(const QString &arg1)
 {
-    DECL_TRACER("TNewProjectDialog::on_lineEditPageName_textChanged(const QString &arg1)");
-
     mPageName = arg1;
 }
 

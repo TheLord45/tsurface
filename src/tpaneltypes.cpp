@@ -240,3 +240,34 @@ string TPanelType::getDescription(const string& name)
 
     return string();
 }
+
+QString TPanelType::getPanelName(PANELTYPE_t pn)
+{
+    DECL_TRACER("TPanelType::getPanelName(PANELTYPE_t pn)");
+
+    switch(pn)
+    {
+        case PAN_VARIA_SL50:    return "VARIA-SL50";
+        case PAN_VARIA_SL80:    return "VARIA-SL80";
+        case PAN_VARIA_80:      return "VARIA-80";
+        case PAN_VARIA_100:     return "VARIA-100";
+        case PAN_VARIA_150:     return "VARIA-150";
+        case PAN_MT_702:        return "MT-702";
+        case PAN_MD_702:        return "MD-702";
+        case PAN_MT_1002:       return "MT-1002";
+        case PAN_MD_1002:       return "MD-1002";
+        case PAN_MT_2002:       return "MT-1002";
+        case PAN_MXT_701:       return "MXT-701";
+        case PAN_MXD_701:       return "MXD-701";
+        case PAN_MXT_1001:      return "MXT-1001";
+        case PAN_MXD_1001:      return "MXD-1001";
+        case PAN_MXR_1001:      return "MXR-1001";
+        case PAN_MXT_1901_PAN:  return "MXT-1901-PAN";
+        case PAN_MXD_1901_PAN:  return "MXD-1901-PAN";
+        case PAN_MXT_2001_PAN:  return "MXT-2001-PAN";
+        case PAN_MXD_2001_PAN:  return "MXD-2001-PAN";
+        case PAN_THEOSYS:       return "THEOSYS";
+    }
+
+    return QString();
+}

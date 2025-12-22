@@ -51,9 +51,12 @@ TConfMain& TConfMain::Current()
     return *mCurrent;
 }
 
-void TConfMain::createNew()
+void TConfMain::createNew(const QString& file, const QString& pname)
 {
-    DECL_TRACER("TConfMain::createNew()");
+    DECL_TRACER("TConfMain::createNew(const QString& file, const QString& pname)");
+
+    mFileName = file;
+    mJobName = pname;
 
     if (mConfMain)
         delete mConfMain;
@@ -89,6 +92,29 @@ void TConfMain::createNew()
         mHaveModel = true;
         mTreeView->show();
     }
+}
+
+void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
+{
+    DECL_TRACER("TConfMain::setProjectInfo(const PROJECTINFO_t& pi)");
+
+    if (!mConfMain)
+        return;
+
+    mConfMain->projectInfo = pi;
+    QString head = mJobName + " [" + pi.panelType + "]";
+    QStandardItem *header = new QStandardItem(head);
+    mItemModel->setHorizontalHeaderItem(0, header);
+}
+
+void TConfMain::setSetup(const SETUP_t& setup)
+{
+    DECL_TRACER("TConfMain::setSetup(const SETUP_t& setup)");
+
+    if (!mConfMain)
+        return;
+
+    mConfMain->setup = setup;
 }
 
 bool TConfMain::readMain(const QString& path)

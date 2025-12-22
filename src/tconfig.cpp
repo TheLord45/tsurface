@@ -148,13 +148,13 @@ void TConfig::saveConfig()
     try
     {
         file.open(mConfigFile, ios::trunc | ios::out);
-        cout << "Last directory:  " << mLastDirectory << endl
-             << "Position left:   " << to_string(mPosition.left) << endl
-             << "Position top:    " << to_string(mPosition.top) << endl
-             << "Position width:  " << to_string(mPosition.width) << endl
-             << "Position height: " << to_string(mPosition.height) << endl
-             << "Log level:       " << mLogLevel << endl
-             << "Log file:        " << mLogFile << endl;
+        MSG_DEBUG("Last directory:  " << mLastDirectory << endl
+               << "Position left:   " << to_string(mPosition.left) << endl
+               << "Position top:    " << to_string(mPosition.top) << endl
+               << "Position width:  " << to_string(mPosition.width) << endl
+               << "Position height: " << to_string(mPosition.height) << endl
+               << "Log level:       " << mLogLevel << endl
+               << "Log file:        " << mLogFile);
 
         file << mLastDirectory << endl
              << to_string(mPosition.left) << endl

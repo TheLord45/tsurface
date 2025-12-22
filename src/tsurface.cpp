@@ -24,6 +24,7 @@
 #include "tsurfacereader.h"
 #include "tconfmain.h"
 #include "tnewprojectdialog.h"
+#include "tpaneltypes.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "ui_tsurface.h"
@@ -90,7 +91,20 @@ void TSurface::on_actionNew_triggered()
 
     TConfMain& cmain = TConfMain::Current();
     cmain.setTreeView(m_ui->treeViewPages);
-    cmain.createNew();
+    cmain.createNew(npd.getFileName(), npd.getPageName());
+    ConfigMain::PROJECTINFO_t projectInfo;
+    TPanelType tpType;
+    projectInfo.panelType = tpType.getPanelName(npd.getPanelType());
+    projectInfo.comment = npd.getComment();
+    projectInfo.company = "TheoSys";
+    projectInfo.dealer = npd.getDealer();
+    projectInfo.copyright = "(C) by TheoSys";
+    projectInfo.date = QDateTime::currentDateTime();
+    projectInfo.lastDate = QDateTime::currentDateTime();
+    projectInfo.revision = npd.getRevision();
+    projectInfo.logLevel = "PROTOCOL";
+    projectInfo.protection = false;
+    cmain.setProjectInfo(projectInfo);
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

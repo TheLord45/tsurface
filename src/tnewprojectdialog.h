@@ -38,6 +38,7 @@ class TNewProjectDialog : public QDialog
 
         void init();
 
+        QString getFileName();
         QString& getProjectName() { return mProjectName; }
         void setProjectName(const QString& name) { mProjectName = name; }
         QString& getPanelName() { return mPanelName; }
@@ -91,6 +92,7 @@ class TNewProjectDialog : public QDialog
         QString mPanelName;
         TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QString mPageName;
+        bool mGenFile{false};
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
         QFont mFont;

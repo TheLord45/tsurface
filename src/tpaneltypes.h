@@ -69,6 +69,8 @@ class TPanelType
             PAN_THEOSYS
         }PANELTYPE_t;
 
+        QString getPanelName(PANELTYPE_t pn);
+
     private:
         std::map<std::string, RESOLUTION_t> mResolutions;
 };
