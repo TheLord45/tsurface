@@ -24,7 +24,6 @@
 #include "tnewprojectdialog.h"
 #include "ui_tnewprojectdialog.h"
 
-#include "tpaneltypes.h"
 #include "terror.h"
 
 using std::string;
@@ -39,6 +38,8 @@ TNewProjectDialog::TNewProjectDialog(QWidget *parent)
 
     ui->setupUi(this);
     ui->labelDescription->setWordWrap(true);
+    ui->lineEditPageName->setText("Main");
+    mParent = parent;
     mColorBackground = palette().color(QPalette::Base);
     mColorText = palette().color(QPalette::Text);
     ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
@@ -95,7 +96,28 @@ void TNewProjectDialog::init()
 {
     DECL_TRACER("TNewProjectDialog::init()");
 
+    ui->lineEditJobName->setText(mProjectName);
+    ui->lineEditPageName->setText(mPageName);
+    ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
+    MSG_DEBUG("Backgroud color: \"background-color: " << mColorBackground.name().toStdString() << "\"");
+    ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
+    MSG_DEBUG("Text color: \"background-color: " << mColorText.name().toStdString() << "\"");
+    mFont.setPointSize(mSize);
+    MSG_DEBUG("Current font: " << mFont.family().toStdString() << " (" << mSize << ")");
 
+    for (int i = 0; i < ui->comboBoxSize->count(); ++i)
+    {
+        if (i == mSize)
+        {
+            ui->comboBoxSize->setCurrentIndex(i);
+            break;
+        }
+    }
+
+    on_comboBoxPanelTypes_currentIndexChanged(mPanType);
+    ui->lineEditDealer->setText(mDealer);
+    ui->lineEditDesigner->setText(mDesigner);
+    ui->lineEditRevision->setText(mRevision);
 }
 
 void TNewProjectDialog::on_lineEditJobName_textChanged(const QString &arg1)

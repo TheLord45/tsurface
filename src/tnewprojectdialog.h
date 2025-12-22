@@ -20,6 +20,8 @@
 
 #include <QDialog>
 
+#include "tpaneltypes.h"
+
 namespace Ui {
 class TNewProjectDialog;
 }
@@ -40,6 +42,8 @@ class TNewProjectDialog : public QDialog
         void setProjectName(const QString& name) { mProjectName = name; }
         QString& getPanelName() { return mPanelName; }
         void setPanelName(const QString& name) { mPanelName = name; }
+        TPanelType::PANELTYPE_t getPanelType() { return mPanType; }
+        void setPanType(const TPanelType::PANELTYPE_t& pt) { mPanType = pt; }
         QSize& getResolution() { return mResolution; }
         QString& getPageName() { return mPageName; }
         void setPageName(const QString& text) { mPageName = text; }
@@ -79,14 +83,16 @@ class TNewProjectDialog : public QDialog
 
     private:
         Ui::TNewProjectDialog *ui;
+        QWidget *mParent{nullptr};
         TPanelType *mPanelType{nullptr};
         std::vector<QSize> mResolutions;
         bool mInitialized{false};
         QString mProjectName;
         QString mPanelName;
+        TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QString mPageName;
-        QColor mColorBackground;
-        QColor mColorText;
+        QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
+        QColor mColorText{qRgb(0, 0, 0)};
         QFont mFont;
         int mSize{10};
         QSize mResolution;

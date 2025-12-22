@@ -45,6 +45,30 @@ class TPanelType
         std::string getDescription(const std::string&name);
         QString getDescription(const QString& name) { return QString::fromStdString(getDescription(name.toStdString())); }
 
+        typedef enum
+        {
+            PAN_VARIA_SL50,
+            PAN_VARIA_SL80,
+            PAN_VARIA_80,
+            PAN_VARIA_100,
+            PAN_VARIA_150,
+            PAN_MT_702,
+            PAN_MD_702,
+            PAN_MT_1002,
+            PAN_MD_1002,
+            PAN_MT_2002,
+            PAN_MXT_701,
+            PAN_MXD_701,
+            PAN_MXT_1001,
+            PAN_MXD_1001,
+            PAN_MXR_1001,
+            PAN_MXT_1901_PAN,
+            PAN_MXD_1901_PAN,
+            PAN_MXT_2001_PAN,
+            PAN_MXD_2001_PAN,
+            PAN_THEOSYS
+        }PANELTYPE_t;
+
     private:
         std::map<std::string, RESOLUTION_t> mResolutions;
 };
