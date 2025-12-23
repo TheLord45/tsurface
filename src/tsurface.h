@@ -21,6 +21,7 @@
 #include <QMainWindow>
 
 #include <memory>
+#include <vector>
 
 namespace Ui {
 class tsurface;
@@ -44,6 +45,9 @@ class TSurface : public QMainWindow
     private:
         const std::unique_ptr<Ui::tsurface> m_ui;
         QString mLastOpenPath;
+        bool mProjectChanged{false};
+        bool mHaveProject{false};
+        std::vector<QWidget *> mPageWidgets;
 };
 
 #endif // TSURFACE_H

@@ -19,6 +19,8 @@
 
 #include <QFileDialog>
 #include <QResizeEvent>
+#include <QMessageBox>
+#include <QMdiSubWindow>
 
 #include "tsurface.h"
 #include "tsurfacereader.h"
@@ -79,10 +81,41 @@ void TSurface::on_actionOpen_triggered()
     }
 }
 
+/**
+ * @brief TSurface::on_actionNew_triggered
+ * Opens a dialog box to enter the data for a new project. If there's
+ * already a project open, it will be closed. In case the open project
+ * has unsaved state, the user is asked whether it should be saved or
+ * not.
+ */
 void TSurface::on_actionNew_triggered()
 {
     DECL_TRACER("TSurface::on_actionNew_triggered()");
 
+    if (mProjectChanged)
+    {
+        int button = QMessageBox::question(this, tr("Unsaved changes"), tr("<b>There are unsaved changes in this project!</b><br>Do you want to save the project?"));
+
+        if (button == QMessageBox::Yes)
+            TConfMain::Current().saveProject();
+
+        m_ui->mdiArea->closeAllSubWindows();
+        TConfMain::Current().reset();
+        mProjectChanged = false;
+    }
+    else if (mHaveProject)
+    {
+        int button = QMessageBox::question(this, tr("Open project"), tr("Do you want to close the current project?"));
+
+        if (button == QMessageBox::No)
+            return;
+
+        m_ui->mdiArea->closeAllSubWindows();
+        TConfMain::Current().reset();
+        mHaveProject = false;
+    }
+
+    mPageWidgets.clear();
     TNewProjectDialog npd(this);
     int ret = npd.exec();
 
@@ -91,7 +124,7 @@ void TSurface::on_actionNew_triggered()
 
     TConfMain& cmain = TConfMain::Current();
     cmain.setTreeView(m_ui->treeViewPages);
-    cmain.createNew(npd.getFileName(), npd.getPageName());
+    cmain.createNew(npd.getFileName(), npd.getProjectName(), npd.getPageName());
     ConfigMain::PROJECTINFO_t projectInfo;
     TPanelType tpType;
     projectInfo.panelType = tpType.getPanelName(npd.getPanelType());
@@ -105,6 +138,19 @@ void TSurface::on_actionNew_triggered()
     projectInfo.logLevel = "PROTOCOL";
     projectInfo.protection = false;
     cmain.setProjectInfo(projectInfo);
+    // Add main page to MDI
+    QWidget *widget = new QWidget;
+    widget->setWindowTitle(npd.getPageName());
+    widget->setFixedSize(npd.getResolution());
+    widget->setStyleSheet("background-color: " + npd.getColorBackground().name() + ";color: " + npd.getColorText().name()+ ";");
+    mPageWidgets.push_back(widget);
+    QMdiSubWindow *page = new QMdiSubWindow;
+    page->setWidget(widget);
+    page->setAttribute(Qt::WA_DeleteOnClose);
+    m_ui->mdiArea->addSubWindow(page);
+    widget->activateWindow();
+    widget->show();
+    mHaveProject = true;
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

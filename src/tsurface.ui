@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1112</width>
-    <height>791</height>
+    <width>1054</width>
+    <height>1027</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1111</width>
-      <height>721</height>
+      <width>1988</width>
+      <height>962</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -39,6 +39,12 @@
       </property>
       <item>
        <widget class="QLabel" name="labelWorkspace">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <pointsize>8</pointsize>
@@ -54,6 +60,12 @@
       </item>
       <item>
        <widget class="QTabWidget" name="tabWidgetWorkspace">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>200</width>
@@ -72,16 +84,24 @@
          <attribute name="title">
           <string>Pages</string>
          </attribute>
-         <widget class="QTreeView" name="treeViewPages">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>231</width>
-            <height>251</height>
-           </rect>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QTreeView" name="treeViewPages">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>200</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tabFunctionMap">
          <property name="sizePolicy">
@@ -93,21 +113,35 @@
          <attribute name="title">
           <string>Function map</string>
          </attribute>
-         <widget class="QTreeView" name="treeViewFunctionMap">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>231</width>
-            <height>251</height>
-           </rect>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QTreeView" name="treeViewFunctionMap">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>200</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="labelProperties">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <pointsize>8</pointsize>
@@ -137,6 +171,12 @@
       </item>
       <item>
        <widget class="QTabWidget" name="tabWidgetProperties">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>200</width>
@@ -155,31 +195,47 @@
          <attribute name="title">
           <string>Programming</string>
          </attribute>
-         <widget class="QColumnView" name="columnViewProgramming">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>231</width>
-            <height>251</height>
-           </rect>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QColumnView" name="columnViewProgramming">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>200</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tabGeneral">
          <attribute name="title">
           <string>General</string>
          </attribute>
-         <widget class="QColumnView" name="columnViewGeneral">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>231</width>
-            <height>251</height>
-           </rect>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QColumnView" name="columnViewGeneral">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>200</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tabStates">
          <attribute name="title">
@@ -224,10 +280,13 @@
          <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
         </property>
         <property name="tabsClosable">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="tabsMovable">
          <bool>true</bool>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::TabPosition::South</enum>
         </property>
        </widget>
       </item>
@@ -240,7 +299,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1112</width>
+     <width>1054</width>
      <height>22</height>
     </rect>
    </property>

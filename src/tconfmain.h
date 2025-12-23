@@ -117,8 +117,10 @@ class TConfMain : public QObject
         static TConfMain& Current();
 
         void setTreeView(QTreeView *tv) { mTreeView = tv; };
-        void createNew(const QString& file, const QString& pname);
+        void createNew(const QString& file, const QString& pname, const QString& project);
         bool readMain(const QString& path);
+        void saveProject();
+        void reset();
 
         // Setter
         void setProjectInfo(const ConfigMain::PROJECTINFO_t& pi);

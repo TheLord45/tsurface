@@ -51,9 +51,18 @@ TConfMain& TConfMain::Current()
     return *mCurrent;
 }
 
-void TConfMain::createNew(const QString& file, const QString& pname)
+/**
+ * @brief TConfMain::createNew
+ * Creates a new, empty project. It initializes the tree in the Pages tree view.
+ * If there exists already a project it is closed silently and a new project is
+ * allocated.
+ *
+ * @param file      The file name of the project
+ * @param pname     The name of the project
+ */
+void TConfMain::createNew(const QString& file, const QString& pname, const QString& project)
 {
-    DECL_TRACER("TConfMain::createNew(const QString& file, const QString& pname)");
+    DECL_TRACER("TConfMain::createNew(const QString& file, const QString& pname, const QString& project)");
 
     mFileName = file;
     mJobName = pname;
@@ -74,12 +83,21 @@ void TConfMain::createNew(const QString& file, const QString& pname)
 
     if (!mItemModel)
         mItemModel = new QStandardItemModel;
+    else
+        mItemModel->clear();
 
     QStandardItem *parentItem = mItemModel->invisibleRootItem();
+    // Folder Pages
     QStandardItem *pages = new QStandardItem(tr("Pages"));
     pages->setEditable(false);
     pages->setData(1);
+    // Page
+    QStandardItem *pageMain = new QStandardItem(project);
+    pageMain->setEditable(false);
+    pages->appendRow(pageMain);
+    // Add page to folder Pages
     parentItem->appendRow(pages);
+    // Folder Popup Pages
     QStandardItem *subpages = new QStandardItem(tr("Popup pages"));
     pages->setEditable(false);
     pages->setData(2);
@@ -92,6 +110,8 @@ void TConfMain::createNew(const QString& file, const QString& pname)
         mHaveModel = true;
         mTreeView->show();
     }
+
+    mTreeView->expandAll();
 }
 
 void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
@@ -123,3 +143,23 @@ bool TConfMain::readMain(const QString& path)
 
     return false;
 }
+
+void TConfMain::saveProject()
+{
+    DECL_TRACER("TConfMain::saveProject()");
+}
+
+void TConfMain::reset()
+{
+    DECL_TRACER("TConfMain::reset()");
+
+    if (!mConfMain)
+        return;
+
+    delete mConfMain;
+    mConfMain = new CONFMAIN_t;
+
+    if (mItemModel)
+        mItemModel->clear();
+}
+
