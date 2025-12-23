@@ -27,6 +27,7 @@
 #include "tconfmain.h"
 #include "tnewprojectdialog.h"
 #include "tpaneltypes.h"
+#include "tpagetree.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "ui_tsurface.h"
@@ -61,6 +62,9 @@ TSurface::~TSurface()
     TConfig::Current().saveConfig();
 }
 
+/*
+ * Menu callback methods
+ */
 void TSurface::on_actionOpen_triggered()
 {
     DECL_TRACER("TSurface::on_actionOpen_triggered()");
@@ -123,8 +127,6 @@ void TSurface::on_actionNew_triggered()
         return;
 
     TConfMain& cmain = TConfMain::Current();
-    cmain.setTreeView(m_ui->treeViewPages);
-    cmain.createNew(npd.getFileName(), npd.getProjectName(), npd.getPageName());
     ConfigMain::PROJECTINFO_t projectInfo;
     TPanelType tpType;
     projectInfo.panelType = tpType.getPanelName(npd.getPanelType());
@@ -138,10 +140,14 @@ void TSurface::on_actionNew_triggered()
     projectInfo.logLevel = "PROTOCOL";
     projectInfo.protection = false;
     cmain.setProjectInfo(projectInfo);
+    // Create tree menu
+    TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
+    connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
     QWidget *widget = new QWidget;
     widget->setWindowTitle(npd.getPageName());
     widget->setFixedSize(npd.getResolution());
+    widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + npd.getColorBackground().name() + ";color: " + npd.getColorText().name()+ ";");
     mPageWidgets.push_back(widget);
     QMdiSubWindow *page = new QMdiSubWindow;
@@ -151,6 +157,13 @@ void TSurface::on_actionNew_triggered()
     widget->activateWindow();
     widget->show();
     mHaveProject = true;
+}
+
+void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)
+{
+    DECL_TRACER("TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)");
+
+    MSG_DEBUG("Toggle: Type: " << wt << ", Number: " << num << ", Name: " << name.toStdString());
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

@@ -26,6 +26,8 @@ qt_add_executable(tsurface
     tnewprojectdialog.ui
     tpaneltypes.cpp
     tpaneltypes.h
+    tpagetree.cpp
+    tpagetree.h
     tsurface.qrc
 )
 

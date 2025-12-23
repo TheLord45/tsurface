@@ -72,46 +72,6 @@ void TConfMain::createNew(const QString& file, const QString& pname, const QStri
 
     mConfMain = new CONFMAIN_t;
 
-    if (!mTreeView)
-    {
-        MSG_WARNING("There is no tree view set. Can't update the tree of pages!");
-        return;
-    }
-
-    // If there exists already a tree model, we must delete it first.
-    mTreeView->reset();
-
-    if (!mItemModel)
-        mItemModel = new QStandardItemModel;
-    else
-        mItemModel->clear();
-
-    QStandardItem *parentItem = mItemModel->invisibleRootItem();
-    // Folder Pages
-    QStandardItem *pages = new QStandardItem(tr("Pages"));
-    pages->setEditable(false);
-    pages->setData(1);
-    // Page
-    QStandardItem *pageMain = new QStandardItem(project);
-    pageMain->setEditable(false);
-    pages->appendRow(pageMain);
-    // Add page to folder Pages
-    parentItem->appendRow(pages);
-    // Folder Popup Pages
-    QStandardItem *subpages = new QStandardItem(tr("Popup pages"));
-    pages->setEditable(false);
-    pages->setData(2);
-    parentItem->appendRow(subpages);
-
-    if (!mHaveModel)
-        mTreeView->setModel(mItemModel);
-    else
-    {
-        mHaveModel = true;
-        mTreeView->show();
-    }
-
-    mTreeView->expandAll();
 }
 
 void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
@@ -122,9 +82,6 @@ void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
         return;
 
     mConfMain->projectInfo = pi;
-    QString head = mJobName + " [" + pi.panelType + "]";
-    QStandardItem *header = new QStandardItem(head);
-    mItemModel->setHorizontalHeaderItem(0, header);
 }
 
 void TConfMain::setSetup(const SETUP_t& setup)
@@ -157,9 +114,6 @@ void TConfMain::reset()
         return;
 
     delete mConfMain;
-    mConfMain = new CONFMAIN_t;
-
-    if (mItemModel)
-        mItemModel->clear();
+    mConfMain = nullptr;
 }
 

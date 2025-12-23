@@ -25,9 +25,6 @@
 
 #include "tpaneltypes.h"
 
-class QTreeView;
-class QStandardItemModel;
-
 namespace ConfigMain
 {
     typedef struct PROJECTINFO_t
@@ -106,17 +103,14 @@ namespace ConfigMain
     }CONFMAIN_t;
 };
 
-class TConfMain : public QObject
+class TConfMain
 {
-    Q_OBJECT
-
     public:
         TConfMain();
         ~TConfMain();
 
         static TConfMain& Current();
 
-        void setTreeView(QTreeView *tv) { mTreeView = tv; };
         void createNew(const QString& file, const QString& pname, const QString& project);
         bool readMain(const QString& path);
         void saveProject();
@@ -131,9 +125,6 @@ class TConfMain : public QObject
         static TConfMain *mCurrent;
 
         ConfigMain::CONFMAIN_t *mConfMain{nullptr};
-        QTreeView *mTreeView{nullptr};
-        QStandardItemModel *mItemModel{nullptr};
-        bool mHaveModel{false};
         QString mFileName;
         QString mJobName;
         QString mPageName;

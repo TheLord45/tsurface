@@ -23,6 +23,8 @@
 #include <memory>
 #include <vector>
 
+#include "tpagetree.h"
+
 namespace Ui {
 class tsurface;
 }
@@ -37,6 +39,7 @@ class TSurface : public QMainWindow
 
     protected:
         void resizeEvent(QResizeEvent *event) override;
+        void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
 
     private slots:
         void on_actionOpen_triggered();
