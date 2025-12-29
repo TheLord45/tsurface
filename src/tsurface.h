@@ -29,6 +29,16 @@ namespace Ui {
 class tsurface;
 }
 
+class winCloseEater : public QObject
+{
+    Q_OBJECT
+    public:
+        winCloseEater() {}
+
+    protected:
+        bool eventFilter(QObject *obj, QEvent *event) override;
+};
+
 class TSurface : public QMainWindow
 {
     Q_OBJECT
@@ -40,6 +50,7 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
+        void onCloseEvent(QCloseEvent *event);
 
     private slots:
         void on_actionOpen_triggered();

@@ -28,6 +28,7 @@
 #include "tnewprojectdialog.h"
 #include "tpaneltypes.h"
 #include "tpagetree.h"
+#include "tpagehandler.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "ui_tsurface.h"
@@ -36,6 +37,48 @@
 namespace fs = std::filesystem;
 using std::cout;
 using std::endl;
+
+bool winCloseEater::eventFilter(QObject *obj, QEvent *event)
+{
+    switch (event->type())
+    {
+        case QEvent::Close:
+        {
+            MSG_DEBUG("Close event triggered ...");
+            QMdiSubWindow *subWindow = dynamic_cast<QMdiSubWindow*>(obj);
+
+            if (subWindow == nullptr)
+                return QObject::eventFilter(obj, event);
+
+            // Get widget and substract number fron obhect name
+            QWidget *widget = subWindow->widget();
+            MSG_DEBUG("Grabbing widget from subwindow ...");
+
+            if (widget == nullptr)
+                return QObject::eventFilter(obj, event);
+
+            QString objName = widget->objectName();
+            MSG_DEBUG("Got object name: " << objName.toStdString());
+            qsizetype pos = objName.lastIndexOf('_');
+
+            if (pos > 0)
+            {
+                MSG_DEBUG("Found _ at: " << pos);
+                int id = objName.remove(0, pos).toInt();
+                MSG_DEBUG("ID: " << id);
+
+                if (id > 0)
+                    TPageHandler::Current().setVisible(id, false);
+            }
+        }
+        break;
+
+        default:
+            qt_noop();
+    }
+
+    return QObject::eventFilter(obj, event);
+}
 
 TSurface::TSurface(QWidget *parent)
     : QMainWindow(parent),
@@ -62,8 +105,15 @@ TSurface::~TSurface()
     TConfig::Current().saveConfig();
 }
 
-/*
- * Menu callback methods
+//
+// Menu callback methods
+//
+/**
+ * @brief TSurface::on_actionOpen_triggered
+ * This method is triggered when the user pressed in the menu @bold File on the
+ * point @bold Open.
+ * It shows a file dialog where the user can select a file. If the file is one
+ * of the supported formats, then it is opened and the structures are filled.
  */
 void TSurface::on_actionOpen_triggered()
 {
@@ -144,18 +194,26 @@ void TSurface::on_actionNew_triggered()
     TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
     connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
+    winCloseEater *wce = new winCloseEater;
     QWidget *widget = new QWidget;
     widget->setWindowTitle(npd.getPageName());
     widget->setFixedSize(npd.getResolution());
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + npd.getColorBackground().name() + ";color: " + npd.getColorText().name()+ ";");
-    mPageWidgets.push_back(widget);
+    widget->installEventFilter(wce);
+    int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, npd.getPageName(), npd.getResolution().width(), npd.getResolution().height());
+    TPageHandler::Current().setPageBgColor(id, npd.getColorBackground());
+    TPageHandler::Current().setPageTextColor(id, npd.getColorText());
+    QString objName("QWidgetMDI_");
+    objName.append(QString::number(id));
     QMdiSubWindow *page = new QMdiSubWindow;
     page->setWidget(widget);
     page->setAttribute(Qt::WA_DeleteOnClose);
+    page->installEventFilter(wce);
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
     widget->show();
+    TPageHandler::Current().setVisible(id, true);
     mHaveProject = true;
 }
 
@@ -164,6 +222,56 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     DECL_TRACER("TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)");
 
     MSG_DEBUG("Toggle: Type: " << wt << ", Number: " << num << ", Name: " << name.toStdString());
+    QWidget *widget = TPageHandler::Current().getWidget(num);
+
+    if (!widget)
+        return;
+
+    if (TPageHandler::Current().isVisible(num))
+    {
+        QList<QMdiSubWindow *> swList = m_ui->mdiArea->subWindowList();
+        QList<QMdiSubWindow *>::Iterator iter;
+
+        for (iter = swList.begin(); iter != swList.end(); ++iter)
+        {
+            QMdiSubWindow *sw = *iter;
+
+            if (sw->widget() == widget)
+            {
+                m_ui->mdiArea->setActiveSubWindow(sw);
+                m_ui->mdiArea->closeActiveSubWindow();
+                TPageHandler::Current().setVisible(num, false);
+                break;
+            }
+        }
+    }
+    else
+    {
+        Page::PAGE_t pg = TPageHandler::Current().getPage(num);
+        widget = new QWidget;
+        widget->setWindowTitle(name);
+        widget->setFixedSize(QSize(pg.width, pg.height));
+        widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+        widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");
+        int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, name, pg.width, pg.height);
+        QString objName("QWidgetMDI_");
+        objName.append(QString::number(id));
+        widget->setObjectName(objName);
+
+        QMdiSubWindow *page = new QMdiSubWindow;
+        page->setWidget(widget);
+        page->setAttribute(Qt::WA_DeleteOnClose);
+        m_ui->mdiArea->addSubWindow(page);
+        widget->activateWindow();
+        widget->show();
+        TPageHandler::Current().setVisible(num, true);
+    }
+}
+
+void TSurface::onCloseEvent(QCloseEvent *event)
+{
+    DECL_TRACER("TSurface::onCloseEvent(QCloseEvent *event)");
+
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

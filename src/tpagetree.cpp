@@ -22,6 +22,7 @@
 #include <QCursor>
 
 #include "tpagetree.h"
+#include "tpagehandler.h"
 #include "terror.h"
 
 TPageTree *TPageTree::mCurrent{nullptr};
@@ -69,7 +70,7 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
     if (mTreeView && tv && mTreeView != tv)
     {
         mTreeView->reset();
-        disconnect(mTreeView, &QTreeView::clicked, this, &TPageTree::onClicked);
+        disconnect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
         disconnect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
         delete mTreeView;
         mTreeView = tv;
@@ -130,7 +131,7 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
     }
 
     mTreeView->expandAll();
-    connect(mTreeView, &QTreeView::clicked, this, &TPageTree::onClicked);
+    connect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
 }
 
@@ -161,8 +162,8 @@ void TPageTree::onClicked(const QModelIndex& index)
     int menu = item->data().toInt();
     MSG_DEBUG("Menu " << menu << " was clicked.");
 
-//    if (QGuiApplication::mouseButtons() != Qt::RightButton)
-//        return;
+    if (QGuiApplication::mouseButtons() != Qt::RightButton)
+        return;
 
     if (menu >= MENU_PAGE && menu <= MENU_APPS)
     {

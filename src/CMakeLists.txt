@@ -13,22 +13,24 @@ qt_add_executable(tsurface
     main.cpp
     tsurface.ui
     tsurface.cpp
+    tsurface.qrc
     tsurfacereader.cpp
     tsurfacereader.h
     terror.cpp
     terror.h
-    tconfig.h
     tconfig.cpp
-    tconfmain.h
+    tconfig.h
     tconfmain.cpp
-    tnewprojectdialog.h
+    tconfmain.h
     tnewprojectdialog.cpp
+    tnewprojectdialog.h
     tnewprojectdialog.ui
-    tpaneltypes.cpp
     tpaneltypes.h
-    tpagetree.cpp
+    tpaneltypes.cpp
     tpagetree.h
-    tsurface.qrc
+    tpagetree.cpp
+    tpagehandler.cpp
+    tpagehandler.h
 )
 
 # Use the Widgets module from Qt 6.

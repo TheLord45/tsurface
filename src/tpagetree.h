@@ -20,10 +20,12 @@
 #define TPAGETREE_H
 
 #include <QString>
+#include <QObject>
 
 class QTreeView;
 class QStandardItemModel;
 class QMenu;
+class QModelIndex;
 
 class TPageTree : public QObject
 {
