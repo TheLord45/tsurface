@@ -50,7 +50,6 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
-        void onCloseEvent(QCloseEvent *event);
 
     private slots:
         void on_actionOpen_triggered();
@@ -62,6 +61,7 @@ class TSurface : public QMainWindow
         bool mProjectChanged{false};
         bool mHaveProject{false};
         std::vector<QWidget *> mPageWidgets;
+        winCloseEater *mCloseEater{nullptr};
 };
 
 #endif // TSURFACE_H

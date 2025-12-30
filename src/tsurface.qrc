@@ -19,5 +19,12 @@
         <file>images/varia-150.png</file>
         <file>images/varia-sl50.png</file>
         <file>images/varia-sl80.png</file>
+        <file>images/tsurface_16.png</file>
+        <file>images/tsurface_32.png</file>
+        <file>images/tsurface_64.png</file>
+        <file>images/tsurface_128.png</file>
+        <file>images/tsurface_256.png</file>
+        <file>images/tsurface_512.png</file>
+        <file>images/tsurface_1024.png</file>
     </qresource>
 </RCC>

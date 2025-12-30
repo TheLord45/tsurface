@@ -64,7 +64,7 @@ bool winCloseEater::eventFilter(QObject *obj, QEvent *event)
             if (pos > 0)
             {
                 MSG_DEBUG("Found _ at: " << pos);
-                int id = objName.remove(0, pos).toInt();
+                int id = objName.remove(0, pos+1).toInt();
                 MSG_DEBUG("ID: " << id);
 
                 if (id > 0)
@@ -90,6 +90,9 @@ TSurface::TSurface(QWidget *parent)
     // Get the last position and size of the main window and set it.
     TConfig::WINSIZE_t ws = TConfig::Current().getLastPosition();
     setGeometry(QRect(ws.left, ws.top, ws.width, ws.height));
+    mCloseEater = new winCloseEater;
+    setWindowIcon(QIcon(":images/tsurface_512.png"));
+    setUnifiedTitleAndToolBarOnMac(true);
 }
 
 TSurface::~TSurface()
@@ -103,6 +106,9 @@ TSurface::~TSurface()
     ws.height = geometry().height();
     TConfig::Current().setLastPosition(ws);
     TConfig::Current().saveConfig();
+
+    if (mCloseEater)
+        delete mCloseEater;
 }
 
 //
@@ -194,22 +200,23 @@ void TSurface::on_actionNew_triggered()
     TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
     connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
-    winCloseEater *wce = new winCloseEater;
     QWidget *widget = new QWidget;
     widget->setWindowTitle(npd.getPageName());
     widget->setFixedSize(npd.getResolution());
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + npd.getColorBackground().name() + ";color: " + npd.getColorText().name()+ ";");
-    widget->installEventFilter(wce);
+    widget->installEventFilter(mCloseEater);
     int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, npd.getPageName(), npd.getResolution().width(), npd.getResolution().height());
     TPageHandler::Current().setPageBgColor(id, npd.getColorBackground());
     TPageHandler::Current().setPageTextColor(id, npd.getColorText());
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
+    widget->setObjectName(objName);
     QMdiSubWindow *page = new QMdiSubWindow;
     page->setWidget(widget);
     page->setAttribute(Qt::WA_DeleteOnClose);
-    page->installEventFilter(wce);
+    page->installEventFilter(mCloseEater);
+    page->setWindowIcon(QIcon(":images/tsurface_512.png"));
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
     widget->show();
@@ -229,6 +236,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
 
     if (TPageHandler::Current().isVisible(num))
     {
+        MSG_DEBUG("Window is visible. Closing it ...");
         QList<QMdiSubWindow *> swList = m_ui->mdiArea->subWindowList();
         QList<QMdiSubWindow *>::Iterator iter;
 
@@ -247,6 +255,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     }
     else
     {
+        MSG_DEBUG("Window is not visible. Generating it ...")
         Page::PAGE_t pg = TPageHandler::Current().getPage(num);
         widget = new QWidget;
         widget->setWindowTitle(name);
@@ -257,21 +266,19 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         QString objName("QWidgetMDI_");
         objName.append(QString::number(id));
         widget->setObjectName(objName);
+        widget->installEventFilter(mCloseEater);
+        MSG_DEBUG("Object name: " << objName.toStdString());
 
         QMdiSubWindow *page = new QMdiSubWindow;
         page->setWidget(widget);
         page->setAttribute(Qt::WA_DeleteOnClose);
+        page->installEventFilter(mCloseEater);
+        page->setWindowIcon(QIcon(":images/tsurface_512.png"));
         m_ui->mdiArea->addSubWindow(page);
         widget->activateWindow();
         widget->show();
         TPageHandler::Current().setVisible(num, true);
     }
-}
-
-void TSurface::onCloseEvent(QCloseEvent *event)
-{
-    DECL_TRACER("TSurface::onCloseEvent(QCloseEvent *event)");
-
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

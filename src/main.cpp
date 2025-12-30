@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
     TConfig::Current().setProgName(pname);
 
     QApplication app(argc, argv);
+    app.setApplicationDisplayName("TSurface");
+    app.setApplicationVersion(VERSION_STRING());
 
     TSurface w;
     w.show();
