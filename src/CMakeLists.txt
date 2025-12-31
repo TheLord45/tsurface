@@ -31,7 +31,9 @@ qt_add_executable(tsurface
     tpagetree.cpp
     tpagehandler.cpp
     tpagehandler.h
-    tprojectproperties.h tprojectproperties.cpp tprojectproperties.ui
+    tprojectproperties.cpp
+    tprojectproperties.h
+    tprojectproperties.ui
 )
 
 # Use the Widgets module from Qt 6.

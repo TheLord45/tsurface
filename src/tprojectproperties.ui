@@ -24,103 +24,100 @@
        <string>Project Information</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_2">
-       <item row="9" column="0">
-        <layout class="QFormLayout" name="formLayout"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit"/>
-       </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="labelJobName">
          <property name="text">
           <string>Job name</string>
          </property>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lineEditJobName"/>
+       </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="labelDesignerID">
          <property name="text">
           <string>Designer ID</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_2"/>
+        <widget class="QLineEdit" name="lineEditDesignerID"/>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="labelDealerID">
          <property name="text">
           <string>Dealer ID</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit_3"/>
+        <widget class="QLineEdit" name="lineEditDealerID"/>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="labelCreated">
          <property name="text">
           <string>Created</string>
          </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="labelDateCreated">
          <property name="text">
           <string>Date</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="labelModified">
          <property name="text">
           <string>Modified</string>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="labelDateModified">
          <property name="text">
           <string>Date</string>
          </property>
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="labelFileRevision">
          <property name="text">
           <string>File Revision</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEdit_4"/>
+        <widget class="QLineEdit" name="lineEditFileRevision"/>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="labelFileName">
          <property name="text">
           <string>File name</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="labelShowFileName">
          <property name="text">
           <string>File name</string>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_11">
+        <widget class="QLabel" name="labelJobComments">
          <property name="text">
           <string>Job Comments</string>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QPlainTextEdit" name="plainTextEdit"/>
+        <widget class="QPlainTextEdit" name="plainTextEditJobComments"/>
        </item>
        <item row="8" column="0" colspan="2">
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="checkBoxSysFileName">
          <property name="text">
           <string>Use system generated file name for this project</string>
          </property>
@@ -133,13 +130,34 @@
        <string>Panel Setup Information</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_4">
-       <item row="2" column="0">
-        <layout class="QFormLayout" name="formLayout_3"/>
-       </item>
+       <property name="formAlignment">
+        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+       </property>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="labelShowPanelIcon">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::LeftToRight</enum>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Sunken</enum>
+         </property>
+         <property name="lineWidth">
+          <number>3</number>
+         </property>
          <property name="text">
-          <string>TextLabel</string>
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -149,58 +167,55 @@
           <string>Panel Strings</string>
          </property>
          <layout class="QFormLayout" name="formLayout_6">
-          <item row="5" column="0">
-           <layout class="QFormLayout" name="formLayout_5"/>
-          </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_13">
+           <widget class="QLabel" name="labelStartup">
             <property name="text">
              <string>Startup</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit_5"/>
+           <widget class="QLineEdit" name="lineEditStartup"/>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
+           <widget class="QLabel" name="labelWakup">
             <property name="text">
              <string>Wakeup</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit_6"/>
+           <widget class="QLineEdit" name="lineEditWakeup"/>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_15">
+           <widget class="QLabel" name="labelSleep">
             <property name="text">
              <string>Sleep</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLineEdit" name="lineEdit_7"/>
+           <widget class="QLineEdit" name="lineEditSleep"/>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_16">
+           <widget class="QLabel" name="labelStandBy">
             <property name="text">
              <string>Stand-By</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLineEdit" name="lineEdit_8"/>
+           <widget class="QLineEdit" name="lineEditStandBy"/>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_17">
+           <widget class="QLabel" name="labelShutdown">
             <property name="text">
              <string>Shutdown</string>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLineEdit" name="lineEdit_9"/>
+           <widget class="QLineEdit" name="lineEditShutdown"/>
           </item>
          </layout>
         </widget>
@@ -220,32 +235,29 @@
           <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QFormLayout" name="formLayout_8">
-          <item row="2" column="0">
-           <layout class="QFormLayout" name="formLayout_7"/>
-          </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_18">
+           <widget class="QLabel" name="labelPanelType">
             <property name="text">
              <string>Panel Type</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="label_19">
+           <widget class="QLabel" name="labelShowPanelType">
             <property name="text">
              <string>TextLabel</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_20">
+           <widget class="QLabel" name="labelScreenSize">
             <property name="text">
              <string>Screen size</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="label_21">
+           <widget class="QLabel" name="labelShowScreenSize">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -255,53 +267,109 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="groupBoxPower">
          <property name="title">
           <string>Power up / Inactivity Settings</string>
          </property>
          <layout class="QFormLayout" name="formLayout_10">
-          <item row="2" column="0">
-           <layout class="QFormLayout" name="formLayout_9"/>
-          </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_22">
+           <widget class="QLabel" name="labelPowerUpPage">
             <property name="text">
              <string>Power up page</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox"/>
+           <widget class="QComboBox" name="comboBoxPowerUpPage"/>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_23">
+           <widget class="QLabel" name="labelPowerUpPopup">
             <property name="text">
              <string>Power up popups</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QListWidget" name="listWidget"/>
+           <widget class="QListWidget" name="listWidgetPowerUpPopup"/>
           </item>
           <item row="2" column="1">
-           <widget class="QFrame" name="frame_2">
+           <widget class="QFrame" name="frameToolsPowerUp">
             <property name="frameShape">
              <enum>QFrame::Shape::StyledPanel</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QToolButton" name="toolButtonAdd">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="tsurface.qrc">
+                 <normaloff>:/images/add_popup.png</normaloff>:/images/add_popup.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonMoveUp">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="tsurface.qrc">
+                 <normaloff>:/images/move_up.png</normaloff>:/images/move_up.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonMoveDown">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="tsurface.qrc">
+                 <normaloff>:/images/move_down.png</normaloff>:/images/move_down.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonDelete">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="tsurface.qrc">
+                 <normaloff>:/images/delete_popup.png</normaloff>:/images/delete_popup.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_24">
+           <widget class="QLabel" name="labelInactivityPage">
             <property name="text">
              <string>Inactivity page</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QComboBox" name="comboBox_2"/>
+           <widget class="QComboBox" name="comboBoxInactivityPage"/>
           </item>
          </layout>
         </widget>
@@ -322,7 +390,30 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEditJobName</tabstop>
+  <tabstop>lineEditDesignerID</tabstop>
+  <tabstop>lineEditDealerID</tabstop>
+  <tabstop>lineEditFileRevision</tabstop>
+  <tabstop>plainTextEditJobComments</tabstop>
+  <tabstop>checkBoxSysFileName</tabstop>
+  <tabstop>lineEditStartup</tabstop>
+  <tabstop>lineEditWakeup</tabstop>
+  <tabstop>lineEditSleep</tabstop>
+  <tabstop>lineEditStandBy</tabstop>
+  <tabstop>lineEditShutdown</tabstop>
+  <tabstop>comboBoxPowerUpPage</tabstop>
+  <tabstop>listWidgetPowerUpPopup</tabstop>
+  <tabstop>toolButtonAdd</tabstop>
+  <tabstop>toolButtonMoveUp</tabstop>
+  <tabstop>toolButtonMoveDown</tabstop>
+  <tabstop>toolButtonDelete</tabstop>
+  <tabstop>comboBoxInactivityPage</tabstop>
+ </tabstops>
+ <resources>
+  <include location="tsurface.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -26,6 +26,7 @@
 #include "tsurfacereader.h"
 #include "tconfmain.h"
 #include "tnewprojectdialog.h"
+#include "tprojectproperties.h"
 #include "tpaneltypes.h"
 #include "tpagetree.h"
 #include "tpagehandler.h"
@@ -220,6 +221,7 @@ void TSurface::on_actionNew_triggered()
     ConfigMain::PROJECTINFO_t projectInfo;
     TPanelType tpType;
     projectInfo.panelType = tpType.getPanelName(npd.getPanelType());
+    projectInfo.panelSize = npd.getResolution();
     projectInfo.comment = npd.getComment();
     projectInfo.company = "TheoSys";
     projectInfo.dealer = npd.getDealer();
@@ -262,7 +264,15 @@ void TSurface::on_actionProject_properties_triggered()
 {
     DECL_TRACER("TSurface::on_actionProject_properties_triggered()");
 
+    TProjectProperties propDialog(this);
+    TPanelType panType;
+    QSize size = TConfMain::Current().getPanelSize();
+    QString pname = TConfMain::Current().getPanelName();
+    propDialog.setPanelImage(QPixmap(QString(":images/%1").arg(panType.getImageName(pname))));
+    propDialog.setPanelSize(size);
+    propDialog.setPanelType(pname);
 
+    propDialog.exec();
 }
 
 //

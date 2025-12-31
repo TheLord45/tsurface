@@ -34,5 +34,9 @@
         <file>images/connected.svg</file>
         <file>images/disconnected.svg</file>
         <file>images/hide_channels.png</file>
+        <file>images/add_popup.png</file>
+        <file>images/move_down.png</file>
+        <file>images/move_up.png</file>
+        <file>images/delete_popup.png</file>
     </qresource>
 </RCC>

@@ -21,6 +21,7 @@
 #include <QJsonDocument>
 
 #include "tconfmain.h"
+#include "tpaneltypes.h"
 #include "terror.h"
 
 using namespace ConfigMain;
@@ -117,3 +118,12 @@ void TConfMain::reset()
     mConfMain = nullptr;
 }
 
+QSize TConfMain::getPanelSize()
+{
+    DECL_TRACER("TConfMain::getPanelSize()");
+
+    if (!mConfMain)
+        return QSize();
+
+    return mConfMain->projectInfo.panelSize;
+}

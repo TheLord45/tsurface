@@ -31,7 +31,9 @@ namespace ConfigMain
     {
         bool protection{false};
         QString password;
+        QString jobName;
         QString panelType;
+        QSize panelSize;
         QString revision;
         QString designer;
         QString dealer;
@@ -120,6 +122,9 @@ class TConfMain
         void setProjectInfo(const ConfigMain::PROJECTINFO_t& pi);
         void setSetup(const ConfigMain::SETUP_t& setup);
         // Getter
+        QString getPanelName() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
+        QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
+        QSize getPanelSize();
 
     private:
         static TConfMain *mCurrent;
