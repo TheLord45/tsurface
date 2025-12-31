@@ -333,12 +333,262 @@
     <property name="title">
      <string>Panel</string>
     </property>
+    <widget class="QMenu" name="menuGenerate_Programmer_s_Report">
+     <property name="title">
+      <string>Generate Programmer's Report</string>
+     </property>
+     <addaction name="actionComma_Separated_Format"/>
+     <addaction name="actionText_Only_Format"/>
+     <addaction name="actionWeb_Page_Format"/>
+    </widget>
     <addaction name="actionAdd_page"/>
     <addaction name="actionAdd_popup_page"/>
+    <addaction name="actionAdd_Application_Window"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Sub_Page_Sets"/>
+    <addaction name="actionEdit_Drop_Target_Groups"/>
+    <addaction name="separator"/>
+    <addaction name="actionResource_Manager"/>
+    <addaction name="actionRefresh_Dynamic_Images"/>
+    <addaction name="actionEdit_Palettes"/>
+    <addaction name="separator"/>
+    <addaction name="actionExport_Page_Images"/>
+    <addaction name="separator"/>
+    <addaction name="actionVerify_Function_Maps"/>
+    <addaction name="actionVerify_Event_Actions"/>
+    <addaction name="actionSynchronize_Fonts"/>
+    <addaction name="menuGenerate_Programmer_s_Report"/>
+    <addaction name="separator"/>
+    <addaction name="actionView_Conversion_Log"/>
+    <addaction name="actionDelete_Conversion_Log"/>
+   </widget>
+   <widget class="QMenu" name="menuPage">
+    <property name="title">
+     <string>Page</string>
+    </property>
+    <addaction name="actionShow_Popup_Page"/>
+    <addaction name="actionHide_Popup_Page"/>
+    <addaction name="actionHide_All_Popup_Pages_and_Application_Windows"/>
+    <addaction name="actionShow_Application_Window"/>
+    <addaction name="actionHide_Application_Window"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_External_Controls"/>
+    <addaction name="separator"/>
+    <addaction name="actionCopy_Image_to_Clipboard"/>
+   </widget>
+   <widget class="QMenu" name="menuButton">
+    <property name="title">
+     <string>Button</string>
+    </property>
+    <widget class="QMenu" name="menuPreview">
+     <property name="title">
+      <string>Preview</string>
+     </property>
+     <addaction name="actionEnable_Disable"/>
+     <addaction name="actionSound_on_off"/>
+     <addaction name="separator"/>
+     <addaction name="actionPush"/>
+    </widget>
+    <addaction name="actionReset_Display"/>
+    <addaction name="actionDisplay_Previous_State"/>
+    <addaction name="actionDisplay_Next_State"/>
+    <addaction name="actionChoose_Display_State"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_States"/>
+    <addaction name="actionInsert_States"/>
+    <addaction name="separator"/>
+    <addaction name="actionAnimation_Wizard"/>
+    <addaction name="separator"/>
+    <addaction name="actionPower_Assign"/>
+    <addaction name="actionPaste_Controls"/>
+    <addaction name="separator"/>
+    <addaction name="menuPreview"/>
+   </widget>
+   <widget class="QMenu" name="menuStates">
+    <property name="title">
+     <string>States</string>
+    </property>
+    <widget class="QMenu" name="menuTweeners">
+     <property name="title">
+      <string>Tweeners</string>
+     </property>
+     <addaction name="actionBorder_Color_2"/>
+     <addaction name="actionFill_Color_2"/>
+     <addaction name="actionText_Color_2"/>
+     <addaction name="actionText_Effect_Color"/>
+     <addaction name="actionAll_Colors"/>
+     <addaction name="separator"/>
+     <addaction name="actionOverall_Opacity"/>
+     <addaction name="separator"/>
+     <addaction name="actionBitmap_Position"/>
+     <addaction name="actionText_Position"/>
+     <addaction name="actionAll_Positions"/>
+     <addaction name="separator"/>
+     <addaction name="actionText_Size"/>
+    </widget>
+    <addaction name="actionBorder_Color"/>
+    <addaction name="actionFill_Color"/>
+    <addaction name="separator"/>
+    <addaction name="menuTweeners"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menuLayout">
+    <property name="title">
+     <string>Layout</string>
+    </property>
+    <widget class="QMenu" name="menuAlign">
+     <property name="title">
+      <string>Align</string>
+     </property>
+     <addaction name="actionLeft"/>
+     <addaction name="actionHorizontal_Center"/>
+     <addaction name="actionRight"/>
+     <addaction name="separator"/>
+     <addaction name="actionTop"/>
+     <addaction name="actionVertical_Center"/>
+     <addaction name="actionBottom"/>
+    </widget>
+    <widget class="QMenu" name="menuCenter_in_Page">
+     <property name="title">
+      <string>Center in Page</string>
+     </property>
+     <addaction name="actionHorizontal"/>
+     <addaction name="actionVertical"/>
+    </widget>
+    <widget class="QMenu" name="menuMake_Same_Size">
+     <property name="title">
+      <string>Make Same Size</string>
+     </property>
+     <addaction name="actionWidth"/>
+     <addaction name="actionHeight"/>
+     <addaction name="actionBoth"/>
+    </widget>
+    <widget class="QMenu" name="menuSize_for_Video">
+     <property name="title">
+      <string>Size for Video</string>
+     </property>
+     <addaction name="action4_3_Video"/>
+     <addaction name="action16_9"/>
+     <addaction name="action16_9_Anamorphic_Video"/>
+     <addaction name="action1_85_1_Letterbox_Video"/>
+     <addaction name="action1_85_1_Anamorphic_Video"/>
+     <addaction name="action2_35_1_Letterbox_Video"/>
+     <addaction name="action2_35_1_Anamorphic_Video"/>
+    </widget>
+    <widget class="QMenu" name="menuHorizontal_Spacing">
+     <property name="title">
+      <string>Horizontal Spacing</string>
+     </property>
+     <addaction name="actionEqual"/>
+     <addaction name="actionIncrease"/>
+     <addaction name="actionDecrease"/>
+     <addaction name="actionRemove"/>
+    </widget>
+    <widget class="QMenu" name="menuVertical_Spacing">
+     <property name="title">
+      <string>Vertical Spacing</string>
+     </property>
+     <addaction name="actionEqual_2"/>
+     <addaction name="actionIncrease_2"/>
+     <addaction name="actionDecrease_2"/>
+     <addaction name="actionRemove_2"/>
+    </widget>
+    <addaction name="actionBring_to_Front"/>
+    <addaction name="actionSend_to_Back"/>
+    <addaction name="actionShift_Button_Up"/>
+    <addaction name="actionShift_Button_Down"/>
+    <addaction name="separator"/>
+    <addaction name="menuAlign"/>
+    <addaction name="menuCenter_in_Page"/>
+    <addaction name="separator"/>
+    <addaction name="menuMake_Same_Size"/>
+    <addaction name="actionSize_to_Image"/>
+    <addaction name="menuSize_for_Video"/>
+    <addaction name="separator"/>
+    <addaction name="menuHorizontal_Spacing"/>
+    <addaction name="menuVertical_Spacing"/>
+    <addaction name="separator"/>
+    <addaction name="actionAlignment_Sizing"/>
+   </widget>
+   <widget class="QMenu" name="menuTransfer">
+    <property name="title">
+     <string>Transfer</string>
+    </property>
+    <addaction name="actionConnect"/>
+    <addaction name="actionDisconnect_from_Panel"/>
+    <addaction name="separator"/>
+    <addaction name="actionSend_to_Panel"/>
+    <addaction name="actionSend_File_to_Panel"/>
+    <addaction name="actionReceive_from_Panel"/>
+    <addaction name="actionRedo_last_Transfer"/>
+    <addaction name="separator"/>
+    <addaction name="actionCancel_Transfer"/>
+    <addaction name="actionCancel_all_Pending_Transfers"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear_Transfer"/>
+    <addaction name="actionClear_All_Completed_Transfers"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose_Status_When_Empty"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuToolbars">
+     <property name="title">
+      <string>Toolbars</string>
+     </property>
+     <addaction name="actionMain_Toolbar"/>
+     <addaction name="actionTransfer_Toolbar"/>
+     <addaction name="actionView_Toolbar"/>
+     <addaction name="actionSelection_Drawing_Tools"/>
+     <addaction name="actionButton_Displays"/>
+     <addaction name="actionZoom_Toolbar"/>
+     <addaction name="actionDrawing_Toolbar"/>
+     <addaction name="actionOrder_Assist_Toolbar"/>
+     <addaction name="actionPosition_Assist_Toolbar"/>
+     <addaction name="actionSize_Assist_Toolbar"/>
+    </widget>
+    <addaction name="menuToolbars"/>
+    <addaction name="separator"/>
+    <addaction name="actionState_Manager"/>
+    <addaction name="actionButton_Preview"/>
+    <addaction name="actionMagnifier"/>
+    <addaction name="actionTransfer_Status"/>
+    <addaction name="separator"/>
+    <addaction name="actionStatus_Bar"/>
+    <addaction name="actionProperty_Painter"/>
+    <addaction name="actionDisplay_Function_State_Overlay"/>
+    <addaction name="actionError_Warnings_Report"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionView_ReadMe"/>
+    <addaction name="actionPaint"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionContents"/>
+    <addaction name="actionKeyboard_Map"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate"/>
+    <addaction name="actionAbout_TSurface"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuPanel"/>
+   <addaction name="menuPage"/>
+   <addaction name="menuButton"/>
+   <addaction name="menuStates"/>
+   <addaction name="menuLayout"/>
+   <addaction name="menuTransfer"/>
+   <addaction name="menuView"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -456,6 +706,631 @@
   <action name="actionInsert">
    <property name="text">
     <string>Insert</string>
+   </property>
+  </action>
+  <action name="actionAdd_Application_Window">
+   <property name="text">
+    <string>Add Application Window ...</string>
+   </property>
+  </action>
+  <action name="actionEdit_Sub_Page_Sets">
+   <property name="text">
+    <string>Edit Sub-Page Sets ...</string>
+   </property>
+  </action>
+  <action name="actionEdit_Drop_Target_Groups">
+   <property name="text">
+    <string>Edit Drop-Target Groups ...</string>
+   </property>
+  </action>
+  <action name="actionResource_Manager">
+   <property name="text">
+    <string>Resource Manager ...</string>
+   </property>
+  </action>
+  <action name="actionRefresh_Dynamic_Images">
+   <property name="text">
+    <string>Refresh Dynamic Images</string>
+   </property>
+  </action>
+  <action name="actionEdit_Palettes">
+   <property name="text">
+    <string>Edit Palettes ...</string>
+   </property>
+  </action>
+  <action name="actionExport_Page_Images">
+   <property name="text">
+    <string>Export Page Images ...</string>
+   </property>
+  </action>
+  <action name="actionVerify_Function_Maps">
+   <property name="text">
+    <string>Verify Function Maps</string>
+   </property>
+  </action>
+  <action name="actionVerify_Event_Actions">
+   <property name="text">
+    <string>Verify Event Actions</string>
+   </property>
+  </action>
+  <action name="actionSynchronize_Fonts">
+   <property name="text">
+    <string>Synchronize Fonts ...</string>
+   </property>
+  </action>
+  <action name="actionView_Conversion_Log">
+   <property name="text">
+    <string>View Conversion Log ...</string>
+   </property>
+  </action>
+  <action name="actionDelete_Conversion_Log">
+   <property name="text">
+    <string>Delete Conversion Log ...</string>
+   </property>
+  </action>
+  <action name="actionComma_Separated_Format">
+   <property name="text">
+    <string>Comma Separated Format</string>
+   </property>
+  </action>
+  <action name="actionText_Only_Format">
+   <property name="text">
+    <string>Text Only Format</string>
+   </property>
+  </action>
+  <action name="actionWeb_Page_Format">
+   <property name="text">
+    <string>Web Page Format</string>
+   </property>
+  </action>
+  <action name="actionShow_Popup_Page">
+   <property name="text">
+    <string>Show Popup Page</string>
+   </property>
+  </action>
+  <action name="actionHide_Popup_Page">
+   <property name="text">
+    <string>Hide Popup Page</string>
+   </property>
+  </action>
+  <action name="actionHide_All_Popup_Pages_and_Application_Windows">
+   <property name="text">
+    <string>Hide All Popup Pages and Application Windows</string>
+   </property>
+  </action>
+  <action name="actionShow_Application_Window">
+   <property name="text">
+    <string>Show Application Window</string>
+   </property>
+  </action>
+  <action name="actionHide_Application_Window">
+   <property name="text">
+    <string>Hide Application Window</string>
+   </property>
+  </action>
+  <action name="actionShow_External_Controls">
+   <property name="text">
+    <string>Show External Controls</string>
+   </property>
+  </action>
+  <action name="actionCopy_Image_to_Clipboard">
+   <property name="text">
+    <string>Copy Image to Clipboard</string>
+   </property>
+  </action>
+  <action name="actionReset_Display">
+   <property name="text">
+    <string>Reset Display</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Previous_State">
+   <property name="text">
+    <string>Display Previous State</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Next_State">
+   <property name="text">
+    <string>Display Next State</string>
+   </property>
+  </action>
+  <action name="actionChoose_Display_State">
+   <property name="text">
+    <string>Choose Display State ...</string>
+   </property>
+  </action>
+  <action name="actionAdd_States">
+   <property name="text">
+    <string>Add States ...</string>
+   </property>
+  </action>
+  <action name="actionInsert_States">
+   <property name="text">
+    <string>Insert States ...</string>
+   </property>
+  </action>
+  <action name="actionAnimation_Wizard">
+   <property name="text">
+    <string>Animation Wizard ...</string>
+   </property>
+  </action>
+  <action name="actionPower_Assign">
+   <property name="text">
+    <string>Power Assign</string>
+   </property>
+  </action>
+  <action name="actionPaste_Controls">
+   <property name="text">
+    <string>Paste Controls</string>
+   </property>
+  </action>
+  <action name="actionEnable_Disable">
+   <property name="text">
+    <string>Enable/Disable</string>
+   </property>
+  </action>
+  <action name="actionSound_on_off">
+   <property name="text">
+    <string>Sound on/off</string>
+   </property>
+  </action>
+  <action name="actionPush">
+   <property name="text">
+    <string>Push</string>
+   </property>
+  </action>
+  <action name="actionBorder_Color">
+   <property name="text">
+    <string>Reverse States</string>
+   </property>
+  </action>
+  <action name="actionFill_Color">
+   <property name="text">
+    <string>Set as Display State</string>
+   </property>
+  </action>
+  <action name="actionBorder_Color_2">
+   <property name="text">
+    <string>Border Color</string>
+   </property>
+  </action>
+  <action name="actionFill_Color_2">
+   <property name="text">
+    <string>Fill Color</string>
+   </property>
+  </action>
+  <action name="actionText_Color_2">
+   <property name="text">
+    <string>Text Color</string>
+   </property>
+  </action>
+  <action name="actionText_Effect_Color">
+   <property name="text">
+    <string>Text Effect Color</string>
+   </property>
+  </action>
+  <action name="actionAll_Colors">
+   <property name="text">
+    <string>All Colors</string>
+   </property>
+  </action>
+  <action name="actionOverall_Opacity">
+   <property name="text">
+    <string>Overall Opacity</string>
+   </property>
+  </action>
+  <action name="actionBitmap_Position">
+   <property name="text">
+    <string>Bitmap Position</string>
+   </property>
+  </action>
+  <action name="actionText_Position">
+   <property name="text">
+    <string>Text Position</string>
+   </property>
+  </action>
+  <action name="actionAll_Positions">
+   <property name="text">
+    <string>All Positions</string>
+   </property>
+  </action>
+  <action name="actionText_Size">
+   <property name="text">
+    <string>Text Size</string>
+   </property>
+  </action>
+  <action name="actionBring_to_Front">
+   <property name="text">
+    <string>Bring to Front</string>
+   </property>
+  </action>
+  <action name="actionSend_to_Back">
+   <property name="text">
+    <string>Send to Back</string>
+   </property>
+  </action>
+  <action name="actionShift_Button_Up">
+   <property name="text">
+    <string>Shift Button Up</string>
+   </property>
+  </action>
+  <action name="actionShift_Button_Down">
+   <property name="text">
+    <string>Shift Button Down</string>
+   </property>
+  </action>
+  <action name="actionSize_to_Image">
+   <property name="text">
+    <string>Size to Image</string>
+   </property>
+  </action>
+  <action name="actionAlignment_Sizing">
+   <property name="text">
+    <string>Alignment &amp; Sizing</string>
+   </property>
+  </action>
+  <action name="actionLeft">
+   <property name="text">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="actionHorizontal_Center">
+   <property name="text">
+    <string>Horizontal Center</string>
+   </property>
+  </action>
+  <action name="actionRight">
+   <property name="text">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="actionTop">
+   <property name="text">
+    <string>Top</string>
+   </property>
+  </action>
+  <action name="actionVertical_Center">
+   <property name="text">
+    <string>Vertical Center</string>
+   </property>
+  </action>
+  <action name="actionBottom">
+   <property name="text">
+    <string>Bottom</string>
+   </property>
+  </action>
+  <action name="actionHorizontal">
+   <property name="text">
+    <string>Horizontal</string>
+   </property>
+  </action>
+  <action name="actionVertical">
+   <property name="text">
+    <string>Vertical</string>
+   </property>
+  </action>
+  <action name="actionWidth">
+   <property name="text">
+    <string>Width</string>
+   </property>
+  </action>
+  <action name="actionHeight">
+   <property name="text">
+    <string>Height</string>
+   </property>
+  </action>
+  <action name="actionBoth">
+   <property name="text">
+    <string>Both</string>
+   </property>
+  </action>
+  <action name="action4_3_Video">
+   <property name="text">
+    <string>4:3 Video</string>
+   </property>
+  </action>
+  <action name="action16_9">
+   <property name="text">
+    <string> 16:9 Letterbox Video</string>
+   </property>
+  </action>
+  <action name="action16_9_Anamorphic_Video">
+   <property name="text">
+    <string>16:9 Anamorphic Video</string>
+   </property>
+  </action>
+  <action name="action1_85_1_Letterbox_Video">
+   <property name="text">
+    <string>1.85:1 Letterbox Video</string>
+   </property>
+  </action>
+  <action name="action1_85_1_Anamorphic_Video">
+   <property name="text">
+    <string>1.85:1 Anamorphic Video</string>
+   </property>
+  </action>
+  <action name="action2_35_1_Letterbox_Video">
+   <property name="text">
+    <string>2.35:1 Letterbox Video</string>
+   </property>
+  </action>
+  <action name="action2_35_1_Anamorphic_Video">
+   <property name="text">
+    <string>2.35:1 Anamorphic Video</string>
+   </property>
+  </action>
+  <action name="actionEqual">
+   <property name="text">
+    <string>Equal</string>
+   </property>
+  </action>
+  <action name="actionIncrease">
+   <property name="text">
+    <string>Increase</string>
+   </property>
+  </action>
+  <action name="actionDecrease">
+   <property name="text">
+    <string>Decrease</string>
+   </property>
+  </action>
+  <action name="actionRemove">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+  </action>
+  <action name="actionEqual_2">
+   <property name="text">
+    <string>Equal</string>
+   </property>
+  </action>
+  <action name="actionIncrease_2">
+   <property name="text">
+    <string>Increase</string>
+   </property>
+  </action>
+  <action name="actionDecrease_2">
+   <property name="text">
+    <string>Decrease</string>
+   </property>
+  </action>
+  <action name="actionRemove_2">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="text">
+    <string>Connect ...</string>
+   </property>
+  </action>
+  <action name="actionDisconnect_from_Panel">
+   <property name="text">
+    <string>Disconnect from Panel</string>
+   </property>
+  </action>
+  <action name="actionSend_to_Panel">
+   <property name="text">
+    <string>Send to Panel ...</string>
+   </property>
+  </action>
+  <action name="actionSend_File_to_Panel">
+   <property name="text">
+    <string>Send File to Panel ...</string>
+   </property>
+  </action>
+  <action name="actionReceive_from_Panel">
+   <property name="text">
+    <string>Receive from Panel ...</string>
+   </property>
+  </action>
+  <action name="actionRedo_last_Transfer">
+   <property name="text">
+    <string>Redo last Transfer</string>
+   </property>
+  </action>
+  <action name="actionCancel_Transfer">
+   <property name="text">
+    <string>Cancel Transfer</string>
+   </property>
+  </action>
+  <action name="actionCancel_all_Pending_Transfers">
+   <property name="text">
+    <string>Cancel all Pending Transfers</string>
+   </property>
+  </action>
+  <action name="actionClear_Transfer">
+   <property name="text">
+    <string>Clear Transfer</string>
+   </property>
+  </action>
+  <action name="actionClear_All_Completed_Transfers">
+   <property name="text">
+    <string>Clear All Completed Transfers</string>
+   </property>
+  </action>
+  <action name="actionClose_Status_When_Empty">
+   <property name="text">
+    <string>Close Status When Empty</string>
+   </property>
+  </action>
+  <action name="actionState_Manager">
+   <property name="text">
+    <string>State Manager</string>
+   </property>
+  </action>
+  <action name="actionButton_Preview">
+   <property name="text">
+    <string>Button Preview</string>
+   </property>
+  </action>
+  <action name="actionMagnifier">
+   <property name="text">
+    <string>Magnifier</string>
+   </property>
+  </action>
+  <action name="actionTransfer_Status">
+   <property name="text">
+    <string>Transfer Status</string>
+   </property>
+  </action>
+  <action name="actionStatus_Bar">
+   <property name="text">
+    <string>Status Bar</string>
+   </property>
+  </action>
+  <action name="actionProperty_Painter">
+   <property name="text">
+    <string>Property Painter</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Function_State_Overlay">
+   <property name="text">
+    <string>Display Function &amp; State Overlay</string>
+   </property>
+  </action>
+  <action name="actionError_Warnings_Report">
+   <property name="text">
+    <string>Error &amp; Warnings Report</string>
+   </property>
+  </action>
+  <action name="actionMain_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Main Toolbar</string>
+   </property>
+  </action>
+  <action name="actionTransfer_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Transfer Toolbar</string>
+   </property>
+  </action>
+  <action name="actionView_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>View Toolbar</string>
+   </property>
+  </action>
+  <action name="actionSelection_Drawing_Tools">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Selection/Drawing Tools</string>
+   </property>
+  </action>
+  <action name="actionButton_Displays">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Button Displays</string>
+   </property>
+  </action>
+  <action name="actionZoom_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Zoom Toolbar</string>
+   </property>
+  </action>
+  <action name="actionDrawing_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Drawing Toolbar</string>
+   </property>
+  </action>
+  <action name="actionOrder_Assist_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Order Assist Toolbar</string>
+   </property>
+  </action>
+  <action name="actionPosition_Assist_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Position Assist Toolbar</string>
+   </property>
+  </action>
+  <action name="actionSize_Assist_Toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Size Assist Toolbar</string>
+   </property>
+  </action>
+  <action name="actionView_ReadMe">
+   <property name="text">
+    <string>View ReadMe</string>
+   </property>
+  </action>
+  <action name="actionPaint">
+   <property name="text">
+    <string>Paint</string>
+   </property>
+  </action>
+  <action name="actionContents">
+   <property name="text">
+    <string>Contents ...</string>
+   </property>
+  </action>
+  <action name="actionKeyboard_Map">
+   <property name="text">
+    <string>Keyboard Map</string>
+   </property>
+  </action>
+  <action name="actionUpdate">
+   <property name="text">
+    <string>Update</string>
+   </property>
+  </action>
+  <action name="actionAbout_TSurface">
+   <property name="text">
+    <string>About TSurface</string>
    </property>
   </action>
  </widget>

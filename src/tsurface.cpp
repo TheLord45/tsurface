@@ -38,6 +38,20 @@ namespace fs = std::filesystem;
 using std::cout;
 using std::endl;
 
+/**
+ * @brief winCloseEater::eventFilter
+ * This is a class to catch the close event of an MDI window. The MDI window
+ * is identified by it's object name. From it the window number is extracted
+ * and used to mark the window closed.
+ * Every close of the window means that it is deleted from the MDI space. To
+ * display it again it must be completely redefined.
+ *
+ * @param obj       The pointer to the object received a close event
+ * @param event     The type of the event. We catch only the close event.
+ *
+ * @return The event is forwarded to the original object so that Qt cat do
+ * its work. The result of this forwarding is returned.
+ */
 bool winCloseEater::eventFilter(QObject *obj, QEvent *event)
 {
     switch (event->type())
@@ -91,8 +105,28 @@ TSurface::TSurface(QWidget *parent)
     TConfig::WINSIZE_t ws = TConfig::Current().getLastPosition();
     setGeometry(QRect(ws.left, ws.top, ws.width, ws.height));
     mCloseEater = new winCloseEater;
+    // Add the application icon
     setWindowIcon(QIcon(":images/tsurface_512.png"));
     setUnifiedTitleAndToolBarOnMac(true);
+    // Add symbols to the toolbar
+    mActionStateManager = new QAction(QIcon(":images/statemanager.png"), tr("State manager"));
+    m_ui->mainToolBar->addAction(mActionStateManager);
+
+    mActionPlay = new QAction(QIcon(":images/play_screen.png"), tr("Play"));
+    m_ui->mainToolBar->addAction(mActionPlay);
+
+    mActionSearch = new QAction(QIcon(":images/search_screen.png"), tr("Search"));
+    m_ui->mainToolBar->addAction(mActionSearch);
+
+    mActionChannels = new QAction(QIcon(":images/show_channels.png"), tr("Hide channels"));
+    connect(mActionChannels, &QAction::triggered, this, &TSurface::onActionShowChannels);
+    mToggleChannels = true;     // Mark channels as visible
+    m_ui->mainToolBar->addAction(mActionChannels);
+
+    m_ui->mainToolBar->addSeparator();
+
+    mActionConnectionState = new QAction(QIcon(":images/disconnected.svg"), tr("Disconnected"));
+    m_ui->mainToolBar->addAction(mActionConnectionState);
 }
 
 TSurface::~TSurface()
@@ -224,6 +258,54 @@ void TSurface::on_actionNew_triggered()
     mHaveProject = true;
 }
 
+void TSurface::on_actionProject_properties_triggered()
+{
+    DECL_TRACER("TSurface::on_actionProject_properties_triggered()");
+
+
+}
+
+//
+// Other callbacks
+//
+/**
+ * @brief TSurface::onActionShowChannels
+ * This method is triggered by a click on the channels icon in the toolbar.
+ * It toggles the icon, and with it the function, from showing the channels
+ * on each object and hiding them. The icon presentation and the tool tip
+ * text is toggled also.
+ *
+ * @param checked   This parameter is not used.
+ */
+void TSurface::onActionShowChannels(bool checked)
+{
+    DECL_TRACER("TSurface::onActionShowChannels(bool checked)");
+
+    Q_UNUSED(checked);
+    mToggleChannels = !mToggleChannels;
+
+    if (mToggleChannels)
+    {
+        mActionChannels->setIcon(QIcon(":images/show_channels.png"));
+        mActionChannels->setText(tr("Hide channels"));
+    }
+    else
+    {
+        mActionChannels->setIcon(QIcon(":images/hide_channels.png"));
+        mActionChannels->setText(tr("Show channels"));
+    }
+}
+
+/**
+ * @brief TSurface::onClickedPageTree
+ * This method is triggered on a double click on an item in the page tree.
+ * It toggles the visible page or popup window between visible and closed.
+ *
+ * @param wt        The type of the window
+ * @param num       The number of the window
+ * @param name      The name of the window. This is used to show the name
+ * in the title bar of a visible window.
+ */
 void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)
 {
     DECL_TRACER("TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)");

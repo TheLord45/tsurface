@@ -50,10 +50,12 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
+        void onActionShowChannels(bool checked);
 
     private slots:
         void on_actionOpen_triggered();
         void on_actionNew_triggered();
+        void on_actionProject_properties_triggered();
 
     private:
         const std::unique_ptr<Ui::tsurface> m_ui;
@@ -62,6 +64,12 @@ class TSurface : public QMainWindow
         bool mHaveProject{false};
         std::vector<QWidget *> mPageWidgets;
         winCloseEater *mCloseEater{nullptr};
+        QAction *mActionStateManager{nullptr};
+        QAction *mActionPlay{nullptr};
+        QAction *mActionSearch{nullptr};
+        QAction *mActionChannels{nullptr};
+        bool mToggleChannels{false};                // TRUE = Channels are visible
+        QAction *mActionConnectionState{nullptr};
 };
 
 #endif // TSURFACE_H

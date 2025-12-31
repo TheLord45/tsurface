@@ -26,5 +26,13 @@
         <file>images/tsurface_256.png</file>
         <file>images/tsurface_512.png</file>
         <file>images/tsurface_1024.png</file>
+        <file>images/play_screen.png</file>
+        <file>images/search_screen.png</file>
+        <file>images/statemanager.png</file>
+        <file>images/show_channels.xcf</file>
+        <file>images/show_channels.png</file>
+        <file>images/connected.svg</file>
+        <file>images/disconnected.svg</file>
+        <file>images/hide_channels.png</file>
     </qresource>
 </RCC>
