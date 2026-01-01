@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,20 +59,28 @@ TConfMain& TConfMain::Current()
  * allocated.
  *
  * @param file      The file name of the project
- * @param pname     The name of the project
+ * @param pname     The name of the main page
+ * @param project   The project name (job name)
  */
 void TConfMain::createNew(const QString& file, const QString& pname, const QString& project)
 {
     DECL_TRACER("TConfMain::createNew(const QString& file, const QString& pname, const QString& project)");
 
     mFileName = file;
-    mJobName = pname;
+    mJobName = project;
 
     if (mConfMain)
         delete mConfMain;
 
     mConfMain = new CONFMAIN_t;
-
+    mConfMain->fileName = file;
+    mConfMain->projectInfo.jobName = project;
+    PAGEENTRY_t page;
+    page.name = pname;
+    page.pageID = 1;
+    page.file = file;
+    page.popupType = PN_PAGE;
+    mConfMain->pageList.append(page);
 }
 
 void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
@@ -80,7 +88,7 @@ void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
     DECL_TRACER("TConfMain::setProjectInfo(const PROJECTINFO_t& pi)");
 
     if (!mConfMain)
-        return;
+        mConfMain = new CONFMAIN_t;
 
     mConfMain->projectInfo = pi;
 }
@@ -90,7 +98,7 @@ void TConfMain::setSetup(const SETUP_t& setup)
     DECL_TRACER("TConfMain::setSetup(const SETUP_t& setup)");
 
     if (!mConfMain)
-        return;
+        mConfMain = new CONFMAIN_t;
 
     mConfMain->setup = setup;
 }
@@ -100,6 +108,27 @@ bool TConfMain::readMain(const QString& path)
     DECL_TRACER("TConfMain::readMain(const QString& path)");
 
     return false;
+}
+
+void TConfMain::setFileName(const QString& fn)
+{
+    DECL_TRACER("TConfMain::setFileName(const QString& fn)");
+
+    if (!mConfMain)
+        return;
+
+    mFileName = fn;
+    mConfMain->fileName = fn;
+}
+
+QString TConfMain::getFileName()
+{
+    DECL_TRACER("TConfMain::getFileName()");
+
+    if (!mConfMain)
+        return QString();
+
+    return mConfMain->fileName;
 }
 
 void TConfMain::saveProject()
@@ -126,4 +155,36 @@ QSize TConfMain::getPanelSize()
         return QSize();
 
     return mConfMain->projectInfo.panelSize;
+}
+
+QList<QString> TConfMain::getAllPages()
+{
+    DECL_TRACER("TConfMain::getAllPages()");
+
+    if (!mConfMain || mConfMain->pageList.isEmpty())
+        return QList<QString>();
+
+    QList<QString> list;
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+        list.append(iter->name);
+
+    return list;
+}
+
+QList<QString> TConfMain::getAllPopups()
+{
+    DECL_TRACER("TConfMain::getAllPopups()");
+
+    if (!mConfMain || mConfMain->popupList.isEmpty())
+        return QList<QString>();
+
+    QList<QString> list;
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->popupList.begin(); iter != mConfMain->popupList.end(); ++iter)
+        list.append(iter->name);
+
+    return list;
 }

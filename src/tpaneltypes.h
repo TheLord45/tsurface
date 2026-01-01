@@ -23,6 +23,14 @@
 #include <string>
 #include <map>
 
+typedef enum
+{
+    PN_UNDEFINED,
+    PN_PAGE,
+    PN_POPUP,
+    PN_APP
+}PANELTYPE_t;
+
 class TPanelType
 {
     public:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -219,19 +219,26 @@ void TSurface::on_actionNew_triggered()
 
     TConfMain& cmain = TConfMain::Current();
     ConfigMain::PROJECTINFO_t projectInfo;
+    ConfigMain::SETUP_t setupInfo;
     TPanelType tpType;
-    projectInfo.panelType = tpType.getPanelName(npd.getPanelType());
+    projectInfo.jobName = npd.getProjectName();
+    projectInfo.panelType = npd.getPanelName();
     projectInfo.panelSize = npd.getResolution();
     projectInfo.comment = npd.getComment();
     projectInfo.company = "TheoSys";
     projectInfo.dealer = npd.getDealer();
+    projectInfo.designer = npd.getDesigner();
     projectInfo.copyright = "(C) by TheoSys";
     projectInfo.date = QDateTime::currentDateTime();
     projectInfo.lastDate = QDateTime::currentDateTime();
     projectInfo.revision = npd.getRevision();
     projectInfo.logLevel = "PROTOCOL";
     projectInfo.protection = false;
+    setupInfo.screenHeight = projectInfo.panelSize.height();
+    setupInfo.screenWidth = projectInfo.panelSize.width();
+    cmain.createNew(npd.getFileName(), npd.getPageName(), npd.getProjectName());
     cmain.setProjectInfo(projectInfo);
+    cmain.setFileNameAuto(npd.getFileNameAuto());
     // Create tree menu
     TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
     connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
@@ -268,11 +275,52 @@ void TSurface::on_actionProject_properties_triggered()
     TPanelType panType;
     QSize size = TConfMain::Current().getPanelSize();
     QString pname = TConfMain::Current().getPanelName();
-    propDialog.setPanelImage(QPixmap(QString(":images/%1").arg(panType.getImageName(pname))));
+    MSG_DEBUG("Stored panel: " << pname.toStdString());
+    QString pImage = panType.getImageName(pname);
+    ConfigMain::PROJECTINFO_t projectInfo = TConfMain::Current().getProjectInfo();
+    ConfigMain::SETUP_t setupInfo = TConfMain::Current().getSetup();
+    MSG_DEBUG("Panel name: " << pname.toStdString() << ", Panel image: " << pImage.toStdString() << ", Panel size: " << size.width() << "x" << size.height());
+    propDialog.setPanelImage(QPixmap(QString(":images/%1").arg(pImage)));
     propDialog.setPanelSize(size);
     propDialog.setPanelType(pname);
+    propDialog.setJobName(projectInfo.jobName);
+    propDialog.setDealerID(projectInfo.dealer);
+    propDialog.setDesignerID(projectInfo.designer);
+    propDialog.setJobComments(projectInfo.comment);
+    propDialog.setFileRevision(projectInfo.revision);
+    propDialog.setSystemFileName(TConfMain::Current().getFileNameAuto());
+    propDialog.setStartup(setupInfo.startupString);
+    propDialog.setWakeup(setupInfo.wakeupString);
+    propDialog.setSleep(setupInfo.sleepString);
+    propDialog.setShutown(setupInfo.shutdownString);
+    propDialog.setStandby(setupInfo.idlePage);
+    propDialog.setInactivityPage(setupInfo.inactivityPage);
+    propDialog.setPowerUpPopups(setupInfo.powerUpPopups);
+    propDialog.setTimeCreation(projectInfo.date);
+    propDialog.setTimeLastChange(projectInfo.lastDate);
+    propDialog.setFileName(TConfMain::Current().getFileName());
 
-    propDialog.exec();
+    if (propDialog.exec() == QDialog::Rejected)
+        return;
+
+    projectInfo.comment = propDialog.getJobComments();
+    projectInfo.dealer = propDialog.getDealerID();
+    projectInfo.designer = propDialog.getDesignerID();
+    projectInfo.jobName = propDialog.getJobName();
+    projectInfo.revision = propDialog.getFileRevision();
+    projectInfo.lastDate = QDateTime::currentDateTime();
+    setupInfo.idlePage = propDialog.getStandby();
+    setupInfo.inactivityPage = propDialog.getInactivityPage();
+    setupInfo.powerUpPage = propDialog.getPowerUpPage();
+    setupInfo.powerUpPopups = propDialog.getPopwerUpPopups();
+    setupInfo.shutdownString = propDialog.getShutdown();
+    setupInfo.sleepString = propDialog.getSleep();
+    setupInfo.startupString = propDialog.getStartup();
+    setupInfo.wakeupString = propDialog.getWakeup();
+
+    TConfMain::Current().setFileNameAuto(propDialog.getSystemFileName());
+    TConfMain::Current().setProjectInfo(projectInfo);
+    TConfMain::Current().setSetup(setupInfo);
 }
 
 //

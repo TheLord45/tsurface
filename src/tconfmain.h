@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,12 +61,13 @@ namespace ConfigMain
         int portCount{21};
         int setupPort{0};
         QString powerUpPage;
-        QString powerUpPopup;
+        QList<QString> powerUpPopups;
         QString startupString;
         QString wakeupString;
         QString sleepString;
         QString shutdownString;
         QString idlePage;
+        QString inactivityPage;
         int idleTimeout{0};
         int screenWidth{1920};
         int screenHeight{1024};
@@ -82,7 +83,7 @@ namespace ConfigMain
         int pageID{0};
         QString file;
         bool isValid{true};
-        int popupType{0};
+        PANELTYPE_t popupType{PN_UNDEFINED};
     }PAGEENTRY_t;
 
     typedef struct RESOURCE_t
@@ -96,6 +97,7 @@ namespace ConfigMain
     typedef struct CONFMAIN_t
     {
         int fileVersion{1};
+        QString fileName;
         PROJECTINFO_t projectInfo;
         FILELIST_t fileList;
         SETUP_t setup;
@@ -121,10 +123,18 @@ class TConfMain
         // Setter
         void setProjectInfo(const ConfigMain::PROJECTINFO_t& pi);
         void setSetup(const ConfigMain::SETUP_t& setup);
+        void setFileName(const QString& fn);
+        void setFileNameAuto(bool a) { mFileNameAuto = a; }
         // Getter
         QString getPanelName() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
+        QString getFileName();
         QSize getPanelSize();
+        ConfigMain::PROJECTINFO_t getProjectInfo() { if (mConfMain) return mConfMain->projectInfo; else return ConfigMain::PROJECTINFO_t(); }
+        bool getFileNameAuto() { return mFileNameAuto; }
+        ConfigMain::SETUP_t getSetup() { if (mConfMain) return mConfMain->setup; else return ConfigMain::SETUP_t(); }
+        QList<QString> getAllPages();
+        QList<QString> getAllPopups();
 
     private:
         static TConfMain *mCurrent;
@@ -136,6 +146,7 @@ class TConfMain
         TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
+        bool mFileNameAuto{false};
 };
 
 #endif // TCONFMAIN_H

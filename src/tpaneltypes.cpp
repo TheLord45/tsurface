@@ -221,6 +221,7 @@ string TPanelType::getImageName(const string& name)
 {
     DECL_TRACER("TPanelType::getImageName(const string& name)");
 
+    MSG_DEBUG("Searching image name for panel: " << name);
     map<string, RESOLUTION_t>::iterator iter;
 
     if ((iter = mResolutions.find(name)) != mResolutions.end())

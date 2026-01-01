@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,7 @@ class TNewProjectDialog : public QDialog
         void setFont(const QFont& font) { mFont = font; }
         int getFontSize() { return mSize; }
         void setFontSize(int pt) { mSize = pt; }
+        bool getFileNameAuto() { return mGenFile; }
 
     private slots:
         void on_lineEditJobName_textChanged(const QString &arg1);
