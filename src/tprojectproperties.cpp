@@ -15,10 +15,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <QMessageBox>
+
 #include "tprojectproperties.h"
 #include "ui_tprojectproperties.h"
 
 #include "tconfmain.h"
+#include "tpopuplist.h"
 #include "terror.h"
 
 TProjectProperties::TProjectProperties(QWidget *parent) :
@@ -332,7 +335,50 @@ void TProjectProperties::on_toolButtonAdd_clicked()
 {
     DECL_TRACER("TProjectProperties::on_toolButtonAdd_clicked()");
 
+    if (mPowerUpPopups.isEmpty())
+    {
+        QMessageBox::information(this, tr("Information"), tr("There are no popup pages available!"));
+        return;
+    }
 
+    TPopupList popList(this);
+    QList<QString> all = TConfMain::Current().getAllPopups();
+    QList<QString> available;
+    QList<QString>::Iterator iterAll;
+    QList<QString>::Iterator iter;
+
+    for (iterAll = all.begin(); iterAll != all.end(); ++iterAll)
+    {
+        bool found = false;
+
+        for (iter = mPowerUpPopups.begin(); iter != mPowerUpPopups.end(); ++iter)
+        {
+            if (*iterAll == *iter)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+            available.append(*iterAll);
+    }
+
+    if (popList.exec() == QDialog::Rejected)
+        return;
+
+    available = popList.getSelectedPopups();
+
+    if (available.isEmpty())
+        return;
+
+    for (iter = available.begin(); iter != available.end(); ++iter)
+    {
+        ui->listWidgetPowerUpPopup->addItem(*iter);
+        mPowerUpPopups.append(*iter);
+    }
+
+    ui->listWidgetPowerUpPopup->sortItems();
 }
 
 void TProjectProperties::on_toolButtonMoveUp_clicked()

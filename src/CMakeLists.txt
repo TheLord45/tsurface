@@ -34,6 +34,11 @@ qt_add_executable(tsurface
     tprojectproperties.cpp
     tprojectproperties.h
     tprojectproperties.ui
+    tobjecthandler.cpp
+    tobjecthandler.h
+    tpopuplist.cpp
+    tpopuplist.h
+    tpopuplist.ui
 )
 
 # Use the Widgets module from Qt 6.

@@ -39,9 +39,25 @@ TPageHandler& TPageHandler::Current()
     return *mCurrent;
 }
 
+/**
+ * @brief TPageHandler::createPage
+ * This method creates a new page or popup and initializes all internal structures
+ * to contain the correct information. If there exists already a page or popup
+ * with the \b name, the contents of the page or popup will be updated with the
+ * given parameters.
+ * On success the method returns the new page or popup number.
+ *
+ * @param w         A pointer to a widget in the MDI area
+ * @param pt        The type of the page/popup to create
+ * @param name      The name of the page/popup to create. This must be a unique name.
+ * @param width     The width of the page/popup
+ * @param height    The height of the page/popup
+ *
+ * @return  On success the new page or popup number is returned. On error it returns 0.
+ */
 int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height)
 {
-    DECL_TRACER("TPageHandler::createPage(QWidget *w, int id, Page::PAGE_TYPE pt, const QString& name, int width, int height)");
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height)");
 
     PAGE_t page;
 

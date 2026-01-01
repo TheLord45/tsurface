@@ -23,6 +23,8 @@
 #include <QList>
 #include <QColor>
 
+#include "tobjecthandler.h"
+
 namespace Page
 {
     enum PAGE_TYPE
@@ -82,93 +84,6 @@ namespace Page
         COLDIR_DOWN                     // Collapse down
     }COLDIR_t;
 
-    typedef enum ORIENTATION
-    {
-        ORI_ABSOLUT,
-        ORI_TOP_LEFT,
-        ORI_TOP_MIDDLE,
-        ORI_TOP_RIGHT,
-        ORI_CENTER_LEFT,
-        ORI_CENTER_MIDDLE,      // default
-        ORI_CENTER_RIGHT,
-        ORI_BOTTOM_LEFT,
-        ORI_BOTTOM_MIDDLE,
-        ORI_BOTTOM_RIGHT,
-        ORI_SCALE_FIT,          // G5 scale to fit
-        ORI_SCALE_ASPECT        // G5 scale maintain aspect ratio
-    }ORIENTATION;
-
-    typedef enum TEXT_EFFECT
-    {
-        EFFECT_NONE,
-        EFFECT_OUTLINE_S,
-        EFFECT_OUTLINE_M,
-        EFFECT_OUTLINE_L,
-        EFFECT_OUTLINE_X,
-        EFFECT_GLOW_S,
-        EFFECT_GLOW_M,
-        EFFECT_GLOW_L,
-        EFFECT_GLOW_X,
-        EFFECT_SOFT_DROP_SHADOW_1,
-        EFFECT_SOFT_DROP_SHADOW_2,
-        EFFECT_SOFT_DROP_SHADOW_3,
-        EFFECT_SOFT_DROP_SHADOW_4,
-        EFFECT_SOFT_DROP_SHADOW_5,
-        EFFECT_SOFT_DROP_SHADOW_6,
-        EFFECT_SOFT_DROP_SHADOW_7,
-        EFFECT_SOFT_DROP_SHADOW_8,
-        EFFECT_MEDIUM_DROP_SHADOW_1,
-        EFFECT_MEDIUM_DROP_SHADOW_2,
-        EFFECT_MEDIUM_DROP_SHADOW_3,
-        EFFECT_MEDIUM_DROP_SHADOW_4,
-        EFFECT_MEDIUM_DROP_SHADOW_5,
-        EFFECT_MEDIUM_DROP_SHADOW_6,
-        EFFECT_MEDIUM_DROP_SHADOW_7,
-        EFFECT_MEDIUM_DROP_SHADOW_8,
-        EFFECT_HARD_DROP_SHADOW_1,
-        EFFECT_HARD_DROP_SHADOW_2,
-        EFFECT_HARD_DROP_SHADOW_3,
-        EFFECT_HARD_DROP_SHADOW_4,
-        EFFECT_HARD_DROP_SHADOW_5,
-        EFFECT_HARD_DROP_SHADOW_6,
-        EFFECT_HARD_DROP_SHADOW_7,
-        EFFECT_HARD_DROP_SHADOW_8,
-        EFFECT_SOFT_DROP_SHADOW_1_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_2_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_3_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_4_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_5_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_6_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_7_WITH_OUTLINE,
-        EFFECT_SOFT_DROP_SHADOW_8_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_1_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_2_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_3_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_4_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_5_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_6_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_7_WITH_OUTLINE,
-        EFFECT_MEDIUM_DROP_SHADOW_8_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_1_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_2_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_3_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_4_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_5_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_6_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_7_WITH_OUTLINE,
-        EFFECT_HARD_DROP_SHADOW_8_WITH_OUTLINE
-    }TEXT_EFFECT;
-
-    typedef enum DRAW_ORDER
-    {
-        ORD_ELEM_NONE,
-        ORD_ELEM_FILL,
-        ORD_ELEM_BITMAP,
-        ORD_ELEM_ICON,
-        ORD_ELEM_TEXT,
-        ORD_ELEM_BORDER
-    }DRAW_ORDER;
-
     /**
      * Justification values:
      *    0 = absolut
@@ -189,17 +104,21 @@ namespace Page
         QString fileName;       // file name of the bitmap (replaces icons)
         bool dynamic{false};    // Marks an image as a dynamic image (Video, camera, ...)
         int index{-1};          // The bitmap index number
-        ORIENTATION justification{ORI_CENTER_MIDDLE};   // Justification of bitmap
+        ObjHandler::ORIENTATION justification{ObjHandler::ORI_CENTER_MIDDLE};   // Justification of bitmap
         int offsetX{0};         // Absolut X position (only if justification is 0)
         int offsetY{0};         // Absolut Y position (only if justification is 0)
         int width{0};           // Internal: The width of the image
         int height{0};          // Internal: The height of the image
     }BITMAPS_t;
 
+    /**
+     * @brief struct SR_t
+     * This structure is for a page or popup only and defines the background.
+     * Therefore it is shortened and does not contain all features an object
+     * may contain.
+     */
     typedef struct SR_t
     {
-        int number{0};
-        QString _do;            // Order on how to show a multistate bargraph (010203...)
         QString bs;             // Frame type (circle, ...)
         QString mi;             // Chameleon image
         int mi_width{0};        // Width of image
@@ -211,11 +130,10 @@ namespace Page
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
         BITMAPS_t bitmaps[5];   // G5 table of bitmaps
-        std::vector<QColor> gradientColors;  // G5 optional gradient colors
+        QList<QColor> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
         int gy{50};             // G5 Gradient center Y in percent
-        QString sd;             // Sound file to play
         int bm_width{0};        // Width of image
         int bm_height{0};       // Height of image
         bool dynamic{false};    // TRUE = moving image
@@ -229,7 +147,7 @@ namespace Page
         int by{0};              // Absolute image position y
         int fi{0};              // Font index
         QString te;             // Text
-        ORIENTATION jt{ORI_CENTER_MIDDLE}; // Text orientation
+        ObjHandler::ORIENTATION jt{ObjHandler::ORI_CENTER_MIDDLE}; // Text orientation
         int tx{0};              // Text X position
         int ty{0};              // Text Y position
         QString ff;             // G5 font file name
@@ -237,10 +155,6 @@ namespace Page
         int ww{0};              // line break when 1
         int et{0};              // Text effect (^TEF)
         int oo{-1};             // Over all opacity
-        int md{0};              // Marquee type: 1 = scroll left, 2 = scroll right, 3 = ping pong, 4 = scroll up, 5 = scroll down
-        int mr{0};              // Marquee enabled: 1 = enabled, 0 = disabled
-        int ms{1};              // Marquee speed: Range: 1 to 10 (look for command ^MSP to see of how to set this)
-        QColor vf;              // G5: Video fill color; Marks the button reserved for video
     } SR_t;
 
     typedef struct PAGE_t
@@ -260,7 +174,7 @@ namespace Page
         int collapseOffset{0};                  // G5: The offset to collapse to.
         bool collapsible{false};                // G5: Internal use: TRUE = popup is collapsible.
         COLLAPS_STATE_t colState{COL_CLOSED};   // G5: Internal use: Defines the state of a collapsable popup.
-        std::string group;                      // Name of the group the popup belongs (popup only)
+        QString group;                          // Name of the group the popup belongs (popup only)
         int timeout{0};                         // Time after the popup hides in 1/10 seconds (popup only)
         SHOWEFFECT showEffect{SE_NONE};         // The effect when the popup is shown (popup only)
         int showTime{0};                        // The time reserved for the show effect (popup only)
@@ -271,13 +185,21 @@ namespace Page
         int hideX{0};                           // End of hide effect position (by default "left"); (popup only)
         int hideY{0};                           // End of hide effect position (by default "top"); (popup only)
         int resetPos{0};                        // If this is 1 the popup is reset to it's original position and size on open
-        std::vector<SR_t> sr;                   // Page/Popup description
         SR_t srPage;                            // The configuration for the page itself
         std::vector<EVENT_t> eventShow;         // G5: Events to start showing
         std::vector<EVENT_t> eventHide;         // G5: Events to start hiding
+        QList<ObjHandler::TOBJECT_t> objects;   // The objects belonging to the page/popup
     }PAGE_t;
 }
 
+/**
+ * @brief The TPageHandler class
+ * This class handles all pages and popups. It is filled at the moment
+ * a file is read or during the user creates new pages, popups and
+ * objects on them.
+ * The class handles also the reading and saving of individual pages or
+ * popups.
+ */
 class TPageHandler : public QObject
 {
     Q_OBJECT

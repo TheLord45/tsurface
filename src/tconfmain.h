@@ -126,7 +126,7 @@ class TConfMain
         void setFileName(const QString& fn);
         void setFileNameAuto(bool a) { mFileNameAuto = a; }
         // Getter
-        QString getPanelName() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
+        QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
         QString getFileName();
         QSize getPanelSize();
