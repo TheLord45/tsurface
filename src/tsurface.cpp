@@ -31,6 +31,7 @@
 #include "tpagetree.h"
 #include "tpagehandler.h"
 #include "taddpagedialog.h"
+#include "tfonts.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "ui_tsurface.h"
@@ -461,6 +462,20 @@ void TSurface::onAddNewPage()
     widget->show();
     TPageTree::Current().addPage(pageDialog.getPageName(), id);
     TConfMain::Current().addPage(pageDialog.getPageName(), id);
+    // Here we set everyting of the page we currently know
+    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
+
+    if (pg.pageID <= 0)
+    {
+        MSG_ERROR("Error getting whole page!");
+        return;
+    }
+
+    pg.srPage.cf = pageDialog.getColorBackground();
+    pg.srPage.ct = pageDialog.getColorText();
+    QFont font = pageDialog.getFont();
+    TFonts::getFontPath(font.family());
+    TPageHandler::Current().setPage(pg);
 }
 
 void TSurface::onAddNewPopup()

@@ -215,9 +215,8 @@ class TPageHandler : public QObject
         bool isVisible(int number);
         QWidget *getWidget(int number);
         // Getter/Setter
-        Page::PAGE_TYPE getPageType() { return mPageType; }
-        void setPageType(Page::PAGE_TYPE pt) { mPageType = pt; }
         Page::PAGE_t getPage(int number);
+        void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
 
@@ -225,7 +224,6 @@ class TPageHandler : public QObject
 
     private:
         static TPageHandler *mCurrent;
-        Page::PAGE_TYPE mPageType{Page::PT_UNKNOWN};
         QList<Page::PAGE_t> mPages;
         int mMaxPageNumber{0};
         int mMaxPopupNumber{0};

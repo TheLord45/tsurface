@@ -160,6 +160,25 @@ PAGE_t TPageHandler::getPage(int number)
     return PAGE_t();
 }
 
+void TPageHandler::setPage(PAGE_t& page)
+{
+    DECL_TRACER("TPageHandler::setPage(PAGE_t& page)");
+
+    if (page.pageID <= 0 || page.name.isEmpty())
+        return;
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->pageID == page.pageID)
+        {
+            *iter = page;
+            break;
+        }
+    }
+}
+
 void TPageHandler::setPageBgColor(int number, QColor& col)
 {
     DECL_TRACER("TPageHandler::setPageBgColor(int number, QColor& col)");

@@ -21,6 +21,8 @@
 #include <QPixmap>
 #include <QMessageBox>
 #include <QColorDialog>
+#include <QFontDatabase>
+
 #include "tnewprojectdialog.h"
 #include "ui_tnewprojectdialog.h"
 
@@ -49,33 +51,45 @@ TNewProjectDialog::TNewProjectDialog(QWidget *parent)
     mFont = parent->font();
     mFont.setPointSize(mSize);
     MSG_DEBUG("Current font: " << mFont.family().toStdString() << " (" << mSize << ")");
-
+    QList<int> fSizes = QFontDatabase::pointSizes(mFont.family());
+    QList<int>::Iterator iter;
+    bool haveSize = false;
     int idx = 0;
-    bool set = false;
     int index = 0;
 
-    for (int i = 6; i < 37; i += 2)
+    for (iter = fSizes.begin(); iter != fSizes.end(); ++iter)
     {
-        MSG_DEBUG("Setting size " << i);
+        ui->comboBoxSize->addItem(QString("%1").arg(*iter), *iter);
 
-        if ((mSize % 2) == 0 && i == mSize)
+        if (*iter == mSize)
         {
-            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
+            haveSize = true;
             ui->comboBoxSize->setCurrentIndex(idx);
             index = idx;
-            set = true;
         }
-        else if (!set && i > mSize)
+        else if (!haveSize && *iter > mSize)
         {
-            ui->comboBoxSize->addItem(QString::fromStdString(to_string(mSize)), mSize);
-            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
-            set = true;
-            index = idx;
+            if (idx > 0)
+            {
+                ui->comboBoxSize->insertItem(idx - 1, QString("%1").arg(mSize), mSize);
+                index = idx - 1;
+            }
+            else
+            {
+                ui->comboBoxSize->insertItem(0, QString("%1").arg(mSize), mSize);
+                index = 0;
+            }
+
+            haveSize = true;
         }
-        else
-            ui->comboBoxSize->addItem(QString::fromStdString(to_string(i)), i);
 
         idx++;
+    }
+
+    if (!haveSize)
+    {
+        ui->comboBoxSize->addItem(QString("%1").arg(mSize), mSize);
+        index = idx;
     }
 
     mPanelType = new TPanelType;
@@ -254,8 +268,14 @@ void TNewProjectDialog::on_toolButtonColorBackground_clicked()
     QColorDialog color(this);
     color.setCurrentColor(mColorBackground);
     color.exec();
-    mColorBackground = color.selectedColor();
+    QColor col = color.selectedColor();
+
+    if (!col.isValid())
+        return;
+
+    mColorBackground = col;
     ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
+    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
 }
 
 
@@ -266,8 +286,14 @@ void TNewProjectDialog::on_toolButtonColorText_clicked()
     QColorDialog color(this);
     color.setCurrentColor(mColorText);
     color.exec();
-    mColorText = color.selectedColor();
+    QColor col = color.selectedColor();
+
+    if (!col.isValid())
+        return;
+
+    mColorText = col;
     ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
+    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
 }
 
 
@@ -304,7 +330,8 @@ void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
     mSize = ui->comboBoxSize->itemData(index).toInt();
     mFont.setPointSize(mSize);
     ui->labelFontSample->setFont(mFont);
-    ui->labelFontSample->setText(mFont.family() + " <Lorem Ipsum>");
+    ui->labelFontSample->setText(mFont.family() + " AaBbCcXxYyZz");
+    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
 }
 
 
