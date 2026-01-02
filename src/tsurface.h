@@ -50,6 +50,8 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
+        void onAddNewPage();
+        void onAddNewPopup();
         void onActionShowChannels(bool checked);
 
     private slots:

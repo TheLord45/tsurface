@@ -22,7 +22,6 @@
 #include <QCursor>
 
 #include "tpagetree.h"
-#include "tpagehandler.h"
 #include "terror.h"
 
 TPageTree *TPageTree::mCurrent{nullptr};
@@ -95,32 +94,32 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
 
     QStandardItem *parentItem = mItemModel->invisibleRootItem();
     // Folder Pages
-    QStandardItem *pages = new QStandardItem(tr("Pages"));
-    pages->setEditable(false);
-    pages->setData(MENU_PAGE);
+    mPages = new QStandardItem(tr("Pages"));
+    mPages->setEditable(false);
+    mPages->setData(MENU_PAGE);
     // Page
     mPageNum++;
     QStandardItem *pageMain = new QStandardItem(pname);
     pageMain->setEditable(false);
     pageMain->setData(mPageNum);
-    pages->appendRow(pageMain);
+    mPages->appendRow(pageMain);
     // Add page to folder Pages
-    parentItem->appendRow(pages);
+    parentItem->appendRow(mPages);
     // Folder Popup Pages
-    QStandardItem *popuppages = new QStandardItem(tr("Popup pages"));
-    popuppages->setEditable(false);
-    popuppages->setData(MENU_POPUP);
-    parentItem->appendRow(popuppages);
+    mPopup = new QStandardItem(tr("Popup pages"));
+    mPopup->setEditable(false);
+    mPopup->setData(MENU_POPUP);
+    parentItem->appendRow(mPopup);
     // Folder Sup-pages
-    QStandardItem *subpages = new QStandardItem(tr("Sub-pages"));
-    subpages->setEditable(false);
-    subpages->setData(MENU_SUBPAGES);
-    parentItem->appendRow(subpages);
+    mSubPages = new QStandardItem(tr("Sub-pages"));
+    mSubPages->setEditable(false);
+    mSubPages->setData(MENU_SUBPAGES);
+    parentItem->appendRow(mSubPages);
     // Folder Apps
-    QStandardItem *apps = new QStandardItem(tr("Application windows"));
-    apps->setEditable(false);
-    apps->setData(MENU_APPS);
-    parentItem->appendRow(apps);
+    mApps = new QStandardItem(tr("Application windows"));
+    mApps->setEditable(false);
+    mApps->setData(MENU_APPS);
+    parentItem->appendRow(mApps);
 
     if (!mHaveModel)
         mTreeView->setModel(mItemModel);
@@ -133,6 +132,38 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
     mTreeView->expandAll();
     connect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
+}
+
+void TPageTree::addPage(const QString& name, int num)
+{
+    DECL_TRACER("TPageTree::addPage(const QString& name, int num)");
+
+    if (!mPages)
+    {
+        MSG_ERROR("Can't add a page to the tree because the tree was not initialized!");
+        return;
+    }
+
+    QStandardItem *pg = new QStandardItem(name);
+    pg->setEditable(false);
+    pg->setData(num);
+    mPages->appendRow(pg);
+}
+
+void TPageTree::addPopup(const QString& name, int num)
+{
+    DECL_TRACER("TPageTree::addPopup(const QString& name, int num)");
+
+    if (!mPopup)
+    {
+        MSG_ERROR("Can't add a popup page to the tree because the tree was not initialized!");
+        return;
+    }
+
+    QStandardItem *pg = new QStandardItem(name);
+    pg->setEditable(false);
+    pg->setData(num);
+    mPopup->appendRow(pg);
 }
 
 void TPageTree::onDoubleClicked(const QModelIndex& index)
@@ -232,7 +263,7 @@ void TPageTree::onMenuTriggeredAddPage(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPage(bool checked)");
 
     Q_UNUSED(checked);
-    MSG_DEBUG("Popup action: Add page ...");
+    addNewPage();
 }
 
 void TPageTree::onMenuTriggeredAddPopup(bool checked)
@@ -240,7 +271,7 @@ void TPageTree::onMenuTriggeredAddPopup(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPopup(bool checked)");
 
     Q_UNUSED(checked);
-    MSG_DEBUG("Popup action: Add Popup page ...");
+    addNewPopup();
 }
 
 void TPageTree::onMenuTriggeredAddApp(bool checked)

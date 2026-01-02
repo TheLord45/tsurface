@@ -22,6 +22,7 @@
 #include <QDateTime>
 #include <QList>
 #include <QColor>
+#include <QFont>
 
 #include "tpaneltypes.h"
 
@@ -116,6 +117,12 @@ class TConfMain
         static TConfMain& Current();
 
         void createNew(const QString& file, const QString& pname, const QString& project);
+        void addPage(const QString& name, int num);
+        void addPopup(const QString& name, int num);
+        void renamePage(int num, const QString& name);
+        void renamePopup(int num, const QString& name);
+        void deletePage(const QString& name);
+        void deletePopup(const QString& name);
         bool readMain(const QString& path);
         void saveProject();
         void reset();
@@ -125,6 +132,9 @@ class TConfMain
         void setSetup(const ConfigMain::SETUP_t& setup);
         void setFileName(const QString& fn);
         void setFileNameAuto(bool a) { mFileNameAuto = a; }
+        void setColorBackground(const QColor& col) { mColorBackground = col; }
+        void setColorText(const QColor& col) { mColorText = col; }
+        void setFontBase(const QFont& font);
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
@@ -135,6 +145,9 @@ class TConfMain
         ConfigMain::SETUP_t getSetup() { if (mConfMain) return mConfMain->setup; else return ConfigMain::SETUP_t(); }
         QList<QString> getAllPages();
         QList<QString> getAllPopups();
+        QColor& getColorBackground() { return mColorBackground; }
+        QColor& getColorText() { return mColorText; }
+        QFont& getFontBase() { return mFontBase; }
 
     private:
         static TConfMain *mCurrent;
@@ -143,9 +156,11 @@ class TConfMain
         QString mFileName;
         QString mJobName;
         QString mPageName;
+        QString mBaseDirectory;     // Directory which contains the plain files
         TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
+        QFont mFontBase;
         bool mFileNameAuto{false};
 };
 

@@ -30,6 +30,7 @@
 #include "tpaneltypes.h"
 #include "tpagetree.h"
 #include "tpagehandler.h"
+#include "taddpagedialog.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "ui_tsurface.h"
@@ -128,6 +129,9 @@ TSurface::TSurface(QWidget *parent)
 
     mActionConnectionState = new QAction(QIcon(":images/disconnected.svg"), tr("Disconnected"));
     m_ui->mainToolBar->addAction(mActionConnectionState);
+
+    connect(&TPageTree::Current(), &TPageTree::addNewPage, this, &TSurface::onAddNewPage);
+    connect(&TPageTree::Current(), &TPageTree::addNewPopup, this, &TSurface::onAddNewPopup);
 }
 
 TSurface::~TSurface()
@@ -240,6 +244,7 @@ void TSurface::on_actionNew_triggered()
     cmain.setProjectInfo(projectInfo);
     cmain.setFileNameAuto(npd.getFileNameAuto());
     // Create tree menu
+    TPageTree::Current().setParent(this);
     TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
     connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
@@ -419,6 +424,48 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         widget->show();
         TPageHandler::Current().setVisible(num, true);
     }
+}
+
+void TSurface::onAddNewPage()
+{
+    DECL_TRACER("TSurface::onAddNewPage()");
+
+    TAddPageDialog pageDialog(this);
+    ConfigMain::PROJECTINFO_t prjInfo = TConfMain::Current().getProjectInfo();
+    pageDialog.setFont(TConfMain::Current().getFontBase());
+    pageDialog.setColorBackground(TConfMain::Current().getColorBackground());
+    pageDialog.setColorText(TConfMain::Current().getColorText());
+
+    if (pageDialog.exec() == QDialog::Rejected)
+        return;
+
+    QSize pgSize = TConfMain::Current().getPanelSize();
+    QWidget *widget = new QWidget;
+    widget->setWindowTitle(pageDialog.getPageName());
+    widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
+    widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    widget->setStyleSheet("background-color: " + pageDialog.getColorBackground().name() + ";color: " + pageDialog.getColorText().name()+ ";");
+    int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, pageDialog.getPageName(), pgSize.width(), pgSize.height());
+    QString objName("QWidgetMDI_%1");
+    objName.append(QString::number(id));
+    widget->setObjectName(objName);
+    widget->installEventFilter(mCloseEater);
+
+    QMdiSubWindow *page = new QMdiSubWindow;
+    page->setWidget(widget);
+    page->setAttribute(Qt::WA_DeleteOnClose);
+    page->installEventFilter(mCloseEater);
+    page->setWindowIcon(QIcon(":images/tsurface_512.png"));
+    m_ui->mdiArea->addSubWindow(page);
+    widget->activateWindow();
+    widget->show();
+    TPageTree::Current().addPage(pageDialog.getPageName(), id);
+    TConfMain::Current().addPage(pageDialog.getPageName(), id);
+}
+
+void TSurface::onAddNewPopup()
+{
+    DECL_TRACER("TSurface::onAddNewPopup()");
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

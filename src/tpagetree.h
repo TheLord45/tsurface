@@ -26,6 +26,7 @@ class QTreeView;
 class QStandardItemModel;
 class QMenu;
 class QModelIndex;
+class QStandardItem;
 
 class TPageTree : public QObject
 {
@@ -61,9 +62,17 @@ class TPageTree : public QObject
         }WINTYPE_t;
 
         void createNewTree(QTreeView *tv, const QString& job, const QString& pname, const QString& panel);
+        void addPage(const QString& name, int num);
+        void addPopup(const QString& name, int num);
+//        void addSubPage(const QString& name, int num);
+//        void addApp(const QString& name, int num);
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);
+        void addNewPage();
+        void addNewPopup();
+//        void addNewSubPage();
+//        void addNewApp();
 
     protected:
         void onClicked(const QModelIndex& index);
@@ -87,6 +96,10 @@ class TPageTree : public QObject
 
         QTreeView *mTreeView{nullptr};
         QStandardItemModel *mItemModel{nullptr};
+        QStandardItem *mPages{nullptr};     // Pointer to tree part containing the pages
+        QStandardItem *mPopup{nullptr};     // Pointer to tree part containing the popups
+        QStandardItem *mSubPages{nullptr};  // Pointer to tree part containing the subpages
+        QStandardItem *mApps{nullptr};      // Pointer to tree part containing the apps
         QMenu *mMenuPopup{nullptr};
         bool mHaveModel{false};
         int mPageNum{0};            // The number of a page. Range 1 to 50

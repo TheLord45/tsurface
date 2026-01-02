@@ -15,6 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <filesystem>
+
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QJsonObject>
@@ -25,6 +27,8 @@
 #include "terror.h"
 
 using namespace ConfigMain;
+namespace fs = std::filesystem;
+using std::string;
 
 TConfMain *TConfMain::mCurrent{nullptr};
 
@@ -57,6 +61,9 @@ TConfMain& TConfMain::Current()
  * Creates a new, empty project. It initializes the tree in the Pages tree view.
  * If there exists already a project it is closed silently and a new project is
  * allocated.
+ * This method must be called only once to create the main page. If this is
+ * called and there exists already a project, the project is deleted and a new
+ * one will be created.
  *
  * @param file      The file name of the project
  * @param pname     The name of the main page
@@ -78,9 +85,167 @@ void TConfMain::createNew(const QString& file, const QString& pname, const QStri
     PAGEENTRY_t page;
     page.name = pname;
     page.pageID = 1;
-    page.file = file;
+    page.file = QString("%1.json").arg(pname);
     page.popupType = PN_PAGE;
     mConfMain->pageList.append(page);
+}
+
+/**
+ * @brief TConfMain::addPage
+ * This method adds a new page to the tree of pages. The name must be unique!
+ *
+ * @param name  The name of the new page
+ * @param num   The number of the new page
+ */
+void TConfMain::addPage(const QString& name, int num)
+{
+    DECL_TRACER("TConfMain::addPage(const QString& name, int num)");
+
+    if (num < 1 || num > 50)
+    {
+        MSG_ERROR("Can't add page " << name.toStdString() << " because number " << num << " is out of range (1 - 50)");
+        return;
+    }
+    // Check if the name and number is unique
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->popupType == PN_PAGE && iter->name == name)
+            return;
+
+        if (iter->popupType == PN_PAGE && iter->pageID == num)
+            return;
+    }
+
+    PAGEENTRY_t page;
+    page.name = name;
+    page.pageID = num;
+    page.file = QString("%1.json").arg(name);
+    page.popupType = PN_PAGE;
+    mConfMain->pageList.append(page);
+}
+
+/**
+ * @brief TConfMain::addPopup
+ * This method adds a new popup to the tree of pages. The name must be unique!
+ *
+ * @param name  The name of the new popup
+ * @param num   The number of the new popup
+ */
+void TConfMain::addPopup(const QString& name, int num)
+{
+    DECL_TRACER("TConfMain::addPopup(const QString& name, int num)");
+
+    if (num < 500 || num >= 1000)
+    {
+        MSG_ERROR("Can't add popup page " << name.toStdString() << " because number " << num << " is out of range (500 - 1000)");
+        return;
+    }
+    // Check if the name and number is unique
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->popupType == PN_POPUP && iter->name == name)
+            return;
+
+        if (iter->popupType == PN_POPUP && iter->pageID == num)
+            return;
+    }
+
+    PAGEENTRY_t page;
+    page.name = name;
+    page.pageID = num;
+    page.file = QString("%1.json").arg(name);
+    page.popupType = PN_POPUP;
+    mConfMain->pageList.append(page);
+}
+
+void TConfMain::renamePage(int num, const QString& name)
+{
+    DECL_TRACER("TConfMain::renamePage(int num, const QString& name)");
+
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->pageID == num)
+        {
+            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+
+            if (fs::exists(fname))
+                fs::remove(fname);
+
+            iter->name = name;
+            iter->file = QString("%1.json").arg(name);
+            break;
+        }
+    }
+}
+
+void TConfMain::renamePopup(int num, const QString& name)
+{
+    DECL_TRACER("TConfMain::renamePopup(int num, const QString& name)");
+
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->pageID == num)
+        {
+            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+
+            if (fs::exists(fname))
+                fs::remove(fname);
+
+            iter->name = name;
+            iter->file = QString("%1.json").arg(name);
+            break;
+        }
+    }
+}
+
+void TConfMain::deletePage(const QString& name)
+{
+    DECL_TRACER("TConfMain::deletePage(const QString& name)");
+
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->popupType == PN_PAGE && iter->name == name)
+        {
+            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+
+            if (fs::exists(fname))
+                fs::remove(fname);
+
+            mConfMain->pageList.erase(iter);
+            break;
+        }
+    }
+}
+
+void TConfMain::deletePopup(const QString& name)
+{
+    DECL_TRACER("TConfMain::deletePopup(const QString& name)");
+
+    QList<PAGEENTRY_t>::Iterator iter;
+
+    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    {
+        if (iter->popupType == PN_POPUP && iter->name == name)
+        {
+            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+
+            if (fs::exists(fname))
+                fs::remove(fname);
+
+            mConfMain->pageList.erase(iter);
+            break;
+        }
+    }
 }
 
 void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
