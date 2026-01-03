@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QColorDialog>
+#include <QMessageBox>
 
 #include "taddpagedialog.h"
 #include "ui_taddpagedialog.h"
@@ -30,8 +31,49 @@ TAddPageDialog::TAddPageDialog(QWidget *parent) :
 
     ui->setupUi(this);
 
-    for (int i = 6; i < 37; i += 2)
-        ui->comboBoxFontSize->addItem(QString("%1").arg(i));
+    QList<int> fSizes = QFontDatabase::pointSizes(mFont.family());
+    QList<int>::Iterator iter;
+    bool haveSize = false;
+    int idx = 0;
+    int index = 0;
+
+    for (iter = fSizes.begin(); iter != fSizes.end(); ++iter)
+    {
+        ui->comboBoxFontSize->addItem(QString("%1").arg(*iter), *iter);
+
+        if (*iter == mSize)
+        {
+            haveSize = true;
+            ui->comboBoxFontSize->setCurrentIndex(idx);
+            index = idx;
+        }
+        else if (!haveSize && *iter > mSize)
+        {
+            if (idx > 0)
+            {
+                ui->comboBoxFontSize->insertItem(idx - 1, QString("%1").arg(mSize), mSize);
+                index = idx - 1;
+            }
+            else
+            {
+                ui->comboBoxFontSize->insertItem(0, QString("%1").arg(mSize), mSize);
+                index = 0;
+            }
+
+            haveSize = true;
+        }
+
+        idx++;
+    }
+
+    if (!haveSize)
+    {
+        ui->comboBoxFontSize->addItem(QString("%1").arg(mSize), mSize);
+        index = idx;
+    }
+
+    mInitialized = true;
+    on_comboBoxFontSize_currentIndexChanged(index);
 }
 
 TAddPageDialog::~TAddPageDialog()
@@ -45,6 +87,7 @@ void TAddPageDialog::setFont(const QFont& font)
 {
     DECL_TRACER("TAddPageDialog::setFont(const QFont& font)");
 
+    mFont = font;
     ui->labelFontSample->setFont(font);
     ui->fontComboBoxFontName->setCurrentFont(font);
     mSize = font.pointSize();
@@ -71,18 +114,40 @@ void TAddPageDialog::setFont(const QFont& font)
     }
 }
 
+void TAddPageDialog::setFontSize(int size)
+{
+    DECL_TRACER("TAddPageDialog::setFontSize(int size)");
+
+    mSize = size;
+
+    for (int i = 0; i < ui->comboBoxFontSize->count(); ++i)
+    {
+        int s = ui->comboBoxFontSize->itemData(i).toInt();
+
+        if (s == size)
+        {
+            ui->comboBoxFontSize->setCurrentIndex(i);
+            break;
+        }
+    }
+}
+
 void TAddPageDialog::setColorBackground(const QColor& col)
 {
     DECL_TRACER("TAddPageDialog::setColorBackground(const QColor& col)");
 
+    mColorBackground = col;
     ui->frameColorBackground->setStyleSheet(QString("background-color: %1").arg(col.name()));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 void TAddPageDialog::setColorText(const QColor& col)
 {
     DECL_TRACER("TAddPageDialog::setColorText(const QColor& col)");
 
+    mColorText = col;
     ui->frameColorText->setStyleSheet((QString("background-color: %1").arg(col.name())));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 void TAddPageDialog::on_lineEditPageName_textChanged(const QString &arg1)
@@ -99,9 +164,13 @@ void TAddPageDialog::on_toolButtonColorBackground_clicked()
     QColorDialog color(this);
     color.setCurrentColor(mColorBackground);
     color.exec();
+
+    if (!color.selectedColor().isValid())
+        return;
+
     mColorBackground = color.selectedColor();
-    ui->frameColorBackground->setStyleSheet((QString("background-color: %1").arg(mColorBackground.name())));
-    ui->labelFontSample->setStyleSheet(QString("background-color: %1").arg(mColorBackground.name()));
+    ui->frameColorBackground->setStyleSheet(QString("background-color: %1").arg(mColorBackground.name()));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 void TAddPageDialog::on_toolButtonColorText_clicked()
@@ -111,9 +180,13 @@ void TAddPageDialog::on_toolButtonColorText_clicked()
     QColorDialog color(this);
     color.setCurrentColor(mColorText);
     color.exec();
+
+    if (!color.selectedColor().isValid())
+        return;
+
     mColorText = color.selectedColor();
-    ui->frameColorText->setStyleSheet((QString("background-color: ").arg(mColorText.name())));
-    ui->labelFontSample->setStyleSheet(QString("color: %1").arg(mColorText.name()));
+    ui->frameColorText->setStyleSheet((QString("background-color: %1").arg(mColorText.name())));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 void TAddPageDialog::on_fontComboBoxFontName_currentFontChanged(const QFont& f)
@@ -121,7 +194,7 @@ void TAddPageDialog::on_fontComboBoxFontName_currentFontChanged(const QFont& f)
     DECL_TRACER("TAddPageDialog::on_fontComboBoxFontName_currentFontChanged(const QFont& f)");
 
     mFont = f;
-    mSize = f.pointSize();
+    mFont.setPointSize(mSize);
     int max = ui->comboBoxFontSize->count();
 
     for (int i = 0; i < max; ++i)
@@ -133,16 +206,38 @@ void TAddPageDialog::on_fontComboBoxFontName_currentFontChanged(const QFont& f)
         }
     }
 
-    mFont.setPointSize(mSize);
-
+    ui->labelFontSample->setFont(mFont);
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 void TAddPageDialog::on_comboBoxFontSize_currentIndexChanged(int index)
 {
     DECL_TRACER("TAddPageDialog::on_comboBoxFontSize_currentIndexChanged(int index)");
 
+    if (!mInitialized)
+        return;
+
     mSize = ui->comboBoxFontSize->itemData(index).toInt();
     mFont.setPointSize(mSize);
     ui->labelFontSample->setFont(mFont);
 }
 
+void TAddPageDialog::accept()
+{
+    DECL_TRACER("TAddPageDialog::accept()");
+
+    if (mPageName.isEmpty())
+    {
+        QMessageBox::critical(this, tr("Missing name"), tr("Missing the name of the new page!"));
+        return;
+    }
+
+    done(QDialog::Accepted);
+}
+
+QString TAddPageDialog::styleSheetColor()
+{
+    DECL_TRACER("TAddPageDialog::styleSheetColor()");
+
+    return QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name());
+}

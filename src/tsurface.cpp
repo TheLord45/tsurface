@@ -241,9 +241,14 @@ void TSurface::on_actionNew_triggered()
     projectInfo.protection = false;
     setupInfo.screenHeight = projectInfo.panelSize.height();
     setupInfo.screenWidth = projectInfo.panelSize.width();
+    // The following settings are the base settings for this project.
     cmain.createNew(npd.getFileName(), npd.getPageName(), npd.getProjectName());
     cmain.setProjectInfo(projectInfo);
     cmain.setFileNameAuto(npd.getFileNameAuto());
+    cmain.setColorBackground(npd.getColorBackground());
+    cmain.setColorText(npd.getColorText());
+    cmain.setFontBase(npd.getFontName());
+    cmain.setFontBaseSize(npd.getFontSize());
     // Create tree menu
     TPageTree::Current().setParent(this);
     TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
@@ -434,12 +439,14 @@ void TSurface::onAddNewPage()
     TAddPageDialog pageDialog(this);
     ConfigMain::PROJECTINFO_t prjInfo = TConfMain::Current().getProjectInfo();
     pageDialog.setFont(TConfMain::Current().getFontBase());
+    pageDialog.setFontSize(TConfMain::Current().getFontBaseSize());
     pageDialog.setColorBackground(TConfMain::Current().getColorBackground());
     pageDialog.setColorText(TConfMain::Current().getColorText());
 
     if (pageDialog.exec() == QDialog::Rejected)
         return;
 
+    mProjectChanged = true;
     QSize pgSize = TConfMain::Current().getPanelSize();
     QWidget *widget = new QWidget;
     widget->setWindowTitle(pageDialog.getPageName());

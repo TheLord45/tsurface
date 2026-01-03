@@ -44,6 +44,10 @@ class TAddPageDialog : public QDialog
         void setColorText(const QColor& col);
         QColor& getColorText() { return mColorText; }
 
+    protected:
+        QString styleSheetColor();
+        void accept() override;
+
     private slots:
         void on_lineEditPageName_textChanged(const QString &arg1);
         void on_toolButtonColorBackground_clicked();
@@ -54,11 +58,12 @@ class TAddPageDialog : public QDialog
     private:
         Ui::TAddPageDialog *ui;
 
+        bool mInitialized{false};
         QString mPageName;
         QFont mFont;
         int mSize{0};
-        QColor mColorBackground;
-        QColor mColorText;
+        QColor mColorBackground{qRgb(255, 255, 255)};
+        QColor mColorText{qRgb(0, 0, 0)};
 };
 
 #endif // TADDPAGEDIALOG_H

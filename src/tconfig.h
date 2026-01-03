@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #define TCONFIG_H
 
 #include <string>
-#include <vector>
 
 #define V_MAJOR     1
 #define V_MINOR     0

@@ -134,7 +134,8 @@ class TConfMain
         void setFileNameAuto(bool a) { mFileNameAuto = a; }
         void setColorBackground(const QColor& col) { mColorBackground = col; }
         void setColorText(const QColor& col) { mColorText = col; }
-        void setFontBase(const QFont& font);
+        void setFontBase(const QFont& font) { mFontBase = font; };
+        void setFontBaseSize(int size) { mFontBaseSize = size; }
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
@@ -148,6 +149,7 @@ class TConfMain
         QColor& getColorBackground() { return mColorBackground; }
         QColor& getColorText() { return mColorText; }
         QFont& getFontBase() { return mFontBase; }
+        int getFontBaseSize() { return mFontBaseSize; }
 
     private:
         static TConfMain *mCurrent;
@@ -161,6 +163,7 @@ class TConfMain
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
         QFont mFontBase;
+        int mFontBaseSize{10};
         bool mFileNameAuto{false};
 };
 

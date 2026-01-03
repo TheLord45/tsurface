@@ -66,6 +66,9 @@ class TNewProjectDialog : public QDialog
         void setFontSize(int pt) { mSize = pt; }
         bool getFileNameAuto() { return mGenFile; }
 
+    protected:
+        QString styleSheetColor();
+
     private slots:
         void on_lineEditJobName_textChanged(const QString &arg1);
         void on_comboBoxPanelTypes_currentIndexChanged(int index);

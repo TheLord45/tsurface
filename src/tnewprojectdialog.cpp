@@ -113,11 +113,8 @@ void TNewProjectDialog::init()
     ui->lineEditJobName->setText(mProjectName);
     ui->lineEditPageName->setText(mPageName);
     ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
-    MSG_DEBUG("Backgroud color: \"background-color: " << mColorBackground.name().toStdString() << "\"");
     ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
-    MSG_DEBUG("Text color: \"background-color: " << mColorText.name().toStdString() << "\"");
     mFont.setPointSize(mSize);
-    MSG_DEBUG("Current font: " << mFont.family().toStdString() << " (" << mSize << ")");
 
     for (int i = 0; i < ui->comboBoxSize->count(); ++i)
     {
@@ -275,7 +272,7 @@ void TNewProjectDialog::on_toolButtonColorBackground_clicked()
 
     mColorBackground = col;
     ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
-    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 
@@ -293,7 +290,7 @@ void TNewProjectDialog::on_toolButtonColorText_clicked()
 
     mColorText = col;
     ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
-    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 
@@ -302,7 +299,7 @@ void TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)
     DECL_TRACER("TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)");
 
     mFont = f;
-    mSize = f.pointSize();
+    mFont.setPointSize(mSize);
     int max = ui->comboBoxSize->count();
 
     for (int i = 0; i < max; ++i)
@@ -314,7 +311,6 @@ void TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)
         }
     }
 
-    mFont.setPointSize(mSize);
     ui->labelFontSample->setFont(mFont);
     ui->labelFontSample->setText(mFont.family() + " <Lorem Ipsum>");
 }
@@ -331,7 +327,7 @@ void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
     mFont.setPointSize(mSize);
     ui->labelFontSample->setFont(mFont);
     ui->labelFontSample->setText(mFont.family() + " AaBbCcXxYyZz");
-    ui->labelFontSample->setStyleSheet(QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name()));
+    ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 
 
@@ -364,3 +360,9 @@ void TNewProjectDialog::on_lineEditPageName_textChanged(const QString &arg1)
     mPageName = arg1;
 }
 
+QString TNewProjectDialog::styleSheetColor()
+{
+    DECL_TRACER("TNewProjectDialog::styleSheetColor()");
+
+    return QString("background-color: %1;color: %2").arg(mColorBackground.name()).arg(mColorText.name());
+}

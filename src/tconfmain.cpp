@@ -21,6 +21,7 @@
 #include <QStandardItemModel>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QGuiApplication>
 
 #include "tconfmain.h"
 #include "tpaneltypes.h"
@@ -35,6 +36,8 @@ TConfMain *TConfMain::mCurrent{nullptr};
 TConfMain::TConfMain()
 {
     DECL_TRACER("TConfMain::TConfMain()");
+
+    mFontBase = QGuiApplication::font();
 }
 
 TConfMain::~TConfMain()
