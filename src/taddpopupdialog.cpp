@@ -20,6 +20,7 @@
 
 #include "taddpopupdialog.h"
 #include "ui_taddpopupdialog.h"
+#include "tgraphics.h"
 #include "terror.h"
 
 TAddPopupDialog::TAddPopupDialog(QWidget *parent) :
@@ -31,6 +32,14 @@ TAddPopupDialog::TAddPopupDialog(QWidget *parent) :
     ui->setupUi(this);
 
     initFontSizes();
+    ui->comboBoxBorder->addItem("None");
+    ui->frameColorBorder->setStyleSheet("background-color: " + mColorBorder.name());
+    ui->radioButtonTypeStandard->setChecked(true);
+    QStringList list = TGraphics::Current().getBorderNames();
+    QStringList::Iterator iter;
+
+    for (iter = list.begin(); iter != list.end(); ++iter)
+        ui->comboBoxBorder->addItem(*iter);
 }
 
 TAddPopupDialog::~TAddPopupDialog()
@@ -73,12 +82,14 @@ void TAddPopupDialog::on_spinBoxPositionLeft_valueChanged(int arg1)
 {
     DECL_TRACER("TAddPopupDialog::on_spinBoxPositionLeft_valueChanged(int arg1)");
 
-    if ((mLeft + mWidth) < mPageSize.width())
+    MSG_DEBUG("Position left: (" << arg1 << " + " << mWidth << ") < " << mPageSize.width());
+
+    if ((arg1 + mWidth) < mPageSize.width())
         mLeft = arg1;
     else
     {
         QMessageBox::warning(this, tr("Size warning"), tr("The left point is too high! Ignoring it."));
-        ui->spinBoxSizeHeight->setValue(mPageSize.width() - mWidth);
+        ui->spinBoxPositionLeft->setValue(mPageSize.width() - mWidth - 1);
         return;
     }
 }
@@ -87,12 +98,14 @@ void TAddPopupDialog::on_spinBoxPositionTop_valueChanged(int arg1)
 {
     DECL_TRACER("TAddPopupDialog::on_spinBoxPositionTop_valueChanged(int arg1)");
 
-    if ((mTop + mHeight) < mPageSize.height())
+    MSG_DEBUG("Position top: (" << arg1 << " + " << mHeight << ") < " << mPageSize.height());
+
+    if ((arg1 + mHeight) < mPageSize.height())
         mTop = arg1;
     else
     {
         QMessageBox::warning(this, tr("Size warning"), tr("The top point is too high! Ignoring it."));
-        ui->spinBoxSizeHeight->setValue(mPageSize.height() - mHeight);
+        ui->spinBoxPositionTop->setValue(mPageSize.height() - mHeight - 1);
         return;
     }
 }
@@ -101,12 +114,14 @@ void TAddPopupDialog::on_spinBoxSizeWidth_valueChanged(int arg1)
 {
     DECL_TRACER("TAddPopupDialog::on_spinBoxSizeWidth_valueChanged(int arg1)");
 
-    if ((mLeft + mWidth) < mPageSize.width())
+    MSG_DEBUG("Size width: (" << mLeft << " + " << arg1 << ") < " << mPageSize.width());
+
+    if ((mLeft + arg1) < mPageSize.width())
         mWidth = arg1;
     else
     {
         QMessageBox::warning(this, tr("Size warning"), tr("The width is too high! Ignoring it."));
-        ui->spinBoxSizeHeight->setValue(mPageSize.width() - mLeft);
+        ui->spinBoxSizeWidth->setValue(mPageSize.width() - mLeft - 1);
         return;
     }
 }
@@ -115,12 +130,14 @@ void TAddPopupDialog::on_spinBoxSizeHeight_valueChanged(int arg1)
 {
     DECL_TRACER("TAddPopupDialog::on_spinBoxSizeHeight_valueChanged(int arg1)");
 
-    if ((mTop + mHeight) < mPageSize.height())
+    MSG_DEBUG("Size height: (" << mTop << " + " << arg1 << ") < " << mPageSize.height());
+
+    if ((mTop + arg1) < mPageSize.height())
         mHeight = arg1;
     else
     {
         QMessageBox::warning(this, tr("Size warning"), tr("The height is too high! Ignoring it."));
-        ui->spinBoxSizeHeight->setValue(mPageSize.height() - mTop);
+        ui->spinBoxSizeHeight->setValue(mPageSize.height() - mTop - 1);
         return;
     }
 }
@@ -174,17 +191,28 @@ void TAddPopupDialog::on_toolButtonColorText_clicked()
 
 void TAddPopupDialog::on_radioButtonTypeStandard_toggled(bool checked)
 {
+    DECL_TRACER("TAddPopupDialog::on_radioButtonTypeStandard_toggled(bool checked)");
 
+    if (checked)
+        setStandard(true);
 }
 
 void TAddPopupDialog::on_radioButtonTypeSubPage_toggled(bool checked)
 {
+    DECL_TRACER("TAddPopupDialog::on_radioButtonTypeSubPage_toggled(bool checked)");
 
+    if (checked)
+        setStandard(false);
 }
 
 void TAddPopupDialog::on_comboBoxBorder_currentIndexChanged(int index)
 {
+    DECL_TRACER("TAddPopupDialog::on_comboBoxBorder_currentIndexChanged(int index)");
 
+    QString border = ui->comboBoxBorder->itemText(index);
+
+    if (border != "None")
+        mBorder = border;
 }
 
 void TAddPopupDialog::on_fontComboBoxFontName_currentFontChanged(const QFont &f)
@@ -345,4 +373,14 @@ void TAddPopupDialog::initFontSizes()
 
     mInitialized = true;
     on_comboBoxFontSize_currentIndexChanged(index);
+}
+
+void TAddPopupDialog::setStandard(bool state)
+{
+    DECL_TRACER("TAddPopupDialog::setStandard(bool state)");
+
+    mStandardSub = !state;
+    ui->labelGroupName->setVisible(state);
+    ui->comboBoxGroupName->setVisible(state);
+    ui->groupBoxPosition->setVisible(state);
 }

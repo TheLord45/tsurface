@@ -39,9 +39,16 @@ qt_add_executable(tsurface
     tpopuplist.cpp
     tpopuplist.h
     tpopuplist.ui
-    taddpagedialog.h taddpagedialog.cpp taddpagedialog.ui
-    tfonts.h tfonts.cpp
-    taddpopupdialog.h taddpopupdialog.cpp taddpopupdialog.ui
+    taddpagedialog.cpp
+    taddpagedialog.h
+    taddpagedialog.ui
+    tfonts.cpp
+    tfonts.h
+    taddpopupdialog.cpp
+    taddpopupdialog.h
+    taddpopupdialog.ui
+    borders.qrc
+    tgraphics.h tgraphics.cpp
 )
 
 # Use the Widgets module from Qt 6.

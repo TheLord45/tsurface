@@ -31,6 +31,7 @@
 #include "tpagetree.h"
 #include "tpagehandler.h"
 #include "taddpagedialog.h"
+#include "taddpopupdialog.h"
 #include "tfonts.h"
 #include "tconfig.h"
 #include "terror.h"
@@ -133,6 +134,7 @@ TSurface::TSurface(QWidget *parent)
 
     connect(&TPageTree::Current(), &TPageTree::addNewPage, this, &TSurface::onAddNewPage);
     connect(&TPageTree::Current(), &TPageTree::addNewPopup, this, &TSurface::onAddNewPopup);
+    connect(&TPageTree::Current(), &TPageTree::toFront, this, &TSurface::onItemToFront);
 }
 
 TSurface::~TSurface()
@@ -337,6 +339,13 @@ void TSurface::on_actionProject_properties_triggered()
 //
 // Other callbacks
 //
+void TSurface::onItemToFront(int id)
+{
+    DECL_TRACER("TSurface::onItemToFront(int id)");
+
+    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+}
+
 /**
  * @brief TSurface::onActionShowChannels
  * This method is triggered by a click on the channels icon in the toolbar.
@@ -488,6 +497,58 @@ void TSurface::onAddNewPage()
 void TSurface::onAddNewPopup()
 {
     DECL_TRACER("TSurface::onAddNewPopup()");
+
+    TAddPopupDialog popupDialog(this);
+    ConfigMain::PROJECTINFO_t prjInfo = TConfMain::Current().getProjectInfo();
+    popupDialog.setFont(TConfMain::Current().getFontBase());
+    popupDialog.setFontSize(TConfMain::Current().getFontBaseSize());
+    popupDialog.setColorPageBackground(TConfMain::Current().getColorBackground());
+    popupDialog.setColorText(TConfMain::Current().getColorText());
+    popupDialog.setPageSize(TConfMain::Current().getPanelSize());
+    popupDialog.setGroupNames(TPageHandler::Current().getGroupNames());
+
+    if (popupDialog.exec() == QDialog::Rejected)
+        return;
+
+    mProjectChanged = true;
+    QSize pgSize = popupDialog.getPopupSize();
+    QWidget *widget = new QWidget;
+    widget->setWindowTitle(popupDialog.getPopupName());
+    widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
+    widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    widget->setStyleSheet("background-color: " + popupDialog.getColorPageBackground().name() + ";color: " + popupDialog.getColorText().name()+ ";");
+    QRect geom(popupDialog.getPositionLeft(), popupDialog.getPositionTop(), popupDialog.getSizeWidth(), popupDialog.getSizeHeight());
+    int id = TPageHandler::Current().createPage(widget, Page::PT_POPUP, popupDialog.getPopupName(), geom);
+    QString objName("QWidgetMDI_%1");
+    objName.append(QString::number(id));
+    widget->setObjectName(objName);
+    widget->installEventFilter(mCloseEater);
+
+    QMdiSubWindow *page = new QMdiSubWindow;
+    page->setWidget(widget);
+    page->setAttribute(Qt::WA_DeleteOnClose);
+    page->installEventFilter(mCloseEater);
+    page->setWindowIcon(QIcon(":images/tsurface_512.png"));
+    m_ui->mdiArea->addSubWindow(page);
+    widget->activateWindow();
+    widget->show();
+    TPageTree::Current().addPopup(popupDialog.getPopupName(), id);
+    TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
+    // Here we set everyting of the page we currently know
+    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
+
+    if (pg.pageID <= 0)
+    {
+        MSG_ERROR("Error getting whole page!");
+        return;
+    }
+
+    pg.srPage.cf = popupDialog.getColorPageBackground();
+    pg.srPage.ct = popupDialog.getColorText();
+    pg.srPage.cb = popupDialog.getColorBorder();
+//    QFont font = popupDialog.getFont();
+//    TFonts::getFontPath(font.family());
+    TPageHandler::Current().setPage(pg);
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

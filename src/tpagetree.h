@@ -69,6 +69,7 @@ class TPageTree : public QObject
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);
+        void toFront(int number);
         void addNewPage();
         void addNewPopup();
 //        void addNewSubPage();
@@ -103,7 +104,7 @@ class TPageTree : public QObject
         QMenu *mMenuPopup{nullptr};
         bool mHaveModel{false};
         int mPageNum{0};            // The number of a page. Range 1 to 50
-        int mSubPageNum{500};       // The number of a subpage. Range 500 to 1000
+        int mPopupNum{500};         // The number of a subpage. Range 500 to 1000
         int mGroupNum{2000};        // The number of a group. Range 2000 to 2100
 };
 

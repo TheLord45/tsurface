@@ -208,8 +208,10 @@ class TPageHandler : public QObject
         explicit TPageHandler();
         static TPageHandler& Current();
 
-        int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height);
+        int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0);
+        int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
         void setVisible(int number, bool visible);
+        void bringToFront(int number);
         int getNextPageNumber() { mMaxPageNumber++; return mMaxPageNumber; }
         int getNextPopupNumber() { mMaxPopupNumber++; return mMaxPopupNumber; }
         bool isVisible(int number);
@@ -219,6 +221,7 @@ class TPageHandler : public QObject
         void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
+        QStringList getGroupNames();
 
     signals:
 
@@ -226,7 +229,7 @@ class TPageHandler : public QObject
         static TPageHandler *mCurrent;
         QList<Page::PAGE_t> mPages;
         int mMaxPageNumber{0};
-        int mMaxPopupNumber{0};
+        int mMaxPopupNumber{500};
 };
 
 #endif // TPAGEHANDLER_H

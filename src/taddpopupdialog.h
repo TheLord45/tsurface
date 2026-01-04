@@ -50,6 +50,8 @@ class TAddPopupDialog : public QDialog
         int getFontSize() { return mSize; }
         void setFontSize(int size);
         void setPageSize(const QSize& size);
+        QString getBorder() { return mBorder; }
+        QSize getPopupSize() { return QSize(mWidth, mHeight); }
 
         bool isStandard() { return mStandardSub == false; }
         bool isSubPage() { return mStandardSub == true; }
@@ -57,6 +59,7 @@ class TAddPopupDialog : public QDialog
     protected:
         QString styleSheetColor();
         void initFontSizes();
+        void setStandard(bool state);
 
     private slots:
         void on_lineEditPopupName_textChanged(const QString &arg1);
@@ -92,6 +95,7 @@ class TAddPopupDialog : public QDialog
         bool mStandardSub{false};           // FALSE = Standard; TRUE = Sub-Page
         QFont mFont;
         int mSize{10};
+        QString mBorder;
 };
 
 #endif // TADDPOPUPDIALOG_H

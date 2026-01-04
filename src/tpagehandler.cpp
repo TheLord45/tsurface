@@ -50,14 +50,39 @@ TPageHandler& TPageHandler::Current()
  * @param w         A pointer to a widget in the MDI area
  * @param pt        The type of the page/popup to create
  * @param name      The name of the page/popup to create. This must be a unique name.
- * @param width     The width of the page/popup
- * @param height    The height of the page/popup
+ * @param geom      The geometry of a popup. If this is a page, the left and top
+ * dimensions are ignored.
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height)
+int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)
 {
-    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height)");
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)");
+
+    return createPage(w, pt, name, geom.width(), geom.height(), geom.left(), geom.top());
+}
+
+/**
+ * @brief TPageHandler::createPage
+ * This method creates a new page or popup and initializes all internal structures
+ * to contain the correct information. If there exists already a page or popup
+ * with the \b name, the contents of the page or popup will be updated with the
+ * given parameters.
+ * On success the method returns the new page or popup number.
+ *
+ * @param w         A pointer to a widget in the MDI area
+ * @param pt        The type of the page/popup to create
+ * @param name      The name of the page/popup to create. This must be a unique name.
+ * @param width     The width of the page/popup
+ * @param height    The height of the page/popup
+ * @param left      If it is a popup, this is the left number of pixels (x).
+ * @param top       If it is a popup, this is the top number of pixels (y).
+ *
+ * @return  On success the new page or popup number is returned. On error it returns 0.
+ */
+int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)
+{
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)");
 
     PAGE_t page;
 
@@ -72,6 +97,13 @@ int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name
     page.name = name;
     page.width = width;
     page.height = height;
+
+    if (pt == PT_POPUP)
+    {
+        page.left = left;
+        page.height = height;
+    }
+
     page.widget = w;
 
     QList<PAGE_t>::Iterator iter;
@@ -84,6 +116,12 @@ int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name
             iter->name = name;
             iter->width = width;
             iter->height = height;
+
+            if (pt == PT_POPUP)
+            {
+                iter->left = left;
+                iter->top = top;
+            }
 
             if (iter->widget && iter->widget != w)
                 iter->widget = w;
@@ -125,6 +163,20 @@ bool TPageHandler::isVisible(int number)
     }
 
     return false;
+}
+
+void TPageHandler::bringToFront(int number)
+{
+    DECL_TRACER("TPageHandler::bringToFront(int number)");
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->pageID == number && iter->visible)
+            iter->widget->focusWidget();
+    }
+
 }
 
 QWidget *TPageHandler::getWidget(int number)
@@ -209,4 +261,24 @@ void TPageHandler::setPageTextColor(int number, QColor& col)
             break;
         }
     }
+}
+
+QStringList TPageHandler::getGroupNames()
+{
+    DECL_TRACER("TPageHandler::getGroupNames()");
+
+    QStringList list;
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == Page::PT_POPUP)
+        {
+            if (!list.contains(iter->group))
+                list.append(iter->group);
+        }
+    }
+
+    list.sort();
+    return list;
 }

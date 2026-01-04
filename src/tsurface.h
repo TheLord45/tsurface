@@ -53,6 +53,7 @@ class TSurface : public QMainWindow
         void onAddNewPage();
         void onAddNewPopup();
         void onActionShowChannels(bool checked);
+        void onItemToFront(int id);
 
     private slots:
         void on_actionOpen_triggered();

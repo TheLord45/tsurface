@@ -80,7 +80,7 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
         mTreeView->reset();
 
     mPageNum = 0;
-    mSubPageNum = 500;
+    mPopupNum = 500;
     mGroupNum = 2000;
 
     if (!mItemModel)
@@ -192,6 +192,9 @@ void TPageTree::onClicked(const QModelIndex& index)
     QStandardItem *item = mItemModel->itemFromIndex(index);
     int menu = item->data().toInt();
     MSG_DEBUG("Menu " << menu << " was clicked.");
+
+    if (QGuiApplication::mouseButtons() == Qt::LeftButton && menu < MENU_PAGE)
+        toFront(item->data().toInt());
 
     if (QGuiApplication::mouseButtons() != Qt::RightButton)
         return;
