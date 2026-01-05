@@ -95,6 +95,7 @@ namespace ConfigMain
         QString path;
         QString file;
     }RESOURCE_t;
+
     typedef struct CONFMAIN_t
     {
         int fileVersion{1};

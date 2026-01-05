@@ -169,14 +169,21 @@ void TPageHandler::bringToFront(int number)
 {
     DECL_TRACER("TPageHandler::bringToFront(int number)");
 
+    MSG_DEBUG("Searing for window number: " << number);
     QList<PAGE_t>::Iterator iter;
 
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
         if (iter->pageID == number && iter->visible)
-            iter->widget->focusWidget();
+        {
+            if (iter->widget && iter->widget->parentWidget())
+            {
+                iter->widget->parentWidget()->raise();
+                iter->widget->parentWidget()->show();
+                return;
+            }
+        }
     }
-
 }
 
 QWidget *TPageHandler::getWidget(int number)

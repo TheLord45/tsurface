@@ -343,7 +343,7 @@ void TSurface::onItemToFront(int id)
 {
     DECL_TRACER("TSurface::onItemToFront(int id)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    TPageHandler::Current().bringToFront(id);
 }
 
 /**
@@ -463,7 +463,7 @@ void TSurface::onAddNewPage()
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + pageDialog.getColorBackground().name() + ";color: " + pageDialog.getColorText().name()+ ";");
     int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, pageDialog.getPageName(), pgSize.width(), pgSize.height());
-    QString objName("QWidgetMDI_%1");
+    QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
     widget->installEventFilter(mCloseEater);
@@ -476,6 +476,7 @@ void TSurface::onAddNewPage()
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
     widget->show();
+    TPageHandler::Current().setVisible(id, true);
     TPageTree::Current().addPage(pageDialog.getPageName(), id);
     TConfMain::Current().addPage(pageDialog.getPageName(), id);
     // Here we set everyting of the page we currently know
@@ -519,7 +520,7 @@ void TSurface::onAddNewPopup()
     widget->setStyleSheet("background-color: " + popupDialog.getColorPageBackground().name() + ";color: " + popupDialog.getColorText().name()+ ";");
     QRect geom(popupDialog.getPositionLeft(), popupDialog.getPositionTop(), popupDialog.getSizeWidth(), popupDialog.getSizeHeight());
     int id = TPageHandler::Current().createPage(widget, Page::PT_POPUP, popupDialog.getPopupName(), geom);
-    QString objName("QWidgetMDI_%1");
+    QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
     widget->installEventFilter(mCloseEater);
@@ -532,6 +533,7 @@ void TSurface::onAddNewPopup()
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
     widget->show();
+    TPageHandler::Current().setVisible(id, true);
     TPageTree::Current().addPopup(popupDialog.getPopupName(), id);
     TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
     // Here we set everyting of the page we currently know

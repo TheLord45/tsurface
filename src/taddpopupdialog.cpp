@@ -384,3 +384,22 @@ void TAddPopupDialog::setStandard(bool state)
     ui->comboBoxGroupName->setVisible(state);
     ui->groupBoxPosition->setVisible(state);
 }
+
+void TAddPopupDialog::accept()
+{
+    DECL_TRACER("TAddPopupDialog::accept()");
+
+    if (mPopupName.isEmpty())
+    {
+        QMessageBox::critical(this, tr("Missing entries"), tr("The popup must have a name!"));
+        return;
+    }
+
+    if (mWidth <= 0 || mHeight <= 0)
+    {
+        QMessageBox::critical(this, tr("Missing entries"), tr("The popup has no or illegal size!"));
+        return;
+    }
+
+    done(QDialog::Accepted);
+}

@@ -57,6 +57,8 @@ class TAddPopupDialog : public QDialog
         bool isSubPage() { return mStandardSub == true; }
 
     protected:
+        void accept() override;
+
         QString styleSheetColor();
         void initFontSizes();
         void setStandard(bool state);
