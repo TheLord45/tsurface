@@ -21,6 +21,7 @@
 #include <QResizeEvent>
 #include <QMessageBox>
 #include <QMdiSubWindow>
+#include <QtEnvironmentVariables>
 
 #include "tsurface.h"
 #include "tsurfacereader.h"
@@ -202,6 +203,9 @@ void TSurface::on_actionNew_triggered()
             TConfMain::Current().saveProject();
 
         m_ui->mdiArea->closeAllSubWindows();
+        saveAll();
+        std::error_code ec;
+        fs::remove_all(mPathTemporary.toStdString(), ec);
         TConfMain::Current().reset();
         mProjectChanged = false;
     }
@@ -213,6 +217,8 @@ void TSurface::on_actionNew_triggered()
             return;
 
         m_ui->mdiArea->closeAllSubWindows();
+        std::error_code ec;
+        fs::remove_all(mPathTemporary.toStdString(), ec);
         TConfMain::Current().reset();
         mHaveProject = false;
     }
@@ -278,6 +284,9 @@ void TSurface::on_actionNew_triggered()
     widget->show();
     TPageHandler::Current().setVisible(id, true);
     mHaveProject = true;
+    // Create new file structure
+    mPathTemporary = createTemporaryPath(npd.getFileName());
+    createNewFileStructure();
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -563,3 +572,54 @@ void TSurface::resizeEvent(QResizeEvent *event)
     m_ui->splitter->resize(size);
 }
 
+QString TSurface::createTemporaryPath(const QString& name)
+{
+    DECL_TRACER("TSurface::createTemporaryPath(const QString& name)");
+
+    // Determine the temporary path of the OS
+    QString temp = qEnvironmentVariable("TMP");
+
+    if (temp.isEmpty())
+    {
+        temp = qEnvironmentVariable("TEMP");
+
+        if (temp.isEmpty())
+            temp = QString::fromStdString(fs::current_path());
+    }
+
+    temp.append("/");
+    temp.append(name);
+    temp.append(".tsf");
+    MSG_PROTOCOL("Using temporary path: " << temp.toStdString());
+
+    return temp;
+}
+
+bool TSurface::createNewFileStructure()
+{
+    DECL_TRACER("TSurface::createNewFileStructure()");
+
+    QString fName = mPathTemporary + "/" + TConfMain::Current().getFileName();
+
+    if (!fName.endsWith(".tsf"))
+        fName.append(".tsf");
+
+    try
+    {
+        fs::create_directories(fName.toStdString());
+    }
+    catch(std::exception& e)
+    {
+        MSG_ERROR("Error creating directories: " << e.what());
+        return false;
+    }
+
+    return true;
+}
+
+bool TSurface::saveAll()
+{
+    DECL_TRACER("TSurface::saveAll()");
+
+    return false;
+}

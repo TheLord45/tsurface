@@ -132,6 +132,7 @@ class TConfMain
         void setProjectInfo(const ConfigMain::PROJECTINFO_t& pi);
         void setSetup(const ConfigMain::SETUP_t& setup);
         void setFileName(const QString& fn);
+        void setPathTemporary(const QString& path) { mPathTemporary = path; }
         void setFileNameAuto(bool a) { mFileNameAuto = a; }
         void setColorBackground(const QColor& col) { mColorBackground = col; }
         void setColorText(const QColor& col) { mColorText = col; }
@@ -157,6 +158,7 @@ class TConfMain
 
         ConfigMain::CONFMAIN_t *mConfMain{nullptr};
         QString mFileName;
+        QString mPathTemporary;
         QString mJobName;
         QString mPageName;
         QString mBaseDirectory;     // Directory which contains the plain files

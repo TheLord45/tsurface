@@ -222,11 +222,13 @@ class TPageHandler : public QObject
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
         QStringList getGroupNames();
+        void setPathTemporary(const QString& path) { mPathTemporary = path; }
 
     signals:
 
     private:
         static TPageHandler *mCurrent;
+        QString mPathTemporary;
         QList<Page::PAGE_t> mPages;
         int mMaxPageNumber{0};
         int mMaxPopupNumber{500};

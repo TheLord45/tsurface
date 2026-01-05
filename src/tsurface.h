@@ -61,6 +61,10 @@ class TSurface : public QMainWindow
         void on_actionProject_properties_triggered();
 
     private:
+        QString createTemporaryPath(const QString& name);
+        bool createNewFileStructure();
+        bool saveAll();
+
         const std::unique_ptr<Ui::tsurface> m_ui;
         QString mLastOpenPath;
         bool mProjectChanged{false};
@@ -73,6 +77,8 @@ class TSurface : public QMainWindow
         QAction *mActionChannels{nullptr};
         bool mToggleChannels{false};                // TRUE = Channels are visible
         QAction *mActionConnectionState{nullptr};
+        // Basic information about active project
+        QString mPathTemporary;         // The temporary path were all files are plain
 };
 
 #endif // TSURFACE_H
