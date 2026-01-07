@@ -22,6 +22,8 @@
 
 #include <vector>
 
+class QJsonObject;
+
 namespace Graphics
 {
     typedef enum SLIDER_GRTYPE_t
@@ -61,6 +63,14 @@ namespace Graphics
         X_POPUP_EFFECT_DATA,
         X_POPUP_EFFECT
     }XELEMENTS_t;
+
+    typedef enum
+    {
+        FT_UNKNOWN,     // Invalid, error
+        FT_THEOSYS,     // JSON format internal
+        FT_AMXG5,       // Only for reading!
+        FT_AMXG4        // Only for reading!
+    }FILE_TYPE_t;
 
     typedef struct FAMILY_t
     {
@@ -137,7 +147,10 @@ namespace Graphics
 
         void init()
         {
+            name.clear();
+            baseFile.clear();
             multiColor = 0;
+            g3Equiv.clear();
         }
     }CURSOR_STYLE_t;
 
@@ -246,6 +259,8 @@ namespace Graphics
         QString imageBase;  // The base image file.
         QString imageAlpha; // The alpha image file.
     }CURSOR_t;
+
+
 }
 
 class TGraphics
@@ -255,11 +270,25 @@ class TGraphics
 
         static TGraphics& Current();
         QStringList getBorderNames();
+        bool writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath);
 
     protected:
         void initialize();
         void initBorderFamily();
         void initBorderStyle();
+        void initBorderData();
+        void initCursorFamily();
+        void initCursorStyle();
+        void initSliderFamily();
+        void initSliderStyle();
+        void initEffectFamily();
+        void initEffectStyle();
+        void initPopupEffect();
+        QJsonObject writeSystemBordersJson();
+        QJsonObject writeSystemCursorsJson();
+        QJsonObject writeSystemSlidersJson();
+        QJsonObject writeSystemEffectsJson();
+        QJsonObject writeSystemPopupsJson();
 
     private:
         static TGraphics *mCurrent;

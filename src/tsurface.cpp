@@ -33,6 +33,7 @@
 #include "tpagehandler.h"
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
+#include "tgraphics.h"
 #include "tfonts.h"
 #include "tconfig.h"
 #include "terror.h"
@@ -287,6 +288,7 @@ void TSurface::on_actionNew_triggered()
     // Create new file structure
     mPathTemporary = createTemporaryPath(npd.getFileName());
     createNewFileStructure();
+    TGraphics::Current().writeSystemFiles(Graphics::FT_THEOSYS, mPathTemporary);
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -589,7 +591,10 @@ QString TSurface::createTemporaryPath(const QString& name)
 
     temp.append("/");
     temp.append(name);
-    temp.append(".tsf");
+
+    if (!name.endsWith(".tsf"))
+        temp.append(".tsf");
+
     MSG_PROTOCOL("Using temporary path: " << temp.toStdString());
 
     return temp;
@@ -599,7 +604,7 @@ bool TSurface::createNewFileStructure()
 {
     DECL_TRACER("TSurface::createNewFileStructure()");
 
-    QString fName = mPathTemporary + "/" + TConfMain::Current().getFileName();
+    QString fName = mPathTemporary;
 
     if (!fName.endsWith(".tsf"))
         fName.append(".tsf");
@@ -607,6 +612,15 @@ bool TSurface::createNewFileStructure()
     try
     {
         fs::create_directories(fName.toStdString());
+        fs::create_directory(fName.toStdString() + "/fonts");
+        fs::create_directory(fName.toStdString() + "/images");
+        fs::create_directory(fName.toStdString() + "/sounds");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/borders");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/cursors");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/fonts");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/images");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/sliders");
+        fs::create_directories(fName.toStdString() + "/__system/graphics/sounds");
     }
     catch(std::exception& e)
     {
