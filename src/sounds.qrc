@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/">
+        <file>sounds/audioTest.wav</file>
+        <file>sounds/docked.mp3</file>
+        <file>sounds/doubleBeep.wav</file>
+        <file>sounds/doubleBeep01.wav</file>
+        <file>sounds/doubleBeep02.wav</file>
+        <file>sounds/doubleBeep03.wav</file>
+        <file>sounds/doubleBeep04.wav</file>
+        <file>sounds/doubleBeep05.wav</file>
+        <file>sounds/doubleBeep06.wav</file>
+        <file>sounds/doubleBeep07.wav</file>
+        <file>sounds/doubleBeep08.wav</file>
+        <file>sounds/doubleBeep09.wav</file>
+        <file>sounds/doubleBeep10.wav</file>
+        <file>sounds/ringback.wav</file>
+        <file>sounds/ringtone.wav</file>
+        <file>sounds/singleBeep.wav</file>
+        <file>sounds/singleBeep01.wav</file>
+        <file>sounds/singleBeep02.wav</file>
+        <file>sounds/singleBeep03.wav</file>
+        <file>sounds/singleBeep04.wav</file>
+        <file>sounds/singleBeep05.wav</file>
+        <file>sounds/singleBeep06.wav</file>
+        <file>sounds/singleBeep07.wav</file>
+        <file>sounds/singleBeep08.wav</file>
+        <file>sounds/singleBeep09.wav</file>
+        <file>sounds/singleBeep10.wav</file>
+    </qresource>
+</RCC>

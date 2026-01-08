@@ -24,8 +24,6 @@
 #include <QDirIterator>
 
 #include "tsurfacewriter.h"
-#include "tconfmain.h"
-#include "tpagehandler.h"
 #include "terror.h"
 
 namespace fs = std::filesystem;
@@ -48,23 +46,24 @@ TSurfaceWriter::TSurfaceWriter(const QString& tmpPath, const QString& target)
         return;
     }
 
-    TConfMain::Current();
-    TPageHandler::Current();
+    fs::path oldPath(fs::current_path());
+    fs::current_path(tmpPath.toStdString());
     // Here we iterate through the directory structure
     QStringList list;
-    QDirIterator it(tmpPath, QDirIterator::Subdirectories);
+    QDirIterator it(".", QDirIterator::Subdirectories);
 
     while(it.hasNext())
     {
         QString entry = it.next();
 
-        if (entry == "." || entry == "..")
+        if (entry.endsWith(".") || entry.endsWith(".."))
             continue;
 
         list.append(entry);
     }
 
     archiveFile(list, target);
+    fs::current_path(oldPath);
 }
 
 void TSurfaceWriter::archiveFile(const QStringList& files, const QString& target)

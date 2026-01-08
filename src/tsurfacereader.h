@@ -22,6 +22,8 @@
 #include <string>
 #include <archive.h>
 
+#include <QString>
+
 /**
  * @todo write docs
  */
@@ -31,14 +33,14 @@ class TSurfaceReader
         /**
         * Default constructor
         */
-        TSurfaceReader(const std::string& file);
+        TSurfaceReader(const QString& file, const QString& temp);
 
         /**
         * Destructor
         */
         ~TSurfaceReader();
 
-        std::string& getTarget() { return mTarget; }
+        QString& getTarget() { return mTarget; }
 
     protected:
         bool dismantleFile();
@@ -47,8 +49,8 @@ class TSurfaceReader
         int copy_data(struct archive *ar, struct archive *aw);
 
     private:
-        std::string mFile;
-        std::string mTarget;
+        QString mFile;
+        QString mTarget;
 };
 
 #endif // TSURFACEREADER_H

@@ -32,10 +32,11 @@
 namespace fs = std::filesystem;
 using std::string;
 
-TSurfaceReader::TSurfaceReader(const string& file)
-    : mFile(file)
+TSurfaceReader::TSurfaceReader(const QString& file, const QString& temp)
+    : mFile(file),
+      mTarget(temp)
 {
-    DECL_TRACER("TSurfaceReader::TSurfaceReader(const string& file)");
+    DECL_TRACER("TSurfaceReader::TSurfaceReader(const QString& file, const QString& temp)");
 
     dismantleFile();
 }
@@ -49,33 +50,33 @@ bool TSurfaceReader::dismantleFile()
 {
     DECL_TRACER("TSurfaceReader::dismantleFile()");
 
-    MSG_INFO("Reading file " << mFile << "...");
+    MSG_INFO("Reading file " << mFile.toStdString() << "...");
 
-    if (mFile.empty() || !fs::is_regular_file(mFile))
+    if (mFile.isEmpty() || !fs::is_regular_file(mFile.toStdString()))
     {
-        MSG_ERROR("File " << mFile << " doesn't exist or is not readable!");
+        MSG_ERROR("File " << mFile.toStdString() << " doesn't exist or is not readable!");
         return false;
     }
 
-    fs::path p = fs::temp_directory_path();
-    string target = TConfig::Current().getProgName() + "Extract";
-    MSG_DEBUG("Target: " << target);
+    fs::path p(mTarget.toStdString());
+    fs::path oldPath(fs::current_path());
 
     try
     {
-        p = p / target;     // Append a name
-        fs::create_directories(p);
+        if (!fs::is_directory(p))
+            fs::create_directories(p);
+
         fs::current_path(p);
-        mTarget = p;
-        extract(mFile);
-        MSG_PROTOCOL("File was extracted to " << mTarget);
+        extract(mFile.toStdString());
+        MSG_PROTOCOL("File was extracted to " << mTarget.toStdString());
+        fs::current_path(oldPath);
     }
     catch (std::exception& e)
     {
-        MSG_ERROR("Error extracting file " << mFile << ": " << e.what());
+        MSG_ERROR("Error extracting file " << mFile.toStdString() << ": " << e.what());
 
         if (fs::exists(p))
-            fs::remove(p);
+            fs::remove_all(p);
 
         return false;
     }
@@ -159,7 +160,7 @@ void TSurfaceReader::extract(const string& target_file_name)
 
 int TSurfaceReader::copy_data(struct archive *ar, struct archive *aw)
 {
-    DECL_TRACER("TSurfaceReader::copy_data(struct archive * ar, struct archive * aw)");
+//    DECL_TRACER("TSurfaceReader::copy_data(struct archive * ar, struct archive * aw)");
 
     int r;
     size_t size;
@@ -189,7 +190,7 @@ int TSurfaceReader::copy_data(struct archive *ar, struct archive *aw)
 
 void TSurfaceReader::handle_errors(archive *a, int r, const string& msg)
 {
-    DECL_TRACER("TSurfaceReader::handle_errors(archive *a, int r, const string& msg)");
+//    DECL_TRACER("TSurfaceReader::handle_errors(archive *a, int r, const string& msg)");
 
     if (r < ARCHIVE_OK)
     {

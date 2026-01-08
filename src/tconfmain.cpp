@@ -20,16 +20,22 @@
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QGuiApplication>
+#include <QMessageBox>
+#include <QFile>
 
 #include "tconfmain.h"
 #include "tpaneltypes.h"
+#include "tmisc.h"
 #include "terror.h"
 
 using namespace ConfigMain;
 namespace fs = std::filesystem;
 using std::string;
+
+const int FILE_VERSION = 1;
 
 TConfMain *TConfMain::mCurrent{nullptr};
 
@@ -148,7 +154,7 @@ void TConfMain::addPopup(const QString& name, int num)
     // Check if the name and number is unique
     QList<PAGEENTRY_t>::Iterator iter;
 
-    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    for (iter = mConfMain->popupList.begin(); iter != mConfMain->popupList.end(); ++iter)
     {
         if (iter->popupType == PN_POPUP && iter->name == name)
             return;
@@ -162,7 +168,7 @@ void TConfMain::addPopup(const QString& name, int num)
     page.pageID = num;
     page.file = QString("%1.json").arg(name);
     page.popupType = PN_POPUP;
-    mConfMain->pageList.append(page);
+    mConfMain->popupList.append(page);
 }
 
 void TConfMain::renamePage(int num, const QString& name)
@@ -193,7 +199,7 @@ void TConfMain::renamePopup(int num, const QString& name)
 
     QList<PAGEENTRY_t>::Iterator iter;
 
-    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    for (iter = mConfMain->popupList.begin(); iter != mConfMain->popupList.end(); ++iter)
     {
         if (iter->pageID == num)
         {
@@ -236,7 +242,7 @@ void TConfMain::deletePopup(const QString& name)
 
     QList<PAGEENTRY_t>::Iterator iter;
 
-    for (iter = mConfMain->pageList.begin(); iter != mConfMain->pageList.end(); ++iter)
+    for (iter = mConfMain->popupList.begin(); iter != mConfMain->popupList.end(); ++iter)
     {
         if (iter->popupType == PN_POPUP && iter->name == name)
         {
@@ -271,11 +277,135 @@ void TConfMain::setSetup(const SETUP_t& setup)
     mConfMain->setup = setup;
 }
 
-bool TConfMain::readMain(const QString& path)
+bool TConfMain::readProject(const QString& path)
 {
     DECL_TRACER("TConfMain::readMain(const QString& path)");
 
-    return false;
+    QFile project(path);
+
+    if (!project.exists())
+    {
+        MSG_ERROR("The project file " << path.toStdString() << " was not found!");
+        return false;
+    }
+
+    QFile file(path);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("Error reading file " << path.toStdString());
+        return false;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    if (mConfMain)
+        delete mConfMain;
+
+    mConfMain = new CONFMAIN_t;
+    QJsonObject root = doc.object();
+
+    mConfMain->fileName = root.value("fileName").toString();
+    mConfMain->fileVersion = root.value("fileVersion").toInt();
+
+    if (mConfMain->fileVersion != FILE_VERSION)
+    {
+        MSG_ERROR("Invalid file version " << mConfMain->fileVersion);
+        return false;
+    }
+
+    QJsonObject projectInfo = root.value("projectInfo").toObject();
+    mConfMain->projectInfo.protection = projectInfo.value("protection").toBool(false);
+    mConfMain->projectInfo.password = projectInfo.value("password").toString();
+    mConfMain->projectInfo.jobName = projectInfo.value("jobName").toString(mConfMain->fileName);
+    mConfMain->projectInfo.panelType = projectInfo.value("panelType").toString();
+    mConfMain->projectInfo.panelSize = QSize(projectInfo.value("panelWidth").toInt(), projectInfo.value("panelHeight").toInt());
+    mConfMain->projectInfo.revision = projectInfo.value("revision").toString();
+    mConfMain->projectInfo.designer = projectInfo.value("designer").toString();
+    mConfMain->projectInfo.dealer = projectInfo.value("dealer").toString();
+    mConfMain->projectInfo.company = projectInfo.value("company").toString();
+    mConfMain->projectInfo.copyright = projectInfo.value("copyright").toString();
+    mConfMain->projectInfo.comment = projectInfo.value("comment").toString();
+    mConfMain->projectInfo.date = QDateTime::fromString(projectInfo.value("date").toString());
+    mConfMain->projectInfo.lastDate = QDateTime::fromString(projectInfo.value("lastDate").toString());
+    mConfMain->projectInfo.logLevel = projectInfo.value("logLevel").toString();
+    mConfMain->projectInfo.logFile = projectInfo.value("logFile").toString();
+
+    QJsonObject fileList = root.value("logFile").toObject();
+    mConfMain->fileList.mapFile = fileList.value("mapFile").toString();
+    mConfMain->fileList.colorFile = fileList.value("colorFile").toString();
+    mConfMain->fileList.fontFile = fileList.value("fontFile").toString();
+    mConfMain->fileList.themeFile = fileList.value("themeFile").toString();
+    mConfMain->fileList.buttonFile = fileList.value("buttonFile").toString();
+    mConfMain->fileList.appFile = fileList.value("appFile").toString();
+
+    QJsonObject setup = root.value("setup").toObject();
+    mConfMain->setup.portCount = setup.value("portCount").toInt();
+    mConfMain->setup.setupPort = setup.value("setupPort").toInt();
+    mConfMain->setup.powerUpPage = setup.value("powerUpPage").toString();
+    QJsonArray powerUpPopups = setup.value("powerUpPopups").toArray();
+
+    for (int i = 0; i < powerUpPopups.count(); ++i)
+        mConfMain->setup.powerUpPopups.append(powerUpPopups[i].toString());
+
+    mConfMain->setup.startupString = setup.value("startupString").toString();
+    mConfMain->setup.wakeupString = setup.value("wakeupString").toString();
+    mConfMain->setup.sleepString = setup.value("sleepString").toString();
+    mConfMain->setup.shutdownString = setup.value("shutdownString").toString();
+    mConfMain->setup.idlePage = setup.value("idlePage").toString();
+    mConfMain->setup.inactivityPage = setup.value("inactivityPage").toString();
+    mConfMain->setup.idleTimeout = setup.value("idleTimeout").toInt(0);
+    mConfMain->setup.screenWidth = setup.value("screenWidth").toInt(1920);
+    mConfMain->setup.screenHeight = setup.value("screenHeight").toInt(1024);
+    mConfMain->setup.screenRotate = setup.value("screenRotate").toBool(false);
+    mConfMain->setup.batteryLevelPort = setup.value("batteryLevelPort").toInt(0);
+    mConfMain->setup.batteryLevelCode = setup.value("batteryLevelCode").toInt(100);
+    mConfMain->setup.marqeeSpeed = setup.value("marqeeSpeed").toInt(1);
+
+    QJsonArray pageList = root.value("pageList").toArray();
+
+    for (int i = 0; i < pageList.count(); ++i)
+    {
+        QJsonObject entry = pageList[i].toObject();
+        PAGEENTRY_t pe;
+        pe.name = entry.value("name").toString();
+        pe.pageID = entry.value("pageID").toInt(0);
+        pe.file = entry.value("file").toString();
+        pe.isValid = entry.value("isValid").toBool(true);
+        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_UNDEFINED));
+        mConfMain->pageList.append(pe);
+    }
+
+    QJsonArray popupList = root.value("popupList").toArray();
+
+    for (int i = 0; i < popupList.count(); ++i)
+    {
+        QJsonObject entry = popupList[i].toObject();
+        PAGEENTRY_t pe;
+        pe.name = entry.value("name").toString();
+        pe.pageID = entry.value("pageID").toInt(0);
+        pe.file = entry.value("file").toString();
+        pe.isValid = entry.value("isValid").toBool(true);
+        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_UNDEFINED));
+        mConfMain->popupList.append(pe);
+    }
+
+    QJsonArray resourceList = root.value("resourceList").toArray();
+
+    for (int i = 0; i < resourceList.count(); ++i)
+    {
+        QJsonObject entry = resourceList[i].toObject();
+        RESOURCE_t res;
+        res.name = entry.value("name").toString();
+        res.protocol = entry.value("protocol").toString();
+        res.host = entry.value("host").toString();
+        res.path = entry.value("path").toString();
+        res.file = entry.value("file").toString();
+        mConfMain->resourceList.append(res);
+    }
+
+    return true;
 }
 
 void TConfMain::setFileName(const QString& fn)
@@ -286,7 +416,7 @@ void TConfMain::setFileName(const QString& fn)
         return;
 
     mFileName = fn;
-    mConfMain->fileName = fn;
+    mConfMain->fileName = basename(fn);
 }
 
 QString TConfMain::getFileName()
@@ -296,12 +426,133 @@ QString TConfMain::getFileName()
     if (!mConfMain)
         return QString();
 
-    return mConfMain->fileName;
+    return mFileName;
 }
 
 void TConfMain::saveProject()
 {
     DECL_TRACER("TConfMain::saveProject()");
+
+    QJsonObject root;
+    QJsonObject versionInfo;
+    versionInfo.insert("fileVersion", mConfMain->fileVersion);
+    versionInfo.insert("fileName", mConfMain->fileName);
+    root.insert("versionInfo", versionInfo);
+
+    QJsonObject projectInfo;
+    projectInfo.insert("protection", mConfMain->projectInfo.protection);
+    projectInfo.insert("password", mConfMain->projectInfo.password);
+    projectInfo.insert("jobName", mConfMain->projectInfo.jobName);
+    projectInfo.insert("panelType", mConfMain->projectInfo.panelType);
+    projectInfo.insert("panelWidth", mConfMain->projectInfo.panelSize.width());
+    projectInfo.insert("panelHeight", mConfMain->projectInfo.panelSize.height());
+    projectInfo.insert("revision", mConfMain->projectInfo.revision);
+    projectInfo.insert("designer", mConfMain->projectInfo.designer);
+    projectInfo.insert("dealer", mConfMain->projectInfo.dealer);
+    projectInfo.insert("company", mConfMain->projectInfo.company);
+    projectInfo.insert("copyright", mConfMain->projectInfo.copyright);
+    projectInfo.insert("comment", mConfMain->projectInfo.comment);
+    projectInfo.insert("date", mConfMain->projectInfo.date.toString());
+    projectInfo.insert("lastDate", mConfMain->projectInfo.lastDate.toString());
+    projectInfo.insert("logLevel", mConfMain->projectInfo.logLevel);
+    projectInfo.insert("logFile", mConfMain->projectInfo.logFile);
+    root.insert("projectInfo", projectInfo);
+
+    QJsonObject fileInfo;
+    fileInfo.insert("mapFile", mConfMain->fileList.mapFile);
+    fileInfo.insert("colorFile", mConfMain->fileList.colorFile);
+    fileInfo.insert("fontFile", mConfMain->fileList.fontFile);
+    fileInfo.insert("themeFile", mConfMain->fileList.themeFile);
+    fileInfo.insert("buttonFile", mConfMain->fileList.buttonFile);
+    fileInfo.insert("appFile", mConfMain->fileList.appFile);
+    root.insert("fileInfo", fileInfo);
+
+    QJsonObject setup;
+    setup.insert("portCount", mConfMain->setup.portCount);
+    setup.insert("setupPort", mConfMain->setup.setupPort);
+    setup.insert("powerUpPage", mConfMain->setup.powerUpPage);
+    QJsonArray pwrPopups;
+    QList<QString>::Iterator pwrIter;
+
+    for (pwrIter = mConfMain->setup.powerUpPopups.begin(); pwrIter != mConfMain->setup.powerUpPopups.end(); ++pwrIter)
+        pwrPopups.append(*pwrIter);
+
+    setup.insert("powerUpPopups", pwrPopups);
+    setup.insert("startupString", mConfMain->setup.startupString);
+    setup.insert("wakeupString", mConfMain->setup.wakeupString);
+    setup.insert("sleepString", mConfMain->setup.sleepString);
+    setup.insert("shutdownString", mConfMain->setup.shutdownString);
+    setup.insert("idlePage", mConfMain->setup.idlePage);
+    setup.insert("inactivityPage", mConfMain->setup.inactivityPage);
+    setup.insert("idleTimeout", mConfMain->setup.idleTimeout);
+    setup.insert("screenWidth", mConfMain->setup.screenWidth);
+    setup.insert("screenHeight", mConfMain->setup.screenHeight);
+    setup.insert("screenRotate", mConfMain->setup.screenRotate);
+    setup.insert("batteryLevelPort", mConfMain->setup.batteryLevelPort);
+    setup.insert("batteryLevelCode", mConfMain->setup.batteryLevelCode);
+    setup.insert("marqeeSpeed", mConfMain->setup.marqeeSpeed);
+    root.insert("setup", setup);
+
+    QJsonArray pgList;
+    QList<PAGEENTRY_t>::Iterator pglIter;
+
+    for (pglIter = mConfMain->pageList.begin(); pglIter != mConfMain->pageList.end(); ++pglIter)
+    {
+        QJsonObject entry;
+        entry.insert("name", pglIter->name);
+        entry.insert("pageID", pglIter->pageID);
+        entry.insert("file", pglIter->file);
+        entry.insert("isValid", pglIter->isValid);
+        entry.insert("popupType", pglIter->popupType);
+        pgList.append(entry);
+    }
+
+    root.insert("pageList", pgList);
+
+    QJsonArray popupList;
+
+    for (pglIter = mConfMain->popupList.begin(); pglIter != mConfMain->popupList.end(); ++pglIter)
+    {
+        QJsonObject entry;
+        entry.insert("name", pglIter->name);
+        entry.insert("pageID", pglIter->pageID);
+        entry.insert("file", pglIter->file);
+        entry.insert("isValid", pglIter->isValid);
+        entry.insert("popupType", pglIter->popupType);
+        popupList.append(entry);
+    }
+
+    root.insert("popupList", popupList);
+
+    QJsonArray resourceList;
+    QList<RESOURCE_t>::Iterator resIter;
+
+    for (resIter = mConfMain->resourceList.begin(); resIter != mConfMain->resourceList.end(); ++resIter)
+    {
+        QJsonObject entry;
+        entry.insert("name", resIter->name);
+        entry.insert("protocol", resIter->protocol);
+        entry.insert("host", resIter->host);
+        entry.insert("path", resIter->path);
+        entry.insert("file", resIter->file);
+        resourceList.append(entry);
+    }
+
+    root.insert("resourceList", resourceList);
+
+    QJsonDocument doc;
+    doc.setObject(root);
+    QString metaFile = mPathTemporary + "/prj_.json";
+    QFile file(metaFile);
+
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        MSG_ERROR("Error opening file \"" << metaFile.toStdString() << "\" for writing!");
+        return;
+    }
+
+    file.write(doc.toJson(QJsonDocument::Indented));
+    file.close();
 }
 
 void TConfMain::reset()

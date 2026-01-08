@@ -289,6 +289,10 @@ class TGraphics
         QJsonObject writeSystemSlidersJson();
         QJsonObject writeSystemEffectsJson();
         QJsonObject writeSystemPopupsJson();
+        bool writeBorderResources(const QString& path);
+        bool writeSliderResources(const QString& path);
+        bool writeFontResources(const QString& path);
+        bool writeSoundResources(const QString& path);
 
     private:
         static TGraphics *mCurrent;

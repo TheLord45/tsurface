@@ -124,7 +124,7 @@ class TConfMain
         void renamePopup(int num, const QString& name);
         void deletePage(const QString& name);
         void deletePopup(const QString& name);
-        bool readMain(const QString& path);
+        bool readProject(const QString& path);
         void saveProject();
         void reset();
 

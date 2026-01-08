@@ -62,7 +62,7 @@ void TAddPopupDialog::on_comboBoxGroupName_currentIndexChanged(int index)
 
     QString group = ui->comboBoxGroupName->itemText(index);
 
-    if (group.isEmpty() || group == "- - - - - - - -")
+    if (group.isEmpty() || group == "None")
     {
         mGroupName.clear();
         return;
@@ -239,7 +239,7 @@ void TAddPopupDialog::on_comboBoxFontSize_currentIndexChanged(int index)
 {
     DECL_TRACER("TAddPopupDialog::on_comboBoxFontSize_currentIndexChanged(int index)");
 
-    if (!mInitialized)
+    if (!mInitialized || index < 0 || mSize < 1)
         return;
 
     mSize = ui->comboBoxFontSize->itemData(index).toInt();
@@ -254,7 +254,7 @@ void TAddPopupDialog::setGroupNames(const QStringList& groups)
     if (groups.isEmpty())
         return;
 
-    ui->comboBoxGroupName->addItem("- - - - - - - -");
+    ui->comboBoxGroupName->addItem("None");
     QStringList::ConstIterator iter;
 
     for (iter = groups.constBegin(); iter != groups.constEnd(); ++iter)
@@ -293,7 +293,12 @@ void TAddPopupDialog::setFont(const QFont& font)
     DECL_TRACER("TAddPopupDialog::setFont(const QFont& font)");
 
     mFont = font;
-    mFont.setPointSize(mSize);
+
+    if (mSize > 0)
+        mFont.setPointSize(mSize);
+    else
+        mFont.setPointSize(10);
+
     ui->labelFontSampleShow->setFont(font);
     ui->fontComboBoxFontName->setCurrentFont(font);
 }
@@ -301,6 +306,9 @@ void TAddPopupDialog::setFont(const QFont& font)
 void TAddPopupDialog::setFontSize(int size)
 {
     DECL_TRACER("TAddPopupDialog::setFontSize(int size)");
+
+    if (size < 1)
+        return;
 
     mSize = size;
     ui->comboBoxFontSize->clear();

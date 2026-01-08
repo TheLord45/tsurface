@@ -25,6 +25,7 @@
 
 #include "tsurface.h"
 #include "tsurfacereader.h"
+#include "tsurfacewriter.h"
 #include "tconfmain.h"
 #include "tnewprojectdialog.h"
 #include "tprojectproperties.h"
@@ -37,6 +38,7 @@
 #include "tfonts.h"
 #include "tconfig.h"
 #include "terror.h"
+#include "tmisc.h"
 #include "ui_tsurface.h"
 #include "moc_tsurface.cpp"
 
@@ -181,7 +183,12 @@ void TSurface::on_actionOpen_triggered()
 
     if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
     {
-        TSurfaceReader sreader(file.toStdString());
+        mPathTemporary = createTemporaryPath(basename(file));
+        TSurfaceReader sreader(file, mPathTemporary);
+        TConfMain::Current().setPathTemporary(mPathTemporary);
+        TConfMain::Current().setFileName(file);
+        // TODO: Add code to read the config files and build the trees and tables
+        mHaveProject = true;
     }
 }
 
@@ -201,10 +208,20 @@ void TSurface::on_actionNew_triggered()
         int button = QMessageBox::question(this, tr("Unsaved changes"), tr("<b>There are unsaved changes in this project!</b><br>Do you want to save the project?"));
 
         if (button == QMessageBox::Yes)
-            TConfMain::Current().saveProject();
+        {
+            if (mLastOpenPath.isEmpty())
+            {
+                if (!saveAs())
+                    return;
+            }
+            else
+            {
+                if (!saveNormal())
+                    return;
+            }
+        }
 
         m_ui->mdiArea->closeAllSubWindows();
-        saveAll();
         std::error_code ec;
         fs::remove_all(mPathTemporary.toStdString(), ec);
         TConfMain::Current().reset();
@@ -287,6 +304,7 @@ void TSurface::on_actionNew_triggered()
     mHaveProject = true;
     // Create new file structure
     mPathTemporary = createTemporaryPath(npd.getFileName());
+    TConfMain::Current().setPathTemporary(mPathTemporary);
     createNewFileStructure();
     TGraphics::Current().writeSystemFiles(Graphics::FT_THEOSYS, mPathTemporary);
 }
@@ -345,6 +363,523 @@ void TSurface::on_actionProject_properties_triggered()
     TConfMain::Current().setFileNameAuto(propDialog.getSystemFileName());
     TConfMain::Current().setProjectInfo(projectInfo);
     TConfMain::Current().setSetup(setupInfo);
+}
+
+void TSurface::on_actionClose_triggered()
+{
+
+}
+
+void TSurface::on_actionSave_triggered()
+{
+
+}
+
+void TSurface::on_actionSave_as_triggered()
+{
+    DECL_TRACER("TSurface::on_actionSave_as_triggered()");
+
+    saveAs();
+}
+
+void TSurface::on_actionExit_triggered()
+{
+    DECL_TRACER("TSurface::on_actionExit_triggered()");
+
+    if (!closeRequest())
+        return;
+
+    close();
+}
+
+
+void TSurface::on_actionAdd_page_triggered()
+{
+
+}
+void TSurface::on_actionAdd_popup_page_triggered()
+{
+
+}
+void TSurface::on_actionSelection_tool_triggered()
+{
+
+}
+void TSurface::on_actionButton_draw_tool_triggered()
+{
+
+}
+void TSurface::on_actionCut_triggered()
+{
+
+}
+void TSurface::on_actionCopy_triggered()
+{
+
+}
+void TSurface::on_actionInsert_triggered()
+{
+
+}
+void TSurface::on_actionAdd_Application_Window_triggered()
+{
+
+}
+void TSurface::on_actionEdit_Sub_Page_Sets_triggered()
+{
+
+}
+void TSurface::on_actionEdit_Drop_Target_Groups_triggered()
+{
+
+}
+void TSurface::on_actionResource_Manager_triggered()
+{
+
+}
+void TSurface::on_actionRefresh_Dynamic_Images_triggered()
+{
+
+}
+void TSurface::on_actionEdit_Palettes_triggered()
+{
+
+}
+
+void TSurface::on_actionExport_Page_Images_triggered()
+{
+
+}
+void TSurface::on_actionVerify_Function_Maps_triggered()
+{
+
+}
+void TSurface::on_actionVerify_Event_Actions_triggered()
+{
+
+}
+void TSurface::on_actionSynchronize_Fonts_triggered()
+{
+
+}
+void TSurface::on_actionView_Conversion_Log_triggered()
+{
+
+}
+void TSurface::on_actionDelete_Conversion_Log_triggered()
+{
+
+}
+void TSurface::on_actionComma_Separated_Format_triggered()
+{
+
+}
+void TSurface::on_actionText_Only_Format_triggered()
+{
+
+}
+void TSurface::on_actionWeb_Page_Format_triggered()
+{
+
+}
+void TSurface::on_actionShow_Popup_Page_triggered()
+{
+
+}
+void TSurface::on_actionHide_Popup_Page_triggered()
+{
+
+}
+void TSurface::on_actionHide_All_Popup_Pages_and_Application_Windows_triggered()
+{
+
+}
+void TSurface::on_actionShow_Application_Window_triggered()
+{
+
+}
+void TSurface::on_actionHide_Application_Window_triggered()
+{
+
+}
+void TSurface::on_actionShow_External_Controls_triggered()
+{
+
+}
+void TSurface::on_actionCopy_Image_to_Clipboard_triggered()
+{
+
+}
+void TSurface::on_actionReset_Display_triggered()
+{
+
+}
+void TSurface::on_actionDisplay_Previous_State_triggered()
+{
+
+}
+void TSurface::on_actionDisplay_Next_State_triggered()
+{
+
+}
+void TSurface::on_actionChoose_Display_State_triggered()
+{
+
+}
+void TSurface::on_actionAdd_States_triggered()
+{
+
+}
+void TSurface::on_actionInsert_States_triggered()
+{
+
+}
+void TSurface::on_actionAnimation_Wizard_triggered()
+{
+
+}
+void TSurface::on_actionPower_Assign_triggered()
+{
+
+}
+void TSurface::on_actionPaste_Controls_triggered()
+{
+
+}
+void TSurface::on_actionEnable_Disable_triggered()
+{
+
+}
+void TSurface::on_actionSound_on_off_triggered()
+{
+
+}
+void TSurface::on_actionPush_triggered()
+{
+
+}
+void TSurface::on_actionBorder_Color_triggered()
+{
+
+}
+void TSurface::on_actionFill_Color_triggered()
+{
+
+}
+void TSurface::on_actionBorder_Color_2_triggered()
+{
+
+}
+void TSurface::on_actionFill_Color_2_triggered()
+{
+
+}
+void TSurface::on_actionText_Color_2_triggered()
+{
+
+}
+void TSurface::on_actionText_Effect_Color_triggered()
+{
+
+}
+void TSurface::on_actionAll_Colors_triggered()
+{
+
+}
+void TSurface::on_actionOverall_Opacity_triggered()
+{
+
+}
+void TSurface::on_actionBitmap_Position_triggered()
+{
+
+}
+void TSurface::on_actionText_Position_triggered()
+{
+
+}
+void TSurface::on_actionAll_Positions_triggered()
+{
+
+}
+void TSurface::on_actionText_Size_triggered()
+{
+
+}
+void TSurface::on_actionBring_to_Front_triggered()
+{
+
+}
+void TSurface::on_actionSend_to_Back_triggered()
+{
+
+}
+void TSurface::on_actionShift_Button_Up_triggered()
+{
+
+}
+void TSurface::on_actionShift_Button_Down_triggered()
+{
+
+}
+void TSurface::on_actionSize_to_Image_triggered()
+{
+
+}
+void TSurface::on_actionAlignment_Sizing_triggered()
+{
+
+}
+void TSurface::on_actionLeft_triggered()
+{
+
+}
+void TSurface::on_actionHorizontal_Center_triggered()
+{
+
+}
+void TSurface::on_actionRight_triggered()
+{
+
+}
+void TSurface::on_actionTop_triggered()
+{
+
+}
+void TSurface::on_actionVertical_Center_triggered()
+{
+
+}
+void TSurface::on_actionBottom_triggered()
+{
+
+}
+void TSurface::on_actionHorizontal_triggered()
+{
+
+}
+void TSurface::on_actionVertical_triggered()
+{
+
+}
+void TSurface::on_actionWidth_triggered()
+{
+
+}
+void TSurface::on_actionHeight_triggered()
+{
+
+}
+void TSurface::on_actionBoth_triggered()
+{
+
+}
+void TSurface::on_action4_3_Video_triggered()
+{
+
+}
+void TSurface::on_action16_9_triggered()
+{
+
+}
+void TSurface::on_action16_9_Anamorphic_Video_triggered()
+{
+
+}
+void TSurface::on_action1_85_1_Letterbox_Video_triggered()
+{
+
+}
+void TSurface::on_action1_85_1_Anamorphic_Video_triggered()
+{
+
+}
+void TSurface::on_action2_35_1_Letterbox_Video_triggered()
+{
+
+}
+void TSurface::on_action2_35_1_Anamorphic_Video_triggered()
+{
+
+}
+void TSurface::on_actionEqual_triggered()
+{
+
+}
+void TSurface::on_actionIncrease_triggered()
+{
+
+}
+void TSurface::on_actionDecrease_triggered()
+{
+
+}
+void TSurface::on_actionRemove_triggered()
+{
+
+}
+void TSurface::on_actionEqual_2_triggered()
+{
+
+}
+void TSurface::on_actionIncrease_2_triggered()
+{
+
+}
+void TSurface::on_actionDecrease_2_triggered()
+{
+
+}
+void TSurface::on_actionRemove_2_triggered()
+{
+
+}
+void TSurface::on_actionConnect_triggered()
+{
+
+}
+void TSurface::on_actionDisconnect_from_Panel_triggered()
+{
+
+}
+void TSurface::on_actionSend_to_Panel_triggered()
+{
+
+}
+void TSurface::on_actionSend_File_to_Panel_triggered()
+{
+
+}
+void TSurface::on_actionReceive_from_Panel_triggered()
+{
+
+}
+void TSurface::on_actionRedo_last_Transfer_triggered()
+{
+
+}
+void TSurface::on_actionCancel_Transfer_triggered()
+{
+
+}
+void TSurface::on_actionCancel_all_Pending_Transfers_triggered()
+{
+
+}
+void TSurface::on_actionClear_Transfer_triggered()
+{
+
+}
+void TSurface::on_actionClear_All_Completed_Transfers_triggered()
+{
+
+}
+void TSurface::on_actionClose_Status_When_Empty_triggered()
+{
+
+}
+void TSurface::on_actionState_Manager_triggered()
+{
+
+}
+void TSurface::on_actionButton_Preview_triggered()
+{
+
+}
+void TSurface::on_actionMagnifier_triggered()
+{
+
+}
+void TSurface::on_actionTransfer_Status_triggered()
+{
+
+}
+void TSurface::on_actionStatus_Bar_triggered()
+{
+
+}
+void TSurface::on_actionProperty_Painter_triggered()
+{
+
+}
+void TSurface::on_actionDisplay_Function_State_Overlay_triggered()
+{
+
+}
+void TSurface::on_actionError_Warnings_Report_triggered()
+{
+
+}
+void TSurface::on_actionMain_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionTransfer_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionView_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionSelection_Drawing_Tools_triggered()
+{
+
+}
+void TSurface::on_actionButton_Displays_triggered()
+{
+
+}
+void TSurface::on_actionZoom_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionDrawing_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionOrder_Assist_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionPosition_Assist_Toolbar_triggered()
+{
+
+}
+void TSurface::on_actionSize_Assist_Toolbar_triggered()
+{
+
+}
+
+void TSurface::on_actionView_ReadMe_triggered()
+{
+
+}
+void TSurface::on_actionPaint_triggered()
+{
+
+}
+void TSurface::on_actionContents_triggered()
+{
+
+}
+void TSurface::on_actionKeyboard_Map_triggered()
+{
+
+}
+void TSurface::on_actionUpdate_triggered()
+{
+
+}
+
+void TSurface::on_actionAbout_TSurface_triggered()
+{
+    DECL_TRACER("TSurface::on_actionAbout_TSurface_triggered()");
+
+    QString line1 = QString("TSurface v%1<br>").arg(VERSION_STRING());
+    QString line2("Copyright © 2026 by Andreas Theofilu<br>");
+    QString line3("License: GPL v3");
+    QMessageBox::about(this, tr("TSurface"), line1 + line2 + line3);
 }
 
 //
@@ -574,22 +1109,120 @@ void TSurface::resizeEvent(QResizeEvent *event)
     m_ui->splitter->resize(size);
 }
 
+void TSurface::closeEvent(QCloseEvent *event)
+{
+    DECL_TRACER("TSurface::closeEvent(QCloseEvent *event)");
+
+    if (!closeRequest())
+    {
+        event->ignore();
+        return;
+    }
+
+    event->accept();
+}
+
+bool TSurface::closeRequest()
+{
+    DECL_TRACER("TSurface::closeRequest()");
+
+    if (mHaveProject && mProjectChanged)
+    {
+        int ret = QMessageBox::question(this, tr("TSurface"), tr("There are unsaved changes in the current project!<br>Do you want to save the project?"));
+
+        if (ret == QMessageBox::Yes)
+        {
+            QString fileName = TConfMain::Current().getFileName();
+            QString basefile = basename(fileName);
+
+            // If the project was not opened and never saved before, we must act
+            // like the user pressed SAVE AS.
+            if (mLastOpenPath.isEmpty())
+            {
+
+            }
+
+            if (fs::is_regular_file(fileName.toStdString()))
+            {
+                std::error_code ec;
+
+                if (QMessageBox::question(this, "TSurface", tr("The file %1 exists!<br>Do you wan't to overwrite it?").arg(basefile)) == QMessageBox::Yes)
+                {
+                    fs::remove(fileName.toStdString(), ec);
+
+                    if (ec)
+                    {
+                        MSG_ERROR("Unable to remove old project file: " << ec.message());
+                        QMessageBox::critical(this, tr("TSurface error"), tr("Can't save project!<br><b>%1</b>").arg(ec.message()));
+                        return false;
+                    }
+                }
+            }
+            else if (fs::exists(fileName.toStdString()))    // Should never be true!
+            {
+                MSG_ERROR("File " << basefile.toStdString() << " is not a regular file!");
+                QMessageBox::critical(this, tr("TSurface error"), tr("Something went terribly wrong! The object %1 is not a regular file.").arg(basefile));
+                return false;
+            }
+
+            if (!saveNormal())
+                return false;
+        }
+
+        mProjectChanged = false;
+    }
+
+    // If there's a project open, we close it and deleting the temporary files
+    if (mHaveProject)
+    {
+        std::error_code ec;
+        fs::remove_all(mPathTemporary.toStdString(), ec);
+
+        if (ec)
+        {
+            MSG_ERROR("Error closing project: " << ec.message());
+            return false;
+        }
+    }
+
+    return true;
+}
+
 QString TSurface::createTemporaryPath(const QString& name)
 {
     DECL_TRACER("TSurface::createTemporaryPath(const QString& name)");
 
     // Determine the temporary path of the OS
-    QString temp = qEnvironmentVariable("TMP");
+    QString temp;
+    bool hidden = false;
 
-    if (temp.isEmpty())
+    if (fs::is_directory("/tmp"))
+        temp = "/tmp";
+    else
     {
-        temp = qEnvironmentVariable("TEMP");
+        temp = qEnvironmentVariable("TMP");
 
         if (temp.isEmpty())
-            temp = QString::fromStdString(fs::current_path());
+        {
+            temp = qEnvironmentVariable("TEMP");
+
+            if (temp.isEmpty())
+            {
+                temp = qEnvironmentVariable("HOME");
+
+                if (temp.isEmpty())
+                    temp = QString::fromStdString(fs::current_path());
+                else
+                    hidden = true;
+            }
+        }
     }
 
-    temp.append("/");
+    if (hidden)
+        temp.append("/.");
+    else
+        temp.append("/");
+
     temp.append(name);
 
     if (!name.endsWith(".tsf"))
@@ -631,9 +1264,65 @@ bool TSurface::createNewFileStructure()
     return true;
 }
 
-bool TSurface::saveAll()
+bool TSurface::saveAs()
 {
-    DECL_TRACER("TSurface::saveAll()");
+    DECL_TRACER("TSurface::saveAs()");
 
-    return false;
+    if (!mHaveProject)
+        return true;
+
+    QString path;
+
+    if (!mLastOpenPath.isEmpty())
+        path = mLastOpenPath;
+    else
+        path = QString::fromStdString(fs::current_path());
+
+    // There is no need to check afterwards if the file already exists, because
+    // the dialog function does this already. In case the user don't want to
+    // overwrite an existing file, an empty file name is returned.
+    QString file = QFileDialog::getSaveFileName(this, tr("Save As"), path, "Surface (*.tsf)");
+
+    if (file.isEmpty())
+        return false;
+
+    mLastOpenPath = pathname(file);
+
+    if (!file.endsWith(".tsf"))
+        file.append(".tsf");
+
+    TConfig::Current().setLastDirectory(mLastOpenPath.toStdString());
+    TConfMain::Current().setPathTemporary(mPathTemporary);
+    TConfMain::Current().setFileName(file);
+    TConfMain::Current().saveProject();
+    TSurfaceWriter prjSave(mPathTemporary, file);
+
+    if (prjSave.haveError())
+    {
+        QMessageBox::critical(this, "TSurface error", "Error saving project!");
+        return false;
+    }
+
+    mProjectChanged = false;
+    return true;
+}
+
+bool TSurface::saveNormal()
+{
+    DECL_TRACER("TSurface::saveNormal()");
+
+    if (!mHaveProject || !mProjectChanged || mLastOpenPath.isEmpty())
+        return true;
+
+    QString file = TConfMain::Current().getFileName();
+    TConfMain::Current().saveProject();
+    TSurfaceWriter prjSave(mPathTemporary, file);
+
+    if (prjSave.haveError())
+    {
+        QMessageBox::critical(this, "TSurface error", "Error saving project!");
+        return false;
+    }
+
+    return true;
 }

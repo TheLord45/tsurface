@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fonts/amxbold_.ttf</file>
+        <file>fonts/arial.ttf</file>
+        <file>fonts/arialbd.ttf</file>
+        <file>fonts/cour.ttf</file>
+    </qresource>
+</RCC>

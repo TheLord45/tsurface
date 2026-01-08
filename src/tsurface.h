@@ -49,6 +49,8 @@ class TSurface : public QMainWindow
 
     protected:
         void resizeEvent(QResizeEvent *event) override;
+        void closeEvent(QCloseEvent *event) override;
+
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
         void onAddNewPage();
         void onAddNewPopup();
@@ -56,14 +58,161 @@ class TSurface : public QMainWindow
         void onItemToFront(int id);
 
     private slots:
+        // Menu: File
         void on_actionOpen_triggered();
         void on_actionNew_triggered();
         void on_actionProject_properties_triggered();
+        void on_actionClose_triggered();
+        void on_actionSave_triggered();
+        void on_actionSave_as_triggered();
+        void on_actionExit_triggered();
+        // Menu: Edit
+        void on_actionButton_draw_tool_triggered();
+        void on_actionCopy_triggered();
+        void on_actionCut_triggered();
+        void on_actionInsert_triggered();
+        void on_actionSelection_tool_triggered();
+        // Menu: Panel
+        void on_actionAdd_page_triggered();
+        void on_actionAdd_popup_page_triggered();
+        void on_actionAdd_Application_Window_triggered();
+        void on_actionEdit_Sub_Page_Sets_triggered();
+        void on_actionEdit_Drop_Target_Groups_triggered();
+        void on_actionResource_Manager_triggered();
+        void on_actionRefresh_Dynamic_Images_triggered();
+        void on_actionEdit_Palettes_triggered();
+        void on_actionExport_Page_Images_triggered();
+        void on_actionVerify_Function_Maps_triggered();
+        void on_actionVerify_Event_Actions_triggered();
+        void on_actionSynchronize_Fonts_triggered();
+        void on_actionView_Conversion_Log_triggered();
+        void on_actionDelete_Conversion_Log_triggered();
+        // Menu: Panel->Generate Programmer's Report
+        void on_actionComma_Separated_Format_triggered();
+        void on_actionText_Only_Format_triggered();
+        void on_actionWeb_Page_Format_triggered();
+        // Menu: Page
+        void on_actionShow_Popup_Page_triggered();
+        void on_actionHide_Popup_Page_triggered();
+        void on_actionHide_All_Popup_Pages_and_Application_Windows_triggered();
+        void on_actionShow_Application_Window_triggered();
+        void on_actionHide_Application_Window_triggered();
+        void on_actionShow_External_Controls_triggered();
+        void on_actionCopy_Image_to_Clipboard_triggered();
+        // Menu: Button
+        void on_actionAdd_States_triggered();
+        void on_actionAnimation_Wizard_triggered();
+        void on_actionChoose_Display_State_triggered();
+        void on_actionDisplay_Previous_State_triggered();
+        void on_actionDisplay_Next_State_triggered();
+        void on_actionInsert_States_triggered();
+        void on_actionPower_Assign_triggered();
+        void on_actionPaste_Controls_triggered();
+        void on_actionReset_Display_triggered();
+        // Menu: Button->preview
+        void on_actionEnable_Disable_triggered();
+        void on_actionSound_on_off_triggered();
+        void on_actionPush_triggered();
+        // Menu: States
+        void on_actionBorder_Color_triggered();
+        void on_actionFill_Color_triggered();
+        // Menu: States->Tweeners
+        void on_actionBorder_Color_2_triggered();
+        void on_actionFill_Color_2_triggered();
+        void on_actionText_Color_2_triggered();
+        void on_actionText_Effect_Color_triggered();
+        void on_actionAll_Colors_triggered();
+        void on_actionOverall_Opacity_triggered();
+        void on_actionBitmap_Position_triggered();
+        void on_actionText_Position_triggered();
+        void on_actionAll_Positions_triggered();
+        void on_actionText_Size_triggered();
+        // Menu: Layout
+        void on_actionBring_to_Front_triggered();
+        void on_actionSend_to_Back_triggered();
+        void on_actionShift_Button_Up_triggered();
+        void on_actionShift_Button_Down_triggered();
+        void on_actionSize_to_Image_triggered();
+        void on_actionAlignment_Sizing_triggered();
+        // Menu: Layout->Align
+        void on_actionLeft_triggered();
+        void on_actionHorizontal_Center_triggered();
+        void on_actionRight_triggered();
+        void on_actionTop_triggered();
+        void on_actionVertical_Center_triggered();
+        void on_actionBottom_triggered();
+        // Menu: Layout->Center in Page
+        void on_actionHorizontal_triggered();
+        void on_actionVertical_triggered();
+        // Menu: Layout->Horizontal Spacing
+        void on_actionEqual_triggered();
+        void on_actionIncrease_triggered();
+        void on_actionDecrease_triggered();
+        void on_actionRemove_triggered();
+        // Menu: Layout->Make same Size
+        void on_actionWidth_triggered();
+        void on_actionHeight_triggered();
+        void on_actionBoth_triggered();
+        // Menu: Layout->Size for Video
+        void on_action4_3_Video_triggered();
+        void on_action16_9_triggered();
+        void on_action16_9_Anamorphic_Video_triggered();
+        void on_action1_85_1_Letterbox_Video_triggered();
+        void on_action1_85_1_Anamorphic_Video_triggered();
+        void on_action2_35_1_Letterbox_Video_triggered();
+        void on_action2_35_1_Anamorphic_Video_triggered();
+        // Menu: Layout->Vertical Spacing
+        void on_actionEqual_2_triggered();
+        void on_actionIncrease_2_triggered();
+        void on_actionDecrease_2_triggered();
+        void on_actionRemove_2_triggered();
+        // Menu: Transfer
+        void on_actionConnect_triggered();
+        void on_actionDisconnect_from_Panel_triggered();
+        void on_actionSend_to_Panel_triggered();
+        void on_actionSend_File_to_Panel_triggered();
+        void on_actionReceive_from_Panel_triggered();
+        void on_actionRedo_last_Transfer_triggered();
+        void on_actionCancel_Transfer_triggered();
+        void on_actionCancel_all_Pending_Transfers_triggered();
+        void on_actionClear_Transfer_triggered();
+        void on_actionClear_All_Completed_Transfers_triggered();
+        void on_actionClose_Status_When_Empty_triggered();
+        // Menu: View
+        void on_actionState_Manager_triggered();
+        void on_actionButton_Preview_triggered();
+        void on_actionMagnifier_triggered();
+        void on_actionTransfer_Status_triggered();
+        void on_actionStatus_Bar_triggered();
+        void on_actionProperty_Painter_triggered();
+        void on_actionDisplay_Function_State_Overlay_triggered();
+        void on_actionError_Warnings_Report_triggered();
+        // Menu: View->Toolbars
+        void on_actionMain_Toolbar_triggered();
+        void on_actionTransfer_Toolbar_triggered();
+        void on_actionView_Toolbar_triggered();
+        void on_actionSelection_Drawing_Tools_triggered();
+        void on_actionButton_Displays_triggered();
+        void on_actionZoom_Toolbar_triggered();
+        void on_actionDrawing_Toolbar_triggered();
+        void on_actionOrder_Assist_Toolbar_triggered();
+        void on_actionPosition_Assist_Toolbar_triggered();
+        void on_actionSize_Assist_Toolbar_triggered();
+        // Menu: Tools
+        void on_actionView_ReadMe_triggered();
+        void on_actionPaint_triggered();
+        // Menu: Help
+        void on_actionContents_triggered();
+        void on_actionKeyboard_Map_triggered();
+        void on_actionUpdate_triggered();
+        void on_actionAbout_TSurface_triggered();
 
     private:
         QString createTemporaryPath(const QString& name);
         bool createNewFileStructure();
-        bool saveAll();
+        bool saveAs();
+        bool saveNormal();
+        bool closeRequest();
 
         const std::unique_ptr<Ui::tsurface> m_ui;
         QString mLastOpenPath;
