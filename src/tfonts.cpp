@@ -28,9 +28,7 @@
 namespace fs = std::filesystem;
 using std::string;
 
-TFonts::TFonts()
-{
-}
+QList<TFonts::PRIVFONTS_t> TFonts::mLocalFonts;
 
 QString TFonts::getFontPath(const QString& family)
 {
@@ -68,4 +66,43 @@ QString TFonts::getFontFile(const QFont& font)
     QFont realFont(info.family());
 //    QString rawName = realFont.rawName();
     return QString();
+}
+
+void TFonts::addFontFile(const QString& file)
+{
+    DECL_TRACER("TFonts::addFontFile(const QString& file)");
+
+    // Look in the table if the string is not already in the list.
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        if (iter->file == file)
+            return;
+    }
+
+    if (fs::exists(file.toStdString()))
+    {
+        int id = QFontDatabase::addApplicationFont(file);
+        PRIVFONTS_t pf;
+        pf.file = file;
+        pf.ID = id;
+        pf.family = QFontDatabase::applicationFontFamilies(id);
+        mLocalFonts.append(pf);
+    }
+}
+
+void TFonts::freePrivateFonts()
+{
+    DECL_TRACER("TFonts::freePrivateFonts()");
+
+    if (mLocalFonts.empty())
+        return;
+
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+        QFontDatabase::removeApplicationFont(iter->ID);
+
+    mLocalFonts.clear();
 }

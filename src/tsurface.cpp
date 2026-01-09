@@ -187,7 +187,36 @@ void TSurface::on_actionOpen_triggered()
         TSurfaceReader sreader(file, mPathTemporary);
         TConfMain::Current().setPathTemporary(mPathTemporary);
         TConfMain::Current().setFileName(file);
-        // TODO: Add code to read the config files and build the trees and tables
+        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
+        TPageHandler::Current().setPathTemporary(mPathTemporary);
+        QStringList pages = TConfMain::Current().getAllPages();
+        QStringList popups = TConfMain::Current().getAllPopups();
+        pages.append(popups);
+        TPageHandler::Current().readPages(pages);
+        TPageTree::Current().setParent(this);
+        TPageTree::Current().createTree(m_ui->treeViewPages, TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());
+        connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
+        QList<int> pageNumbers = TPageHandler::Current().getPageNumbers();
+        QList<int>::Iterator iter;
+
+        for (iter = pageNumbers.begin(); iter != pageNumbers.end(); ++iter)
+        {
+            Page::PAGE_t pg = TPageHandler::Current().getPage(*iter);
+
+            if (pg.pageID <= 0)
+            {
+                MSG_ERROR("Can't find page number " << *iter);
+                continue;
+            }
+
+            MSG_DEBUG("Popuptype: " << pg.popupType);
+
+            if (pg.popupType == Page::PT_PAGE)
+                TPageTree::Current().addPage(pg.name, pg.pageID);
+            else if (pg.popupType == Page::PT_POPUP)
+                TPageTree::Current().addPopup(pg.name, pg.pageID);
+        }
+
         mHaveProject = true;
     }
 }
@@ -205,11 +234,11 @@ void TSurface::on_actionNew_triggered()
 
     if (mProjectChanged)
     {
-        int button = QMessageBox::question(this, tr("Unsaved changes"), tr("<b>There are unsaved changes in this project!</b><br>Do you want to save the project?"));
+        int button = QMessageBox::question(this, tr("New project"), tr("<b>There are unsaved changes in this project!</b><br>Do you want to save the project?"));
 
         if (button == QMessageBox::Yes)
         {
-            if (mLastOpenPath.isEmpty())
+            if (!mIsSaved)
             {
                 if (!saveAs())
                     return;
@@ -229,7 +258,7 @@ void TSurface::on_actionNew_triggered()
     }
     else if (mHaveProject)
     {
-        int button = QMessageBox::question(this, tr("Open project"), tr("Do you want to close the current project?"));
+        int button = QMessageBox::question(this, tr("New project"), tr("Do you want to close the current project?"));
 
         if (button == QMessageBox::No)
             return;
@@ -367,12 +396,36 @@ void TSurface::on_actionProject_properties_triggered()
 
 void TSurface::on_actionClose_triggered()
 {
+    DECL_TRACER("TSurface::on_actionClose_triggered()");
 
+    if (!mHaveProject)
+        return;
+
+    if (!closeRequest())
+        return;
+
+    if (!mPageWidgets.empty())
+    {
+        mPageWidgets.clear();
+    }
+
+    m_ui->mdiArea->closeAllSubWindows();
+    TPageTree::Current().reset();
+    TConfMain::Current().reset();
+    TPageHandler::Current().reset();
+    mPathTemporary.clear();
+    mProjectChanged = false;
+    mHaveProject = false;
 }
 
 void TSurface::on_actionSave_triggered()
 {
+    DECL_TRACER("TSurface::on_actionSave_triggered()");
 
+    if (!mIsSaved)
+        saveAs();
+    else
+        saveNormal();
 }
 
 void TSurface::on_actionSave_as_triggered()
@@ -395,12 +448,18 @@ void TSurface::on_actionExit_triggered()
 
 void TSurface::on_actionAdd_page_triggered()
 {
+    DECL_TRACER("TSurface::on_actionAdd_page_triggered()");
 
+    onAddNewPage();
 }
+
 void TSurface::on_actionAdd_popup_page_triggered()
 {
+    DECL_TRACER("TSurface::on_actionAdd_popup_page_triggered()");
 
+    onAddNewPopup();
 }
+
 void TSurface::on_actionSelection_tool_triggered()
 {
 
@@ -936,11 +995,10 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
 
     MSG_DEBUG("Toggle: Type: " << wt << ", Number: " << num << ", Name: " << name.toStdString());
     QWidget *widget = TPageHandler::Current().getWidget(num);
+    bool visible = TPageHandler::Current().isVisible(num);
+    MSG_DEBUG("Window is " << (visible ? "visible" : "not visible") << ", widget is " << (widget == nullptr ? "not available" : "available"));
 
-    if (!widget)
-        return;
-
-    if (TPageHandler::Current().isVisible(num))
+    if (widget && visible)
     {
         MSG_DEBUG("Window is visible. Closing it ...");
         QList<QMdiSubWindow *> swList = m_ui->mdiArea->subWindowList();
@@ -959,7 +1017,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
             }
         }
     }
-    else
+    else if (!visible)
     {
         MSG_DEBUG("Window is not visible. Generating it ...")
         Page::PAGE_t pg = TPageHandler::Current().getPage(num);
@@ -974,6 +1032,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         widget->setObjectName(objName);
         widget->installEventFilter(mCloseEater);
         MSG_DEBUG("Object name: " << objName.toStdString());
+        TPageHandler::Current().setWidget(widget, num);
 
         QMdiSubWindow *page = new QMdiSubWindow;
         page->setWidget(widget);
@@ -1135,14 +1194,7 @@ bool TSurface::closeRequest()
             QString fileName = TConfMain::Current().getFileName();
             QString basefile = basename(fileName);
 
-            // If the project was not opened and never saved before, we must act
-            // like the user pressed SAVE AS.
-            if (mLastOpenPath.isEmpty())
-            {
-
-            }
-
-            if (fs::is_regular_file(fileName.toStdString()))
+            if (mIsSaved && fs::is_regular_file(fileName.toStdString()))
             {
                 std::error_code ec;
 
@@ -1158,14 +1210,12 @@ bool TSurface::closeRequest()
                     }
                 }
             }
-            else if (fs::exists(fileName.toStdString()))    // Should never be true!
-            {
-                MSG_ERROR("File " << basefile.toStdString() << " is not a regular file!");
-                QMessageBox::critical(this, tr("TSurface error"), tr("Something went terribly wrong! The object %1 is not a regular file.").arg(basefile));
-                return false;
-            }
 
-            if (!saveNormal())
+            if (mIsSaved && !saveNormal())
+                return false;
+            else if (!mIsSaved && !saveAs())
+                return false;
+            else
                 return false;
         }
 
@@ -1295,6 +1345,8 @@ bool TSurface::saveAs()
     TConfMain::Current().setPathTemporary(mPathTemporary);
     TConfMain::Current().setFileName(file);
     TConfMain::Current().saveProject();
+    TPageHandler::Current().setPathTemporary(mPathTemporary);
+    TPageHandler::Current().saveAllPages();
     TSurfaceWriter prjSave(mPathTemporary, file);
 
     if (prjSave.haveError())
@@ -1304,6 +1356,7 @@ bool TSurface::saveAs()
     }
 
     mProjectChanged = false;
+    mIsSaved = true;
     return true;
 }
 
@@ -1316,6 +1369,8 @@ bool TSurface::saveNormal()
 
     QString file = TConfMain::Current().getFileName();
     TConfMain::Current().saveProject();
+    TPageHandler::Current().setPathTemporary(mPathTemporary);
+    TPageHandler::Current().saveAllPages();
     TSurfaceWriter prjSave(mPathTemporary, file);
 
     if (prjSave.haveError())
@@ -1324,5 +1379,7 @@ bool TSurface::saveNormal()
         return false;
     }
 
+    mProjectChanged = false;
+    mIsSaved = true;
     return true;
 }

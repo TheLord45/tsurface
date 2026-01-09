@@ -218,6 +218,7 @@ class TSurface : public QMainWindow
         QString mLastOpenPath;
         bool mProjectChanged{false};
         bool mHaveProject{false};
+        bool mIsSaved{false};
         std::vector<QWidget *> mPageWidgets;
         winCloseEater *mCloseEater{nullptr};
         QAction *mActionStateManager{nullptr};

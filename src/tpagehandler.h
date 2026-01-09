@@ -186,8 +186,8 @@ namespace Page
         int hideY{0};                           // End of hide effect position (by default "top"); (popup only)
         int resetPos{0};                        // If this is 1 the popup is reset to it's original position and size on open
         SR_t srPage;                            // The configuration for the page itself
-        std::vector<EVENT_t> eventShow;         // G5: Events to start showing
-        std::vector<EVENT_t> eventHide;         // G5: Events to start hiding
+        QList<EVENT_t> eventShow;               // G5: Events to start showing
+        QList<EVENT_t> eventHide;               // G5: Events to start hiding
         QList<ObjHandler::TOBJECT_t> objects;   // The objects belonging to the page/popup
     }PAGE_t;
 }
@@ -210,21 +210,32 @@ class TPageHandler : public QObject
 
         int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0);
         int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
+        void reset();
         void setVisible(int number, bool visible);
         void bringToFront(int number);
         int getNextPageNumber() { mMaxPageNumber++; return mMaxPageNumber; }
         int getNextPopupNumber() { mMaxPopupNumber++; return mMaxPopupNumber; }
         bool isVisible(int number);
         QWidget *getWidget(int number);
+        void setWidget(QWidget *w, int number);
+        bool saveAllPages();
+        bool readPages(const QStringList& list);
         // Getter/Setter
         Page::PAGE_t getPage(int number);
+        QList<int> getPageNumbers();
         void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
         QStringList getGroupNames();
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
 
-    signals:
+    protected:
+        bool savePage(const Page::PAGE_t& page);
+        bool savePopup(const Page::PAGE_t& popup);
+        QJsonObject getSr(Page::PAGE_TYPE pt, const Page::SR_t& sr, int number=0);
+        void parsePage(const QJsonObject& page);
+
+//    signals:
 
     private:
         static TPageHandler *mCurrent;

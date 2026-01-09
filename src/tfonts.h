@@ -19,16 +19,28 @@
 #define TFONTS_H
 
 #include <QString>
+#include <QStringList>
 #include <QFont>
 
 class TFonts
 {
     public:
-        TFonts();
-        ~TFonts();
+    TFonts() {};
+
+        typedef struct PRIVFONTS_t
+        {
+            QStringList family;
+            QString file;
+            int ID{0};
+        }PRIVFONTS_t;
 
         static QString getFontPath(const QString& family);
         static QString getFontFile(const QFont& font);
+        static void addFontFile(const QString& file);
+        static void freePrivateFonts();
+
+    private:
+        static QList<PRIVFONTS_t> mLocalFonts;
 };
 
 #endif // TFONTS_H

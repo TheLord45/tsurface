@@ -7,11 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>553</height>
+    <height>565</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
+  </property>
+  <property name="locale">
+   <locale language="English" country="AmericanSamoa"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -19,7 +22,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tabPrjInfo">
       <attribute name="title">
        <string>Project Information</string>
       </attribute>
@@ -125,7 +128,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tabPanelSetup">
       <attribute name="title">
        <string>Panel Setup Information</string>
       </attribute>

@@ -68,10 +68,7 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
 
     if (mTreeView && tv && mTreeView != tv)
     {
-        mTreeView->reset();
-        disconnect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
-        disconnect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
-        delete mTreeView;
+        reset();
         mTreeView = tv;
     }
     else if (!mTreeView)
@@ -132,6 +129,90 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
     mTreeView->expandAll();
     connect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
+}
+
+void TPageTree::createTree(QTreeView *tv, const QString& job, const QString& panel)
+{
+    DECL_TRACER("TPageTree::createTree(QTreeView *tv, const QString& job, const QString& panel)");
+
+    if (!tv && !mTreeView)
+    {
+        MSG_ERROR("The tree view was not given and there exists none!");
+        return;
+    }
+
+    if (mTreeView && tv && mTreeView != tv)
+    {
+        reset();
+        mTreeView = tv;
+    }
+    else if (!mTreeView)
+        mTreeView = tv;
+    else
+        mTreeView->reset();
+
+    mPageNum = 0;
+    mPopupNum = 500;
+    mGroupNum = 2000;
+
+    if (!mItemModel)
+        mItemModel = new QStandardItemModel;
+    else
+        mItemModel->clear();
+
+    QString head = job + " [" + panel + "]";
+    QStandardItem *header = new QStandardItem(head);
+    mItemModel->setHorizontalHeaderItem(0, header);
+
+    QStandardItem *parentItem = mItemModel->invisibleRootItem();
+    // Folder Pages
+    mPages = new QStandardItem(tr("Pages"));
+    mPages->setEditable(false);
+    mPages->setData(MENU_PAGE);
+    parentItem->appendRow(mPages);
+    // Folder Popup Pages
+    mPopup = new QStandardItem(tr("Popup pages"));
+    mPopup->setEditable(false);
+    mPopup->setData(MENU_POPUP);
+    parentItem->appendRow(mPopup);
+    // Folder Sup-pages
+    mSubPages = new QStandardItem(tr("Sub-pages"));
+    mSubPages->setEditable(false);
+    mSubPages->setData(MENU_SUBPAGES);
+    parentItem->appendRow(mSubPages);
+    // Folder Apps
+    mApps = new QStandardItem(tr("Application windows"));
+    mApps->setEditable(false);
+    mApps->setData(MENU_APPS);
+    parentItem->appendRow(mApps);
+
+    if (!mHaveModel)
+        mTreeView->setModel(mItemModel);
+    else
+    {
+        mHaveModel = true;
+        mTreeView->show();
+    }
+
+    mTreeView->expandAll();
+    connect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
+    connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
+}
+
+void TPageTree::reset()
+{
+    DECL_TRACER("TPageTree::reset()");
+
+    if (!mTreeView)
+        return;
+
+    mTreeView->reset();
+    disconnect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
+    disconnect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
+    delete mTreeView;
+    mPageNum = 0;
+    mPopupNum = 500;
+    mGroupNum = 2000;
 }
 
 void TPageTree::addPage(const QString& name, int num)

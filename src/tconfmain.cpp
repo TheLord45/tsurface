@@ -289,25 +289,24 @@ bool TConfMain::readProject(const QString& path)
         return false;
     }
 
-    QFile file(path);
-
-    if (!file.open(QIODevice::ReadOnly))
+    if (!project.open(QIODevice::ReadOnly))
     {
         MSG_ERROR("Error reading file " << path.toStdString());
         return false;
     }
 
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    file.close();
+    QJsonDocument doc = QJsonDocument::fromJson(project.readAll());
+    project.close();
 
     if (mConfMain)
         delete mConfMain;
 
     mConfMain = new CONFMAIN_t;
     QJsonObject root = doc.object();
+    QJsonObject versionInfo = root.value("versionInfo").toObject();
 
-    mConfMain->fileName = root.value("fileName").toString();
-    mConfMain->fileVersion = root.value("fileVersion").toInt();
+    mConfMain->fileName = versionInfo.value("fileName").toString();
+    mConfMain->fileVersion = versionInfo.value("fileVersion").toInt(0);
 
     if (mConfMain->fileVersion != FILE_VERSION)
     {

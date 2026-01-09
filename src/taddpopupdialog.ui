@@ -7,11 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>655</width>
-    <height>466</height>
+    <height>493</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Add Popup Page</string>
+  </property>
+  <property name="locale">
+   <locale language="English" country="AmericanSamoa"/>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="2">

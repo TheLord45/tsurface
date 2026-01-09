@@ -62,6 +62,8 @@ class TPageTree : public QObject
         }WINTYPE_t;
 
         void createNewTree(QTreeView *tv, const QString& job, const QString& pname, const QString& panel);
+        void createTree(QTreeView *tv, const QString& job, const QString& panel);
+        void reset();
         void addPage(const QString& name, int num);
         void addPopup(const QString& name, int num);
 //        void addSubPage(const QString& name, int num);

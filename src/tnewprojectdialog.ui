@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>393</height>
+    <height>415</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,9 @@
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QToolBox" name="toolBox">
+     <property name="locale">
+      <locale language="English" country="AmericanSamoa"/>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -25,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>231</height>
+        <height>237</height>
        </rect>
       </property>
       <attribute name="label">
@@ -37,7 +40,7 @@
          <x>10</x>
          <y>10</y>
          <width>521</width>
-         <height>212</height>
+         <height>223</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0" columnminimumwidth="0,0,0,0">
@@ -237,8 +240,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>544</width>
-        <height>231</height>
+        <width>530</width>
+        <height>241</height>
        </rect>
       </property>
       <attribute name="label">
@@ -420,7 +423,7 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>231</height>
+        <height>237</height>
        </rect>
       </property>
       <attribute name="label">

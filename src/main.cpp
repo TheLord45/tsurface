@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2025, 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <QApplication>
+#include <QTranslator>
+
 #include "tsurface.h"
 #include "tconfig.h"
-#include <QApplication>
+#include "terror.h"
+
+using namespace Qt::StringLiterals;
 
 int main(int argc, char *argv[])
 {
@@ -27,6 +32,17 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationDisplayName("TSurface");
     app.setApplicationVersion(VERSION_STRING());
+    QTranslator translator;
+
+    if (!translator.load(QLocale(), "tsurface"_L1, "_"_L1, "/usr/share/tsurface"))
+    {
+        MSG_ERROR("Error loading translation!");
+    }
+    else
+    {
+        QCoreApplication::installTranslator(&translator);
+        MSG_INFO("Using translation for language " << translator.language().toStdString());
+    }
 
     TSurface w;
     w.show();

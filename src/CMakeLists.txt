@@ -9,6 +9,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de gr)
+qt6_add_translations(tsurface QM_FILES_OUTPUT_VARIABLE qm_files)
+
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
@@ -64,3 +68,4 @@ target_link_libraries(tsurface PRIVATE Qt6::Widgets archive)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)
+install(FILES ${qm_files} DESTINATION /usr/share/tsurface)
