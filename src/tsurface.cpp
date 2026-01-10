@@ -155,6 +155,8 @@ TSurface::~TSurface()
 
     if (mCloseEater)
         delete mCloseEater;
+
+    TFonts::releaseFontConfig();
 }
 
 //
@@ -173,21 +175,19 @@ void TSurface::on_actionOpen_triggered()
 
     mLastOpenPath = QString::fromStdString(TConfig::Current().getLastDirectory());
     QString file = QFileDialog::getOpenFileName(this, tr("Open Logfile"), mLastOpenPath, tr("Surface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
-    qsizetype pos = file.lastIndexOf("/");
-
-    if (pos > 0)
-        TConfig::Current().setLastDirectory(file.left(pos).toStdString());
+    TConfig::Current().setLastDirectory(pathname(file));
 
     if (file.isEmpty())
         return;
 
     if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
     {
+        mLastOpenPath = pathname(file);
         mPathTemporary = createTemporaryPath(basename(file));
         TSurfaceReader sreader(file, mPathTemporary);
+        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
         TConfMain::Current().setPathTemporary(mPathTemporary);
         TConfMain::Current().setFileName(file);
-        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
         TPageHandler::Current().setPathTemporary(mPathTemporary);
         QStringList pages = TConfMain::Current().getAllPages();
         QStringList popups = TConfMain::Current().getAllPopups();
@@ -218,6 +218,7 @@ void TSurface::on_actionOpen_triggered()
         }
 
         mHaveProject = true;
+        mIsSaved = true;
     }
 }
 
@@ -336,6 +337,10 @@ void TSurface::on_actionNew_triggered()
     TConfMain::Current().setPathTemporary(mPathTemporary);
     createNewFileStructure();
     TGraphics::Current().writeSystemFiles(Graphics::FT_THEOSYS, mPathTemporary);
+    // Store the selected font
+    QFont font = npd.getFontName();
+    QString ffile = TFonts::getFontFile(font);
+    TFonts::addFontFile(ffile);
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -1096,7 +1101,8 @@ void TSurface::onAddNewPage()
     pg.srPage.cf = pageDialog.getColorBackground();
     pg.srPage.ct = pageDialog.getColorText();
     QFont font = pageDialog.getFont();
-    TFonts::getFontPath(font.family());
+    QString ffile = TFonts::getFontFile(font);
+    TFonts::addFont(font, ffile);
     TPageHandler::Current().setPage(pg);
 }
 
@@ -1153,8 +1159,9 @@ void TSurface::onAddNewPopup()
     pg.srPage.cf = popupDialog.getColorPageBackground();
     pg.srPage.ct = popupDialog.getColorText();
     pg.srPage.cb = popupDialog.getColorBorder();
-//    QFont font = popupDialog.getFont();
-//    TFonts::getFontPath(font.family());
+    QFont font = popupDialog.getFont();
+    QString ffile = TFonts::getFontFile(font);
+    TFonts::addFont(font, ffile);
     TPageHandler::Current().setPage(pg);
 }
 
@@ -1328,22 +1335,50 @@ bool TSurface::saveAs()
     else
         path = QString::fromStdString(fs::current_path());
 
+    QFileDialog fileDialog(this, tr("Save As"), path, "Surface (*.tsf)");
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+
+    if (mIsSaved)       // Was this saved already previously?
+    {                   // Yes, then get the old file name and suggest it.
+        QString file = basename(TConfMain::Current().getFileName());
+        MSG_DEBUG("Using file: " << file.toStdString());
+        fileDialog.selectFile(file);
+    }
+    else    // Get the predefined file name and suggest it.
+    {
+        QString file = basename(TConfMain::Current().getFileName());
+
+        if (!file.endsWith(".tsf"))
+            file.append(".tsf");
+
+        fileDialog.selectFile(file);
+    }
     // There is no need to check afterwards if the file already exists, because
     // the dialog function does this already. In case the user don't want to
     // overwrite an existing file, an empty file name is returned.
-    QString file = QFileDialog::getSaveFileName(this, tr("Save As"), path, "Surface (*.tsf)");
+    if (fileDialog.exec() == QDialog::Rejected)
+        return false;
+
+    QStringList selectedFiles = fileDialog.selectedFiles();
+
+    if (selectedFiles.empty())
+        return false;
+
+    QString file = selectedFiles[0];
 
     if (file.isEmpty())
         return false;
+
+    if (file != TConfMain::Current().getFileName())
+        TConfMain::Current().setFileName(file);
 
     mLastOpenPath = pathname(file);
 
     if (!file.endsWith(".tsf"))
         file.append(".tsf");
 
-    TConfig::Current().setLastDirectory(mLastOpenPath.toStdString());
+    TConfig::Current().setLastDirectory(mLastOpenPath);
     TConfMain::Current().setPathTemporary(mPathTemporary);
-    TConfMain::Current().setFileName(file);
     TConfMain::Current().saveProject();
     TPageHandler::Current().setPathTemporary(mPathTemporary);
     TPageHandler::Current().saveAllPages();

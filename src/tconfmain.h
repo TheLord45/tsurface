@@ -129,6 +129,7 @@ class TConfMain
         void reset();
 
         // Setter
+        void setDefaultPanelType(TPanelType::PANELTYPE_t pt) { mPanType = pt; }
         void setProjectInfo(const ConfigMain::PROJECTINFO_t& pi);
         void setSetup(const ConfigMain::SETUP_t& setup);
         void setFileName(const QString& fn);
@@ -140,6 +141,7 @@ class TConfMain
         void setFontBaseSize(int size) { mFontBaseSize = size; }
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
+        TPanelType::PANELTYPE_t getDefaultPanelType() { return mPanType; }
         QString getJobName() { if (mConfMain) return mConfMain->projectInfo.jobName; else return QString(); }
         QString getFileName();
         QSize getPanelSize();
@@ -152,22 +154,25 @@ class TConfMain
         QColor& getColorText() { return mColorText; }
         QFont& getFontBase() { return mFontBase; }
         int getFontBaseSize() { return mFontBaseSize; }
+        QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
+
+    protected:
+        void initConfig();
 
     private:
         static TConfMain *mCurrent;
 
         ConfigMain::CONFMAIN_t *mConfMain{nullptr};
-        QString mFileName;
-        QString mPathTemporary;
-        QString mJobName;
-        QString mPageName;
-        QString mBaseDirectory;     // Directory which contains the plain files
+        QString mFileName;          // The path and file name of the project
+        QString mPathTemporary;     // Directory which contains the plain files
+        QString mJobName;           // Also called project name
+        QString mPageName;          // Main page
         TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
-        QFont mFontBase;
-        int mFontBaseSize{10};
-        bool mFileNameAuto{false};
+        QFont mFontBase;            // The default font
+        int mFontBaseSize{10};      // The default font size
+        bool mFileNameAuto{false};  // TRUE = File name is auto generated
 };
 
 #endif // TCONFMAIN_H

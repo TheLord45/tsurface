@@ -70,7 +70,7 @@ qt_add_executable(tsurface
 )
 
 # Use the Widgets module from Qt 6.
-target_link_libraries(tsurface PRIVATE Qt6::Widgets archive)
+target_link_libraries(tsurface PRIVATE Qt6::Widgets archive fontconfig)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)

@@ -25,22 +25,31 @@
 class TFonts
 {
     public:
-    TFonts() {};
-
         typedef struct PRIVFONTS_t
         {
             QStringList family;
             QString file;
+            QString intFile;
             int ID{0};
         }PRIVFONTS_t;
 
-        static QString getFontPath(const QString& family);
         static QString getFontFile(const QFont& font);
+        static void addFont(const QFont& font, const QString& file);
         static void addFontFile(const QString& file);
         static void freePrivateFonts();
+        static void releaseFontConfig();
+
+        static bool readFontFile(const QString& path, const QString& file);
+        static bool writeFontFile(const QString& path, const QString& file);
+
+    protected:
+        static void init();
 
     private:
+        TFonts() {};    // Must never be called
+
         static QList<PRIVFONTS_t> mLocalFonts;
+        static bool mInitialized;
 };
 
 #endif // TFONTS_H

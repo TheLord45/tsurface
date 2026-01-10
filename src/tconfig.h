@@ -19,6 +19,7 @@
 #define TCONFIG_H
 
 #include <string>
+#include <QString>
 
 #define V_MAJOR     1
 #define V_MINOR     0
@@ -47,7 +48,7 @@ class TConfig
         }WINSIZE_t;
 
         std::string& getLastDirectory() { return mLastDirectory; }
-        void setLastDirectory(const std::string& dir) { mLastDirectory = dir; }
+        void setLastDirectory(const QString& dir) { mLastDirectory = dir.toStdString(); }
         WINSIZE_t& getLastPosition() { return mPosition; }
         void setLastPosition(const WINSIZE_t& ws) { mPosition = ws; }
         bool isInitialized() { return mInitialized; }
@@ -55,7 +56,7 @@ class TConfig
         std::string getLogFile() { return mLogFile; }
         std::string getLogLevel() { return mLogLevel; }
         bool getProfiling() { return mProfiling; }
-        void setProgName(const std::string& name) { mProgName = name; }
+        void setProgName(const QString& name) { mProgName = name.toStdString(); }
         std::string& getProgName() { return mProgName; }
 
     protected:

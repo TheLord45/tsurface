@@ -16,58 +16,147 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <filesystem>
+#include <fontconfig/fontconfig.h>
 
 #include <QFontDatabase>
 #include <QStandardPaths>
 #include <QFont>
 #include <QFontInfo>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QFile>
 
 #include "tfonts.h"
 #include "terror.h"
+#include "tmisc.h"
 
 namespace fs = std::filesystem;
 using std::string;
 
 QList<TFonts::PRIVFONTS_t> TFonts::mLocalFonts;
+bool TFonts::mInitialized{false};
 
-QString TFonts::getFontPath(const QString& family)
+FcConfig *gFontConfig{nullptr};
+
+void TFonts::init()
 {
-    DECL_TRACER("TFonts::getFontPath(const QString& family)");
+    DECL_TRACER("TFonts::init()");
 
-    QString path = QStandardPaths::displayName(QStandardPaths::FontsLocation);
-    MSG_DEBUG("Search through directory: " << path.toStdString());
+    if (mInitialized)
+        return;
 
-    if (path.isEmpty() || !fs::is_directory(path.toStdString()))
-    {
-        MSG_ERROR("No font file path was found!");
-        return QString();
-    }
-
-    for (const fs::directory_entry& entry : fs::recursive_directory_iterator(path.toStdString()))
-    {
-        const string filenameStr = entry.path().filename().string();
-
-        if (entry.is_directory())
-            continue;
-
-        if (entry.is_regular_file())
-            std::cout << "file: " << filenameStr << std::endl;
-    }
-
-    return path;
+    gFontConfig = FcInitLoadConfigAndFonts();
 }
 
-QString TFonts::getFontFile(const QFont& font)
+/**
+ * @brief TFonts::getFontFile
+ * The method uses the function from the library "fontconfig" to get the file
+ * name of a font from it's name. By name the family name is meant. If there
+ * was a valid font passed, it returns the full file name of the font.
+ *
+ * @param qfont     The class containing the wanted font
+ *
+ * @return On success the file name is returned which was used for the font.
+ * If the font is not valid, an empty string is returned.
+ */
+QString TFonts::getFontFile(const QFont& qfont)
 {
     DECL_TRACER("TFonts::getFontFile(const QFont& font)");
 
-    QFont myFont;
-    QFontInfo info(myFont);
-    QFont realFont(info.family());
-//    QString rawName = realFont.rawName();
-    return QString();
+    QFontInfo info(qfont);
+
+    init();
+    QString fontFile;
+    // configure the search pattern,
+    // assume "info.family()" is a string with the desired font name in it
+    FcPattern* pat = FcNameParse((const FcChar8*)(info.family().toStdString().c_str()));
+    FcConfigSubstitute(gFontConfig, pat, FcMatchPattern);
+    FcDefaultSubstitute(pat);
+    // find the font
+    FcResult res;
+    FcPattern* font = FcFontMatch(gFontConfig, pat, &res);
+
+    if (font)
+    {
+        FcChar8* file = NULL;
+
+        if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
+            fontFile = (char*)file;
+
+        FcPatternDestroy(font);
+    }
+
+    FcPatternDestroy(pat);
+    MSG_DEBUG("Font file of font " << info.family().toStdString() << " is: " << fontFile.toStdString());
+    return fontFile;
 }
 
+/**
+ * @brief TFonts::releaseFontConfig
+ * This method released the allocated memory of the library fontconfig. Once
+ * a font file was requested (look at getFontFile()) it allocates memory. When
+ * this is not used any more, the resources should be freed by calling this
+ * method.
+ */
+void TFonts::releaseFontConfig()
+{
+    DECL_TRACER("TFonts::releaseFontConfig()");
+
+    if (mInitialized)
+    {
+        FcFini();
+        gFontConfig = nullptr;
+        mInitialized = false;
+    }
+}
+
+/**
+ * @brief TFonts::addFont
+ * The method adds a font together with the file from where it was taken into
+ * an internal structure. The method checks whether the file name is already in
+ * the internal structure. If yes, nothing happens.
+ *
+ * @param font      The Qt font
+ * @param file      The file containing the font
+ */
+void TFonts::addFont(const QFont& font, const QString& file)
+{
+    DECL_TRACER("TFonts::addFont(const QFont& font, const QString& file)");
+
+    // Look in the table if the string is not already in the list.
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        if (iter->file == file)
+            return;
+    }
+
+    if (fs::exists(file.toStdString()))
+    {
+        PRIVFONTS_t pf;
+        pf.file = basename(file);
+        pf.intFile = file;
+        pf.ID = -1;
+        pf.family = font.families();
+        mLocalFonts.append(pf);
+    }
+}
+
+/**
+ * @brief TFonts::addFontFile
+ * This method adds a font file to the internal structure and the font database
+ * of Qt. The internal structure stores also the ID of the font in the database,
+ * so that it can be found later easily.
+ * The method checks whether the file name is already in the internal structure.
+ * If yes, nothing happens.
+ * This method should be called only for fonts not yet in the database. After
+ * calling this method, the new font is available and can be used.
+ *
+ * @param file  A valid file name of a font file. If this is an invalid or not
+ * supported file, it is ignored.
+ */
 void TFonts::addFontFile(const QString& file)
 {
     DECL_TRACER("TFonts::addFontFile(const QString& file)");
@@ -84,14 +173,25 @@ void TFonts::addFontFile(const QString& file)
     if (fs::exists(file.toStdString()))
     {
         int id = QFontDatabase::addApplicationFont(file);
+
+        if (id < 0)
+            return;
+
         PRIVFONTS_t pf;
-        pf.file = file;
+        pf.file = basename(file);
+        pf.intFile = file;
         pf.ID = id;
         pf.family = QFontDatabase::applicationFontFamilies(id);
         mLocalFonts.append(pf);
     }
 }
 
+/**
+ * @brief TFonts::freePrivateFonts
+ * This method removes all explitely added fonts from the font database. A font
+ * can explicittely be added by calling addFontFile().
+ * All standard fonts in the database remain there.
+ */
 void TFonts::freePrivateFonts()
 {
     DECL_TRACER("TFonts::freePrivateFonts()");
@@ -102,7 +202,138 @@ void TFonts::freePrivateFonts()
     QList<PRIVFONTS_t>::Iterator iter;
 
     for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
-        QFontDatabase::removeApplicationFont(iter->ID);
+    {
+        if (iter->ID >= 0)
+            QFontDatabase::removeApplicationFont(iter->ID);
+    }
 
     mLocalFonts.clear();
+}
+
+/**
+ * @brief TFonts::readFontFile
+ * The method opens the JSON file containing the information about the fonts
+ * used in the project. It reads the file and loads all fonts into the internal
+ * font database.
+ *
+ * @param path  The temporary path to the directory containing all configuration
+ * files.
+ *
+ * @return On success TRUE is returned.
+ */
+bool TFonts::readFontFile(const QString& path, const QString& qfile)
+{
+    DECL_TRACER("TFonts::readFontFile(const QString& path, const QString& qfile)");
+
+    QString fFile = path + "/fonts_.json";
+    QFile fonts(fFile);
+
+    if (!fonts.exists())
+    {
+        MSG_ERROR("The font file " << fFile.toStdString() << " was not found!");
+        return false;
+    }
+
+    if (!fonts.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("Error reading file " << fFile.toStdString());
+        return false;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(fonts.readAll());
+    fonts.close();
+
+    QJsonObject root = doc.object();
+    QJsonArray fontList = root.value("fontList").toArray();
+
+    for (int i = 0; i < fontList.count(); ++i)
+    {
+        QJsonObject entry = fontList[i].toObject();
+        PRIVFONTS_t prvFont;
+        prvFont.file = entry.value("file").toString();
+        prvFont.ID = -1;
+        QJsonArray families = entry.value("families").toArray();
+
+        for (int j = 0; j < families.count(); ++j)
+            prvFont.family.append(families[j].toString());
+
+        if (basename(getFontFile(QFont(prvFont.family))) != prvFont.file)
+        {
+            QString srcFile = path + "/fonts/" + qfile;
+            prvFont.ID = QFontDatabase::addApplicationFont(srcFile);
+        }
+
+        mLocalFonts.append(prvFont);
+    }
+
+    return true;
+}
+
+/**
+ * @brief TFonts::writeFontFile
+ * This method iterates through the internal font structure and creates the file
+ * \b path. It stores all the vailable fonts into this database and copies all
+ * fonts into the directory where they belong.
+ *
+ * @param path  The path to the temporary directory.
+ *
+ * @return On success TRUE is returned.
+ */
+bool TFonts::writeFontFile(const QString& path, const QString& qfile)
+{
+    DECL_TRACER("TFonts::writeFontFile(const QString& path, const QString& qfile)");
+
+    if (mLocalFonts.empty())
+        return true;
+
+    if (!fs::is_directory(path.toStdString()))
+    {
+        MSG_ERROR("The path \"" << path.toStdString() << "\" is not a directory!");
+        return false;
+    }
+
+    QString fontFile = path + "/" + qfile;
+    QString fontTargets = path + "/fonts";
+
+    QJsonObject root;
+    QJsonArray fontList;
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        QJsonObject entry;
+        QJsonArray families;
+        entry.insert("file", iter->file);
+        QStringList::Iterator famIter;
+
+        for (famIter = iter->family.begin(); famIter != iter->family.end(); ++famIter)
+            families.append(*famIter);
+
+        entry.insert("families", families);
+        fontList.append(entry);
+        // Copy font file
+        QFile ffile(iter->intFile);
+        QString target = fontTargets + "/" + basename(iter->file);
+
+        if (!ffile.copy(target))
+        {
+            MSG_ERROR("Couldn't copy font file from \"" << iter->intFile.toStdString() << "\" to \"" << target.toStdString() << "\"");
+        }
+    }
+
+    root.insert("fontList", fontList);
+
+    QJsonDocument doc;
+    doc.setObject(root);
+    QFile file(fontFile);
+
+    if(!file.open(QIODevice::WriteOnly))
+    {
+        MSG_ERROR("Error opening file \"" << fontFile.toStdString() << "\" for writing!");
+        return false;
+    }
+
+    file.write(doc.toJson(QJsonDocument::Indented));
+    file.close();
+    return true;
 }

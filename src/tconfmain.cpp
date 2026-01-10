@@ -28,6 +28,7 @@
 
 #include "tconfmain.h"
 #include "tpaneltypes.h"
+#include "tfonts.h"
 #include "tmisc.h"
 #include "terror.h"
 
@@ -86,10 +87,13 @@ void TConfMain::createNew(const QString& file, const QString& pname, const QStri
     mJobName = project;
 
     if (mConfMain)
+    {
         delete mConfMain;
+        mConfMain = nullptr;
+    }
 
-    mConfMain = new CONFMAIN_t;
-    mConfMain->fileName = file;
+    initConfig();
+    mConfMain->fileName = basename(file);
     mConfMain->projectInfo.jobName = project;
     PAGEENTRY_t page;
     page.name = pname;
@@ -181,7 +185,7 @@ void TConfMain::renamePage(int num, const QString& name)
     {
         if (iter->pageID == num)
         {
-            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+            string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
 
             if (fs::exists(fname))
                 fs::remove(fname);
@@ -203,7 +207,7 @@ void TConfMain::renamePopup(int num, const QString& name)
     {
         if (iter->pageID == num)
         {
-            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+            string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
 
             if (fs::exists(fname))
                 fs::remove(fname);
@@ -225,7 +229,7 @@ void TConfMain::deletePage(const QString& name)
     {
         if (iter->popupType == PN_PAGE && iter->name == name)
         {
-            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+            string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
 
             if (fs::exists(fname))
                 fs::remove(fname);
@@ -246,7 +250,7 @@ void TConfMain::deletePopup(const QString& name)
     {
         if (iter->popupType == PN_POPUP && iter->name == name)
         {
-            string fname = QString("%1/%2").arg(mBaseDirectory).arg(iter->file).toStdString();
+            string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
 
             if (fs::exists(fname))
                 fs::remove(fname);
@@ -261,9 +265,7 @@ void TConfMain::setProjectInfo(const PROJECTINFO_t& pi)
 {
     DECL_TRACER("TConfMain::setProjectInfo(const PROJECTINFO_t& pi)");
 
-    if (!mConfMain)
-        mConfMain = new CONFMAIN_t;
-
+    initConfig();
     mConfMain->projectInfo = pi;
 }
 
@@ -271,9 +273,7 @@ void TConfMain::setSetup(const SETUP_t& setup)
 {
     DECL_TRACER("TConfMain::setSetup(const SETUP_t& setup)");
 
-    if (!mConfMain)
-        mConfMain = new CONFMAIN_t;
-
+    initConfig();
     mConfMain->setup = setup;
 }
 
@@ -299,9 +299,13 @@ bool TConfMain::readProject(const QString& path)
     project.close();
 
     if (mConfMain)
+    {
         delete mConfMain;
+        mConfMain = nullptr;
+    }
 
-    mConfMain = new CONFMAIN_t;
+    initConfig();
+
     QJsonObject root = doc.object();
     QJsonObject versionInfo = root.value("versionInfo").toObject();
 
@@ -403,6 +407,9 @@ bool TConfMain::readProject(const QString& path)
         res.file = entry.value("file").toString();
         mConfMain->resourceList.append(res);
     }
+
+    if (!TFonts::readFontFile(mPathTemporary, mConfMain->fileList.fontFile))
+        return false;
 
     return true;
 }
@@ -552,6 +559,8 @@ void TConfMain::saveProject()
 
     file.write(doc.toJson(QJsonDocument::Indented));
     file.close();
+    // Save all used fonts
+    TFonts::writeFontFile(mPathTemporary, mConfMain->fileList.fontFile);
 }
 
 void TConfMain::reset()
@@ -605,4 +614,18 @@ QList<QString> TConfMain::getAllPopups()
         list.append(iter->name);
 
     return list;
+}
+
+void TConfMain::initConfig()
+{
+    DECL_TRACER("TConfMain::initConfig()");
+
+    if (!mConfMain)
+        mConfMain = new CONFMAIN_t;
+
+    mConfMain->fileList.fontFile = "fonts_.json";
+    mConfMain->fileList.appFile = "apps_.json";
+    mConfMain->fileList.colorFile = "palette_.json";
+    mConfMain->fileList.mapFile = "maps_.json";
+    mConfMain->fileList.themeFile = "theme_.json";
 }
