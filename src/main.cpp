@@ -18,6 +18,10 @@
 #include <QApplication>
 #include <QTranslator>
 
+#ifdef __APPLE__
+#include <libgen.h>
+#endif
+
 #include "tsurface.h"
 #include "tconfig.h"
 #include "terror.h"

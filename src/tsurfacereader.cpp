@@ -17,7 +17,6 @@
  */
 
 #include <filesystem>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <cstdio>
 #include <stdexcept>

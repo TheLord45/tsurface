@@ -13,6 +13,12 @@ find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de gr)
 qt6_add_translations(tsurface QM_FILES_OUTPUT_VARIABLE qm_files)
 
+if(APPLE)
+    find_package(LibArchive)
+    link_directories("/opt/homebrew/Cellar/libarchive/3.8.5/lib")
+    include_directories("/opt/homebrew/Cellar/libarchive/3.8.5/include")
+endif(APPLE)
+
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
