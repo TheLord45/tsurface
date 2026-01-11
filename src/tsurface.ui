@@ -327,6 +327,7 @@
     </property>
     <addaction name="actionSelection_tool"/>
     <addaction name="actionButton_draw_tool"/>
+    <addaction name="actionPopup_draw_tool"/>
     <addaction name="separator"/>
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
@@ -671,6 +672,9 @@
    </property>
   </action>
   <action name="actionAdd_page">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::ContactNew"/>
+   </property>
    <property name="text">
     <string>Add page ...</string>
    </property>
@@ -679,6 +683,9 @@
    </property>
   </action>
   <action name="actionAdd_popup_page">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentNew"/>
+   </property>
    <property name="text">
     <string>Add popup page  ...</string>
    </property>
@@ -687,31 +694,63 @@
    </property>
   </action>
   <action name="actionSelection_tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/edit-node.png</normaloff>:/images/edit-node.png</iconset>
+   </property>
    <property name="text">
     <string>Selection tool</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="actionButton_draw_tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/document-edit.svg</normaloff>:/images/document-edit.svg</iconset>
+   </property>
    <property name="text">
     <string>Button draw tool</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
   </action>
   <action name="actionCut">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditCut"/>
+   </property>
    <property name="text">
     <string>Cut</string>
    </property>
   </action>
   <action name="actionCopy">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditCopy"/>
+   </property>
    <property name="text">
     <string>Copy</string>
    </property>
   </action>
   <action name="actionInsert">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditPaste"/>
+   </property>
    <property name="text">
     <string>Insert</string>
    </property>
   </action>
   <action name="actionAdd_Application_Window">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::WindowNew"/>
+   </property>
    <property name="text">
     <string>Add Application Window ...</string>
    </property>
@@ -727,16 +766,28 @@
    </property>
   </action>
   <action name="actionResource_Manager">
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/preferences-desktop-theme-global.svg</normaloff>:/images/preferences-desktop-theme-global.svg</iconset>
+   </property>
    <property name="text">
     <string>Resource Manager ...</string>
    </property>
   </action>
   <action name="actionRefresh_Dynamic_Images">
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/view-refresh-symbolic.svg</normaloff>:/images/view-refresh-symbolic.svg</iconset>
+   </property>
    <property name="text">
     <string>Refresh Dynamic Images</string>
    </property>
   </action>
   <action name="actionEdit_Palettes">
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/color-management.svg</normaloff>:/images/color-management.svg</iconset>
+   </property>
    <property name="text">
     <string>Edit Palettes ...</string>
    </property>
@@ -1336,7 +1387,21 @@
     <string>About TSurface</string>
    </property>
   </action>
+  <action name="actionPopup_draw_tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/document-edit.png</normaloff>:/images/document-edit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Popup draw tool</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="tsurface.qrc"/>
+ </resources>
  <connections/>
 </ui>

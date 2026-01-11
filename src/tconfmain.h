@@ -157,7 +157,7 @@ class TConfMain
         QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
 
     protected:
-        void initConfig();
+        void initConfig(bool force=false);
 
     private:
         static TConfMain *mCurrent;

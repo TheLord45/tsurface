@@ -86,13 +86,7 @@ void TConfMain::createNew(const QString& file, const QString& pname, const QStri
     mFileName = file;
     mJobName = project;
 
-    if (mConfMain)
-    {
-        delete mConfMain;
-        mConfMain = nullptr;
-    }
-
-    initConfig();
+    initConfig(true);
     mConfMain->fileName = basename(file);
     mConfMain->projectInfo.jobName = project;
     PAGEENTRY_t page;
@@ -291,20 +285,17 @@ bool TConfMain::readProject(const QString& path)
 
     if (!project.open(QIODevice::ReadOnly))
     {
-        MSG_ERROR("Error reading file " << path.toStdString());
+        MSG_ERROR("Error reading file \"" << path.toStdString() << "\": " << project.errorString().toStdString());
         return false;
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(project.readAll());
     project.close();
 
-    if (mConfMain)
-    {
-        delete mConfMain;
-        mConfMain = nullptr;
-    }
+    initConfig(true);
 
-    initConfig();
+    if (mPathTemporary.isEmpty())
+        mPathTemporary = basename(path);
 
     QJsonObject root = doc.object();
     QJsonObject versionInfo = root.value("versionInfo").toObject();
@@ -336,12 +327,12 @@ bool TConfMain::readProject(const QString& path)
     mConfMain->projectInfo.logFile = projectInfo.value("logFile").toString();
 
     QJsonObject fileList = root.value("logFile").toObject();
-    mConfMain->fileList.mapFile = fileList.value("mapFile").toString();
-    mConfMain->fileList.colorFile = fileList.value("colorFile").toString();
-    mConfMain->fileList.fontFile = fileList.value("fontFile").toString();
-    mConfMain->fileList.themeFile = fileList.value("themeFile").toString();
-    mConfMain->fileList.buttonFile = fileList.value("buttonFile").toString();
-    mConfMain->fileList.appFile = fileList.value("appFile").toString();
+    mConfMain->fileList.mapFile = fileList.value("mapFile").toString("maps_.json");
+    mConfMain->fileList.colorFile = fileList.value("colorFile").toString("palette_.json");
+    mConfMain->fileList.fontFile = fileList.value("fontFile").toString("fonts_.json");
+    mConfMain->fileList.themeFile = fileList.value("themeFile").toString("theme_.json");
+    mConfMain->fileList.buttonFile = fileList.value("buttonFile").toString("buttons_.json");
+    mConfMain->fileList.appFile = fileList.value("appFile").toString("apps_.json");
 
     QJsonObject setup = root.value("setup").toObject();
     mConfMain->setup.portCount = setup.value("portCount").toInt();
@@ -616,16 +607,25 @@ QList<QString> TConfMain::getAllPopups()
     return list;
 }
 
-void TConfMain::initConfig()
+void TConfMain::initConfig(bool force)
 {
-    DECL_TRACER("TConfMain::initConfig()");
+    DECL_TRACER("TConfMain::initConfig(bool force)");
 
     if (!mConfMain)
         mConfMain = new CONFMAIN_t;
+    else if (force)
+    {
+        delete mConfMain;
+        mConfMain = new CONFMAIN_t;
+    }
 
     mConfMain->fileList.fontFile = "fonts_.json";
     mConfMain->fileList.appFile = "apps_.json";
     mConfMain->fileList.colorFile = "palette_.json";
     mConfMain->fileList.mapFile = "maps_.json";
     mConfMain->fileList.themeFile = "theme_.json";
+    mConfMain->fileList.buttonFile = "buttons_.json";
+
+    if (!mFileName.isEmpty())
+        mConfMain->fileName = basename(mFileName);
 }

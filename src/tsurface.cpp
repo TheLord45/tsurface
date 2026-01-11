@@ -34,6 +34,7 @@
 #include "tpagehandler.h"
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
+#include "tresourcedialog.h"
 #include "tgraphics.h"
 #include "tfonts.h"
 #include "tconfig.h"
@@ -185,8 +186,8 @@ void TSurface::on_actionOpen_triggered()
         mLastOpenPath = pathname(file);
         mPathTemporary = createTemporaryPath(basename(file));
         TSurfaceReader sreader(file, mPathTemporary);
-        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
         TConfMain::Current().setPathTemporary(mPathTemporary);
+        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
         TConfMain::Current().setFileName(file);
         TPageHandler::Current().setPathTemporary(mPathTemporary);
         QStringList pages = TConfMain::Current().getAllPages();
@@ -465,14 +466,39 @@ void TSurface::on_actionAdd_popup_page_triggered()
     onAddNewPopup();
 }
 
-void TSurface::on_actionSelection_tool_triggered()
+void TSurface::on_actionSelection_tool_triggered(bool checked)
 {
+    DECL_TRACER("TSurface::on_actionSelection_tool_triggered(bool checked)");
 
+    if (checked)
+    {
+        m_ui->actionButton_draw_tool->setChecked(false);
+        m_ui->actionPopup_draw_tool->setChecked(false);
+    }
 }
-void TSurface::on_actionButton_draw_tool_triggered()
+
+void TSurface::on_actionButton_draw_tool_triggered(bool checked)
 {
+    DECL_TRACER("TSurface::on_actionButton_draw_tool_triggered(bool checked)");
 
+    if (checked)
+    {
+        m_ui->actionSelection_tool->setChecked(false);
+        m_ui->actionPopup_draw_tool->setChecked(false);
+    }
 }
+
+void TSurface::on_actionPopup_draw_tool_triggered(bool checked)
+{
+    DECL_TRACER("TSurface::on_actionPopup_draw_tool_triggered(bool checked)");
+
+    if (checked)
+    {
+        m_ui->actionButton_draw_tool->setChecked(false);
+        m_ui->actionSelection_tool->setChecked(false);
+    }
+}
+
 void TSurface::on_actionCut_triggered()
 {
 
@@ -497,10 +523,16 @@ void TSurface::on_actionEdit_Drop_Target_Groups_triggered()
 {
 
 }
+
 void TSurface::on_actionResource_Manager_triggered()
 {
+    DECL_TRACER("TSurface::on_actionResource_Manager_triggered()");
 
+    TResourceDialog rsDialog(this);
+    rsDialog.setPathTemporary(mPathTemporary);
+    rsDialog.exec();
 }
+
 void TSurface::on_actionRefresh_Dynamic_Images_triggered()
 {
 

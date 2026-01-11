@@ -38,5 +38,16 @@
         <file>images/move_down.png</file>
         <file>images/move_up.png</file>
         <file>images/delete_popup.png</file>
+        <file>images/edit-node.png</file>
+        <file>images/document-edit.png</file>
+        <file>images/document-edit.svg</file>
+        <file>images/color-management.svg</file>
+        <file>images/preferences-desktop-theme-global.svg</file>
+        <file>images/view-refresh-symbolic.svg</file>
+        <file>images/show-menu.png</file>
+        <file>images/view-list-details.svg</file>
+        <file>images/view-list-icons.svg</file>
+        <file>images/view-list-tree.svg</file>
+        <file>images/view-group.svg</file>
     </qresource>
 </RCC>

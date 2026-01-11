@@ -26,6 +26,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QFile>
+#include <QDir>
 
 #include "tfonts.h"
 #include "terror.h"
@@ -75,11 +76,11 @@ QString TFonts::getFontFile(const QFont& qfont)
     FcDefaultSubstitute(pat);
     // find the font
     FcResult res;
-    FcPattern* font = FcFontMatch(gFontConfig, pat, &res);
+    FcPattern *font = FcFontMatch(gFontConfig, pat, &res);
 
     if (font)
     {
-        FcChar8* file = NULL;
+        FcChar8 *file = NULL;
 
         if (FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
             fontFile = (char*)file;
@@ -88,7 +89,7 @@ QString TFonts::getFontFile(const QFont& qfont)
     }
 
     FcPatternDestroy(pat);
-    MSG_DEBUG("Font file of font " << info.family().toStdString() << " is: " << fontFile.toStdString());
+    MSG_DEBUG("Font file of font \"" << info.family().toStdString() << "\" is: " << fontFile.toStdString());
     return fontFile;
 }
 
@@ -225,10 +226,10 @@ bool TFonts::readFontFile(const QString& path, const QString& qfile)
 {
     DECL_TRACER("TFonts::readFontFile(const QString& path, const QString& qfile)");
 
-    QString fFile = path + "/fonts_.json";
+    QString fFile = path + "/" + qfile;
     QFile fonts(fFile);
 
-    if (!fonts.exists())
+    if (!fonts.exists() || !fs::is_regular_file(fFile.toStdString()))
     {
         MSG_ERROR("The font file " << fFile.toStdString() << " was not found!");
         return false;
@@ -236,7 +237,7 @@ bool TFonts::readFontFile(const QString& path, const QString& qfile)
 
     if (!fonts.open(QIODevice::ReadOnly))
     {
-        MSG_ERROR("Error reading file " << fFile.toStdString());
+        MSG_ERROR("Error reading file \"" << fFile.toStdString() << "\": " << fonts.errorString().toStdString());
         return false;
     }
 
@@ -257,15 +258,24 @@ bool TFonts::readFontFile(const QString& path, const QString& qfile)
         for (int j = 0; j < families.count(); ++j)
             prvFont.family.append(families[j].toString());
 
-        if (basename(getFontFile(QFont(prvFont.family))) != prvFont.file)
+        // In any case we're getting the font file name. If this method does
+        // not return a file name or returns another file name, then the font
+        // in the local directory is not installed on the machine.
+        prvFont.intFile = getFontFile(QFont(prvFont.family));
+
+        // If we got no or a different font file, we must load the local font
+        // into the font database.
+        if (basename(prvFont.intFile) != prvFont.file)
         {
-            QString srcFile = path + "/fonts/" + qfile;
+            QString srcFile = path + "/fonts/" + prvFont.file;
             prvFont.ID = QFontDatabase::addApplicationFont(srcFile);
+            MSG_DEBUG("Added font file \"" << srcFile.toStdString() << "\" to font database.");
         }
 
         mLocalFonts.append(prvFont);
     }
 
+    readSystemFonts(path);
     return true;
 }
 
@@ -335,5 +345,30 @@ bool TFonts::writeFontFile(const QString& path, const QString& qfile)
 
     file.write(doc.toJson(QJsonDocument::Indented));
     file.close();
+    return true;
+}
+
+bool TFonts::readSystemFonts(const QString& path)
+{
+    DECL_TRACER("TFonts::readSystemFonts(const QString& path)");
+
+    if (path.isEmpty() || !fs::is_directory(path.toStdString()))
+        return false;
+
+    // "path" is the base path of the temporary directory!
+    QString dirSysFonts = path + "/__system/graphics/fonts";
+    QDir dir(dirSysFonts);
+    QFileInfoList list = dir.entryInfoList();
+    QFileInfoList::Iterator iter;
+
+    for (iter = list.begin(); iter != list.end(); ++iter)
+    {
+        if (iter->fileName().startsWith("."))
+            continue;
+
+        int id = QFontDatabase::addApplicationFont(iter->absoluteFilePath());
+        MSG_DEBUG("Added system font file \"" << iter->fileName().toStdString() << "\" to font database with ID " << id);
+    }
+
     return true;
 }

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TResourceDialog</class>
+ <widget class="QDialog" name="TResourceDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>880</width>
+    <height>564</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Resource Manager</string>
+  </property>
+  <property name="locale">
+   <locale language="English" country="AmericanSamoa"/>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QFrame" name="frameButtons">
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="pushButtonCut">
+        <property name="text">
+         <string>Cut</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditCut"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonCopy">
+        <property name="locale">
+         <locale language="English" country="AmericanSamoa"/>
+        </property>
+        <property name="text">
+         <string>Copy</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditCopy"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonPaste">
+        <property name="text">
+         <string>Paste</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditPaste"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonDelete">
+        <property name="text">
+         <string>Delete</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditDelete"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonRename">
+        <property name="text">
+         <string>Rename</string>
+        </property>
+        <property name="icon">
+         <iconset resource="tsurface.qrc">
+          <normaloff>:/images/show-menu.png</normaloff>:/images/show-menu.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonUndo">
+        <property name="text">
+         <string>Undo</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditUndo"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonRedo">
+        <property name="text">
+         <string>Redo</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditRedo"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonImport">
+        <property name="text">
+         <string>Import</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonExport">
+        <property name="text">
+         <string>Export</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::DocumentSaveAs"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonDataMap">
+        <property name="text">
+         <string>Data Maps</string>
+        </property>
+        <property name="icon">
+         <iconset theme="preferences-other"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxStyle">
+        <item>
+         <property name="text">
+          <string>List</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Details</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thumbnails</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabWidgetAction">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabImages">
+      <attribute name="title">
+       <string>Images</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QListView" name="listViewImages"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabDynamicImages">
+      <attribute name="title">
+       <string>Dynamic Images</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QTableView" name="tableViewDynamicImages"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabSounds">
+      <attribute name="title">
+       <string>Sounds</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QTableView" name="tableViewSounds"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabDynamicDataSources">
+      <attribute name="title">
+       <string>Dynamic Data Sources</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QTableView" name="tableViewDynamicDataSources"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameBottom">
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="labelStatus">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonClose">
+        <property name="text">
+         <string>Close</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>pushButtonCut</tabstop>
+  <tabstop>pushButtonCopy</tabstop>
+  <tabstop>pushButtonPaste</tabstop>
+  <tabstop>pushButtonDelete</tabstop>
+  <tabstop>pushButtonRename</tabstop>
+  <tabstop>pushButtonUndo</tabstop>
+  <tabstop>pushButtonRedo</tabstop>
+  <tabstop>pushButtonImport</tabstop>
+  <tabstop>pushButtonExport</tabstop>
+  <tabstop>pushButtonDataMap</tabstop>
+  <tabstop>comboBoxStyle</tabstop>
+  <tabstop>tabWidgetAction</tabstop>
+  <tabstop>listViewImages</tabstop>
+  <tabstop>pushButtonClose</tabstop>
+  <tabstop>tableViewDynamicImages</tabstop>
+  <tabstop>tableViewSounds</tabstop>
+  <tabstop>tableViewDynamicDataSources</tabstop>
+ </tabstops>
+ <resources>
+  <include location="tsurface.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>pushButtonClose</sender>
+   <signal>clicked()</signal>
+   <receiver>TResourceDialog</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>651</x>
+     <y>530</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>439</x>
+     <y>281</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -67,11 +67,12 @@ class TSurface : public QMainWindow
         void on_actionSave_as_triggered();
         void on_actionExit_triggered();
         // Menu: Edit
-        void on_actionButton_draw_tool_triggered();
-        void on_actionCopy_triggered();
+        void on_actionButton_draw_tool_triggered(bool checked);
+        void on_actionSelection_tool_triggered(bool checked);
+        void on_actionPopup_draw_tool_triggered(bool checked);
         void on_actionCut_triggered();
+        void on_actionCopy_triggered();
         void on_actionInsert_triggered();
-        void on_actionSelection_tool_triggered();
         // Menu: Panel
         void on_actionAdd_page_triggered();
         void on_actionAdd_popup_page_triggered();

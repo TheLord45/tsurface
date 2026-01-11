@@ -44,6 +44,7 @@ class TFonts
 
     protected:
         static void init();
+        static bool readSystemFonts(const QString& path);
 
     private:
         TFonts() {};    // Must never be called
