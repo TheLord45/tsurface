@@ -175,7 +175,7 @@ void TSurface::on_actionOpen_triggered()
     DECL_TRACER("TSurface::on_actionOpen_triggered()");
 
     mLastOpenPath = QString::fromStdString(TConfig::Current().getLastDirectory());
-    QString file = QFileDialog::getOpenFileName(this, tr("Open Logfile"), mLastOpenPath, tr("Surface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
+    QString file = QFileDialog::getOpenFileName(this, tr("Open TSurface file"), mLastOpenPath, tr("TSurface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
     TConfig::Current().setLastDirectory(pathname(file));
 
     if (file.isEmpty())
@@ -183,28 +183,28 @@ void TSurface::on_actionOpen_triggered()
 
     if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
     {
-        mLastOpenPath = pathname(file);
-        mPathTemporary = createTemporaryPath(basename(file));
-        TSurfaceReader sreader(file, mPathTemporary);
-        TConfMain::Current().setPathTemporary(mPathTemporary);
-        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");
-        TConfMain::Current().setFileName(file);
-        TPageHandler::Current().setPathTemporary(mPathTemporary);
-        QStringList pages = TConfMain::Current().getAllPages();
-        QStringList popups = TConfMain::Current().getAllPopups();
-        pages.append(popups);
-        TPageHandler::Current().readPages(pages);
-        TPageTree::Current().setParent(this);
-        TPageTree::Current().createTree(m_ui->treeViewPages, TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());
-        connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
-        QList<int> pageNumbers = TPageHandler::Current().getPageNumbers();
+        mLastOpenPath = pathname(file);                                     // The path from where the file was opened
+        mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
+        TSurfaceReader sreader(file, mPathTemporary);                       // Unzip file and write the contents into temporary direcory
+        TConfMain::Current().setPathTemporary(mPathTemporary);              // Initialize class with path to temporary directory
+        TConfMain::Current().readProject(mPathTemporary + "/prj_.json");    // Read the main project file
+        TConfMain::Current().setFileName(file);                             // Initialize the class with the filename of the opened file
+        TPageHandler::Current().setPathTemporary(mPathTemporary);           // Initialize class with path to temporary directory
+        QStringList pages = TConfMain::Current().getAllPages();             // Get names of all pages
+        QStringList popups = TConfMain::Current().getAllPopups();           // Get names of all popups
+        pages.append(popups);                                               // Merge the lists
+        TPageHandler::Current().readPages(pages);                           // Read all pages fron their files
+        TPageTree::Current().setParent(this);                               // Initialize the class with the pointer to this class
+        TPageTree::Current().createTree(m_ui->treeViewPages, TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());   // Create the basic tree
+        connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);    // Connect to get informed about clicks
+        QList<int> pageNumbers = TPageHandler::Current().getPageNumbers();  // Get a list of all page numbers
         QList<int>::Iterator iter;
 
-        for (iter = pageNumbers.begin(); iter != pageNumbers.end(); ++iter)
+        for (iter = pageNumbers.begin(); iter != pageNumbers.end(); ++iter) // Iterate through the page numbers
         {
-            Page::PAGE_t pg = TPageHandler::Current().getPage(*iter);
+            Page::PAGE_t pg = TPageHandler::Current().getPage(*iter);       // Get the page
 
-            if (pg.pageID <= 0)
+            if (pg.pageID <= 0)                                             // Should never be true, but who knows ...
             {
                 MSG_ERROR("Can't find page number " << *iter);
                 continue;
@@ -212,14 +212,14 @@ void TSurface::on_actionOpen_triggered()
 
             MSG_DEBUG("Popuptype: " << pg.popupType);
 
-            if (pg.popupType == Page::PT_PAGE)
-                TPageTree::Current().addPage(pg.name, pg.pageID);
-            else if (pg.popupType == Page::PT_POPUP)
-                TPageTree::Current().addPopup(pg.name, pg.pageID);
+            if (pg.popupType == Page::PT_PAGE)                              // Is it a page?
+                TPageTree::Current().addPage(pg.name, pg.pageID);           // Yes, then add it to page part of tree
+            else if (pg.popupType == Page::PT_POPUP)                        // Is it a popup?
+                TPageTree::Current().addPopup(pg.name, pg.pageID);          // Yes, then add it to popup part of tree
         }
 
-        mHaveProject = true;
-        mIsSaved = true;
+        mHaveProject = true;                                                // Set mark to indicate that we've a project
+        mIsSaved = true;                                                    // Set mark that there exists already a file.
     }
 }
 
@@ -1188,6 +1188,7 @@ void TSurface::onAddNewPopup()
         return;
     }
 
+    pg.popupType = Page::PT_POPUP;
     pg.srPage.cf = popupDialog.getColorPageBackground();
     pg.srPage.ct = popupDialog.getColorText();
     pg.srPage.cb = popupDialog.getColorBorder();

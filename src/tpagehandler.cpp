@@ -378,14 +378,14 @@ bool TPageHandler::savePage(const PAGE_t& page)
     DECL_TRACER("TPageHandler::savePage(const PAGE_t& page)");
 
     QJsonObject root;
-    root.insert("type", PT_PAGE);
+    root.insert("type", page.popupType);
     root.insert("pageID", page.pageID);
     root.insert("name", page.name);
     root.insert("width", page.width);
     root.insert("height", page.height);
     root.insert("collapseDirection", page.collapseDirection);
     root.insert("collapseOffset", page.collapseOffset);
-    QJsonObject sr = getSr(PT_PAGE, page.srPage);
+    QJsonObject sr = getSr(page.popupType, page.srPage);
     root.insert("sr", sr);
 
     // TODO: Add objects on page here
@@ -411,7 +411,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     DECL_TRACER("TPageHandler::savePopup(const PAGE_t& popup)");
 
     QJsonObject root;
-    root.insert("type", PT_POPUP);
+    root.insert("type", popup.popupType);
     root.insert("pageID", popup.pageID);
     root.insert("name", popup.name);
     root.insert("width", popup.width);
@@ -474,7 +474,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
 
     // TODO: Add objects on popup here
 
-    QJsonObject sr = getSr(PT_PAGE, popup.srPage);
+    QJsonObject sr = getSr(popup.popupType, popup.srPage);
     root.insert("sr", sr);
 
     QJsonDocument doc;
