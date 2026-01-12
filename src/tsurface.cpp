@@ -110,6 +110,11 @@ TSurface::TSurface(QWidget *parent)
     DECL_TRACER("TSurface::TSurface(QWidget *parent)");
 
     m_ui->setupUi(this);
+    // Diable Menu points
+    m_ui->actionResource_Manager->setDisabled(true);
+    m_ui->actionAdd_page->setDisabled(true);
+    m_ui->actionAdd_popup_page->setDisabled(true);
+    m_ui->actionAdd_Application_Window->setDisabled(true);
     // Get the last position and size of the main window and set it.
     TConfig::WINSIZE_t ws = TConfig::Current().getLastPosition();
     setGeometry(QRect(ws.left, ws.top, ws.width, ws.height));
@@ -220,6 +225,7 @@ void TSurface::on_actionOpen_triggered()
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
         mIsSaved = true;                                                    // Set mark that there exists already a file.
+        enableBaseMenus();                                                  // Enable the menus
     }
 }
 
@@ -342,6 +348,8 @@ void TSurface::on_actionNew_triggered()
     QFont font = npd.getFontName();
     QString ffile = TFonts::getFontFile(font);
     TFonts::addFontFile(ffile);
+    // Enable Menus
+    enableBaseMenus();
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -530,7 +538,13 @@ void TSurface::on_actionResource_Manager_triggered()
 
     TResourceDialog rsDialog(this);
     rsDialog.setPathTemporary(mPathTemporary);
+    rsDialog.setLastOpenPath(mLastOpenPath);
     rsDialog.exec();
+
+    mLastOpenPath = rsDialog.getLastOpenPath();
+
+    if (rsDialog.haveChanged())
+        mProjectChanged = true;
 }
 
 void TSurface::on_actionRefresh_Dynamic_Images_triggered()
@@ -1450,4 +1464,14 @@ bool TSurface::saveNormal()
     mProjectChanged = false;
     mIsSaved = true;
     return true;
+}
+
+void TSurface::enableBaseMenus()
+{
+    DECL_TRACER("TSurface::enableBaseMenus()");
+
+    m_ui->actionResource_Manager->setDisabled(false);
+    m_ui->actionAdd_page->setDisabled(false);
+    m_ui->actionAdd_popup_page->setDisabled(false);
+    m_ui->actionAdd_Application_Window->setDisabled(false);
 }

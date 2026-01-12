@@ -155,6 +155,8 @@ class TConfMain
         QFont& getFontBase() { return mFontBase; }
         int getFontBaseSize() { return mFontBaseSize; }
         QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
+        QString getPathTemporary() { return mPathTemporary; }
+        QString getMapsFile() { if (mConfMain) return mConfMain->fileList.mapFile; else return QString(); }
 
     protected:
         void initConfig(bool force=false);

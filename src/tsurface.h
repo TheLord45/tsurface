@@ -214,6 +214,7 @@ class TSurface : public QMainWindow
         bool saveAs();
         bool saveNormal();
         bool closeRequest();
+        void enableBaseMenus();
 
         const std::unique_ptr<Ui::tsurface> m_ui;
         QString mLastOpenPath;

@@ -29,6 +29,7 @@
 #include "tconfmain.h"
 #include "tpaneltypes.h"
 #include "tfonts.h"
+#include "tmaps.h"
 #include "tmisc.h"
 #include "terror.h"
 
@@ -402,6 +403,11 @@ bool TConfMain::readProject(const QString& path)
     if (!TFonts::readFontFile(mPathTemporary, mConfMain->fileList.fontFile))
         return false;
 
+    TMaps::Current().setPathemporary(mPathTemporary);
+
+    if (!TMaps::Current().readMaps(mPathTemporary, mConfMain->fileList.mapFile))
+        return false;
+
     return true;
 }
 
@@ -552,6 +558,8 @@ void TConfMain::saveProject()
     file.close();
     // Save all used fonts
     TFonts::writeFontFile(mPathTemporary, mConfMain->fileList.fontFile);
+    // Save the maps
+    TMaps::Current().writeMaps(mPathTemporary, mConfMain->fileList.mapFile);
 }
 
 void TConfMain::reset()

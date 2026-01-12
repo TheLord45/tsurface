@@ -67,7 +67,11 @@ qt_add_executable(tsurface
     tsurfacewriter.h
     tmisc.h
     tmisc.cpp
-    tresourcedialog.h tresourcedialog.cpp tresourcedialog.ui
+    tresourcedialog.cpp
+    tresourcedialog.h
+    tresourcedialog.ui
+    tmaps.cpp
+    tmaps.h
 )
 
 # Use the Widgets module from Qt 6.
