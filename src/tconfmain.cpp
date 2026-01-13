@@ -403,7 +403,7 @@ bool TConfMain::readProject(const QString& path)
     if (!TFonts::readFontFile(mPathTemporary, mConfMain->fileList.fontFile))
         return false;
 
-    TMaps::Current().setPathemporary(mPathTemporary);
+    TMaps::Current().setPathTemporary(mPathTemporary);
 
     if (!TMaps::Current().readMaps(mPathTemporary, mConfMain->fileList.mapFile))
         return false;

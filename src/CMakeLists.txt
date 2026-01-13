@@ -72,6 +72,9 @@ qt_add_executable(tsurface
     tresourcedialog.ui
     tmaps.cpp
     tmaps.h
+    trenamefiledialog.cpp
+    trenamefiledialog.h
+    trenamefiledialog.ui
 )
 
 # Use the Widgets module from Qt 6.

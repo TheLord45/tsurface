@@ -98,11 +98,12 @@ class TMaps
         void addButton(Maps::MAP_TYPE type, int port, int channel, int bt, const QString& btName, int pgnum);
         void addBitmap(const QString& file, int id, int page, int bt, int st);
         void removeBitmap(const QString& file);
+        void renameBitmap(const QString& ori, const QString& tgt);
         bool isBitmapUsed(const QString& file);
         void addSound(const QString& file);
         Maps::MAP_T getButtonByNumber(int num, int page);
         QStringList getAllImageFiles();
-        void setPathemporary(const QString& path) { mPathTemporary = path; }
+        void setPathTemporary(const QString& path) { mPathTemporary = path; }
 
         bool readMaps(const QString& path, const QString& file);
         bool writeMaps(const QString& path, const QString& file);

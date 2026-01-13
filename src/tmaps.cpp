@@ -194,6 +194,7 @@ void TMaps::removeBitmap(const QString& file)
 {
     DECL_TRACER("TMaps::removeBitmap(const QString& file)");
 
+    MSG_DEBUG("Try to remove file \"" << file.toStdString() << "\" ...");
     bool rem = false;
     vector<MAP_BM_T>::iterator iter;
 
@@ -206,7 +207,12 @@ void TMaps::removeBitmap(const QString& file)
             if (iter->i == file)
             {
                 QFile f(mPathTemporary + "/images/" + file);
-                f.remove();
+
+                if (!f.remove())
+                {
+                    MSG_ERROR("Error removing file \"" << f.fileName().toStdString() << "\": " << f.errorString().toStdString());
+                }
+
                 mMap.map_bm.erase(iter);
                 rem = true;
                 break;
@@ -214,6 +220,26 @@ void TMaps::removeBitmap(const QString& file)
         }
     }
     while (rem);
+}
+
+void TMaps::renameBitmap(const QString& ori, const QString& tgt)
+{
+    DECL_TRACER("TMaps::renameBitmap(const QString& ori, const QString& tgt)");
+
+    vector<MAP_BM_T>::iterator iter;
+
+    for (iter = mMap.map_bm.begin(); iter != mMap.map_bm.end(); ++iter)
+    {
+        if (iter->i == ori)
+            iter->i = tgt;
+    }
+
+    QFile f(mPathTemporary + "/images/" + ori);
+
+    if (!f.rename(mPathTemporary + "/images/" + tgt))
+    {
+        MSG_ERROR("Error renaming file \"" << f.fileName().toStdString() << "\": " << f.errorString().toStdString());
+    }
 }
 
 bool TMaps::isBitmapUsed(const QString& file)

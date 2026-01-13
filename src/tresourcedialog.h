@@ -2,6 +2,7 @@
 #define TRESOURCEDIALOG_H
 
 #include <QDialog>
+#include <QClipboard>
 
 namespace Ui {
 class TResourceDialog;
@@ -9,6 +10,8 @@ class TResourceDialog;
 
 class QModelIndex;
 class QItemSelection;
+class QFileDialog;
+class QStandardItem;
 
 class TResourceDialog : public QDialog
 {
@@ -28,8 +31,17 @@ class TResourceDialog : public QDialog
         typedef enum
         {
             LABEL_LISTVIEW,
+            LABEL_FILESCOPIED,
             LABEL_RESOURCES
         }LABEL_t;
+
+        typedef enum
+        {
+            SEL_IMAGES,
+            SEL_DYNIMAGES,
+            SEL_SOUNDS,
+            SEL_DATASOURCE
+        }TABSEL_t;
 
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
         void setLastOpenPath(const QString& path) { mLastOpenPath = path; }
@@ -39,8 +51,19 @@ class TResourceDialog : public QDialog
 
     protected:
         QPixmap sizeImage(const QSize& size, const QString& file);
+        void importImagesToListView(const QStringList& files);
         void removeItemFromListView(const QString& file, int row);
+        int getRowFromListView(const QString& file);
+        QStandardItem *getItemFromListView(const QString& file);
+        void renameImageFile(const QString& ori, const QString& tgt);
         void setLabel(LABEL_t lb, int number, const QString& text);
+        void disableClipboardButtons();
+        void enableClipboardButtons();
+        void copyImagesToClipboard();
+
+        void onImageImportFinished(int result);
+        void onClipboardChanged(QClipboard::Mode mode);
+        void onClipboardDataChanged();
 
     private slots:
         void on_pushButtonCut_clicked();
@@ -54,6 +77,7 @@ class TResourceDialog : public QDialog
         void on_pushButtonExport_clicked();
         void on_pushButtonDataMap_clicked();
         void on_comboBoxStyle_currentIndexChanged(int index);
+        void on_tabWidgetAction_tabBarClicked(int index);
         void on_listViewImages_activated(const QModelIndex &index);
         void on_listViewImages_entered(const QModelIndex &index);
         void on_tableViewDynamicImages_activated(const QModelIndex &index);
@@ -64,14 +88,19 @@ class TResourceDialog : public QDialog
     private:
         Ui::TResourceDialog *ui;
 
+        TABSEL_t mTabSelected{SEL_IMAGES};
         QString mPathTemporary;
         SHOW_t mShowType{SHOW_ICON};
-        QString mPathTemplate;
         QString mMapsFile;
         QString mLastOpenPath;
+        QClipboard *mClipboard{nullptr};
+        QClipboard::Mode mClipboardMode{QClipboard::Clipboard};
+        QPixmap mClipboardPixmap;
+        int mClipboardPixmapNumber{0};      // A number appended to the name of a pixmap received from the clipboard
         // Images
         QStringList mImages;
         bool mChanged{false};
+        QFileDialog *mImportImagesDialog{nullptr};
 };
 
 #endif // TRESOURCEDIALOG_H
