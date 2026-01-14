@@ -397,6 +397,10 @@ bool TConfMain::readProject(const QString& path)
         res.host = entry.value("host").toString();
         res.path = entry.value("path").toString();
         res.file = entry.value("file").toString();
+        res.password = entry.value("password").toString();
+        res.user = entry.value("user").toString();
+        res.refreshRate = entry.value("refresh").toInt(0);
+        res.refreshStart = entry.value("dynamo").toBool(false);
         mConfMain->resourceList.append(res);
     }
 
@@ -430,6 +434,95 @@ QString TConfMain::getFileName()
         return QString();
 
     return mFileName;
+}
+
+void TConfMain::setDynamicResource(const RESOURCE_t& res)
+{
+    DECL_TRACER("TConfMain::setDynamicResource(const RESOURCE_t& res)");
+
+    if (!mConfMain)
+        return;
+
+    if (res.name.isEmpty() || res.host.isEmpty() || res.file.isEmpty())
+    {
+        MSG_ERROR("Incomplete resource data! Ignoring resource.");
+        return;
+    }
+
+    QList<RESOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->resourceList.begin(); iter != mConfMain->resourceList.end(); ++iter)
+    {
+        if (iter->name == res.name)
+        {
+            iter->protocol = res.protocol;
+            iter->host = res.host;
+            iter->path = res.path;
+            iter->file = res.file;
+            iter->user = res.user;
+            iter->password = res.password;
+            iter->refreshRate = res.refreshRate;
+            iter->refreshStart = res.refreshStart;
+            return;
+        }
+    }
+
+    mConfMain->resourceList.append(res);
+}
+
+RESOURCE_t TConfMain::getDynamicResource(const QString& name)
+{
+    DECL_TRACER("getDynamicResource(const QString& name)");
+
+    if (name.isEmpty() || !mConfMain)
+        return RESOURCE_t();
+
+    QList<RESOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->resourceList.begin(); iter != mConfMain->resourceList.end(); ++iter)
+    {
+        if (iter->name == name)
+            return *iter;
+    }
+
+    return RESOURCE_t();
+}
+
+void TConfMain::removeDynamicImage(const QString& name)
+{
+    DECL_TRACER("TConfMain::removeDynamicImage(const QString& name)");
+
+    if (name.isEmpty() || !mConfMain)
+        return;
+
+    QList<RESOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->resourceList.begin(); iter != mConfMain->resourceList.end(); ++iter)
+    {
+        if (iter->name == name)
+        {
+            mConfMain->resourceList.erase(iter);
+            break;
+        }
+    }
+}
+
+bool TConfMain::haveDynamicResource(const QString& name)
+{
+    DECL_TRACER("TConfMain::haveDynamicResource(const QString& name)");
+
+    if (name.isEmpty() || !mConfMain)
+        return false;
+
+    QList<RESOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->resourceList.begin(); iter != mConfMain->resourceList.end(); ++iter)
+    {
+        if (iter->name == name)
+            return true;
+    }
+
+    return false;
 }
 
 void TConfMain::saveProject()
@@ -538,6 +631,10 @@ void TConfMain::saveProject()
         entry.insert("host", resIter->host);
         entry.insert("path", resIter->path);
         entry.insert("file", resIter->file);
+        entry.insert("user", resIter->user);
+        entry.insert("password", resIter->password);
+        entry.insert("refresh", resIter->refreshRate);
+        entry.insert("dynamo", resIter->refreshStart);
         resourceList.append(entry);
     }
 

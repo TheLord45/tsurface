@@ -260,6 +260,30 @@ bool TMaps::isBitmapUsed(const QString& file)
     return false;
 }
 
+void TMaps::addDynamicResource(const Maps::MAP_T& res)
+{
+    DECL_TRACER("TMaps::addDynamicResource(const Maps::MAP_T& res)");
+
+    if (res.bt <= 0 || res.pg <= 0)
+        return;
+
+    vector<MAP_T>::iterator iter;
+
+    for (iter = mMap.map_am.begin(); iter != mMap.map_am.end(); ++iter)
+    {
+        if (iter->bt == res.bt && iter->pg == res.pg)
+        {
+            iter->bn = res.bn;
+            iter->c = res.c;
+            iter->p = res.p;
+            iter->pn = res.pn;
+            return;
+        }
+    }
+
+    mMap.map_am.push_back(res);
+}
+
 void TMaps::addSound(const QString& file)
 {
     DECL_TRACER("TMaps::addSound(const QString& file)");

@@ -100,6 +100,7 @@ class TMaps
         void removeBitmap(const QString& file);
         void renameBitmap(const QString& ori, const QString& tgt);
         bool isBitmapUsed(const QString& file);
+        void addDynamicResource(const Maps::MAP_T& bm);
         void addSound(const QString& file);
         Maps::MAP_T getButtonByNumber(int num, int page);
         QStringList getAllImageFiles();

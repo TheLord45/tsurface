@@ -1,8 +1,27 @@
+/*
+ * Copyright (C) 2026 by Andreas Theofilu <andreas@theosys.at>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
 #ifndef TRESOURCEDIALOG_H
 #define TRESOURCEDIALOG_H
 
 #include <QDialog>
 #include <QClipboard>
+
+#include "tconfmain.h"
 
 namespace Ui {
 class TResourceDialog;
@@ -12,6 +31,7 @@ class QModelIndex;
 class QItemSelection;
 class QFileDialog;
 class QStandardItem;
+class QStandardItemModel;
 
 class TResourceDialog : public QDialog
 {
@@ -61,9 +81,15 @@ class TResourceDialog : public QDialog
         void enableClipboardButtons();
         void copyImagesToClipboard();
 
+        void addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model=nullptr);
+        void editDynamicResource(const QString& name, bool neu=false);
+        QString getUrl(const ConfigMain::RESOURCE_t& res);
+        void copyDynamicImageToClipboard();
+
         void onImageImportFinished(int result);
         void onClipboardChanged(QClipboard::Mode mode);
         void onClipboardDataChanged();
+        bool parseDynamicImageFromClipboard(ConfigMain::RESOURCE_t *res, const QString& txt);
 
     private slots:
         void on_pushButtonCut_clicked();
@@ -96,11 +122,15 @@ class TResourceDialog : public QDialog
         QClipboard *mClipboard{nullptr};
         QClipboard::Mode mClipboardMode{QClipboard::Clipboard};
         QPixmap mClipboardPixmap;
+        QString mClipboardText;
         int mClipboardPixmapNumber{0};      // A number appended to the name of a pixmap received from the clipboard
         // Images
         QStringList mImages;
         bool mChanged{false};
         QFileDialog *mImportImagesDialog{nullptr};
+        // Dynamic resources
+        QList<ConfigMain::RESOURCE_t> mDynamicResources;
+        int mDynamicRowSelected{-1};
 };
 
 #endif // TRESOURCEDIALOG_H

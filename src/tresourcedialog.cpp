@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2026 by Andreas Theofilu <andreas@theosys.at>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
 #include <filesystem>
 
 #include <QFileDialog>
@@ -14,6 +31,7 @@
 #include "tmaps.h"
 #include "tconfmain.h"
 #include "trenamefiledialog.h"
+#include "tdynamicimagedialog.h"
 #include "terror.h"
 #include "tmisc.h"
 
@@ -32,12 +50,12 @@ TResourceDialog::TResourceDialog(QWidget *parent)
     mPathTemporary = TConfMain::Current().getPathTemporary();
     mMapsFile = TConfMain::Current().getMapsFile();
     mLastOpenPath = QString::fromStdString(fs::current_path());
-
+    // View style
     ui->comboBoxStyle->setItemIcon(0, QIcon(":/images/view-list-tree.svg"));
     ui->comboBoxStyle->setItemIcon(1, QIcon(":/images/view-list-details.svg"));
     ui->comboBoxStyle->setItemIcon(2, QIcon(":/images/view-list-icons.svg"));
     ui->comboBoxStyle->setCurrentIndex(mShowType);
-
+    // Images
     ui->listViewImages->setGridSize(gridSize);
     ui->listViewImages->setViewMode(QListView::IconMode);
     ui->listViewImages->setResizeMode(QListView::Adjust);
@@ -67,12 +85,28 @@ TResourceDialog::TResourceDialog(QWidget *parent)
     ui->listViewImages->setModel(model);
 
     setLabel(LABEL_LISTVIEW, row, "");
+    // Dynamic resources
+    QStandardItemModel *dynModel = new QStandardItemModel(this);
+    dynModel->setColumnCount(3);
+    QStringList headers;
+    headers << tr("Name") << tr("URL") << tr("Refresh");
+    dynModel->setHorizontalHeaderLabels(headers);
+    mDynamicResources = TConfMain::Current().getAllDynamicResources();
+    QList<ConfigMain::RESOURCE_t>::Iterator dynIter;
 
+    for (dynIter = mDynamicResources.begin(); dynIter != mDynamicResources.end(); ++dynIter)
+        addDynamicResource(*dynIter, dynModel);
+
+    ui->tableViewDynamicImages->setModel(dynModel);
+    ui->tableViewDynamicImages->resizeColumnsToContents();
+    ui->tableViewDynamicImages->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableViewDynamicImages->setSelectionMode(QAbstractItemView::SingleSelection);
+    // Disable buttons
     disableClipboardButtons();
     ui->pushButtonUndo->setDisabled(true);
     ui->pushButtonRedo->setDisabled(true);
     ui->pushButtonRename->setDisabled(true);
-
+    // Clipboard initializing
     mClipboard = QGuiApplication::clipboard();
 
     if (mClipboard)
@@ -106,6 +140,11 @@ void TResourceDialog::on_pushButtonCut_clicked()
         copyImagesToClipboard();
         on_pushButtonDelete_clicked();
     }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        copyDynamicImageToClipboard();
+        on_pushButtonDelete_clicked();
+    }
 }
 
 void TResourceDialog::on_pushButtonCopy_clicked()
@@ -114,11 +153,16 @@ void TResourceDialog::on_pushButtonCopy_clicked()
 
     if (mTabSelected == SEL_IMAGES)
         copyImagesToClipboard();
+    else if (mTabSelected == SEL_DYNIMAGES)
+        copyDynamicImageToClipboard();
 }
 
 void TResourceDialog::on_pushButtonPaste_clicked()
 {
     DECL_TRACER("TResourceDialog::on_pushButtonPaste_clicked()");
+
+    if (!mClipboard)
+        return;
 
     if (mTabSelected == SEL_IMAGES && !mClipboardPixmap.isNull())
     {
@@ -132,7 +176,22 @@ void TResourceDialog::on_pushButtonPaste_clicked()
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
         model->appendRow(item);
         model->sort(0);
+        setLabel(LABEL_LISTVIEW, model->rowCount(), "");
         mChanged = true;
+    }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        ConfigMain::RESOURCE_t res;
+
+        if (parseDynamicImageFromClipboard(&res, mClipboardText))
+        {
+            if (!TConfMain::Current().haveDynamicResource(res.name))
+            {
+                TConfMain::Current().setDynamicResource(res);
+                addDynamicResource(res);
+                mChanged = true;
+            }
+        }
     }
 }
 
@@ -140,53 +199,75 @@ void TResourceDialog::on_pushButtonDelete_clicked()
 {
     DECL_TRACER("TResourceDialog::on_pushButtonDelete_clicked()");
 
-    QItemSelectionModel *model = ui->listViewImages->selectionModel();
-
-    if (model && model->hasSelection())
+    if (mTabSelected == SEL_IMAGES)
     {
-        int count = 0;
-        QModelIndexList list = model->selectedIndexes();
-        QModelIndexList::Iterator iter;
-        count = list.size();
+        QItemSelectionModel *model = ui->listViewImages->selectionModel();
 
-        while (count > 0)
+        if (model && model->hasSelection())
         {
-            if (list.empty())
-                break;
+            int count = 0;
+            QModelIndexList list = model->selectedIndexes();
+            QModelIndexList::Iterator iter;
+            count = list.size();
 
-            iter = list.begin();
-
-            QString file = iter->data().toString();
-            MSG_DEBUG("Selected file: " << file.toStdString());
-            bool remove = false;
-
-            if (TMaps::Current().isBitmapUsed(file))
+            while (count > 0)
             {
-                int ret = QMessageBox::question(this, tr("File use"), tr("The file %1 is in use!<br>Do you really want delete this file?"));
+                if (list.empty())
+                    break;
 
-                if (ret == QMessageBox::Yes)
+                iter = list.begin();
+
+                QString file = iter->data().toString();
+                MSG_DEBUG("Selected file: " << file.toStdString());
+                bool remove = false;
+
+                if (TMaps::Current().isBitmapUsed(file))
+                {
+                    int ret = QMessageBox::question(this, tr("File use"), tr("The file %1 is in use!<br>Do you really want delete this file?"));
+
+                    if (ret == QMessageBox::Yes)
+                        remove = true;
+                }
+                else
                     remove = true;
-            }
-            else
-                remove = true;
 
-            if (remove)
-            {
-                removeItemFromListView(file, iter->row());
-                mChanged = true;
-            }
-            else
-                model->setCurrentIndex(*iter, QItemSelectionModel::Deselect);
+                if (remove)
+                {
+                    removeItemFromListView(file, iter->row());
+                    mChanged = true;
+                }
+                else
+                    model->setCurrentIndex(*iter, QItemSelectionModel::Deselect);
 
-            count--;
-            list = model->selectedIndexes();
+                count--;
+                list = model->selectedIndexes();
+            }
+        }
+
+        if (model && !model->hasSelection())
+        {
+            disableClipboardButtons();
+            setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), "");
         }
     }
-
-    if (model && !model->hasSelection())
+    else if (mTabSelected == SEL_DYNIMAGES)
     {
+        QItemSelectionModel *model = ui->tableViewDynamicImages->selectionModel();
+
+        if (!model || !model->hasSelection())
+        {
+            disableClipboardButtons();
+            return;
+        }
+
+        QModelIndexList list = model->selectedIndexes();
+        QStandardItemModel *mod = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+        int row = list[0].row();
+        QString name = mod->item(row, 0)->text();
+        mod->removeRow(row);
+        TConfMain::Current().removeDynamicImage(name);
         disableClipboardButtons();
-        setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), "");
+        mChanged = true;
     }
 }
 
@@ -223,6 +304,7 @@ void TResourceDialog::on_pushButtonRename_clicked()
                     return;
 
                 removeItemFromListView(newFile, getRowFromListView(newFile));
+                setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), "");
             }
 
             QStandardItem *item = getItemFromListView(srcFile);
@@ -233,6 +315,23 @@ void TResourceDialog::on_pushButtonRename_clicked()
             renameImageFile(srcFile, newFile);
             TMaps::Current().renameBitmap(srcFile, newFile);
             mChanged = true;
+        }
+    }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        QItemSelectionModel *model = ui->tableViewDynamicImages->selectionModel();
+
+        if (model && model->hasSelection())
+        {
+            QModelIndexList list = model->selectedIndexes();
+
+            if (list.empty())
+                return;
+
+            int row = list[0].row();
+            QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+            QStandardItem *item = model->item(row, 0);
+            editDynamicResource(item->text());
         }
     }
 }
@@ -252,13 +351,36 @@ void TResourceDialog::on_pushButtonImport_clicked()
 {
     DECL_TRACER("TResourceDialog::on_pushButtonImport_clicked()");
 
-    if (mTabSelected != SEL_IMAGES)
-        return;
+    if (mTabSelected == SEL_IMAGES)
+    {
+        mImportImagesDialog = new QFileDialog(this, tr("Import Image"), mLastOpenPath, tr("Image (*.png *.jpg);;All (*)"));
+        mImportImagesDialog->setFileMode(QFileDialog::ExistingFiles);
+        connect(mImportImagesDialog, &QFileDialog::finished, this, &TResourceDialog::onImageImportFinished);
+        mImportImagesDialog->open();
+    }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        TDynamicImageDialog dynDialog(this);
 
-    mImportImagesDialog = new QFileDialog(this, tr("Import Image"), mLastOpenPath, tr("Image (*.png *.jpg);;All (*)"));
-    mImportImagesDialog->setFileMode(QFileDialog::ExistingFiles);
-    connect(mImportImagesDialog, &QFileDialog::finished, this, &TResourceDialog::onImageImportFinished);
-    mImportImagesDialog->open();
+        if (dynDialog.exec() == QDialog::Rejected)
+            return;
+
+        ConfigMain::RESOURCE_t res;
+        res.name = dynDialog.getName();
+        res.protocol = dynDialog.getProtocol();
+        res.host = dynDialog.getHost();
+        res.path = dynDialog.getPath();
+        res.file = dynDialog.getFile();
+        res.user = dynDialog.getUser();
+        res.password = dynDialog.getPassword();
+        res.refreshRate = dynDialog.getRefreshRate();
+        res.refreshStart = dynDialog.getRefreshStart();
+        addDynamicResource(res);
+        TConfMain::Current().setDynamicResource(res);
+        ui->tableViewDynamicImages->resizeColumnsToContents();
+        setLabel(LABEL_RESOURCES, ui->tableViewDynamicImages->model()->rowCount(), "");
+        mChanged = true;
+    }
 }
 
 void TResourceDialog::onImageImportFinished(int result)
@@ -327,6 +449,10 @@ void TResourceDialog::on_pushButtonExport_clicked()
         if (count > 1)
             QMessageBox::information(this, tr("Files copied"), tr("Copied %1 files to directory %2.").arg(count).arg(dir));
     }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        QMessageBox::information(this, tr("Information"), tr("There is no working file for the selected dynamic image."));
+    }
 }
 
 void TResourceDialog::on_pushButtonDataMap_clicked()
@@ -360,6 +486,29 @@ void TResourceDialog::on_tabWidgetAction_tabBarClicked(int index)
         return;
 
     mTabSelected = static_cast<TABSEL_t>(index);
+
+    if (mTabSelected == SEL_DATASOURCE || mTabSelected == SEL_DYNIMAGES)
+    {
+        ui->pushButtonImport->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::DocumentNew));
+        ui->pushButtonImport->setText(tr("New"));
+        ui->pushButtonRename->setIcon(QIcon(":/images/show-menu.png"));
+        ui->pushButtonRename->setText(tr("Edit"));
+    }
+    else
+    {
+        ui->pushButtonImport->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::FolderOpen));
+        ui->pushButtonImport->setText(tr("Import"));
+        ui->pushButtonRename->setIcon(QIcon(":/images/show-menu.png"));
+        ui->pushButtonRename->setText(tr("Rename"));
+    }
+
+    switch(mTabSelected)
+    {
+        case SEL_IMAGES: setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), ""); break;
+        case SEL_DYNIMAGES: setLabel(LABEL_RESOURCES, ui->tableViewDynamicImages->model()->rowCount(), ""); break;
+        default:
+            return;
+    }
 }
 
 void TResourceDialog::on_listViewImages_activated(const QModelIndex &index)
@@ -386,15 +535,21 @@ void TResourceDialog::on_listViewImages_entered(const QModelIndex &index)
 
 void TResourceDialog::on_tableViewDynamicImages_activated(const QModelIndex &index)
 {
+    DECL_TRACER("TResourceDialog::on_tableViewDynamicImages_activated(const QModelIndex &index)");
 
+    mDynamicRowSelected = index.row();
+    enableClipboardButtons();
 }
-
 
 void TResourceDialog::on_tableViewDynamicImages_doubleClicked(const QModelIndex &index)
 {
+    DECL_TRACER("TResourceDialog::on_tableViewDynamicImages_doubleClicked(const QModelIndex &index)");
 
+    int row = index.row();
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+    QStandardItem *item = model->item(row, 0);
+    editDynamicResource(item->text());
 }
-
 
 void TResourceDialog::on_tableViewSounds_activated(const QModelIndex &index)
 {
@@ -418,20 +573,57 @@ void TResourceDialog::onClipboardDataChanged()
 {
     DECL_TRACER("TResourceDialog::onClipboardDataChanged()");
 
+    if (!mClipboard)
+        return;
+
     if (mTabSelected == SEL_IMAGES)
     {
-        if (mClipboard)
-        {
-            mClipboardPixmap = mClipboard->pixmap(mClipboardMode);
+        mClipboardPixmap = mClipboard->pixmap(mClipboardMode);
 
-            if (mClipboardPixmap.isNull())
-                ui->pushButtonPaste->setDisabled(true);
-            else
-                ui->pushButtonPaste->setDisabled(false);
-        }
+        if (mClipboardPixmap.isNull())
+            ui->pushButtonPaste->setDisabled(true);
+        else
+            ui->pushButtonPaste->setDisabled(false);
+    }
+    else if (mTabSelected == SEL_DYNIMAGES)
+    {
+        mClipboardText = mClipboard->text(mClipboardMode);
+
+        if (mClipboardText.isEmpty())
+            ui->pushButtonPaste->setDisabled(true);
+        else
+            ui->pushButtonPaste->setDisabled(false);
     }
     else
         ui->pushButtonPaste->setDisabled(true);
+}
+
+bool TResourceDialog::parseDynamicImageFromClipboard(ConfigMain::RESOURCE_t *res, const QString& txt)
+{
+    DECL_TRACER("TResourceDialog::parseDynamicImageFromClipboard(ConfigMain::RESOURCE_t *res, const QString& txt)");
+
+    if (!txt.contains(";") || !res)
+        return false;
+
+    QString text = txt;
+    QStringList parts = text.split(';');
+
+    if (parts.size() < 9)
+        return false;
+
+    if (parts[1] != "http" && parts[1] != "https" && parts[1] != "rtp" && parts[1] != "rtsp")
+        return false;
+
+    res->name = parts[0];
+    res->protocol = parts[1];
+    res->host = parts[2];
+    res->path = parts[3];
+    res->file = parts[4];
+    res->user = parts[5];
+    res->password = parts[6];
+    res->refreshRate = parts[7].toInt();
+    res->refreshStart = (parts[8].toInt() ? true : false);
+    return true;
 }
 
 QPixmap TResourceDialog::sizeImage(const QSize& size, const QString& file)
@@ -587,7 +779,7 @@ void TResourceDialog::setLabel(LABEL_t lb, int number, const QString& text)
     {
         case LABEL_LISTVIEW:    txt = tr("%1 images in list.").arg(number); break;
         case LABEL_FILESCOPIED: txt = tr("Copied %1 files.").arg(number); break;
-        case LABEL_RESOURCES:   txt = text; break;
+        case LABEL_RESOURCES:   txt = tr("%1 item(s)").arg(number); break;
     }
 
     ui->labelStatus->setText(txt);
@@ -643,4 +835,150 @@ void TResourceDialog::copyImagesToClipboard()
             }
         }
     }
+}
+
+void TResourceDialog::copyDynamicImageToClipboard()
+{
+    DECL_TRACER("TResourceDialog::copyDynamicImageToClipboard()");
+
+    if (mTabSelected != SEL_DYNIMAGES)
+        return;
+
+    QItemSelectionModel *selModel = ui->tableViewDynamicImages->selectionModel();
+
+    if (!selModel || !selModel->hasSelection())
+    {
+        disableClipboardButtons();
+        return;
+    }
+
+    if (!mClipboard)
+        return;
+
+    QModelIndexList list = selModel->selectedIndexes();
+    int row = list[0].row();
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+    QString name = model->item(row, 0)->text();
+    ConfigMain::RESOURCE_t res = TConfMain::Current().getDynamicResource(name);
+
+    if (res.name.isEmpty())
+        return;
+
+    QString clipText = res.name + ";" + res.protocol + ";" + res.host + ";" +
+                       res.path + ";" + res.file + ";" + res.user + ";" +
+                       res.password + ";" + QString("%1;%2").arg(res.refreshRate).arg(res.refreshStart);
+    mClipboard->setText(clipText);
+}
+
+void TResourceDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model)
+{
+    DECL_TRACER("TResourceDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model)");
+
+    QStandardItemModel *dynModel = nullptr;
+
+    if (model)
+        dynModel = model;
+    else
+        dynModel = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+
+    if (!dynModel)
+        return;
+
+    int row = dynModel->rowCount();
+    QStandardItem *cell1 = new QStandardItem;
+    QStandardItem *cell2 = new QStandardItem;
+    QStandardItem *cell3 = new QStandardItem;
+
+    cell1->setEditable(false);
+    cell2->setEditable(false);
+    cell3->setEditable(false);
+
+    cell1->setText(res.name);
+    cell2->setText(getUrl(res));
+    cell3->setText(QString("%1").arg(res.refreshRate));
+
+    dynModel->setItem(row, 0, cell1);
+    dynModel->setItem(row, 1, cell2);
+    dynModel->setItem(row, 2, cell3);
+}
+
+void TResourceDialog::editDynamicResource(const QString& name, bool neu)
+{
+    DECL_TRACER("TResourceDialog::editDynamicResource(const QString& name, bool neu)");
+
+    ConfigMain::RESOURCE_t res;
+    TDynamicImageDialog dynDialog(this);
+
+    if (!neu)
+    {
+        res = TConfMain::Current().getDynamicResource(name);
+
+        dynDialog.setName(res.name);
+        dynDialog.setProtocol(res.protocol);
+        dynDialog.setHost(res.host);
+        dynDialog.setPath(res.path);
+        dynDialog.setFile(res.file);
+        dynDialog.setUser(res.user);
+        dynDialog.setPassword(res.password);
+        dynDialog.setRefreshRate(res.refreshRate);
+        dynDialog.setRefreshStart(res.refreshStart);
+        dynDialog.setEdit(true);
+    }
+
+    if (dynDialog.exec() == QDialog::Rejected)
+        return;
+
+    if (neu)
+        res.name = dynDialog.getName();
+
+    res.protocol = dynDialog.getProtocol();
+    res.host = dynDialog.getHost();
+    res.path = dynDialog.getPath();
+    res.file = dynDialog.getFile();
+    res.user = dynDialog.getUser();
+    res.password = dynDialog.getPassword();
+    res.refreshRate = dynDialog.getRefreshRate();
+    res.refreshStart = dynDialog.getRefreshStart();
+
+    if (neu)
+        addDynamicResource(res);
+    else
+    {
+        QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
+
+        if (!model)
+            return;
+
+        QList<QStandardItem*> list = model->findItems(name);
+
+        if (list.empty())
+            return;
+
+        int row = list[0]->row();
+        model->item(row, 1)->setText(getUrl(res));
+        model->item(row, 2)->setText(QString("%1").arg(res.refreshRate));
+    }
+
+    TConfMain::Current().setDynamicResource(res);
+    ui->tableViewDynamicImages->resizeColumnsToContents();
+    setLabel(LABEL_RESOURCES, ui->tableViewDynamicImages->model()->rowCount(), "");
+    mChanged = true;
+}
+
+QString TResourceDialog::getUrl(const ConfigMain::RESOURCE_t& res)
+{
+    DECL_TRACER("TResourceDialog::getUrl(const ConfigMain::RESOURCE_t& res)");
+
+    QString txt = res.protocol + "://";
+
+    if (!res.user.isEmpty())
+        txt.append(res.user + "@");
+
+    txt.append(res.host + "/");
+
+    if (!res.path.isEmpty())
+        txt.append(res.path + "/");
+
+    txt.append(res.file);
+    return txt;
 }

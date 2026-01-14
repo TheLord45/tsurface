@@ -94,6 +94,10 @@ namespace ConfigMain
         QString host;
         QString path;
         QString file;
+        QString user;
+        QString password;
+        int refreshRate{0};
+        bool refreshStart{false};
     }RESOURCE_t;
 
     typedef struct CONFMAIN_t
@@ -127,6 +131,7 @@ class TConfMain
         bool readProject(const QString& path);
         void saveProject();
         void reset();
+        void removeDynamicImage(const QString& name);
 
         // Setter
         void setDefaultPanelType(TPanelType::PANELTYPE_t pt) { mPanType = pt; }
@@ -139,6 +144,7 @@ class TConfMain
         void setColorText(const QColor& col) { mColorText = col; }
         void setFontBase(const QFont& font) { mFontBase = font; };
         void setFontBaseSize(int size) { mFontBaseSize = size; }
+        void setDynamicResource(const ConfigMain::RESOURCE_t& res);
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         TPanelType::PANELTYPE_t getDefaultPanelType() { return mPanType; }
@@ -157,6 +163,9 @@ class TConfMain
         QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
         QString getPathTemporary() { return mPathTemporary; }
         QString getMapsFile() { if (mConfMain) return mConfMain->fileList.mapFile; else return QString(); }
+        ConfigMain::RESOURCE_t getDynamicResource(const QString& name);
+        QList<ConfigMain::RESOURCE_t> getAllDynamicResources() { if (mConfMain) return mConfMain->resourceList; else return QList<ConfigMain::RESOURCE_t>(); }
+        bool haveDynamicResource(const QString& name);
 
     protected:
         void initConfig(bool force=false);

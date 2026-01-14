@@ -49,5 +49,6 @@
         <file>images/view-list-icons.svg</file>
         <file>images/view-list-tree.svg</file>
         <file>images/view-group.svg</file>
+        <file>images/document-new.svg</file>
     </qresource>
 </RCC>
