@@ -52,7 +52,8 @@ class TResourceDialog : public QDialog
         {
             LABEL_LISTVIEW,
             LABEL_FILESCOPIED,
-            LABEL_RESOURCES
+            LABEL_RESOURCES,
+            LABEL_SOUND
         }LABEL_t;
 
         typedef enum
@@ -90,6 +91,17 @@ class TResourceDialog : public QDialog
         void onClipboardChanged(QClipboard::Mode mode);
         void onClipboardDataChanged();
         bool parseDynamicImageFromClipboard(ConfigMain::RESOURCE_t *res, const QString& txt);
+        int getClipboardImageNumber();
+
+        void addSoundFile(const QString& file, QStandardItemModel *model=nullptr);
+        void importSoundFile();
+        void removeSoundFile();
+        void copySoundFileToClipboard();
+
+        void addDynamicData(const ConfigMain::DATASOURCE_t& data, QStandardItemModel *model=nullptr);
+        QString getUrl(const ConfigMain::DATASOURCE_t& data);
+        void editDynamicData(ConfigMain::DATASOURCE_t& data);
+        QString getFormat(int format);
 
     private slots:
         void on_pushButtonCut_clicked();
@@ -110,27 +122,32 @@ class TResourceDialog : public QDialog
         void on_tableViewDynamicImages_doubleClicked(const QModelIndex &index);
         void on_tableViewSounds_activated(const QModelIndex &index);
         void on_tableViewDynamicDataSources_activated(const QModelIndex &index);
+        void on_tableViewDynamicDataSources_doubleClicked(const QModelIndex &index);
 
     private:
         Ui::TResourceDialog *ui;
 
-        TABSEL_t mTabSelected{SEL_IMAGES};
-        QString mPathTemporary;
-        SHOW_t mShowType{SHOW_ICON};
-        QString mMapsFile;
-        QString mLastOpenPath;
-        QClipboard *mClipboard{nullptr};
+        TABSEL_t mTabSelected{SEL_IMAGES};          // Holds the currently selected tab
+        QString mPathTemporary;                     // The path to the temporary files
+        SHOW_t mShowType{SHOW_ICON};                // Holds how the list should be shown
+        QString mMapsFile;                          // Path to system mapping file
+        QString mLastOpenPath;                      // The lat path used to load or save a file
+        QClipboard *mClipboard{nullptr};            // Pointer to the clipboard
         QClipboard::Mode mClipboardMode{QClipboard::Clipboard};
-        QPixmap mClipboardPixmap;
-        QString mClipboardText;
-        int mClipboardPixmapNumber{0};      // A number appended to the name of a pixmap received from the clipboard
+        QPixmap mClipboardPixmap;                   // Holds the pixmap from the clipboard, if there was one.
+        QString mClipboardText;                     // Holds the text from the clipboard, if there was one.
+        int mClipboardPixmapNumber{0};              // A number appended to the name of a pixmap received from the clipboard
         // Images
-        QStringList mImages;
-        bool mChanged{false};
-        QFileDialog *mImportImagesDialog{nullptr};
+        QStringList mImages;                        // A list of images
+        bool mChanged{false};                       // TRUE = Some data have changed e.g. the document has changed.
+        QFileDialog *mImportImagesDialog{nullptr};  // The file dialog to import images. This is for an asynchronous dialog!
         // Dynamic resources
-        QList<ConfigMain::RESOURCE_t> mDynamicResources;
-        int mDynamicRowSelected{-1};
+        QList<ConfigMain::RESOURCE_t> mDynamicResources;    // List of dynamic resources
+        int mDynamicRowSelected{-1};                // The row selected in the dynamic image list.
+        // Sound files
+        QStringList mSoundFiles;
+        // Dynamic data
+        QList<ConfigMain::DATASOURCE_t> mDynamicData;
 };
 
 #endif // TRESOURCEDIALOG_H

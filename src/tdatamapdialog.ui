@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TDataMapDialog</class>
+ <widget class="QDialog" name="TDataMapDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>585</width>
+    <height>458</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="labelInfo">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButtonGetFile">
+        <property name="text">
+         <string>Get Live File</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameText">
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QLabel" name="labelSecondaryText">
+        <property name="text">
+         <string>Secondary Text</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="labelT1">
+        <property name="text">
+         <string>t1 =</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="labelPrimaryText">
+        <property name="text">
+         <string>Primary Text</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QComboBox" name="comboBoxSelectT1"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="labelT2">
+        <property name="text">
+         <string>t2 =</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="lineEditPrimaryText"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLineEdit" name="lineEditSecondaryText"/>
+      </item>
+      <item row="1" column="4">
+       <widget class="QComboBox" name="comboBoxSelectT2"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="labelImage">
+        <property name="text">
+         <string>Image</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="labelI1">
+        <property name="text">
+         <string>i1 =</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QLineEdit" name="lineEditImage"/>
+      </item>
+      <item row="2" column="4">
+       <widget class="QComboBox" name="comboBoxSelectImage"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameDataArrange">
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="2" column="2">
+       <widget class="QPushButton" name="pushButtonColumnUp">
+        <property name="text">
+         <string>Move Up</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="pushButtonColumnRemove">
+        <property name="text">
+         <string>Remove</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QComboBox" name="comboBoxColumnSelect"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="pushButtonColumnAdd">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="pushButtonColumnDown">
+        <property name="text">
+         <string>Move Down</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="4">
+       <widget class="QGroupBox" name="groupBoxSort">
+        <property name="title">
+         <string>Sort</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QRadioButton" name="radioButtonSortNone">
+           <property name="text">
+            <string>None</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButtonSortAsc">
+           <property name="text">
+            <string>Ascending</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButtonSortDesc">
+           <property name="text">
+            <string>Descending</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButtonSortQuery">
+           <property name="text">
+            <string>Advanced</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="4">
+       <widget class="QGroupBox" name="groupBoxSortQuery">
+        <property name="title">
+         <string>Sort Query</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLineEdit" name="lineEditQuery"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="0" column="1" rowspan="4">
+       <widget class="QListView" name="listViewColums"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>pushButtonGetFile</tabstop>
+  <tabstop>lineEditPrimaryText</tabstop>
+  <tabstop>comboBoxSelectT1</tabstop>
+  <tabstop>lineEditSecondaryText</tabstop>
+  <tabstop>comboBoxSelectT2</tabstop>
+  <tabstop>lineEditImage</tabstop>
+  <tabstop>comboBoxSelectImage</tabstop>
+  <tabstop>radioButtonSortNone</tabstop>
+  <tabstop>radioButtonSortAsc</tabstop>
+  <tabstop>radioButtonSortDesc</tabstop>
+  <tabstop>radioButtonSortQuery</tabstop>
+  <tabstop>listViewColums</tabstop>
+  <tabstop>pushButtonColumnAdd</tabstop>
+  <tabstop>comboBoxColumnSelect</tabstop>
+  <tabstop>pushButtonColumnRemove</tabstop>
+  <tabstop>pushButtonColumnUp</tabstop>
+  <tabstop>pushButtonColumnDown</tabstop>
+  <tabstop>lineEditQuery</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>TDataMapDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>TDataMapDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

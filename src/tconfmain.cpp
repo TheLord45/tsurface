@@ -404,6 +404,37 @@ bool TConfMain::readProject(const QString& path)
         mConfMain->resourceList.append(res);
     }
 
+    QJsonArray dataSourceList = root.value("dataSourceList").toArray();
+
+    for (int i = 0; i < dataSourceList.count(); ++i)
+    {
+        QJsonObject entry = dataSourceList[i].toObject();
+        DATASOURCE_t dres;
+        dres.name = entry.value("name").toString();
+        dres.protocol = entry.value("protocol").toString();
+        dres.host = entry.value("host").toString();
+        dres.path = entry.value("path").toString();
+        dres.file = entry.value("file").toString();
+        dres.password = entry.value("password").toString();
+        dres.user = entry.value("user").toString();
+        dres.refreshRate = entry.value("refresh").toInt(0);
+        dres.force = entry.value("force").toBool(false);
+
+        dres.format = entry.value("format").toString();
+        dres.sort = static_cast<SORTMAP_t>(entry.value("sort").toInt(SORT_NONE));
+        dres.mapIdT1 = entry.value("mapIdT1").toString();
+        dres.mapIdT2 = entry.value("mapIdT2").toString();
+        dres.mapIdI1 = entry.value("mapIdI1").toString();
+        dres.sortQuery = entry.value("sortAdv").toString();
+
+        QJsonArray sortOrder = entry.value("sortList").toArray();
+
+        for (int j = 0; j < sortOrder.count(); ++j)
+            dres.sortOrder.append(sortOrder[j].toString());
+
+        mConfMain->dataSourceList.append(dres);
+    }
+
     if (!TFonts::readFontFile(mPathTemporary, mConfMain->fileList.fontFile))
         return false;
 
@@ -525,6 +556,67 @@ bool TConfMain::haveDynamicResource(const QString& name)
     return false;
 }
 
+void TConfMain::setDynamicData(const DATASOURCE_t& data)
+{
+    DECL_TRACER("TConfMain::setDynamicData(const DATASOURCE_t& data)");
+
+    if (!mConfMain)
+        return;
+
+    if (!mConfMain->dataSourceList.empty())
+    {
+        QList<DATASOURCE_t>::Iterator iter;
+
+        for (iter = mConfMain->dataSourceList.begin(); iter != mConfMain->dataSourceList.end(); ++iter)
+        {
+            if (iter->name == data.name)
+            {
+                iter->protocol = data.protocol;
+                iter->host = data.host;
+                iter->path = data.path;
+                iter->file = data.file;
+                iter->user = data.user;
+                iter->password = data.password;
+                iter->refreshRate = data.refreshRate;
+                iter->force = data.force;
+                iter->format = data.format;
+                iter->mapIdT1 = data.mapIdT1;
+                iter->mapIdT2 = data.mapIdT2;
+                iter->mapIdI1 = data.mapIdI1;
+                iter->sort = data.sort;
+                iter->sortOrder = data.sortOrder;
+                iter->sortQuery = data.sortQuery;
+                iter->live = data.live;
+                return;
+            }
+        }
+    }
+
+    mConfMain->dataSourceList.append(data);
+}
+
+DATASOURCE_t TConfMain::getDynamicData(const QString& name)
+{
+    DECL_TRACER("TConfMain::getDynamicData(const QString& name)");
+
+    QList<DATASOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->dataSourceList.begin(); iter != mConfMain->dataSourceList.end(); ++iter)
+    {
+        if (iter->name == name)
+            return *iter;
+    }
+
+    return DATASOURCE_t();
+}
+
+QList<DATASOURCE_t>& TConfMain::getAllDynamicData()
+{
+    DECL_TRACER("TConfMain::getAllDynamicData()");
+
+    return mConfMain->dataSourceList;
+}
+
 void TConfMain::saveProject()
 {
     DECL_TRACER("TConfMain::saveProject()");
@@ -639,6 +731,44 @@ void TConfMain::saveProject()
     }
 
     root.insert("resourceList", resourceList);
+
+    QJsonArray dataSourceList;
+    QList<DATASOURCE_t>::Iterator dresIter;
+
+    for (dresIter = mConfMain->dataSourceList.begin(); dresIter != mConfMain->dataSourceList.end(); ++dresIter)
+    {
+        QJsonObject entry;
+        entry.insert("name", dresIter->name);
+        entry.insert("protocol", dresIter->protocol);
+        entry.insert("host", dresIter->host);
+        entry.insert("path", dresIter->path);
+        entry.insert("file", dresIter->file);
+        entry.insert("user", dresIter->user);
+        entry.insert("password", dresIter->password);
+        entry.insert("refresh", dresIter->refreshRate);
+        entry.insert("force", dresIter->force);
+        entry.insert("format", dresIter->format);
+        entry.insert("sort", dresIter->sort);
+        entry.insert("mapIdT1", dresIter->mapIdI1);
+        entry.insert("mapIdT2", dresIter->mapIdT2);
+        entry.insert("mapIdI1", dresIter->mapIdI1);
+        entry.insert("sortAdv", dresIter->sortQuery);
+
+        if (!dresIter->sortOrder.empty())
+        {
+            QStringList::Iterator sortIter;
+            QJsonArray sortOrder;
+
+            for (sortIter = dresIter->sortOrder.begin(); sortIter != dresIter->sortOrder.end(); ++sortIter)
+                sortOrder.append(*sortIter);
+
+            entry.insert("sortList", sortOrder);
+        }
+
+        dataSourceList.append(entry);
+    }
+
+    root.insert("dataSourceList", dataSourceList);
 
     QJsonDocument doc;
     doc.setObject(root);

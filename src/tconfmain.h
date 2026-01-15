@@ -87,6 +87,7 @@ namespace ConfigMain
         PANELTYPE_t popupType{PN_UNDEFINED};
     }PAGEENTRY_t;
 
+    // Structure to define access to devices like cameras etc.
     typedef struct RESOURCE_t
     {
         QString name;
@@ -100,6 +101,43 @@ namespace ConfigMain
         bool refreshStart{false};
     }RESOURCE_t;
 
+    typedef enum
+    {
+        DM_UNKOWN,
+        DM_LISTVIEW
+    }TYPEDATAMAP_t;
+
+    typedef enum
+    {
+        SORT_NONE,
+        SORT_ASC,
+        SORT_DESC,
+        SORT_ADVANCED
+    }SORTMAP_t;
+
+    typedef struct DATASOURCE_t
+    {
+        QString name;
+        QString protocol;       // HTTP, HTTPS
+        QString host;
+        QString path;
+        QString file;
+        QString user;
+        QString password;
+        int refreshRate{0};
+        bool force{false};      // True data is forced
+        QString format;         // xport-s | csv | csv-headers
+        // Datamap
+        TYPEDATAMAP_t type{DM_UNKOWN};
+        SORTMAP_t sort{SORT_NONE};
+        QString mapIdT1;        // Column name?
+        QString mapIdT2;        // Column name?
+        QString mapIdI1;        // Image to show (optional)
+        QStringList sortOrder;
+        QString sortQuery;      // Only if sort order = SORT_ADVANCED
+        bool live{false};       // Internal use; TRUE = there was a successfull live data request.
+    }DATASOURCE_t;
+
     typedef struct CONFMAIN_t
     {
         int fileVersion{1};
@@ -110,6 +148,7 @@ namespace ConfigMain
         QList<PAGEENTRY_t> pageList;
         QList<PAGEENTRY_t> popupList;
         QList<RESOURCE_t> resourceList;
+        QList<DATASOURCE_t> dataSourceList;
     }CONFMAIN_t;
 };
 
@@ -145,6 +184,7 @@ class TConfMain
         void setFontBase(const QFont& font) { mFontBase = font; };
         void setFontBaseSize(int size) { mFontBaseSize = size; }
         void setDynamicResource(const ConfigMain::RESOURCE_t& res);
+        void setDynamicData(const ConfigMain::DATASOURCE_t& data);
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         TPanelType::PANELTYPE_t getDefaultPanelType() { return mPanType; }
@@ -165,6 +205,9 @@ class TConfMain
         QString getMapsFile() { if (mConfMain) return mConfMain->fileList.mapFile; else return QString(); }
         ConfigMain::RESOURCE_t getDynamicResource(const QString& name);
         QList<ConfigMain::RESOURCE_t> getAllDynamicResources() { if (mConfMain) return mConfMain->resourceList; else return QList<ConfigMain::RESOURCE_t>(); }
+        ConfigMain::DATASOURCE_t getDynamicData(const QString& name);
+        QList<ConfigMain::DATASOURCE_t>& getAllDynamicData();
+
         bool haveDynamicResource(const QString& name);
 
     protected:

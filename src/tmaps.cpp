@@ -284,14 +284,55 @@ void TMaps::addDynamicResource(const Maps::MAP_T& res)
     mMap.map_am.push_back(res);
 }
 
-void TMaps::addSound(const QString& file)
+bool TMaps::addSound(const QString& file)
 {
     DECL_TRACER("TMaps::addSound(const QString& file)");
 
     if (file.isEmpty())
-        return;
+        return false;
+
+    QFile f(file);
+
+    if (!f.exists())
+    {
+        MSG_ERROR("File \"" << file.toStdString() << "\" doesn't exist!");
+        return false;
+    }
+
+    if (!f.copy(mPathTemporary + "/sounds/" + basename(file)))
+    {
+        MSG_ERROR("Error copying file \"" << file.toStdString() << "\" to temporary folder!");
+        return false;
+    }
 
     mMap.map_sm.push_back(basename(file));
+    return true;
+}
+
+bool TMaps::removeSound(const QString& file)
+{
+    DECL_TRACER("TMaps::removeSound(const QString& file)");
+
+    vector<QString>::iterator iter;
+
+    for (iter = mMap.map_sm.begin(); iter != mMap.map_sm.end(); ++iter)
+    {
+        if (*iter == file)
+        {
+            QFile f(mPathTemporary + "/sounds/" + file);
+
+            if (!f.remove())
+            {
+                MSG_ERROR("Couldn't remove file \"" << file.toStdString() << "\"!");
+                return false;
+            }
+
+            mMap.map_sm.erase(iter);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 MAP_T TMaps::getButtonByNumber(int num, int page)
@@ -342,6 +383,22 @@ QStringList TMaps::getAllImageFiles()
 
         list.append(iter->i);
     }
+
+    return list;
+}
+
+QStringList TMaps::getAllSoundFiles()
+{
+    DECL_TRACER("TMaps::getAllSoundFiles()");
+
+    if (mMap.map_sm.empty())
+        return QStringList();
+
+    vector<QString>::iterator iter;
+    QStringList list;
+
+    for (iter = mMap.map_sm.begin(); iter != mMap.map_sm.end(); ++iter)
+        list.append(*iter);
 
     return list;
 }

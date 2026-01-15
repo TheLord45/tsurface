@@ -75,7 +75,13 @@ qt_add_executable(tsurface
     trenamefiledialog.cpp
     trenamefiledialog.h
     trenamefiledialog.ui
-    tdynamicimagedialog.h tdynamicimagedialog.cpp tdynamicimagedialog.ui
+    tdynamicimagedialog.cpp
+    tdynamicimagedialog.h
+    tdynamicimagedialog.ui
+    tdynamicdatadialog.cpp
+    tdynamicdatadialog.h
+    tdynamicdatadialog.ui
+    tdatamapdialog.h tdatamapdialog.cpp tdatamapdialog.ui
 )
 
 # Use the Widgets module from Qt 6.

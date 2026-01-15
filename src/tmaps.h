@@ -101,9 +101,11 @@ class TMaps
         void renameBitmap(const QString& ori, const QString& tgt);
         bool isBitmapUsed(const QString& file);
         void addDynamicResource(const Maps::MAP_T& bm);
-        void addSound(const QString& file);
+        bool addSound(const QString& file);
         Maps::MAP_T getButtonByNumber(int num, int page);
         QStringList getAllImageFiles();
+        QStringList getAllSoundFiles();
+        bool removeSound(const QString& file);
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
 
         bool readMaps(const QString& path, const QString& file);
