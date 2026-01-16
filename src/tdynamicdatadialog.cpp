@@ -17,6 +17,7 @@
  */
 #include "tdynamicdatadialog.h"
 #include "ui_tdynamicdatadialog.h"
+#include "tcrypt.h"
 #include "terror.h"
 
 TDynamicDataDialog::TDynamicDataDialog(QWidget *parent)
@@ -99,8 +100,17 @@ void TDynamicDataDialog::setPassword(const QString& pass)
 {
     DECL_TRACER("TDynamicDataDialog::setPassword(const QString& pass)");
 
-    mPassword = pass;
-    ui->lineEditPassword->setText(pass);
+    TCrypt cr;
+    mPassword = cr.doDecrypt(pass, cr.getPassword());
+    ui->lineEditPassword->setText(mPassword);
+}
+
+QString TDynamicDataDialog::getPassword()
+{
+    DECL_TRACER("TDynamicDataDialog::getPassword()");
+
+    TCrypt cr;
+    return cr.doEncrypt(mPassword, cr.getPassword());
 }
 
 void TDynamicDataDialog::setRefreshRate(int rate)

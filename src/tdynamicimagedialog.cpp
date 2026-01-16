@@ -19,6 +19,7 @@
 
 #include "tdynamicimagedialog.h"
 #include "ui_tdynamicimagedialog.h"
+#include "tcrypt.h"
 #include "terror.h"
 
 TDynamicImageDialog::TDynamicImageDialog(QWidget *parent)
@@ -187,8 +188,17 @@ void TDynamicImageDialog::setPassword(const QString& pass)
 {
     DECL_TRACER("TDynamicImageDialog::setPassword(const QString& pass)");
 
-    mPassword = pass;
-    ui->lineEditPassword->setText(pass);
+    TCrypt cr;
+    mPassword = cr.doDecrypt(pass, cr.getPassword());
+    ui->lineEditPassword->setText(mPassword);
+}
+
+QString TDynamicImageDialog::getPassword()
+{
+    DECL_TRACER("TDynamicImageDialog::getPassword()");
+
+    TCrypt cr;
+    return cr.doEncrypt(mPassword, cr.getPassword());
 }
 
 void TDynamicImageDialog::setRefreshRate(int rr)

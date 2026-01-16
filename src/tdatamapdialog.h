@@ -19,10 +19,13 @@
 #define TDATAMAPDIALOG_H
 
 #include <QDialog>
+#include "tconfmain.h"
 
 namespace Ui {
 class TDataMapDialog;
 }
+
+class TDownloader;
 
 class TDataMapDialog : public QDialog
 {
@@ -40,7 +43,15 @@ class TDataMapDialog : public QDialog
             SORT_QUERY
         }SORT_t;
 
+        typedef enum
+        {
+            FORMAT_XPORT,
+            FORMAT_CSVHEAD,
+            FORMAT_CSV
+        }FORMAT_t;
+
         bool haveLive() { return mHaveLive; }
+        void setData(const ConfigMain::DATASOURCE_t& data);
 
         QString getPrimaryText() { return mPrimaryText; }
         QString getSecondaryText() { return mSecondaryText; }
@@ -55,6 +66,12 @@ class TDataMapDialog : public QDialog
         void setSort(SORT_t sort);
         void setColumns(const QStringList& cols);
         void setQuery(const QString& query);
+
+    protected:
+        void onReady();
+        void onError(const QString& msg);
+
+        void accept() override;
 
     private slots:
         void on_pushButtonGetFile_clicked();
@@ -86,6 +103,10 @@ class TDataMapDialog : public QDialog
         QStringList mColumns;
         QString mQuery;
         bool mHaveLive{false};
+        TDownloader *mLoader{nullptr};
+        ConfigMain::DATASOURCE_t mData;
+        bool mHaveData{false};          // TRUE = Data were set by a call to setData()
+        bool mInitialized{false};
 };
 
 #endif // TDATAMAPDIALOG_H

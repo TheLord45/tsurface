@@ -45,7 +45,7 @@ class TDynamicDataDialog : public QDialog
         QString getPath() { return mPath; }
         QString getFile() { return mFile; }
         QString getUser() { return mUser; }
-        QString getPassword() { return mPassword; }
+        QString getPassword();
         int getRefreshRate() { return mRefreshRate; }
         bool getForceData() { return mForceData; }
         FORMAT_t getFormat() { return mFormat; }

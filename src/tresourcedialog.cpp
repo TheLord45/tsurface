@@ -184,6 +184,11 @@ void TResourceDialog::on_pushButtonCut_clicked()
         copySoundFileToClipboard();
         removeSoundFile();
     }
+    else if (mTabSelected == SEL_DATASOURCE)
+    {
+        copyDynamicDataToClipboard();
+        removeDynamicData();
+    }
 }
 
 void TResourceDialog::on_pushButtonCopy_clicked()
@@ -196,6 +201,8 @@ void TResourceDialog::on_pushButtonCopy_clicked()
         copyDynamicImageToClipboard();
     else if (mTabSelected == SEL_SOUNDS)
         copySoundFileToClipboard();
+    else if (mTabSelected == SEL_DATASOURCE)
+        copyDynamicDataToClipboard();
 }
 
 void TResourceDialog::on_pushButtonPaste_clicked()
@@ -257,6 +264,20 @@ void TResourceDialog::on_pushButtonPaste_clicked()
         addSoundFile(basename(mClipboardText));
         mChanged = true;
     }
+    else if (mTabSelected == SEL_DATASOURCE)
+    {
+        if (mClipboardText.isEmpty())
+            return;
+
+        ConfigMain::DATASOURCE_t data = parseDynamicData(mClipboardText);
+
+        if (data.name.isEmpty())
+            return;
+
+        addDynamicData(data);
+        TConfMain::Current().setDynamicData(data);
+        mChanged = true;
+    }
 }
 
 void TResourceDialog::on_pushButtonDelete_clicked()
@@ -267,7 +288,7 @@ void TResourceDialog::on_pushButtonDelete_clicked()
     {
         QItemSelectionModel *model = ui->listViewImages->selectionModel();
 
-        if (model && model->hasSelection())
+        if (haveSelected(model))
         {
             int count = 0;
             QModelIndexList list = model->selectedIndexes();
@@ -318,11 +339,8 @@ void TResourceDialog::on_pushButtonDelete_clicked()
     {
         QItemSelectionModel *model = ui->tableViewDynamicImages->selectionModel();
 
-        if (!model || !model->hasSelection())
-        {
-            disableClipboardButtons();
+        if (!haveSelected(model))
             return;
-        }
 
         QModelIndexList list = model->selectedIndexes();
         QStandardItemModel *mod = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
@@ -336,6 +354,8 @@ void TResourceDialog::on_pushButtonDelete_clicked()
     }
     else if (mTabSelected == SEL_SOUNDS)
         removeSoundFile();
+    else if (mTabSelected == SEL_DATASOURCE)
+        removeDynamicData();
 }
 
 void TResourceDialog::on_pushButtonRename_clicked()
@@ -346,7 +366,7 @@ void TResourceDialog::on_pushButtonRename_clicked()
     {
         QItemSelectionModel *model = ui->listViewImages->selectionModel();
 
-        if (model && model->hasSelection())
+        if (haveSelected(model))
         {
             int count = 0;
             QModelIndexList list = model->selectedIndexes();
@@ -388,13 +408,9 @@ void TResourceDialog::on_pushButtonRename_clicked()
     {
         QItemSelectionModel *model = ui->tableViewDynamicImages->selectionModel();
 
-        if (model && model->hasSelection())
+        if (haveSelected(model))
         {
             QModelIndexList list = model->selectedIndexes();
-
-            if (list.empty())
-                return;
-
             int row = list[0].row();
             QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamicImages->model());
             QStandardItem *item = model->item(row, 0);
@@ -405,20 +421,10 @@ void TResourceDialog::on_pushButtonRename_clicked()
     {
         QItemSelectionModel *model = ui->tableViewDynamicDataSources->selectionModel();
 
-        if (!model || !model->hasSelection())
-        {
-            disableClipboardButtons();
+        if (!haveSelected(model))
             return;
-        }
 
         QModelIndexList list = model->selectedIndexes();
-
-        if (list.empty())
-        {
-            disableClipboardButtons();
-            return;
-        }
-
         QString name = list[0].data().toString();
         int row = list[0].row();
         QStandardItemModel *m = static_cast<QStandardItemModel *>(ui->tableViewDynamicDataSources->model());
@@ -508,11 +514,8 @@ void TResourceDialog::on_pushButtonExport_clicked()
     {
         QItemSelectionModel *model = ui->listViewImages->selectionModel();
 
-        if (!model || !model->hasSelection())
-        {
-            disableClipboardButtons();
+        if (!haveSelected(model))
             return;
-        }
 
         QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory"), mLastOpenPath);
 
@@ -559,11 +562,8 @@ void TResourceDialog::on_pushButtonExport_clicked()
     {
         QItemSelectionModel *model = ui->tableViewSounds->selectionModel();
 
-        if (!model || !model->hasSelection())
-        {
-            disableClipboardButtons();
+        if (!haveSelected(model))
             return;
-        }
 
         QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory"), mLastOpenPath);
 
@@ -606,30 +606,21 @@ void TResourceDialog::on_pushButtonDataMap_clicked()
 
     QItemSelectionModel *model = ui->tableViewDynamicDataSources->selectionModel();
 
-    if (!model || !model->hasSelection())
-    {
-        disableClipboardButtons();
+    if (!haveSelected(model))
         return;
-    }
 
     QModelIndexList list = model->selectedRows(0);
-
-    if (list.empty())
-    {
-        disableClipboardButtons();
-        return;
-    }
-
     QString name = ui->tableViewDynamicDataSources->model()->data(list[0]).toString();
     ConfigMain::DATASOURCE_t data = TConfMain::Current().getDynamicData(name);
 
+    if (data.name.isEmpty())
+    {
+        MSG_WARNING("Got no data for " << name.toStdString() << "!");
+        return;
+    }
+
     TDataMapDialog mapDialog(this);
-    mapDialog.setPrimaryText(data.mapIdT1);
-    mapDialog.setSecondaryText(data.mapIdT2);
-    mapDialog.setImageName(data.mapIdI1);
-    mapDialog.setColumns(data.sortOrder);
-    mapDialog.setQuery(data.sortQuery);
-    mapDialog.setSort(static_cast<TDataMapDialog::SORT_t>(data.sort));
+    mapDialog.setData(data);
 
     if (mapDialog.exec() == QDialog::Rejected)
         return;
@@ -640,7 +631,21 @@ void TResourceDialog::on_pushButtonDataMap_clicked()
     data.sortOrder = mapDialog.getColumns();
     data.sortQuery = mapDialog.getQuery();
     data.sort = static_cast<ConfigMain::SORTMAP_t>(mapDialog.getSort());
+    data.live = mapDialog.haveLive();
     TConfMain::Current().setDynamicData(data);
+    QStandardItemModel *m = static_cast<QStandardItemModel *>(ui->tableViewDynamicDataSources->model());
+    QStandardItem *item = m->item(list[0].row(), 5);
+    item->setText(data.live ? "Yes" : "No");
+    m->setItem(list[0].row(), 5, item);
+
+    item = m->item(list[0].row(), 4);
+
+    if (!data.mapIdT1.isEmpty() || !data.mapIdT2.isEmpty() || !data.mapIdI1.isEmpty())
+        item->setText("Yes");
+
+    m->setItem(list[0].row(), 4, item);
+
+    mChanged = true;
 }
 
 void TResourceDialog::on_comboBoxStyle_currentIndexChanged(int index)
@@ -675,6 +680,11 @@ void TResourceDialog::on_tabWidgetAction_tabBarClicked(int index)
         ui->pushButtonImport->setText(tr("New"));
         ui->pushButtonRename->setIcon(QIcon(":/images/show-menu.png"));
         ui->pushButtonRename->setText(tr("Edit"));
+
+        if (mTabSelected == SEL_DATASOURCE)
+            ui->pushButtonExport->setDisabled(true);
+        else
+            ui->pushButtonExport->setDisabled(false);
     }
     else
     {
@@ -682,14 +692,29 @@ void TResourceDialog::on_tabWidgetAction_tabBarClicked(int index)
         ui->pushButtonImport->setText(tr("Import"));
         ui->pushButtonRename->setIcon(QIcon(":/images/show-menu.png"));
         ui->pushButtonRename->setText(tr("Rename"));
+        ui->pushButtonExport->setDisabled(false);
     }
+
+    QItemSelectionModel *model = nullptr;
 
     switch(mTabSelected)
     {
-        case SEL_IMAGES:    setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), ""); break;
-        case SEL_DYNIMAGES: setLabel(LABEL_RESOURCES, ui->tableViewDynamicImages->model()->rowCount(), ""); break;
-        case SEL_SOUNDS:    setLabel(LABEL_SOUND, mSoundFiles.size(), ""); break;
-        case SEL_DATASOURCE:setLabel(LABEL_RESOURCES, mDynamicData.size(), ""); break;
+        case SEL_IMAGES:
+            setLabel(LABEL_LISTVIEW, ui->listViewImages->model()->rowCount(), "");
+            model = ui->tableViewDynamicDataSources->selectionModel();
+        break;
+
+        case SEL_DYNIMAGES:
+            setLabel(LABEL_RESOURCES, ui->tableViewDynamicImages->model()->rowCount(), "");
+        break;
+
+        case SEL_SOUNDS:
+            setLabel(LABEL_SOUND, ui->tableViewSounds->model()->rowCount(), "");
+        break;
+
+        case SEL_DATASOURCE:
+            setLabel(LABEL_RESOURCES, ui->tableViewDynamicDataSources->model()->rowCount(), "");
+        break;
     }
 }
 
@@ -797,7 +822,7 @@ void TResourceDialog::onClipboardDataChanged()
         else
             ui->pushButtonPaste->setDisabled(false);
     }
-    else if (mTabSelected == SEL_DYNIMAGES || mTabSelected == SEL_SOUNDS)
+    else if (mTabSelected == SEL_DYNIMAGES || mTabSelected == SEL_SOUNDS || mTabSelected == SEL_DATASOURCE)
     {
         mClipboardText = mClipboard->text(mClipboardMode);
 
@@ -1047,7 +1072,9 @@ void TResourceDialog::enableClipboardButtons()
     ui->pushButtonPaste->setDisabled(false);
     ui->pushButtonDelete->setDisabled(false);
     ui->pushButtonRename->setDisabled(false);
-    ui->pushButtonExport->setDisabled(false);
+
+    if (mTabSelected != SEL_DATASOURCE)
+        ui->pushButtonExport->setDisabled(false);
 
     if (mTabSelected == SEL_DATASOURCE)
     {
@@ -1068,11 +1095,8 @@ void TResourceDialog::copyImagesToClipboard()
     {
         QItemSelectionModel *model = ui->listViewImages->selectionModel();
 
-        if (!model || !model->hasSelection())
-        {
-            disableClipboardButtons();
+        if (!haveSelected(model))
             return;
-        }
 
         if (mClipboard)
         {
@@ -1097,11 +1121,8 @@ void TResourceDialog::copyDynamicImageToClipboard()
 
     QItemSelectionModel *selModel = ui->tableViewDynamicImages->selectionModel();
 
-    if (!selModel || !selModel->hasSelection())
-    {
-        disableClipboardButtons();
+    if (!haveSelected(selModel))
         return;
-    }
 
     if (!mClipboard)
         return;
@@ -1281,13 +1302,7 @@ void TResourceDialog::editDynamicData(ConfigMain::DATASOURCE_t& data)
     dataDialog.setPassword(data.password);
     dataDialog.setRefreshRate(data.refreshRate);
     dataDialog.setForceData(data.force);
-
-    if (data.format == "xport-s")
-        dataDialog.setFormat(TDynamicDataDialog::FORMAT_XPORT);
-    else if (data.format == "csv-headers")
-        dataDialog.setFormat(TDynamicDataDialog::FORMAT_CSVHEAD);
-    else
-        dataDialog.setFormat(TDynamicDataDialog::FORMAT_CSV);
+    dataDialog.setFormat(static_cast<TDynamicDataDialog::FORMAT_t>(getFormatFromString(data.format)));
 
     if (dataDialog.exec() == QDialog::Rejected)
         return;
@@ -1308,7 +1323,8 @@ void TResourceDialog::editDynamicData(ConfigMain::DATASOURCE_t& data)
     data.password = dataDialog.getPassword();
     data.refreshRate = dataDialog.getRefreshRate();
     data.force = dataDialog.getForceData();
-    data.protocol = getFormat(dataDialog.getFormat());
+    data.protocol = dataDialog.getProtocol();
+    data.format = getFormat(dataDialog.getFormat());
 
     if (neu)
         addDynamicData(data);
@@ -1341,6 +1357,84 @@ void TResourceDialog::editDynamicData(ConfigMain::DATASOURCE_t& data)
     ui->tableViewDynamicDataSources->resizeColumnsToContents();
     setLabel(LABEL_RESOURCES, ui->tableViewDynamicDataSources->model()->rowCount(), "");
     mChanged = true;
+}
+
+void TResourceDialog::removeDynamicData()
+{
+    DECL_TRACER("TResourceDialog::removeDynamicData()");
+
+    QItemSelectionModel *model = ui->tableViewDynamicDataSources->selectionModel();
+
+    if (!haveSelected(model))
+        return;
+
+    QModelIndexList idxList = model->selectedRows();
+    QString name = idxList[0].data().toString();
+    ui->tableViewDynamicDataSources->model()->removeRow(idxList[0].row());
+    TConfMain::Current().removeDynamicData(name);
+    disableClipboardButtons();
+    setLabel(LABEL_RESOURCES, ui->tableViewDynamicDataSources->model()->rowCount(), "");
+    mChanged = true;
+}
+
+void TResourceDialog::copyDynamicDataToClipboard()
+{
+    DECL_TRACER("TResourceDialog::copyDynamicDataToClipboard()");
+
+    if (!mClipboard)
+        return;
+
+    QItemSelectionModel *model = ui->tableViewDynamicDataSources->selectionModel();
+
+    if (!haveSelected(model))
+        return;
+
+    QModelIndexList idxList = model->selectedRows();
+    QString name = idxList[0].data().toString();
+    ConfigMain::DATASOURCE_t data = TConfMain::Current().getDynamicData(name);
+    QString txt = data.name + ";" + data.protocol + ";" + data.host + ";" + data.path + ";" +
+                  data.file + ";" + data.user + ";" + data.password + ";" + data.format + ";" +
+                  (data.force ? "true" : "false") + ";" + QString("%1").arg(data.refreshRate);
+
+    mClipboard->setText(txt);
+}
+
+ConfigMain::DATASOURCE_t TResourceDialog::parseDynamicData(const QString& txt)
+{
+    DECL_TRACER("TResourceDialog::parseDynamicData(const QString& txt)");
+
+    ConfigMain::DATASOURCE_t data;
+
+    if (!txt.contains(";") || txt.length() > 512)
+        return data;
+
+    QStringList parts = txt.split(';');
+
+    if (parts.size() < 10 || (parts[1] != "http" && parts[1] != "https"))
+        return data;
+
+    if (parts[7] != "xport-s" && parts[7] != "csv-headers" && parts[7] != "csv")
+        return data;
+
+    if (parts[8] != "true" && parts[8] != "false")
+        return data;
+
+    data.name = parts[0];
+    data.protocol = parts[1];
+    data.host = parts[2];
+    data.path = parts[3];
+    data.file = parts[4];
+    data.user = parts[5];
+    data.password = parts[6];
+    data.format = parts[7];
+
+    if (parts[8] == "true")
+        data.force = true;
+    else
+        data.force = false;
+
+    data.refreshRate = parts[9].toInt();
+    return data;
 }
 
 QString TResourceDialog::getUrl(const ConfigMain::RESOURCE_t& res)
@@ -1391,6 +1485,20 @@ QString TResourceDialog::getFormat(int format)
     }
 
     return QString();
+}
+
+int TResourceDialog::getFormatFromString(const QString& format)
+{
+    DECL_TRACER("TResourceDialog::getFormatFromString(const QString& format)");
+
+    if (format.compare("xport-s", Qt::CaseInsensitive) == 0)
+        return TDynamicDataDialog::FORMAT_XPORT;
+    else if (format.compare("csv-headers", Qt::CaseInsensitive) == 0)
+        return TDynamicDataDialog::FORMAT_CSVHEAD;
+    else if (format.compare("csv", Qt::CaseInsensitive) == 0)
+        return TDynamicDataDialog::FORMAT_CSV;
+    else
+        return TDynamicDataDialog::FORMAT_XPORT;
 }
 
 void TResourceDialog::addSoundFile(const QString& file, QStandardItemModel *model)
@@ -1476,20 +1584,10 @@ void TResourceDialog::removeSoundFile()
 
     QItemSelectionModel *model = ui->tableViewSounds->selectionModel();
 
-    if (!model || !model->hasSelection())
-    {
-        disableClipboardButtons();
+    if (!haveSelected(model))
         return;
-    }
 
     QModelIndexList idxList = model->selectedRows();
-
-    if (idxList.empty())
-    {
-        disableClipboardButtons();
-        return;
-    }
-
     QString file = idxList[0].data().toString();
 
     if (!TMaps::Current().removeSound(file))
@@ -1507,10 +1605,24 @@ void TResourceDialog::copySoundFileToClipboard()
 
     QItemSelectionModel *model = ui->tableViewSounds->selectionModel();
 
+    if (!haveSelected(model))
+        return;
+
+    QModelIndexList idxList = model->selectedRows();
+    QString file = idxList[0].data().toString();
+
+    if (mClipboard)
+        mClipboard->setText(file);
+}
+
+bool TResourceDialog::haveSelected(QItemSelectionModel *model)
+{
+    DECL_TRACER("TResourceDialog::haveSelected(QItemSelectionModel *model)");
+
     if (!model || !model->hasSelection())
     {
         disableClipboardButtons();
-        return;
+        return false;
     }
 
     QModelIndexList idxList = model->selectedRows();
@@ -1518,11 +1630,8 @@ void TResourceDialog::copySoundFileToClipboard()
     if (idxList.empty())
     {
         disableClipboardButtons();
-        return;
+        return false;
     }
 
-    QString file = idxList[0].data().toString();
-
-    if (mClipboard)
-        mClipboard->setText(file);
+    return true;
 }

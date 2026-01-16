@@ -32,6 +32,7 @@ class QItemSelection;
 class QFileDialog;
 class QStandardItem;
 class QStandardItemModel;
+class QItemSelectionModel;
 
 class TResourceDialog : public QDialog
 {
@@ -81,6 +82,7 @@ class TResourceDialog : public QDialog
         void disableClipboardButtons();
         void enableClipboardButtons();
         void copyImagesToClipboard();
+        bool haveSelected(QItemSelectionModel *model);
 
         void addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model=nullptr);
         void editDynamicResource(const QString& name, bool neu=false);
@@ -102,6 +104,10 @@ class TResourceDialog : public QDialog
         QString getUrl(const ConfigMain::DATASOURCE_t& data);
         void editDynamicData(ConfigMain::DATASOURCE_t& data);
         QString getFormat(int format);
+        int getFormatFromString(const QString& format);
+        void removeDynamicData();
+        void copyDynamicDataToClipboard();
+        ConfigMain::DATASOURCE_t parseDynamicData(const QString& txt);
 
     private slots:
         void on_pushButtonCut_clicked();

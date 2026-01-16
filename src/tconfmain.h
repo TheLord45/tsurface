@@ -171,6 +171,7 @@ class TConfMain
         void saveProject();
         void reset();
         void removeDynamicImage(const QString& name);
+        void removeDynamicData(const QString& name);
 
         // Setter
         void setDefaultPanelType(TPanelType::PANELTYPE_t pt) { mPanType = pt; }

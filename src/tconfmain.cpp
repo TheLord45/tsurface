@@ -610,6 +610,22 @@ DATASOURCE_t TConfMain::getDynamicData(const QString& name)
     return DATASOURCE_t();
 }
 
+void TConfMain::removeDynamicData(const QString& name)
+{
+    DECL_TRACER("TConfMain::removeDynamicData(const QString& name)");
+
+    QList<DATASOURCE_t>::Iterator iter;
+
+    for (iter = mConfMain->dataSourceList.begin(); iter != mConfMain->dataSourceList.end(); ++iter)
+    {
+        if (iter->name == name)
+        {
+            mConfMain->dataSourceList.erase(iter);
+            return;
+        }
+    }
+}
+
 QList<DATASOURCE_t>& TConfMain::getAllDynamicData()
 {
     DECL_TRACER("TConfMain::getAllDynamicData()");
@@ -749,7 +765,7 @@ void TConfMain::saveProject()
         entry.insert("force", dresIter->force);
         entry.insert("format", dresIter->format);
         entry.insert("sort", dresIter->sort);
-        entry.insert("mapIdT1", dresIter->mapIdI1);
+        entry.insert("mapIdT1", dresIter->mapIdT1);
         entry.insert("mapIdT2", dresIter->mapIdT2);
         entry.insert("mapIdI1", dresIter->mapIdI1);
         entry.insert("sortAdv", dresIter->sortQuery);

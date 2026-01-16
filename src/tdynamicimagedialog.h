@@ -44,7 +44,7 @@ class TDynamicImageDialog : public QDialog
         void setFile(const QString& file);
         QString getUser() { return mUser; }
         void setUser(const QString& user);
-        QString getPassword() { return mPassword; }
+        QString getPassword();
         void setPassword(const QString& pass);
         int getRefreshRate() { return mRefreshRate; }
         void setRefreshRate(int rr);
