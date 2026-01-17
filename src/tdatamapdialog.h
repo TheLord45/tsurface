@@ -59,6 +59,9 @@ class TDataMapDialog : public QDialog
         SORT_t getSort() { return mSort; }
         QStringList getColumns() { return mColumns; }
         QString getQuery() { return mQuery; }
+        QString getDelimiter() { return mDelimiter; }
+        bool getQuoted() { return mQuoted; }
+        int getHeadlines() { return mHeadlines; }
 
         void setPrimaryText(const QString& txt);
         void setSecondaryText(const QString& txt);
@@ -66,6 +69,9 @@ class TDataMapDialog : public QDialog
         void setSort(SORT_t sort);
         void setColumns(const QStringList& cols);
         void setQuery(const QString& query);
+        void setDelimiter(const QString& deli);
+        void setQuoted(bool quote);
+        void setHeadlines(int lines);
 
     protected:
         void onReady();
@@ -92,6 +98,10 @@ class TDataMapDialog : public QDialog
         void on_pushButtonColumnDown_clicked();
         void on_comboBoxColumnSelect_currentIndexChanged(int index);
         void on_lineEditQuery_textChanged(const QString &arg1);
+        void on_comboBoxDelimiter_currentIndexChanged(int index);
+        void on_comboBoxDelimiter_editTextChanged(const QString &arg1);
+        void on_checkBoxCSVQoted_clicked(bool checked);
+        void on_spinBoxCSVHeadLines_valueChanged(int arg1);
 
     private:
         Ui::TDataMapDialog *ui;
@@ -102,6 +112,9 @@ class TDataMapDialog : public QDialog
         SORT_t mSort{SORT_NONE};
         QStringList mColumns;
         QString mQuery;
+        QString mDelimiter;
+        bool mQuoted{false};
+        int mHeadlines{0};
         bool mHaveLive{false};
         TDownloader *mLoader{nullptr};
         ConfigMain::DATASOURCE_t mData;

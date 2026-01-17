@@ -426,6 +426,9 @@ bool TConfMain::readProject(const QString& path)
         dres.mapIdT2 = entry.value("mapIdT2").toString();
         dres.mapIdI1 = entry.value("mapIdI1").toString();
         dres.sortQuery = entry.value("sortAdv").toString();
+        dres.delimiter = entry.value("delimiter").toString(";");
+        dres.quoted = entry.value("quoted").toBool(false);
+        dres.headlines = entry.value("headlines").toInt(0);
 
         QJsonArray sortOrder = entry.value("sortList").toArray();
 
@@ -586,6 +589,9 @@ void TConfMain::setDynamicData(const DATASOURCE_t& data)
                 iter->sort = data.sort;
                 iter->sortOrder = data.sortOrder;
                 iter->sortQuery = data.sortQuery;
+                iter->delimiter = data.delimiter;
+                iter->quoted = data.quoted;
+                iter->headlines = data.headlines;
                 iter->live = data.live;
                 return;
             }
@@ -769,6 +775,9 @@ void TConfMain::saveProject()
         entry.insert("mapIdT2", dresIter->mapIdT2);
         entry.insert("mapIdI1", dresIter->mapIdI1);
         entry.insert("sortAdv", dresIter->sortQuery);
+        entry.insert("delimiter", dresIter->delimiter);
+        entry.insert("quoted", dresIter->quoted);
+        entry.insert("headlines", dresIter->headlines);
 
         if (!dresIter->sortOrder.empty())
         {

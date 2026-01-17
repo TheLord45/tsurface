@@ -136,6 +136,10 @@ namespace ConfigMain
         QStringList sortOrder;
         QString sortQuery;      // Only if sort order = SORT_ADVANCED
         bool live{false};       // Internal use; TRUE = there was a successfull live data request.
+        // For CSV specifying
+        QString delimiter;      // The delimiter for the columns of a CSV
+        bool quoted{false};     // TRUE = The string is quoted with a character
+        int headlines{0};       // The number of headlines
     }DATASOURCE_t;
 
     typedef struct CONFMAIN_t

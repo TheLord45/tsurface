@@ -71,6 +71,9 @@ void TDataMapDialog::setData(const ConfigMain::DATASOURCE_t& data)
     setImageName(data.mapIdI1);
     setQuery(data.sortQuery);
     setSort(static_cast<SORT_t>(data.sort));
+    setDelimiter(data.delimiter);
+    setQuoted(data.quoted);
+    setHeadlines(data.headlines);
     mHaveLive = data.live;
 
     if (!data.sortOrder.empty())
@@ -172,6 +175,38 @@ void TDataMapDialog::setQuery(const QString& query)
     ui->lineEditQuery->setText(query);
 }
 
+void TDataMapDialog::setDelimiter(const QString& deli)
+{
+    DECL_TRACER("TDataMapDialog::setDelimiter(const QString& deli)");
+
+    mDelimiter = deli;
+
+    if (deli != ";" && deli != "|" && deli != ":")
+        ui->comboBoxDelimiter->insertItem(0, deli);
+}
+
+void TDataMapDialog::setQuoted(bool quote)
+{
+    DECL_TRACER("TDataMapDialog::setQuoted(bool quote)");
+
+    mQuoted = quote;
+    ui->checkBoxCSVQoted->setCheckState(quote ? Qt::Checked : Qt::Unchecked);
+}
+
+void TDataMapDialog::setHeadlines(int lines)
+{
+    DECL_TRACER("TDataMapDialog::setHeadlines(int lines)");
+
+    if (lines < 0)
+        mHeadlines = 0;
+    else if (lines > 10)
+        mHeadlines = 10;
+    else
+        mHeadlines = lines;
+
+    ui->spinBoxCSVHeadLines->setValue(mHeadlines);
+}
+
 void TDataMapDialog::on_pushButtonGetFile_clicked()
 {
     DECL_TRACER("TDataMapDialog::on_pushButtonGetFile_clicked()");
@@ -235,6 +270,9 @@ void TDataMapDialog::on_comboBoxSelectT1_currentIndexChanged(int index)
     if (!mInitialized)
         return;
 
+    if (ui->comboBoxSelectT1->itemText(index) == "Select ...")
+        return;
+
     setPrimaryText(ui->comboBoxSelectT1->itemText(index));
 }
 
@@ -245,6 +283,9 @@ void TDataMapDialog::on_comboBoxSelectT2_currentIndexChanged(int index)
     if (!mInitialized)
         return;
 
+    if (ui->comboBoxSelectT2->itemText(index) == "Select ...")
+        return;
+
     setSecondaryText(ui->comboBoxSelectT2->itemText(index));
 }
 
@@ -253,6 +294,9 @@ void TDataMapDialog::on_comboBoxSelectImage_currentIndexChanged(int index)
     DECL_TRACER("TDataMapDialog::on_comboBoxSelectImage_currentIndexChanged(int index)");
 
     if (!mInitialized)
+        return;
+
+    if (ui->comboBoxSelectImage->itemText(index) == "Select ...")
         return;
 
     setImageName(ui->comboBoxSelectImage->itemText(index));
@@ -390,6 +434,11 @@ void TDataMapDialog::on_comboBoxColumnSelect_currentIndexChanged(int index)
 {
     DECL_TRACER("TDataMapDialog::on_comboBoxColumnSelect_currentIndexChanged(int index)");
 
+    QString itemText = ui->comboBoxColumnSelect->itemText(index);
+
+    if (itemText == "Select ...")
+        return;
+
     QItemSelectionModel *selModel = ui->listViewColums->selectionModel();
 
     if (!selModel || !selModel->hasSelection())
@@ -402,13 +451,41 @@ void TDataMapDialog::on_comboBoxColumnSelect_currentIndexChanged(int index)
 
     QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->listViewColums->model());
     int row = list[0].row();
-    model->item(row, 0)->setText(ui->comboBoxColumnSelect->itemText(index));
+    model->item(row, 0)->setText(itemText);
 }
 
 
 void TDataMapDialog::on_lineEditQuery_textChanged(const QString &arg1)
 {
     mQuery = arg1;
+}
+
+void TDataMapDialog::on_comboBoxDelimiter_currentIndexChanged(int index)
+{
+    DECL_TRACER("TDataMapDialog::on_comboBoxDelimiter_currentIndexChanged(int index)");
+
+    mDelimiter = ui->comboBoxDelimiter->itemText(index);
+}
+
+void TDataMapDialog::on_comboBoxDelimiter_editTextChanged(const QString &arg1)
+{
+    DECL_TRACER("TDataMapDialog::on_comboBoxDelimiter_editTextChanged(const QString &arg1)");
+
+    mDelimiter = arg1;
+}
+
+void TDataMapDialog::on_checkBoxCSVQoted_clicked(bool checked)
+{
+    DECL_TRACER("TDataMapDialog::on_checkBoxCSVQoted_clicked(bool checked)");
+
+    mQuoted = checked;
+}
+
+void TDataMapDialog::on_spinBoxCSVHeadLines_valueChanged(int arg1)
+{
+    DECL_TRACER("TDataMapDialog::on_spinBoxCSVHeadLines_valueChanged(int arg1)");
+
+    mHeadlines = arg1;
 }
 
 void TDataMapDialog::accept()
@@ -450,31 +527,68 @@ void TDataMapDialog::onReady()
         return;
     }
 
-    if (mData.format != "xport-s" && buffer.contains(";"))
+    if (mData.format != "xport-s" && buffer.contains(mDelimiter))
     {
         // Get the first line from the buffer
         qsizetype pos = buffer.indexOf('\n');
+        QString line;
+
+        if (pos > 0)
+            line = buffer.left(pos);
+
+        if (mData.format.startsWith("csv") && mHeadlines > 1 && pos >= 0)
+        {
+            QStringList lines = buffer.split("\n");
+
+            if (lines.size() >= mHeadlines)
+                line = lines[mHeadlines - 1];
+        }
 
         if (pos > 0)
         {
-            QString line = buffer.left(pos);
-            QStringList parts = line.split(";");
+            QStringList parts = line.split(mDelimiter);
             ui->labelInfo->setText(tr("Data were successfully downloaded! There are %1 columns in the file.").arg(parts.size()));
+
+            mInitialized = false;
+            ui->comboBoxSelectT1->clear();
+            ui->comboBoxSelectT2->clear();
+            ui->comboBoxSelectImage->clear();
+            ui->comboBoxColumnSelect->clear();
+
+            ui->comboBoxSelectT1->addItem("Select ...");
+            ui->comboBoxSelectT2->addItem("Select ...");
+            ui->comboBoxSelectImage->addItem("Select ...");
+            ui->comboBoxColumnSelect->addItem("Select ...");
 
             if (mData.format == "csv-headers")
             {
-                mInitialized = false;
-                ui->comboBoxSelectT1->clear();
-                ui->comboBoxSelectT2->clear();
-                ui->comboBoxSelectImage->clear();
-                ui->comboBoxColumnSelect->clear();
+                if (mQuoted)
+                {
+                    QStringList::Iterator iter;
+
+                    for (iter = parts.begin(); iter != parts.end(); ++iter)
+                        *iter = iter->mid(1, iter->length() - 2);
+                }
 
                 ui->comboBoxSelectT1->addItems(parts);
                 ui->comboBoxSelectT2->addItems(parts);
                 ui->comboBoxSelectImage->addItems(parts);
                 ui->comboBoxColumnSelect->addItems(parts);
-                mInitialized = true;
             }
+            else
+            {
+                for (int i = 0; i < parts.size(); ++i)
+                {
+                    QString col = QString("Column %1").arg(i + 1);
+
+                    ui->comboBoxSelectT1->addItem(col);
+                    ui->comboBoxSelectT2->addItem(col);
+                    ui->comboBoxSelectImage->addItem(col);
+                    ui->comboBoxColumnSelect->addItem(col);
+                }
+            }
+
+            mInitialized = true;
         }
         else
             ui->labelInfo->setText(tr("Data were downloaded. Got %1 Bytes.").arg(buffer.length()));
@@ -492,3 +606,4 @@ void TDataMapDialog::onError(const QString& msg)
     ui->labelInfo->setText(msg);
     mHaveLive = false;
 }
+

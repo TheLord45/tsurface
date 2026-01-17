@@ -631,6 +631,9 @@ void TResourceDialog::on_pushButtonDataMap_clicked()
     data.sortOrder = mapDialog.getColumns();
     data.sortQuery = mapDialog.getQuery();
     data.sort = static_cast<ConfigMain::SORTMAP_t>(mapDialog.getSort());
+    data.delimiter = mapDialog.getDelimiter();
+    data.quoted = mapDialog.getQuoted();
+    data.headlines = mapDialog.getHeadlines();
     data.live = mapDialog.haveLive();
     TConfMain::Current().setDynamicData(data);
     QStandardItemModel *m = static_cast<QStandardItemModel *>(ui->tableViewDynamicDataSources->model());
