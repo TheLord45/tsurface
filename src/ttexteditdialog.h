@@ -15,24 +15,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#include "tmisc.h"
+#ifndef TTEXTEDITDIALOG_H
+#define TTEXTEDITDIALOG_H
 
-QString basename(const QString& path)
-{
-    qsizetype pos = path.lastIndexOf('/');
+#include <QDialog>
 
-    if (pos < 0)
-        return path;
-
-    return path.mid(pos + 1);
+namespace Ui {
+class TTextEditDialog;
 }
 
-QString pathname(const QString& path)
+class TTextEditDialog : public QDialog
 {
-    qsizetype pos = path.lastIndexOf('/');
+    Q_OBJECT
 
-    if (pos < 0)
-        return ".";
+    public:
+        explicit TTextEditDialog(QWidget *parent = nullptr);
+        ~TTextEditDialog();
 
-    return path.left(pos);
-}
+        void setDescription(const QString& text);
+        QString& getDescription() { return mText; }
+        void setCaption(const QString& text);
+
+    private slots:
+        void on_plainTextEditDescription_textChanged();
+
+    private:
+        Ui::TTextEditDialog *ui;
+        QString mText;
+};
+
+#endif // TTEXTEDITDIALOG_H

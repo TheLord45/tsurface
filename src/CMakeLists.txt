@@ -30,6 +30,9 @@ if(APPLE)
 endif(APPLE)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
 qt_add_executable(tsurface
     main.cpp
@@ -102,10 +105,17 @@ qt_add_executable(tsurface
     tcrypt.h
     base64.cpp
     base64.h
+    tpropertiesgeneral.h tpropertiesgeneral.cpp
+    tworkspacehandler.h tworkspacehandler.cpp
+    ttexteditdialog.h ttexteditdialog.cpp ttexteditdialog.ui
+    tcomboboxitemdelegate.h tcomboboxitemdelegate.cpp
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 
 # Install the executable

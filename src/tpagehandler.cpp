@@ -279,6 +279,54 @@ PAGE_t TPageHandler::getPage(int number)
     return PAGE_t();
 }
 
+PAGE_t TPageHandler::getPage(const QString& name)
+{
+    DECL_TRACER("TPageHandler::getPage(const QString& name)");
+
+    if (name.isEmpty())
+    {
+        MSG_ERROR("No page name!");
+        return PAGE_t();
+    }
+
+    if (mPages.empty())
+        return PAGE_t();
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == PT_PAGE && iter->name == name)
+            return *iter;
+    }
+
+    return PAGE_t();
+}
+
+PAGE_t TPageHandler::getPopup(const QString& name)
+{
+    DECL_TRACER("TPageHandler::getPopup(const QString& name)");
+
+    if (name.isEmpty())
+    {
+        MSG_ERROR("No popup name!");
+        return PAGE_t();
+    }
+
+    if (mPages.empty())
+        return PAGE_t();
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == PT_POPUP && iter->name == name)
+            return *iter;
+    }
+
+    return PAGE_t();
+}
+
 void TPageHandler::setPage(PAGE_t& page)
 {
     DECL_TRACER("TPageHandler::setPage(PAGE_t& page)");
@@ -381,6 +429,7 @@ bool TPageHandler::savePage(const PAGE_t& page)
     root.insert("type", page.popupType);
     root.insert("pageID", page.pageID);
     root.insert("name", page.name);
+    root.insert("description", page.description);
     root.insert("width", page.width);
     root.insert("height", page.height);
     root.insert("collapseDirection", page.collapseDirection);
@@ -414,6 +463,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     root.insert("type", popup.popupType);
     root.insert("pageID", popup.pageID);
     root.insert("name", popup.name);
+    root.insert("description", popup.description);
     root.insert("width", popup.width);
     root.insert("height", popup.height);
     root.insert("left", popup.left);
@@ -614,6 +664,7 @@ void TPageHandler::parsePage(const QJsonObject& page)
     pg.popupType = static_cast<PAGE_TYPE>(page.value("type").toInt(PT_UNKNOWN));
     pg.pageID = page.value("pageID").toInt(0);
     pg.name = page.value("name").toString();
+    pg.description = page.value("description").toString();
     pg.left = page.value("left").toInt(0);
     pg.top = page.value("top").toInt(0);
     pg.width = page.value("width").toInt(0);

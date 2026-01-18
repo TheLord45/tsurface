@@ -22,6 +22,7 @@
 #include <QString>
 #include <QObject>
 
+class QWidget;
 class QTreeView;
 class QStandardItemModel;
 class QMenu;
@@ -30,13 +31,12 @@ class QStandardItem;
 
 class TPageTree : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
 
     public:
-        TPageTree();
+        TPageTree(QTreeView *tree, QWidget *parent=nullptr);
         ~TPageTree();
 
-        static TPageTree& Current();
         const int MENU_PAGE = 10001;
         const int MENU_POPUP = 10002;
         const int MENU_SUBPAGES = 10003;
@@ -61,19 +61,21 @@ class TPageTree : public QObject
             WTYPE_APP
         }WINTYPE_t;
 
-        void createNewTree(QTreeView *tv, const QString& job, const QString& pname, const QString& panel);
-        void createTree(QTreeView *tv, const QString& job, const QString& panel);
-        void reset();
-        void addPage(const QString& name, int num);
-        void addPopup(const QString& name, int num);
+        void setParent(QWidget *parent) { mParent = parent; }
+        void setTreeView(QTreeView *tree) { mTreeView = tree; }
+        void createNewTree(const QString& job, const QString& pname, const QString& panel);
+        void createTree(const QString& job, const QString& panel);
+        void resetTree();
+        void addTreePage(const QString& name, int num);
+        void addTreePopup(const QString& name, int num);
 //        void addSubPage(const QString& name, int num);
 //        void addApp(const QString& name, int num);
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);
-        void toFront(int number);
-        void addNewPage();
-        void addNewPopup();
+        void windowToFront(int number);
+        void addNewTreePage();
+        void addNewTreePopup();
 //        void addNewSubPage();
 //        void addNewApp();
 
@@ -93,11 +95,11 @@ class TPageTree : public QObject
         void onMenuTriggeredDelete(bool checked);
 
         void menuPopup();
+        TPageTree *getPointer() { return this; }
 
     private:
-        static TPageTree *mCurrent;
-
         QTreeView *mTreeView{nullptr};
+        QWidget *mParent{nullptr};
         QStandardItemModel *mItemModel{nullptr};
         QStandardItem *mPages{nullptr};     // Pointer to tree part containing the pages
         QStandardItem *mPopup{nullptr};     // Pointer to tree part containing the popups

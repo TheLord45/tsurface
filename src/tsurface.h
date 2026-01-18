@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "tpagetree.h"
+#include "tpagehandler.h"
 
 namespace Ui {
 class tsurface;
@@ -56,6 +57,7 @@ class TSurface : public QMainWindow
         void onAddNewPopup();
         void onActionShowChannels(bool checked);
         void onItemToFront(int id);
+        void onDataChanged(Page::PAGE_t *page);
 
     private slots:
         // Menu: File

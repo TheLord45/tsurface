@@ -162,6 +162,7 @@ namespace Page
         PAGE_TYPE popupType{PT_UNKNOWN};        // The type of the popup (popup only)
         int pageID{0};                          // Unique ID of popup/page
         QString name;                           // The name of the popup/page
+        QString description;                    // Optional description of page
         QWidget *widget{nullptr};               // A pointer to the MDI widget
         bool visible{false};                    // TRUE = The page/popup is visible as MDI window
         int left{0};                            // Left position of popup (always 0 for pages)
@@ -222,6 +223,8 @@ class TPageHandler : public QObject
         bool readPages(const QStringList& list);
         // Getter/Setter
         Page::PAGE_t getPage(int number);
+        Page::PAGE_t getPage(const QString& name);
+        Page::PAGE_t getPopup(const QString& name);
         QList<int> getPageNumbers();
         void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);

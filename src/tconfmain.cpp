@@ -368,7 +368,7 @@ bool TConfMain::readProject(const QString& path)
         pe.pageID = entry.value("pageID").toInt(0);
         pe.file = entry.value("file").toString();
         pe.isValid = entry.value("isValid").toBool(true);
-        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_UNDEFINED));
+        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_PAGE));
         mConfMain->pageList.append(pe);
     }
 
@@ -382,7 +382,7 @@ bool TConfMain::readProject(const QString& path)
         pe.pageID = entry.value("pageID").toInt(0);
         pe.file = entry.value("file").toString();
         pe.isValid = entry.value("isValid").toBool(true);
-        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_UNDEFINED));
+        pe.popupType = static_cast<PANELTYPE_t>(entry.value("popupType").toInt(PN_POPUP));
         mConfMain->popupList.append(pe);
     }
 

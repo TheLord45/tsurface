@@ -24,26 +24,16 @@
 #include "tpagetree.h"
 #include "terror.h"
 
-TPageTree *TPageTree::mCurrent{nullptr};
-
-TPageTree::TPageTree()
+TPageTree::TPageTree(QTreeView *tree, QWidget *parent)
+    : mTreeView(tree),
+      mParent(parent)
 {
-    DECL_TRACER("TPageTree::TPageTree()");
+    DECL_TRACER("TPageTree::TPageTree(QTreeView *tree, QWidget *parent)");
 }
 
 TPageTree::~TPageTree()
 {
     DECL_TRACER("TPageTree::~TPageTree()");
-}
-
-TPageTree& TPageTree::Current()
-{
-    DECL_TRACER("TPageTree::Current()");
-
-    if (!mCurrent)
-        mCurrent = new TPageTree;
-
-    return *mCurrent;
 }
 
 /**
@@ -56,25 +46,15 @@ TPageTree& TPageTree::Current()
  * @param pname The name of the page. The page entry is named like this.
  * @param panel The name of the panel.
  */
-void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& pname, const QString& panel)
+void TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel)
 {
-    DECL_TRACER("TPageTree::createNewTree(const QTreeView* tv, const QString& job, const QString& pname, const QString& panel)");
+    DECL_TRACER("TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel)");
 
-    if (!tv && !mTreeView)
+    if (!mTreeView)
     {
         MSG_ERROR("The tree view was not given and there exists none!");
         return;
     }
-
-    if (mTreeView && tv && mTreeView != tv)
-    {
-        reset();
-        mTreeView = tv;
-    }
-    else if (!mTreeView)
-        mTreeView = tv;
-    else
-        mTreeView->reset();
 
     mPageNum = 0;
     mPopupNum = 500;
@@ -131,25 +111,15 @@ void TPageTree::createNewTree(QTreeView* tv, const QString& job, const QString& 
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
 }
 
-void TPageTree::createTree(QTreeView *tv, const QString& job, const QString& panel)
+void TPageTree::createTree(const QString& job, const QString& panel)
 {
-    DECL_TRACER("TPageTree::createTree(QTreeView *tv, const QString& job, const QString& panel)");
+    DECL_TRACER("TPageTree::createTree(const QString& job, const QString& panel)");
 
-    if (!tv && !mTreeView)
+    if (!mTreeView)
     {
         MSG_ERROR("The tree view was not given and there exists none!");
         return;
     }
-
-    if (mTreeView && tv && mTreeView != tv)
-    {
-        reset();
-        mTreeView = tv;
-    }
-    else if (!mTreeView)
-        mTreeView = tv;
-    else
-        mTreeView->reset();
 
     mPageNum = 0;
     mPopupNum = 500;
@@ -199,7 +169,7 @@ void TPageTree::createTree(QTreeView *tv, const QString& job, const QString& pan
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
 }
 
-void TPageTree::reset()
+void TPageTree::resetTree()
 {
     DECL_TRACER("TPageTree::reset()");
 
@@ -215,7 +185,7 @@ void TPageTree::reset()
     mGroupNum = 2000;
 }
 
-void TPageTree::addPage(const QString& name, int num)
+void TPageTree::addTreePage(const QString& name, int num)
 {
     DECL_TRACER("TPageTree::addPage(const QString& name, int num)");
 
@@ -231,7 +201,7 @@ void TPageTree::addPage(const QString& name, int num)
     mPages->appendRow(pg);
 }
 
-void TPageTree::addPopup(const QString& name, int num)
+void TPageTree::addTreePopup(const QString& name, int num)
 {
     DECL_TRACER("TPageTree::addPopup(const QString& name, int num)");
 
@@ -275,7 +245,7 @@ void TPageTree::onClicked(const QModelIndex& index)
     MSG_DEBUG("Menu " << menu << " was clicked.");
 
     if (QGuiApplication::mouseButtons() == Qt::LeftButton && menu < MENU_PAGE)
-        toFront(item->data().toInt());
+        windowToFront(item->data().toInt());
 
     if (QGuiApplication::mouseButtons() != Qt::RightButton)
         return;
@@ -347,7 +317,7 @@ void TPageTree::onMenuTriggeredAddPage(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPage(bool checked)");
 
     Q_UNUSED(checked);
-    addNewPage();
+    addNewTreePage();
 }
 
 void TPageTree::onMenuTriggeredAddPopup(bool checked)
@@ -355,7 +325,7 @@ void TPageTree::onMenuTriggeredAddPopup(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPopup(bool checked)");
 
     Q_UNUSED(checked);
-    addNewPopup();
+    addNewTreePopup();
 }
 
 void TPageTree::onMenuTriggeredAddApp(bool checked)

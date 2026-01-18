@@ -27,10 +27,10 @@
 #include "tsurfacereader.h"
 #include "tsurfacewriter.h"
 #include "tconfmain.h"
+#include "tworkspacehandler.h"
 #include "tnewprojectdialog.h"
 #include "tprojectproperties.h"
 #include "tpaneltypes.h"
-#include "tpagetree.h"
 #include "tpagehandler.h"
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
@@ -110,6 +110,9 @@ TSurface::TSurface(QWidget *parent)
     DECL_TRACER("TSurface::TSurface(QWidget *parent)");
 
     m_ui->setupUi(this);
+    TWorkSpaceHandler::Current(m_ui->treeViewPages, m_ui->tableWidgetGeneral, this);
+    m_ui->tableWidgetGeneral->horizontalHeader()->hide();
+    m_ui->tableWidgetGeneral->verticalHeader()->hide();
     // Diable Menu points
     m_ui->actionResource_Manager->setDisabled(true);
     m_ui->actionAdd_page->setDisabled(true);
@@ -142,9 +145,10 @@ TSurface::TSurface(QWidget *parent)
     mActionConnectionState = new QAction(QIcon(":images/disconnected.svg"), tr("Disconnected"));
     m_ui->mainToolBar->addAction(mActionConnectionState);
 
-    connect(&TPageTree::Current(), &TPageTree::addNewPage, this, &TSurface::onAddNewPage);
-    connect(&TPageTree::Current(), &TPageTree::addNewPopup, this, &TSurface::onAddNewPopup);
-    connect(&TPageTree::Current(), &TPageTree::toFront, this, &TSurface::onItemToFront);
+    connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePage, this, &TSurface::onAddNewPage);
+    connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePopup, this, &TSurface::onAddNewPopup);
+    connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
+    connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::dataChanged, this, &TSurface::onDataChanged);
 }
 
 TSurface::~TSurface()
@@ -199,9 +203,9 @@ void TSurface::on_actionOpen_triggered()
         QStringList popups = TConfMain::Current().getAllPopups();           // Get names of all popups
         pages.append(popups);                                               // Merge the lists
         TPageHandler::Current().readPages(pages);                           // Read all pages fron their files
-        TPageTree::Current().setParent(this);                               // Initialize the class with the pointer to this class
-        TPageTree::Current().createTree(m_ui->treeViewPages, TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());   // Create the basic tree
-        connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);    // Connect to get informed about clicks
+        TWorkSpaceHandler::Current().createTree(TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());   // Create the basic tree
+        connect(&TWorkSpaceHandler::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);    // Connect to get informed about clicks
+
         QList<int> pageNumbers = TPageHandler::Current().getPageNumbers();  // Get a list of all page numbers
         QList<int>::Iterator iter;
 
@@ -218,9 +222,9 @@ void TSurface::on_actionOpen_triggered()
             MSG_DEBUG("Popuptype: " << pg.popupType);
 
             if (pg.popupType == Page::PT_PAGE)                              // Is it a page?
-                TPageTree::Current().addPage(pg.name, pg.pageID);           // Yes, then add it to page part of tree
+                TWorkSpaceHandler::Current().addTreePage(pg.name, pg.pageID);           // Yes, then add it to page part of tree
             else if (pg.popupType == Page::PT_POPUP)                        // Is it a popup?
-                TPageTree::Current().addPopup(pg.name, pg.pageID);          // Yes, then add it to popup part of tree
+                TWorkSpaceHandler::Current().addTreePopup(pg.name, pg.pageID);          // Yes, then add it to popup part of tree
         }
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
@@ -313,9 +317,8 @@ void TSurface::on_actionNew_triggered()
     cmain.setFontBase(npd.getFontName());
     cmain.setFontBaseSize(npd.getFontSize());
     // Create tree menu
-    TPageTree::Current().setParent(this);
-    TPageTree::Current().createNewTree(m_ui->treeViewPages, npd.getProjectName(), npd.getPageName(), npd.getPanelName());
-    connect(&TPageTree::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
+    TWorkSpaceHandler::Current().createNewTree(npd.getProjectName(), npd.getPageName(), npd.getPanelName());
+    connect(&TWorkSpaceHandler::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
     QWidget *widget = new QWidget;
     widget->setWindowTitle(npd.getPageName());
@@ -424,7 +427,7 @@ void TSurface::on_actionClose_triggered()
     }
 
     m_ui->mdiArea->closeAllSubWindows();
-    TPageTree::Current().reset();
+    TWorkSpaceHandler::Current().resetTree();
     TConfMain::Current().reset();
     TPageHandler::Current().reset();
     mPathTemporary.clear();
@@ -1000,6 +1003,19 @@ void TSurface::onItemToFront(int id)
     DECL_TRACER("TSurface::onItemToFront(int id)");
 
     TPageHandler::Current().bringToFront(id);
+    // Set the properties
+    if (id < 500)
+        TWorkSpaceHandler::Current().setGeneralPage(id);
+    else if (id < 1000)
+        TWorkSpaceHandler::Current().setGeneralPopup(id);
+}
+
+void TSurface::onDataChanged(Page::PAGE_t *page)
+{
+    DECL_TRACER("TSurface::onDataChanged()");
+
+    mProjectChanged = true;
+    TPageHandler::Current().setPage(*page);
 }
 
 /**
@@ -1133,7 +1149,7 @@ void TSurface::onAddNewPage()
     widget->activateWindow();
     widget->show();
     TPageHandler::Current().setVisible(id, true);
-    TPageTree::Current().addPage(pageDialog.getPageName(), id);
+    TWorkSpaceHandler::Current().addTreePage(pageDialog.getPageName(), id);
     TConfMain::Current().addPage(pageDialog.getPageName(), id);
     // Here we set everyting of the page we currently know
     Page::PAGE_t pg = TPageHandler::Current().getPage(id);
@@ -1191,7 +1207,7 @@ void TSurface::onAddNewPopup()
     widget->activateWindow();
     widget->show();
     TPageHandler::Current().setVisible(id, true);
-    TPageTree::Current().addPopup(popupDialog.getPopupName(), id);
+    TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), id);
     TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
     // Here we set everyting of the page we currently know
     Page::PAGE_t pg = TPageHandler::Current().getPage(id);
