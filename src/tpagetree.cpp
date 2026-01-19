@@ -217,6 +217,48 @@ void TPageTree::addTreePopup(const QString& name, int num)
     mPopup->appendRow(pg);
 }
 
+void TPageTree::updatePageName(int id, const QString& name)
+{
+    DECL_TRACER("TPageTree::updatePageName(int id, const QString& name)");
+
+    if (!mPages || !mPages->hasChildren())
+        return;
+
+    int rows = mPages->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mPages->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            item->setText(name);
+            break;
+        }
+    }
+}
+
+void TPageTree::updatePopupName(int id, const QString& name)
+{
+    DECL_TRACER("TPageTree::updatePopupName(int id, const QString& name)");
+
+    if (!mPopup || !mPopup->hasChildren())
+        return;
+
+    int rows = mPopup->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mPopup->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            item->setText(name);
+            break;
+        }
+    }
+}
+
 void TPageTree::onDoubleClicked(const QModelIndex& index)
 {
     DECL_TRACER("TPageTree::onDoubleClicked(const QModelIndex& index)");

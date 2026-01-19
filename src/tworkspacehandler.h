@@ -20,35 +20,55 @@
 
 #include <QWidget>
 
+#include <functional>
+
 #include "tpagetree.h"
 #include "tpropertiesgeneral.h"
+#include "tpropertiesprogramming.h"
 
 class QTreeView;
 class QTableWidget;
-class TPropertiesGeneral;
 
-class TWorkSpaceHandler : public TPageTree, public TPropertiesGeneral
+class TWorkSpaceHandler
+    : public TPageTree,
+      public TPropertiesGeneral,
+      public TPropertiesProgramming
 {
     public:
         TWorkSpaceHandler();
-        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QWidget *parent=nullptr);
+        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent=nullptr);
         ~TWorkSpaceHandler();
 
         static TWorkSpaceHandler& Current();
-        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QWidget *parent=nullptr);
+        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent=nullptr);
 
         void setParent(QWidget *widget);
         void setWorkspacePagesWidget(QTreeView *tree);
         void setPropertiesGeneralWidget(QTableWidget *widget);
+        bool isChanged();
+        Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
 
-        // Properties
+        void setPage(const QString& name);
+        void setPage(int id);
+        void setPopup(const QString& name);
+        void setPopup(int id);
+        // Callbacks
+        // In this case we can't use the mechanism of Qt with "signals",
+        // because all three subclasses define the Q_OBJECT. Therefore
+        // we would have an ambiguous name lookup. To overcome this we use
+        // the methods of "functional". The result is the same.
+        void regDataChanged(std::function<void (Page::PAGE_t *page)> func) { _dataChanged = func; }
+        void regMarkDirty(std::function<void ()> func) { _markDirty = func; }
 
     protected:
-        void onAddNewPage();
-        void onAddNewPopup();
-        void onItemToFront(int id);
+        void pageNameChanged(int id, const QString& name) override;
+        void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
+        void markChanged() override;
 
     private:
+        std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};
+        std::function<void ()> _markDirty{nullptr};
+
         static TWorkSpaceHandler *mCurrent;
         QWidget *mParent{nullptr};
 };

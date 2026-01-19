@@ -21,6 +21,7 @@
 #include <QTableWidget>
 
 #include "tpagehandler.h"
+#include "tmisc.h"
 
 class QWidget;
 class QComboBox;
@@ -36,12 +37,11 @@ class TPropertiesGeneral : public QObject
         ~TPropertiesGeneral();
 
         void setGeneralPage(const QString& name);
-        void setGeneralPage(int id);
+        void setGeneralPage(int id, bool loaded=false);
         void setGeneralPopup(const QString& name);
-        void setGeneralPopup(int id);
-
-    signals:
-        void dataChanged(Page::PAGE_t *page);
+        void setGeneralPopup(int id, bool loaded=false);
+        bool isChanged() { return mChanged; }
+        Page::PAGE_t& getActualPage() { return mPage; }
 
     protected:
         typedef struct ACTIVE_t
@@ -50,6 +50,10 @@ class TPropertiesGeneral : public QObject
             int col{0};
         }ACTIVE_t;
 
+        // Interface methods
+        virtual void pageNameChanged(int id, const QString& name) = 0;
+        virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
+        virtual void markChanged() = 0;
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);
@@ -66,12 +70,11 @@ class TPropertiesGeneral : public QObject
         void onComboModalChanged(int index);
         void onComboShowChanged(int index);
         void onComboHideChanged(int index);
-        void onComboColapseChange(int value);
+        void onComboColapseChange(int index);
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
         QWidget *makeLabelTool(const QString& text, int id);
-        void extractChangedData(int id, QWidget *item);
 
     private:
         QTableWidget *mTable{nullptr};

@@ -70,6 +70,8 @@ class TPageTree : public QObject
         void addTreePopup(const QString& name, int num);
 //        void addSubPage(const QString& name, int num);
 //        void addApp(const QString& name, int num);
+        void updatePageName(int id, const QString& name);
+        void updatePopupName(int id, const QString& name);
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);

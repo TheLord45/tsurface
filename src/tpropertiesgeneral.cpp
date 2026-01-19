@@ -69,14 +69,18 @@ void TPropertiesGeneral::setGeneralPage(const QString& name)
         return;
     }
 
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage);
+
+    mChanged = false;
     mPage = Page::PAGE_t();
     mPage = TPageHandler::Current().getPage(name);
-    setGeneralPage(mPage.pageID);
+    setGeneralPage(mPage.pageID, true);
 }
 
-void TPropertiesGeneral::setGeneralPage(int id)
+void TPropertiesGeneral::setGeneralPage(int id, bool loaded)
 {
-    DECL_TRACER("TPropertiesGeneral::setGeneralPage(int id)");
+    DECL_TRACER("TPropertiesGeneral::setGeneralPage(int id, bool loaded)");
 
     if (!mTable)
     {
@@ -84,7 +88,15 @@ void TPropertiesGeneral::setGeneralPage(int id)
         return;
     }
 
-    if (mPage.pageID <= 0)
+    if (!loaded && mPage.pageID > 0 && mChanged)
+    {
+        saveChangedData(&mPage);
+        mPage = Page::PAGE_t();
+    }
+
+    mChanged = false;
+
+    if (!loaded)
         mPage = TPageHandler::Current().getPage(id);
 
     if (mPage.pageID <= 0)
@@ -130,6 +142,7 @@ void TPropertiesGeneral::setGeneralPage(int id)
         }
     }
 
+    mTable->resizeColumnsToContents();
     mInitialized = true;
 }
 
@@ -143,14 +156,18 @@ void TPropertiesGeneral::setGeneralPopup(const QString& name)
         return;
     }
 
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage);
+
+    mChanged = false;
     mPage = Page::PAGE_t();
     mPage = TPageHandler::Current().getPage(name);
-    setGeneralPopup(mPage.pageID);
+    setGeneralPopup(mPage.pageID, true);
 }
 
-void TPropertiesGeneral::setGeneralPopup(int id)
+void TPropertiesGeneral::setGeneralPopup(int id, bool loaded)
 {
-    DECL_TRACER("TPropertiesGeneral::setGeneralPopup(int id)");
+    DECL_TRACER("TPropertiesGeneral::setGeneralPopup(int id, bool loaded)");
 
     if (!mTable)
     {
@@ -158,7 +175,12 @@ void TPropertiesGeneral::setGeneralPopup(int id)
         return;
     }
 
-    if (mPage.pageID < 500 || mPage.pageID >= 1000)
+    if (!loaded && mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage);
+
+    mChanged = false;
+
+    if (!loaded)
         mPage = TPageHandler::Current().getPage(id);
 
     if (mPage.pageID <= 0)
@@ -175,7 +197,7 @@ void TPropertiesGeneral::setGeneralPopup(int id)
     for (int i = 0; i < 14; ++i)
     {
         QTableWidgetItem *cell1 = new QTableWidgetItem;
-        QTableWidgetItem *cell2 = new QTableWidgetItem;
+        QTableWidgetItem *cell2 = nullptr;
 
         cell1->setBackground(brush);
 
@@ -189,183 +211,169 @@ void TPropertiesGeneral::setGeneralPopup(int id)
                 mComboPopupType->addItem(tr("Subpage"), Page::PT_SUBPAGE);
                 mComboPopupType->setObjectName(QString("ComboBox_%1").arg(i));
                 connect(mComboPopupType, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboPopupTypeChanged);
-                delete cell2;
-                cell2 = nullptr;
                 mTable->setCellWidget(i, 1, mComboPopupType);
             }
             break;
 
             case 1:
                 cell1->setText(tr("Name"));
+                cell2 = new QTableWidgetItem;
                 cell2->setText(mPage.name);
             break;
 
             case 2:
                 cell1->setText(tr("Description"));
-                delete cell2;
-                cell2 = nullptr;
                 mTable->setCellWidget(i, 1, makeLabelTool(mPage.description, i));
             break;
 
             case 3:
             {
                 cell1->setText(tr("Left"));
-                delete cell2;
-                cell2 = nullptr;
-                QSpinBox *spBox = new QSpinBox;
-                spBox->setMinimum(0);
-                spBox->setMaximum(panelSize.width());
-                spBox->setValue(mPage.left);
-                mTable->setCellWidget(i, 1, spBox);
+                mSpinLeft = new QSpinBox;
+                mSpinLeft->setMinimum(0);
+                mSpinLeft->setMaximum(panelSize.width());
+                mSpinLeft->setValue(mPage.left);
+                connect(mSpinLeft, &QSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinLeftValue);
+                mTable->setCellWidget(i, 1, mSpinLeft);
             }
             break;
 
             case 4:
             {
                 cell1->setText(tr("Top"));
-                delete cell2;
-                cell2 = nullptr;
-                QSpinBox *spBox = new QSpinBox;
-                spBox->setMinimum(0);
-                spBox->setMaximum(panelSize.height());
-                spBox->setValue(mPage.top);
-                mTable->setCellWidget(i, 1, spBox);
+                mSpinTop = new QSpinBox;
+                mSpinTop->setMinimum(0);
+                mSpinTop->setMaximum(panelSize.height());
+                mSpinTop->setValue(mPage.top);
+                connect(mSpinTop, &QSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinTopValue);
+                mTable->setCellWidget(i, 1, mSpinTop);
             }
             break;
 
             case 5:
             {
                 cell1->setText(tr("Width"));
-                delete cell2;
-                cell2 = nullptr;
-                QSpinBox *spBox = new QSpinBox;
-                spBox->setMinimum(0);
-                spBox->setMaximum(panelSize.width());
-                spBox->setValue(mPage.width);
-                mTable->setCellWidget(i, 1, spBox);
+                mSpinWidth = new QSpinBox;
+                mSpinWidth->setMinimum(0);
+                mSpinWidth->setMaximum(panelSize.width());
+                mSpinWidth->setValue(mPage.width);
+                connect(mSpinWidth, &QSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinWidthValue);
+                mTable->setCellWidget(i, 1, mSpinWidth);
             }
             break;
 
             case 6:
             {
                 cell1->setText(tr("Height"));
-                delete cell2;
-                cell2 = nullptr;
-                QSpinBox *spBox = new QSpinBox;
-                spBox->setMinimum(0);
-                spBox->setMaximum(panelSize.height());
-                spBox->setValue(mPage.height);
-                mTable->setCellWidget(i, 1, spBox);
+                mSpinHeight = new QSpinBox;
+                mSpinHeight->setMinimum(0);
+                mSpinHeight->setMaximum(panelSize.height());
+                mSpinHeight->setValue(mPage.height);
+                connect(mSpinHeight, &QSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinHeightValue);
+                mTable->setCellWidget(i, 1, mSpinHeight);
             }
             break;
 
             case 7:
             {
                 cell1->setText(tr("Reset pos on show"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->addItem(tr("No"), false);
-                cbBox->addItem(tr("Yes"), true);
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                mComboResetPos = new QComboBox;
+                mComboResetPos->addItem(tr("No"), 0);
+                mComboResetPos->addItem(tr("Yes"), 1);
+                connect(mComboResetPos, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboResetPosChanged);
+                mTable->setCellWidget(i, 1, mComboResetPos);
             }
             break;
 
             case 8:
             {
                 cell1->setText(tr("Group"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->setEditable(true);
+                mComboGroupText = new QComboBox;
+                mComboGroupText->setEditable(true);
                 QStringList groups = TPageHandler::Current().getGroupNames();
                 QStringList::Iterator iter;
-                cbBox->addItem("");
+                mComboGroupText->addItem("");
 
                 for (iter = groups.begin(); iter != groups.end(); ++iter)
-                    cbBox->addItem(*iter);
+                    mComboGroupText->addItem(*iter);
 
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                connect(mComboGroupText, &QComboBox::currentTextChanged, this, &TPropertiesGeneral::onComboGroupTextChanged);
+                mTable->setCellWidget(i, 1, mComboGroupText);
             }
             break;
 
             case 9:
             {
                 cell1->setText(tr("Timeout"));
-                delete cell2;
-                cell2 = nullptr;
-                QSpinBox *spBox = new QSpinBox;
-                spBox->setMinimum(0);
-                spBox->setMaximum(300);
-                spBox->setValue(mPage.timeout);
-                mTable->setCellWidget(i, 1, spBox);
+                mSpinTimeout = new QSpinBox;
+                mSpinTimeout->setMinimum(0);
+                mSpinTimeout->setMaximum(300);
+                mSpinTimeout->setValue(mPage.timeout);
+                connect(mSpinTimeout, &QSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinTimeoutValue);
+                mTable->setCellWidget(i, 1, mSpinTimeout);
             }
             break;
 
             case 10:
             {
                 cell1->setText(tr("Modal"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->addItem(tr("No"), false);
-                cbBox->addItem(tr("Yes"), true);
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                mComboModal = new QComboBox;
+                mComboModal->addItem(tr("No"), 0);
+                mComboModal->addItem(tr("Yes"), 1);
+                connect(mComboModal, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboModalChanged);
+                mTable->setCellWidget(i, 1, mComboModal);
             }
             break;
 
             case 11:
             {
                 cell1->setText(tr("Show effect"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->addItem(tr("None"), Page::SE_NONE);
-                cbBox->addItem(tr("Fade"), Page::SE_FADE);
-                cbBox->addItem(tr("Slide from left"), Page::SE_SLIDE_LEFT);
-                cbBox->addItem(tr("Slide from right"), Page::SE_SLIDE_RIGHT);
-                cbBox->addItem(tr("Slide from top"), Page::SE_SLIDE_TOP);
-                cbBox->addItem(tr("Slide from bottom"), Page::SE_SLIDE_BOTTOM);
-                cbBox->addItem(tr("Slide from left fade"), Page::SE_SLIDE_LEFT_FADE);
-                cbBox->addItem(tr("Slide from right fade"), Page::SE_SLIDE_RIGHT_FADE);
-                cbBox->addItem(tr("Slide from top fade"), Page::SE_SLIDE_TOP_FADE);
-                cbBox->addItem(tr("Slide from bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                mComboShow = new QComboBox;
+                mComboShow->addItem(tr("None"), Page::SE_NONE);
+                mComboShow->addItem(tr("Fade"), Page::SE_FADE);
+                mComboShow->addItem(tr("Slide from left"), Page::SE_SLIDE_LEFT);
+                mComboShow->addItem(tr("Slide from right"), Page::SE_SLIDE_RIGHT);
+                mComboShow->addItem(tr("Slide from top"), Page::SE_SLIDE_TOP);
+                mComboShow->addItem(tr("Slide from bottom"), Page::SE_SLIDE_BOTTOM);
+                mComboShow->addItem(tr("Slide from left fade"), Page::SE_SLIDE_LEFT_FADE);
+                mComboShow->addItem(tr("Slide from right fade"), Page::SE_SLIDE_RIGHT_FADE);
+                mComboShow->addItem(tr("Slide from top fade"), Page::SE_SLIDE_TOP_FADE);
+                mComboShow->addItem(tr("Slide from bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
+                connect(mComboShow, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboShowChanged);
+                mTable->setCellWidget(i, 1, mComboShow);
             }
             break;
 
             case 12:
             {
                 cell1->setText(tr("Hide effect"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->addItem(tr("None"), Page::SE_NONE);
-                cbBox->addItem(tr("Fade"), Page::SE_FADE);
-                cbBox->addItem(tr("Slide to left"), Page::SE_SLIDE_LEFT);
-                cbBox->addItem(tr("Slide to right"), Page::SE_SLIDE_RIGHT);
-                cbBox->addItem(tr("Slide to top"), Page::SE_SLIDE_TOP);
-                cbBox->addItem(tr("Slide to bottom"), Page::SE_SLIDE_BOTTOM);
-                cbBox->addItem(tr("Slide to left fade"), Page::SE_SLIDE_LEFT_FADE);
-                cbBox->addItem(tr("Slide to right fade"), Page::SE_SLIDE_RIGHT_FADE);
-                cbBox->addItem(tr("Slide to top fade"), Page::SE_SLIDE_TOP_FADE);
-                cbBox->addItem(tr("Slide to bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                mComboHide = new QComboBox;
+                mComboHide->addItem(tr("None"), Page::SE_NONE);
+                mComboHide->addItem(tr("Fade"), Page::SE_FADE);
+                mComboHide->addItem(tr("Slide to left"), Page::SE_SLIDE_LEFT);
+                mComboHide->addItem(tr("Slide to right"), Page::SE_SLIDE_RIGHT);
+                mComboHide->addItem(tr("Slide to top"), Page::SE_SLIDE_TOP);
+                mComboHide->addItem(tr("Slide to bottom"), Page::SE_SLIDE_BOTTOM);
+                mComboHide->addItem(tr("Slide to left fade"), Page::SE_SLIDE_LEFT_FADE);
+                mComboHide->addItem(tr("Slide to right fade"), Page::SE_SLIDE_RIGHT_FADE);
+                mComboHide->addItem(tr("Slide to top fade"), Page::SE_SLIDE_TOP_FADE);
+                mComboHide->addItem(tr("Slide to bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
+                connect(mComboHide, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboHideChanged);
+                mTable->setCellWidget(i, 1, mComboHide);
             }
             break;
 
             case 13:
             {
                 cell1->setText(tr("Collapse direction"));
-                QComboBox *cbBox = new QComboBox;
-                cbBox->addItem(tr("None"), Page::COLDIR_NONE);
-                cbBox->addItem(tr("Left"), Page::COLDIR_LEFT);
-                cbBox->addItem(tr("Right"), Page::COLDIR_RIGHT);
-                cbBox->addItem(tr("Up"), Page::COLDIR_UP);
-                cbBox->addItem(tr("Down"), Page::COLDIR_DOWN);
-                delete cell2;
-                cell2 = nullptr;
-                mTable->setCellWidget(i, 1, cbBox);
+                mComboColapse = new QComboBox;
+                mComboColapse->addItem(tr("None"), Page::COLDIR_NONE);
+                mComboColapse->addItem(tr("Left"), Page::COLDIR_LEFT);
+                mComboColapse->addItem(tr("Right"), Page::COLDIR_RIGHT);
+                mComboColapse->addItem(tr("Up"), Page::COLDIR_UP);
+                mComboColapse->addItem(tr("Down"), Page::COLDIR_DOWN);
+                connect(mComboColapse, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboColapseChange);
+                mTable->setCellWidget(i, 1, mComboColapse);
             }
             break;
         }
@@ -380,6 +388,7 @@ void TPropertiesGeneral::setGeneralPopup(int id)
         }
     }
 
+    mTable->resizeColumnsToContents();
     mInitialized = true;
 }
 
@@ -395,6 +404,12 @@ QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
 
     QLineEdit *line = new QLineEdit(text);
     line->setObjectName(QString("lineEdit_%1").arg(id));
+    QSizePolicy policy;
+    QSizePolicy sizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
+    sizePolicy.setHorizontalStretch(0);
+    sizePolicy.setVerticalStretch(0);
+    sizePolicy.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
+    line->setSizePolicy(policy);
     mLineDescription = line;
     connect(line, &QLineEdit::textChanged, this, &TPropertiesGeneral::onLineEditTextChanged);
 
@@ -450,7 +465,8 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
         if (item && item->data(Qt::UserRole).toInt() == 0)  // Page name
         {
             mPage.name = item->text();
-            emit dataChanged(&mPage);
+            pageNameChanged(mPage.pageID, mPage.name);
+            markChanged();
             mChanged = true;
         }
     }
@@ -464,16 +480,11 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
         if (row ==  1) // Name of poup
         {
             mPage.name = item->text();
-            emit dataChanged(&mPage);
+            pageNameChanged(mPage.pageID, mPage.name);
+            markChanged();
             mChanged = true;
         }
     }
-}
-
-void TPropertiesGeneral::extractChangedData(int id, QWidget *item)
-{
-    DECL_TRACER("TPropertiesGeneral::extractChangedData(int id, QWidget *item)");
-
 }
 
 void TPropertiesGeneral::onCellActivated(int row, int column)
@@ -505,7 +516,7 @@ void TPropertiesGeneral::onLineEditTextChanged(const QString& text)
     if (mPage.popupType == Page::PT_PAGE || mPage.popupType == Page::PT_POPUP)
     {
         mPage.description = text;
-        emit dataChanged(&mPage);
+        saveChangedData(&mPage);
         mChanged = true;
     }
 }
@@ -533,8 +544,8 @@ void TPropertiesGeneral::onToolButtonClicked()
         if (mLineDescription)
             mLineDescription->setText(mPage.description);
 
-        emit dataChanged(&mPage);
-        mChanged = true;
+        saveChangedData(&mPage);
+        mChanged = false;
     }
 }
 
@@ -547,55 +558,102 @@ void TPropertiesGeneral::onComboPopupTypeChanged(int index)
 
 void TPropertiesGeneral::onSpinLeftValue(int value)
 {
+    DECL_TRACER("TPropertiesGeneral::onSpinLeftValue(int value)");
 
+    mPage.left = value;
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onSpinTopValue(int value)
 {
+    DECL_TRACER("TPropertiesGeneral::onSpinTopValue(int value)");
 
+    mPage.top = value;
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onSpinWidthValue(int value)
 {
+    DECL_TRACER("TPropertiesGeneral::onSpinWidthValue(int value)");
 
+    mPage.width = value;
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onSpinHeightValue(int value)
 {
+    DECL_TRACER("TPropertiesGeneral::onSpinHeightValue(int value)");
 
+    mPage.height = value;
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onComboResetPosChanged(int index)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboResetPosChanged(int index)");
 
+    mPage.resetPos = mComboResetPos->itemData(index).toInt();
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onComboGroupTextChanged(const QString& text)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboGroupTextChanged(const QString& text)");
 
+    if (mPage.group != text)
+    {
+        mPage.group = text;
+        mChanged = false;
+        emit saveChangedData(&mPage);
+    }
 }
 
 void TPropertiesGeneral::onSpinTimeoutValue(int value)
 {
+    DECL_TRACER("TPropertiesGeneral::onSpinTimeoutValue(int value)");
 
+    mPage.timeout = value;
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onComboModalChanged(int index)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboModalChanged(int index)");
 
+    mPage.modal = mComboModal->itemData(index).toInt();
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onComboShowChanged(int index)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboShowChanged(int index)");
 
+    mPage.showEffect = static_cast<Page::SHOWEFFECT>(mComboShow->itemData(index).toInt());
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::onComboHideChanged(int index)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboHideChanged(int index)");
 
+    mPage.hideEffect = static_cast<Page::SHOWEFFECT>(mComboHide->itemData(index).toInt());
+    saveChangedData(&mPage);
+    mChanged = true;
 }
 
-void TPropertiesGeneral::onComboColapseChange(int value)
+void TPropertiesGeneral::onComboColapseChange(int index)
 {
+    DECL_TRACER("TPropertiesGeneral::onComboColapseChange(int index)");
 
+    mPage.collapseDirection = static_cast<Page::COLDIR_t>(mComboColapse->itemData(index).toInt());
+    saveChangedData(&mPage);
+    mChanged = true;
 }

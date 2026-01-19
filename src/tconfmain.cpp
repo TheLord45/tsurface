@@ -181,6 +181,8 @@ void TConfMain::renamePage(int num, const QString& name)
         if (iter->pageID == num)
         {
             string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
+            MSG_DEBUG("Renaming file \"" << iter->file.toStdString() << "\" to \"" << name.toStdString() << ".json\"");
+            MSG_DEBUG("Source: " << fname);
 
             if (fs::exists(fname))
                 fs::remove(fname);
@@ -203,6 +205,8 @@ void TConfMain::renamePopup(int num, const QString& name)
         if (iter->pageID == num)
         {
             string fname = QString("%1/%2").arg(mPathTemporary).arg(iter->file).toStdString();
+            MSG_DEBUG("Renaming file \"" << iter->file.toStdString() << "\" to \"" << name.toStdString() << ".json\"");
+            MSG_DEBUG("Source: " << fname);
 
             if (fs::exists(fname))
                 fs::remove(fname);

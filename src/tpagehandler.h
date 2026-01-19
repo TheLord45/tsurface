@@ -165,6 +165,10 @@ namespace Page
         QString description;                    // Optional description of page
         QWidget *widget{nullptr};               // A pointer to the MDI widget
         bool visible{false};                    // TRUE = The page/popup is visible as MDI window
+        int ap{0};                              // Default: 0; Address port
+        int ad{1};                              // Default: 1; Address code
+        int cp{0};                              // Default: 0; Channel port
+        int ch{1};                              // Default: 1; Channel code
         int left{0};                            // Left position of popup (always 0 for pages)
         int top{0};                             // Top position of popup (always 0 for pages)
         int width{0};                           // Width of popup
@@ -231,6 +235,7 @@ class TPageHandler : public QObject
         void setPageTextColor(int number, QColor& col);
         QStringList getGroupNames();
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
+        void changePageName(int id, const QString& name);
 
     protected:
         bool savePage(const Page::PAGE_t& page);

@@ -20,6 +20,15 @@
 
 #include <QString>
 
+typedef enum
+{
+    TBL_UNKNOWN,
+    TBL_GENERIC,
+    TBL_PROGRAM,
+    TBL_STATES,
+    TBL_EVENTS
+}PROPERTIES_t;
+
 QString basename(const QString& path);
 QString pathname(const QString& path);
 

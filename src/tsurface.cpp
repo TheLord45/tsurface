@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <filesystem>
+#include <functional>
 
 #include <QFileDialog>
 #include <QResizeEvent>
@@ -46,6 +47,7 @@
 namespace fs = std::filesystem;
 using std::cout;
 using std::endl;
+using std::bind;
 
 /**
  * @brief winCloseEater::eventFilter
@@ -110,7 +112,7 @@ TSurface::TSurface(QWidget *parent)
     DECL_TRACER("TSurface::TSurface(QWidget *parent)");
 
     m_ui->setupUi(this);
-    TWorkSpaceHandler::Current(m_ui->treeViewPages, m_ui->tableWidgetGeneral, this);
+    TWorkSpaceHandler::Current(m_ui->treeViewPages, m_ui->tableWidgetGeneral, m_ui->tableWidgetProgramming, this);
     m_ui->tableWidgetGeneral->horizontalHeader()->hide();
     m_ui->tableWidgetGeneral->verticalHeader()->hide();
     // Diable Menu points
@@ -148,7 +150,8 @@ TSurface::TSurface(QWidget *parent)
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePage, this, &TSurface::onAddNewPage);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePopup, this, &TSurface::onAddNewPopup);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
-    connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::dataChanged, this, &TSurface::onDataChanged);
+    TWorkSpaceHandler::Current().regDataChanged(bind(&TSurface::onDataChanged, this, std::placeholders::_1));
+    TWorkSpaceHandler::Current().regMarkDirty(bind(&TSurface::onMarkDirty, this));
 }
 
 TSurface::~TSurface()
@@ -459,6 +462,7 @@ void TSurface::on_actionExit_triggered()
     if (!closeRequest())
         return;
 
+    mForceClose = true;
     close();
 }
 
@@ -1005,17 +1009,33 @@ void TSurface::onItemToFront(int id)
     TPageHandler::Current().bringToFront(id);
     // Set the properties
     if (id < 500)
-        TWorkSpaceHandler::Current().setGeneralPage(id);
+        TWorkSpaceHandler::Current().setPage(id);
     else if (id < 1000)
-        TWorkSpaceHandler::Current().setGeneralPopup(id);
+        TWorkSpaceHandler::Current().setPopup(id);
 }
 
+/**
+ * @brief TSurface::onDataChanged
+ * This is a callback method. It is called out of one of the subclasses of
+ * "TWorkSpaceHandler". Beside this the project is marked as changed.
+ *
+ * @param page  A pointer to the structure containing all page data. This
+ * structure is send to class "TPageHandler" where it is put into the array
+ * of pages.
+ */
 void TSurface::onDataChanged(Page::PAGE_t *page)
 {
-    DECL_TRACER("TSurface::onDataChanged()");
+    DECL_TRACER("TSurface::onDataChanged(Page::PAGE_t *page)");
 
     mProjectChanged = true;
     TPageHandler::Current().setPage(*page);
+}
+
+void TSurface::onMarkDirty()
+{
+    DECL_TRACER("TSurface::onMarkDirty()");
+
+    mProjectChanged = true;
 }
 
 /**
@@ -1242,12 +1262,19 @@ void TSurface::closeEvent(QCloseEvent *event)
 {
     DECL_TRACER("TSurface::closeEvent(QCloseEvent *event)");
 
+    if (mForceClose)
+    {
+        event->accept();
+        return;
+    }
+
     if (!closeRequest())
     {
         event->ignore();
         return;
     }
 
+    mForceClose = true;
     event->accept();
 }
 
@@ -1255,8 +1282,19 @@ bool TSurface::closeRequest()
 {
     DECL_TRACER("TSurface::closeRequest()");
 
-    if (mHaveProject && mProjectChanged)
+    if (mForceClose)
+        return true;
+
+    bool changed = TWorkSpaceHandler::Current().isChanged();
+
+    if (mHaveProject && (mProjectChanged || changed))
     {
+        if (changed)
+        {
+            Page::PAGE_t pg = TWorkSpaceHandler::Current().getActualPage();
+            TPageHandler::Current().setPage(pg);
+        }
+
         int ret = QMessageBox::question(this, tr("TSurface"), tr("There are unsaved changes in the current project!<br>Do you want to save the project?"));
 
         if (ret == QMessageBox::Yes)
@@ -1264,7 +1302,7 @@ bool TSurface::closeRequest()
             QString fileName = TConfMain::Current().getFileName();
             QString basefile = basename(fileName);
 
-            if (mIsSaved && fs::is_regular_file(fileName.toStdString()))
+            if (mIsSaved && fs::is_regular_file(fileName.toStdString()) && fileName != TConfMain::Current().getFileName())
             {
                 std::error_code ec;
 
@@ -1284,8 +1322,6 @@ bool TSurface::closeRequest()
             if (mIsSaved && !saveNormal())
                 return false;
             else if (!mIsSaved && !saveAs())
-                return false;
-            else
                 return false;
         }
 

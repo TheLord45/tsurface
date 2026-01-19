@@ -212,6 +212,7 @@ class TConfMain
         QList<ConfigMain::RESOURCE_t> getAllDynamicResources() { if (mConfMain) return mConfMain->resourceList; else return QList<ConfigMain::RESOURCE_t>(); }
         ConfigMain::DATASOURCE_t getDynamicData(const QString& name);
         QList<ConfigMain::DATASOURCE_t>& getAllDynamicData();
+        int getSetupPort() { if (mConfMain) return mConfMain->setup.setupPort; else return 0; }
 
         bool haveDynamicResource(const QString& name);
 

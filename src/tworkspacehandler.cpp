@@ -27,13 +27,15 @@ TWorkSpaceHandler::TWorkSpaceHandler()
     DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler()");
 }
 
-TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QWidget *parent)
+TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)
     : TPageTree(tree, parent),
-      TPropertiesGeneral(general)
+      TPropertiesGeneral(general),
+      TPropertiesProgramming(prog)
 {
-    DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QWidget *parent)");
+    DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)");
 
     TPropertiesGeneral::setParent(parent);
+    TPropertiesProgramming::setParent(parent);
 }
 
 TWorkSpaceHandler::~TWorkSpaceHandler()
@@ -46,17 +48,17 @@ TWorkSpaceHandler& TWorkSpaceHandler::Current()
     DECL_TRACER("TWorkSpaceHandler::Current()");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(nullptr, nullptr);
+        mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr);
 
     return *mCurrent;
 }
 
-TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QWidget *parent)
+TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)
 {
-    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QWidget *parent)");
+    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(tree, general, parent);
+        mCurrent = new TWorkSpaceHandler(tree, general, prog, parent);
 
     return *mCurrent;
 }
@@ -82,4 +84,108 @@ void TWorkSpaceHandler::setPropertiesGeneralWidget(QTableWidget *widget)
     DECL_TRACER("TWorkSpaceHandler::setPropertiesGeneralWidget(QTableWidget *widget)");
 
     TPropertiesGeneral::setWidget(widget);
+}
+
+bool TWorkSpaceHandler::isChanged()
+{
+    DECL_TRACER("TWorkSpaceHandler::isChanged()");
+
+    if (TPropertiesGeneral::isChanged())
+        return true;
+
+    return false;
+}
+
+void TWorkSpaceHandler::setPage(const QString& name)
+{
+    DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");
+
+    setGeneralPage(name);
+    setProgrammingPage(name);
+}
+
+void TWorkSpaceHandler::setPage(int id)
+{
+    DECL_TRACER("TWorkSpaceHandler::setPage(int id)");
+
+    setGeneralPage(id);
+    setProgrammingPage(id);
+}
+
+void TWorkSpaceHandler::setPopup(const QString& name)
+{
+    DECL_TRACER("TWorkSpaceHandler::setPopup(const QString& name)");
+
+    setGeneralPopup(name);
+    setProgrammingPopup(name);
+}
+
+void TWorkSpaceHandler::setPopup(int id)
+{
+    DECL_TRACER("TWorkSpaceHandler::setPopup(int id)");
+
+    setGeneralPopup(id);
+    setProgrammingPopup(id);
+}
+
+void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)
+{
+    DECL_TRACER("TWorkSpaceHandler::onPageNameChanged(int id, const QString& name)");
+
+    if (id >= 1 && id < 500)
+        TPageTree::updatePageName(id, name);
+    else if (id >= 500 && id < 1000)
+        TPageTree::updatePopupName(id, name);
+
+    TPageHandler::Current().changePageName(id, name);
+}
+
+void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
+{
+    DECL_TRACER("TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)");
+
+    if (!_dataChanged)
+        return;
+
+    Page::PAGE_t pg = TPageHandler::Current().getPage(page->pageID);
+
+    switch(prop)
+    {
+        case TBL_GENERIC:
+            pg.popupType = page->popupType;
+            pg.name = page->name;
+            pg.description = page->description;
+            pg.left = page->left;
+            pg.top = page->top;
+            pg.width = page->width;
+            pg.height = page->height;
+            pg.resetPos = page->resetPos;
+            pg.group = page->group;
+            pg.timeout = page->timeout;
+            pg.modal = page->modal;
+            pg.showEffect = page->showEffect;
+            pg.hideEffect = page->hideEffect;
+            pg.collapseDirection = page->collapseDirection;
+        break;
+
+        case TBL_PROGRAM:
+            pg.ap = page->ap;
+            pg.ad = page->ap;
+            pg.cp = page->cp;
+            pg.ch = page->ch;
+        break;
+
+        default:
+            return;
+    }
+
+    _dataChanged(&pg);
+}
+
+void TWorkSpaceHandler::markChanged()
+{
+    DECL_TRACER("TWorkSpaceHandler::markChanged()");
+
+    if (_markDirty)
+        _markDirty();
 }

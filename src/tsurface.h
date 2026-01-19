@@ -58,6 +58,7 @@ class TSurface : public QMainWindow
         void onActionShowChannels(bool checked);
         void onItemToFront(int id);
         void onDataChanged(Page::PAGE_t *page);
+        void onMarkDirty();
 
     private slots:
         // Menu: File
@@ -219,6 +220,7 @@ class TSurface : public QMainWindow
         void enableBaseMenus();
 
         const std::unique_ptr<Ui::tsurface> m_ui;
+        bool mForceClose{false};
         QString mLastOpenPath;
         bool mProjectChanged{false};
         bool mHaveProject{false};

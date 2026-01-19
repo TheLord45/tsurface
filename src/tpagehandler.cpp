@@ -22,6 +22,7 @@
 #include <QFile>
 
 #include "tpagehandler.h"
+#include "tconfmain.h"
 #include "terror.h"
 
 using namespace Page;
@@ -398,6 +399,27 @@ QStringList TPageHandler::getGroupNames()
     return list;
 }
 
+void TPageHandler::changePageName(int id, const QString& name)
+{
+    DECL_TRACER("TPageHandler::changePageName(int id, const QString& name)");
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->pageID == id)
+        {
+            if (id > 0 && id < 500)
+                TConfMain::Current().renamePage(id, name);
+            else if (id > 500 && id < 1000)
+                TConfMain::Current().renamePopup(id, name);
+
+            iter->name = name;
+            break;
+        }
+    }
+}
+
 bool TPageHandler::saveAllPages()
 {
     DECL_TRACER("TPageHandler::saveAllPages()");
@@ -434,6 +456,19 @@ bool TPageHandler::savePage(const PAGE_t& page)
     root.insert("height", page.height);
     root.insert("collapseDirection", page.collapseDirection);
     root.insert("collapseOffset", page.collapseOffset);
+
+    if (page.ap != 0)
+        root.insert("ap", page.ap);
+
+    if (page.ad != 1)
+        root.insert("ad", page.ad);
+
+    if (page.cp != 0)
+        root.insert("cp", page.cp);
+
+    if (page.ch != 1)
+        root.insert("ch", page.ch);
+
     QJsonObject sr = getSr(page.popupType, page.srPage);
     root.insert("sr", sr);
 
@@ -660,11 +695,16 @@ void TPageHandler::parsePage(const QJsonObject& page)
 {
     DECL_TRACER("TPageHandler::parsePage(const QJsonObject& page)");
 
+    int setupPort = TConfMain::Current().getSetupPort();
     PAGE_t pg;
     pg.popupType = static_cast<PAGE_TYPE>(page.value("type").toInt(PT_UNKNOWN));
     pg.pageID = page.value("pageID").toInt(0);
     pg.name = page.value("name").toString();
     pg.description = page.value("description").toString();
+    pg.ap = page.value("ap").toInt(setupPort);
+    pg.ad = page.value("ad").toInt(1);
+    pg.cp = page.value("cp").toInt(setupPort);
+    pg.ch = page.value("ch").toInt(1);
     pg.left = page.value("left").toInt(0);
     pg.top = page.value("top").toInt(0);
     pg.width = page.value("width").toInt(0);
