@@ -31,5 +31,6 @@ typedef enum
 
 QString basename(const QString& path);
 QString pathname(const QString& path);
+int getObjectID(const QString& name, const QString& hint="");
 
 #endif // TMISC_H

@@ -104,6 +104,8 @@ qt_add_executable(tsurface
     tdownloader.h
     tpropertiesgeneral.cpp
     tpropertiesgeneral.h
+    tpropertiesprogramming.cpp
+    tpropertiesprogramming.h
     tworkspacehandler.cpp
     tworkspacehandler.h
     ttexteditdialog.cpp
@@ -113,8 +115,12 @@ qt_add_executable(tsurface
     tcrypt.h
     base64.cpp
     base64.h
-    tpropertiesprogramming.h tpropertiesprogramming.cpp
-    tvalidateport.h tvalidateport.cpp
+    tvalidateport.cpp
+    tvalidateport.h
+    tcanvaswidget.cpp
+    tcanvaswidget.h
+    tresizablewidget.cpp
+    tresizablewidget.h
 )
 
 # Use the Widgets module from Qt 6.

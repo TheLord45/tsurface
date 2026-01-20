@@ -51,6 +51,12 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void closeEvent(QCloseEvent *event) override;
+        void mousePressEvent(QMouseEvent *event) override;
+
+        void updateGridFromUI(TCanvasWidget *widget);
+        void applyGridToChildren(TCanvasWidget *widget);
+        void addObject(int id, QPoint pt);
+        int getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects);
 
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
         void onAddNewPage();
@@ -61,6 +67,8 @@ class TSurface : public QMainWindow
         void onMarkDirty();
 
     private slots:
+        // Splitter
+        void onSplitterMoved(int pos, int index);
         // Menu: File
         void on_actionOpen_triggered();
         void on_actionNew_triggered();

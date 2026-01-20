@@ -195,13 +195,13 @@ TStreamError::TStreamError(const string& logFile, const std::string& logLevel)
 
     if (!logFile.empty())
         mLogfile = logFile;
-    else if (!TConfig::Current().getLogFile().empty())
-        mLogfile = TConfig::Current().getLogFile();
+    else if (!TConfig::Current().getLogFile().isEmpty())
+        mLogfile = TConfig::Current().getLogFile().toStdString();
 
     if (!logLevel.empty())
         setLogLevel(logLevel);
-    else if (!TConfig::Current().getLogLevel().empty())
-        setLogLevel(TConfig::Current().getLogLevel());
+    else if (!TConfig::Current().getLogLevel().isEmpty())
+        setLogLevel(TConfig::Current().getLogLevel().toStdString());
 
     _init();
 }
@@ -494,7 +494,7 @@ void TStreamError::_init(bool reinit)
     if (mLogLevel > 0)
         *mStream << "Logfile started at " << getTime() << std::endl;
 
-    *mStream << TConfig::Current().getProgName() << " version " << VERSION_STRING() << std::endl;
+    *mStream << TConfig::Current().getProgName().toStdString() << " version " << VERSION_STRING() << std::endl;
     *mStream << "(C) Copyright by Andreas Theofilu <andreas@theosys.at>\n" << std::endl;
 
     if (mLogLevel > 0)
@@ -782,7 +782,7 @@ TError::~TError()
 TStreamError* TError::Current()
 {
     if (!mCurrent)
-        mCurrent = new TStreamError(TConfig::Current().getLogFile(), TConfig::Current().getLogLevel());
+        mCurrent = new TStreamError(TConfig::Current().getLogFile().toStdString(), TConfig::Current().getLogLevel().toStdString());
 
     return mCurrent;
 }

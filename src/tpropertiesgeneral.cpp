@@ -70,7 +70,7 @@ void TPropertiesGeneral::setGeneralPage(const QString& name)
     }
 
     if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
 
     mChanged = false;
     mPage = Page::PAGE_t();
@@ -90,7 +90,7 @@ void TPropertiesGeneral::setGeneralPage(int id, bool loaded)
 
     if (!loaded && mPage.pageID > 0 && mChanged)
     {
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
         mPage = Page::PAGE_t();
     }
 
@@ -157,7 +157,7 @@ void TPropertiesGeneral::setGeneralPopup(const QString& name)
     }
 
     if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
 
     mChanged = false;
     mPage = Page::PAGE_t();
@@ -176,7 +176,7 @@ void TPropertiesGeneral::setGeneralPopup(int id, bool loaded)
     }
 
     if (!loaded && mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
 
     mChanged = false;
 
@@ -516,7 +516,7 @@ void TPropertiesGeneral::onLineEditTextChanged(const QString& text)
     if (mPage.popupType == Page::PT_PAGE || mPage.popupType == Page::PT_POPUP)
     {
         mPage.description = text;
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
         mChanged = true;
     }
 }
@@ -544,7 +544,7 @@ void TPropertiesGeneral::onToolButtonClicked()
         if (mLineDescription)
             mLineDescription->setText(mPage.description);
 
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
         mChanged = false;
     }
 }
@@ -561,7 +561,7 @@ void TPropertiesGeneral::onSpinLeftValue(int value)
     DECL_TRACER("TPropertiesGeneral::onSpinLeftValue(int value)");
 
     mPage.left = value;
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -570,7 +570,7 @@ void TPropertiesGeneral::onSpinTopValue(int value)
     DECL_TRACER("TPropertiesGeneral::onSpinTopValue(int value)");
 
     mPage.top = value;
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -579,7 +579,7 @@ void TPropertiesGeneral::onSpinWidthValue(int value)
     DECL_TRACER("TPropertiesGeneral::onSpinWidthValue(int value)");
 
     mPage.width = value;
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -588,7 +588,7 @@ void TPropertiesGeneral::onSpinHeightValue(int value)
     DECL_TRACER("TPropertiesGeneral::onSpinHeightValue(int value)");
 
     mPage.height = value;
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -597,7 +597,7 @@ void TPropertiesGeneral::onComboResetPosChanged(int index)
     DECL_TRACER("TPropertiesGeneral::onComboResetPosChanged(int index)");
 
     mPage.resetPos = mComboResetPos->itemData(index).toInt();
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -609,7 +609,7 @@ void TPropertiesGeneral::onComboGroupTextChanged(const QString& text)
     {
         mPage.group = text;
         mChanged = false;
-        emit saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_GENERIC);
     }
 }
 
@@ -618,7 +618,7 @@ void TPropertiesGeneral::onSpinTimeoutValue(int value)
     DECL_TRACER("TPropertiesGeneral::onSpinTimeoutValue(int value)");
 
     mPage.timeout = value;
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -627,7 +627,7 @@ void TPropertiesGeneral::onComboModalChanged(int index)
     DECL_TRACER("TPropertiesGeneral::onComboModalChanged(int index)");
 
     mPage.modal = mComboModal->itemData(index).toInt();
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -636,7 +636,7 @@ void TPropertiesGeneral::onComboShowChanged(int index)
     DECL_TRACER("TPropertiesGeneral::onComboShowChanged(int index)");
 
     mPage.showEffect = static_cast<Page::SHOWEFFECT>(mComboShow->itemData(index).toInt());
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -645,7 +645,7 @@ void TPropertiesGeneral::onComboHideChanged(int index)
     DECL_TRACER("TPropertiesGeneral::onComboHideChanged(int index)");
 
     mPage.hideEffect = static_cast<Page::SHOWEFFECT>(mComboHide->itemData(index).toInt());
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }
 
@@ -654,6 +654,6 @@ void TPropertiesGeneral::onComboColapseChange(int index)
     DECL_TRACER("TPropertiesGeneral::onComboColapseChange(int index)");
 
     mPage.collapseDirection = static_cast<Page::COLDIR_t>(mComboColapse->itemData(index).toInt());
-    saveChangedData(&mPage);
+    saveChangedData(&mPage, TBL_GENERIC);
     mChanged = true;
 }

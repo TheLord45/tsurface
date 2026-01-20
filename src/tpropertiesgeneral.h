@@ -98,7 +98,6 @@ class TPropertiesGeneral : public QObject
         QComboBox *mComboShow{nullptr};
         QComboBox *mComboHide{nullptr};
         QComboBox *mComboColapse{nullptr};
-
 };
 
 #endif // TPROPERTIESGENERAL_H

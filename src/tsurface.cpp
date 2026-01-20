@@ -25,6 +25,8 @@
 #include <QtEnvironmentVariables>
 
 #include "tsurface.h"
+#include "tresizablewidget.h"
+#include "tcanvaswidget.h"
 #include "tsurfacereader.h"
 #include "tsurfacewriter.h"
 #include "tconfmain.h"
@@ -84,17 +86,11 @@ bool winCloseEater::eventFilter(QObject *obj, QEvent *event)
 
             QString objName = widget->objectName();
             MSG_DEBUG("Got object name: " << objName.toStdString());
-            qsizetype pos = objName.lastIndexOf('_');
+            int id = getObjectID(objName);
+            MSG_DEBUG("ID: " << id);
 
-            if (pos > 0)
-            {
-                MSG_DEBUG("Found _ at: " << pos);
-                int id = objName.remove(0, pos+1).toInt();
-                MSG_DEBUG("ID: " << id);
-
-                if (id > 0)
-                    TPageHandler::Current().setVisible(id, false);
-            }
+            if (id > 0)
+                TPageHandler::Current().setVisible(id, false);
         }
         break;
 
@@ -112,7 +108,14 @@ TSurface::TSurface(QWidget *parent)
     DECL_TRACER("TSurface::TSurface(QWidget *parent)");
 
     m_ui->setupUi(this);
+
     TWorkSpaceHandler::Current(m_ui->treeViewPages, m_ui->tableWidgetGeneral, m_ui->tableWidgetProgramming, this);
+
+    int splitt = TConfig::Current().getSplitterPosition();
+    MSG_DEBUG("Setting Splitter to " << splitt)
+    QList<int> splittSize = { splitt, (TConfig::Current().getLastPosition().width() - splitt) };
+    m_ui->splitter->setSizes(splittSize);
+
     m_ui->tableWidgetGeneral->horizontalHeader()->hide();
     m_ui->tableWidgetGeneral->verticalHeader()->hide();
     // Diable Menu points
@@ -121,8 +124,8 @@ TSurface::TSurface(QWidget *parent)
     m_ui->actionAdd_popup_page->setDisabled(true);
     m_ui->actionAdd_Application_Window->setDisabled(true);
     // Get the last position and size of the main window and set it.
-    TConfig::WINSIZE_t ws = TConfig::Current().getLastPosition();
-    setGeometry(QRect(ws.left, ws.top, ws.width, ws.height));
+    QRect ws = TConfig::Current().getLastPosition();
+    setGeometry(ws);
     mCloseEater = new winCloseEater;
     // Add the application icon
     setWindowIcon(QIcon(":images/tsurface_512.png"));
@@ -152,18 +155,15 @@ TSurface::TSurface(QWidget *parent)
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
     TWorkSpaceHandler::Current().regDataChanged(bind(&TSurface::onDataChanged, this, std::placeholders::_1));
     TWorkSpaceHandler::Current().regMarkDirty(bind(&TSurface::onMarkDirty, this));
+
+    connect(m_ui->splitter, &QSplitter::splitterMoved, this, &TSurface::onSplitterMoved);
 }
 
 TSurface::~TSurface()
 {
     DECL_TRACER("TSurface::~TSurface()");
 
-    TConfig::WINSIZE_t ws;
-    ws.left = geometry().x();
-    ws.top = geometry().y();
-    ws.width = geometry().width();
-    ws.height = geometry().height();
-    TConfig::Current().setLastPosition(ws);
+    TConfig::Current().setLastPosition(geometry());
     TConfig::Current().saveConfig();
 
     if (mCloseEater)
@@ -172,9 +172,87 @@ TSurface::~TSurface()
     TFonts::releaseFontConfig();
 }
 
+void TSurface::updateGridFromUI(TCanvasWidget *widget)
+{
+    DECL_TRACER("TSurface::updateGridFromUI(TCanvasWidget *widget)");
+
+    if (!widget)
+        return;
+
+    widget->setGridSize(10, 10);
+    applyGridToChildren(widget);
+}
+
+void TSurface::applyGridToChildren(TCanvasWidget *widget)
+{
+    DECL_TRACER("TSurface::applyGridToChildren(TCanvasWidget *widget)");
+
+    // Kept for compatibility with earlier API; snapping uses Canvas settings during move.
+    if (!widget)
+        return;
+
+    const QSize grid = widget->gridSize();
+    const bool snap = widget->snapEnabled();
+    const auto children = widget->findChildren<TResizableWidget*>();
+
+    for (TResizableWidget *w : children)
+    {
+        w->setGridSize(grid);
+        w->setSnapToGrid(snap);
+    }
+}
+
+void TSurface::addObject(int id, QPoint pt)
+{
+    DECL_TRACER("TSurface::addObject(int id, QPoint pt)");
+
+    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    QWidget* content = new QWidget;
+    int btNumber = getNextObjectNumber(page.objects);
+    QString objName = QString("Canvas_%1").arg(btNumber);
+    page.widget->setObjectName(objName);
+    content->setStyleSheet(QString("%1 { background: %2; border: none }")
+                               .arg(objName)
+                               .arg(page.srPage.cf.name()));
+
+    TResizableWidget* wrap = new TResizableWidget(content, page.widget);
+    wrap->setMinimumSize(20, 20);
+    wrap->setGridSize(page.widget->gridSize());
+    wrap->setSnapToGrid(page.widget->snapEnabled());
+    wrap->setGeometry(pt.x(), pt.y(), 20, 20);
+    wrap->show();
+}
+
+int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
+{
+    DECL_TRACER("TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)");
+
+    if (objects.empty())
+        return 1;
+
+    int btNumber = 0;
+    QList<ObjHandler::TOBJECT_t>::Iterator iter;
+
+    for (iter = objects.begin(); iter != objects.end(); ++iter)
+    {
+        if (iter->bi > btNumber)
+            btNumber = iter->bi;
+    }
+
+    return btNumber + 1;
+}
+
 //
 // Menu callback methods
 //
+void TSurface::onSplitterMoved(int pos, int index)
+{
+    DECL_TRACER("TSurface::onSplitterMoved(int pos, int index)");
+
+    Q_UNUSED(index);
+    TConfig::Current().setSplitterPosition(pos);
+}
+
 /**
  * @brief TSurface::on_actionOpen_triggered
  * This method is triggered when the user pressed in the menu @bold File on the
@@ -186,7 +264,7 @@ void TSurface::on_actionOpen_triggered()
 {
     DECL_TRACER("TSurface::on_actionOpen_triggered()");
 
-    mLastOpenPath = QString::fromStdString(TConfig::Current().getLastDirectory());
+    mLastOpenPath = TConfig::Current().getLastDirectory();
     QString file = QFileDialog::getOpenFileName(this, tr("Open TSurface file"), mLastOpenPath, tr("TSurface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
     TConfig::Current().setLastDirectory(pathname(file));
 
@@ -323,7 +401,7 @@ void TSurface::on_actionNew_triggered()
     TWorkSpaceHandler::Current().createNewTree(npd.getProjectName(), npd.getPageName(), npd.getPanelName());
     connect(&TWorkSpaceHandler::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
-    QWidget *widget = new QWidget;
+    TCanvasWidget *widget = new TCanvasWidget;
     widget->setWindowTitle(npd.getPageName());
     widget->setFixedSize(npd.getResolution());
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -1081,7 +1159,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     DECL_TRACER("TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name)");
 
     MSG_DEBUG("Toggle: Type: " << wt << ", Number: " << num << ", Name: " << name.toStdString());
-    QWidget *widget = TPageHandler::Current().getWidget(num);
+    TCanvasWidget *widget = TPageHandler::Current().getWidget(num);
     bool visible = TPageHandler::Current().isVisible(num);
     MSG_DEBUG("Window is " << (visible ? "visible" : "not visible") << ", widget is " << (widget == nullptr ? "not available" : "available"));
 
@@ -1108,14 +1186,13 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     {
         MSG_DEBUG("Window is not visible. Generating it ...")
         Page::PAGE_t pg = TPageHandler::Current().getPage(num);
-        widget = new QWidget;
+        widget = new TCanvasWidget(this);
         widget->setWindowTitle(name);
         widget->setFixedSize(QSize(pg.width, pg.height));
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
         widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");
         int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, name, pg.width, pg.height);
-        QString objName("QWidgetMDI_");
-        objName.append(QString::number(id));
+        QString objName(QString("QWidgetMDI_%1").arg(id));
         widget->setObjectName(objName);
         widget->installEventFilter(mCloseEater);
         MSG_DEBUG("Object name: " << objName.toStdString());
@@ -1127,8 +1204,11 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         page->installEventFilter(mCloseEater);
         page->setWindowIcon(QIcon(":images/tsurface_512.png"));
         m_ui->mdiArea->addSubWindow(page);
+        updateGridFromUI(widget);
         widget->activateWindow();
         widget->show();
+        connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
+        connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         TPageHandler::Current().setVisible(num, true);
     }
 }
@@ -1149,7 +1229,7 @@ void TSurface::onAddNewPage()
 
     mProjectChanged = true;
     QSize pgSize = TConfMain::Current().getPanelSize();
-    QWidget *widget = new QWidget;
+    TCanvasWidget *widget = new TCanvasWidget;
     widget->setWindowTitle(pageDialog.getPageName());
     widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -1206,7 +1286,7 @@ void TSurface::onAddNewPopup()
 
     mProjectChanged = true;
     QSize pgSize = popupDialog.getPopupSize();
-    QWidget *widget = new QWidget;
+    TCanvasWidget *widget = new TCanvasWidget;
     widget->setWindowTitle(popupDialog.getPopupName());
     widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -1276,6 +1356,23 @@ void TSurface::closeEvent(QCloseEvent *event)
 
     mForceClose = true;
     event->accept();
+}
+
+void TSurface::mousePressEvent(QMouseEvent *event)
+{
+    DECL_TRACER("TSurface::mousePressEvent(QMouseEvent *event)");
+
+    if (event->button() == Qt::LeftButton)
+    {
+        QWidget *widget = m_ui->mdiArea->activeSubWindow()->childAt(event->pos());
+        QString objName = widget->objectName();
+        int id = getObjectID(objName, "Canvas_");
+
+        if (id > 0)
+            addObject(id, event->pos());
+    }
+
+    QWidget::mousePressEvent(event);
 }
 
 bool TSurface::closeRequest()

@@ -18,8 +18,9 @@
 #ifndef TCONFIG_H
 #define TCONFIG_H
 
-#include <string>
+//#include <string>
 #include <QString>
+#include <QRect>
 
 #define V_MAJOR     1
 #define V_MINOR     0
@@ -31,33 +32,30 @@
 #define _GET_X_VERSION(a, b, c) _GET_VERSION(a, b, c)
 #define _GET_VERSION(a, b, c) ( #a "." #b "." #c )          // Release version
 
+class QSettings;
+
 class TConfig
 {
     public:
         TConfig();
+        ~TConfig();
 
         static TConfig& Current();
         void saveConfig();
 
-        typedef struct WINSIZE_t
-        {
-            int left{0};
-            int top{0};
-            int width{600};
-            int height{400};
-        }WINSIZE_t;
-
-        std::string& getLastDirectory() { return mLastDirectory; }
-        void setLastDirectory(const QString& dir) { mLastDirectory = dir.toStdString(); }
-        WINSIZE_t& getLastPosition() { return mPosition; }
-        void setLastPosition(const WINSIZE_t& ws) { mPosition = ws; }
+        QString& getLastDirectory() { return mLastDirectory; }
+        void setLastDirectory(const QString& dir) { mLastDirectory = dir; }
+        QRect& getLastPosition() { return mPosition; }
+        void setLastPosition(const QRect& ws) { mPosition = ws; }
         bool isInitialized() { return mInitialized; }
         bool isLongFormat() { return mLongFormat; }
-        std::string getLogFile() { return mLogFile; }
-        std::string getLogLevel() { return mLogLevel; }
+        QString& getLogFile() { return mLogFile; }
+        QString& getLogLevel() { return mLogLevel; }
         bool getProfiling() { return mProfiling; }
-        void setProgName(const QString& name) { mProgName = name.toStdString(); }
-        std::string& getProgName() { return mProgName; }
+        void setProgName(const QString& name) { mProgName = name; }
+        QString& getProgName() { return mProgName; }
+        int getSplitterPosition() { return mSplitterPosition; }
+        void setSplitterPosition(int pos) { mSplitterPosition = pos; }
 
     protected:
         void init();
@@ -67,17 +65,18 @@ class TConfig
 
     private:
         static TConfig *mCurrent;           // Pointer to self.
+        QSettings *mSettings{nullptr};      // Abstraction class to store and retrieve basic settings
 
-        std::string mProgName;              // The real name of this program
+        QString mProgName;                  // The real name of this program
         bool mInitialized{false};           // TRUE = Configuration was initialized
-        std::string mConfigFile;            // The path and name of the configuration file
-        std::string mLastDirectory;         // The last directory a file was loaded from
-        WINSIZE_t mPosition;                // The last position and size of the main window
+        QString mLastDirectory;             // The last directory a file was loaded from
+        QRect mPosition;                    // The last position and size of the main window
         // Debugging options
-        std::string mLogFile;               // An optional logfile
-        std::string mLogLevel;              // The loglevels
+        QString mLogFile;                   // An optional logfile
+        QString mLogLevel;                  // The loglevels
         bool mLongFormat{false};            // TRUE = Logging is written in long format (recomended)
         bool mProfiling{false};             // TRUE = Profiling information is logged for each method
+        int mSplitterPosition{0};           // Remembers the last splitter position
 };
 
 #endif // TCONFIG_H

@@ -25,6 +25,8 @@
 
 #include "tobjecthandler.h"
 
+class TCanvasWidget;
+
 namespace Page
 {
     enum PAGE_TYPE
@@ -163,7 +165,7 @@ namespace Page
         int pageID{0};                          // Unique ID of popup/page
         QString name;                           // The name of the popup/page
         QString description;                    // Optional description of page
-        QWidget *widget{nullptr};               // A pointer to the MDI widget
+        TCanvasWidget *widget{nullptr};         // Internal use: A pointer to the MDI widget
         bool visible{false};                    // TRUE = The page/popup is visible as MDI window
         int ap{0};                              // Default: 0; Address port
         int ad{1};                              // Default: 1; Address code
@@ -213,16 +215,16 @@ class TPageHandler : public QObject
         explicit TPageHandler();
         static TPageHandler& Current();
 
-        int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0);
-        int createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
+        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0);
+        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
         void reset();
         void setVisible(int number, bool visible);
         void bringToFront(int number);
         int getNextPageNumber() { mMaxPageNumber++; return mMaxPageNumber; }
         int getNextPopupNumber() { mMaxPopupNumber++; return mMaxPopupNumber; }
         bool isVisible(int number);
-        QWidget *getWidget(int number);
-        void setWidget(QWidget *w, int number);
+        TCanvasWidget *getWidget(int number);
+        void setWidget(TCanvasWidget *w, int number);
         bool saveAllPages();
         bool readPages(const QStringList& list);
         // Getter/Setter

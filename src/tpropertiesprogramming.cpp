@@ -232,7 +232,7 @@ void TPropertiesProgramming::onComboAddrPort(int index)
 
     mPage.ap = mAddrPort->itemText(index).toInt();
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboAddrPortText(const QString& text)
@@ -245,7 +245,7 @@ void TPropertiesProgramming::onComboAddrPortText(const QString& text)
         mPage.ap = text.toInt();
 
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboAddrCode(int index)
@@ -254,7 +254,7 @@ void TPropertiesProgramming::onComboAddrCode(int index)
 
     mPage.ad = mAddrCode->itemText(index).toInt();
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboAddrCodeText(const QString& text)
@@ -267,7 +267,7 @@ void TPropertiesProgramming::onComboAddrCodeText(const QString& text)
         mPage.ad = text.toInt();
 
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboChanPort(int index)
@@ -276,7 +276,7 @@ void TPropertiesProgramming::onComboChanPort(int index)
 
     mPage.cp = mChanPort->itemText(index).toInt();
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboChanPortText(const QString& text)
@@ -289,7 +289,7 @@ void TPropertiesProgramming::onComboChanPortText(const QString& text)
         mPage.cp = text.toInt();
 
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboChanCode(int index)
@@ -298,7 +298,7 @@ void TPropertiesProgramming::onComboChanCode(int index)
 
     mPage.ch = mChanCode->itemText(index).toInt();
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboChanCodeText(const QString& text)
@@ -311,5 +311,5 @@ void TPropertiesProgramming::onComboChanCodeText(const QString& text)
         mPage.ch = text.toInt();
 
     mChanged = true;
-    markChanged();
+    saveChangedData(&mPage, TBL_PROGRAM);
 }

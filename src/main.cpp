@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationDisplayName("TSurface");
     app.setApplicationVersion(VERSION_STRING());
+    QCoreApplication::setOrganizationName("TheoSys");
+    QCoreApplication::setOrganizationDomain("www.theosys.at");
+    QCoreApplication::setApplicationName(pname);
     QTranslator translator;
 
     if (!translator.load(QLocale(), "tsurface"_L1, "_"_L1, "/usr/share/tsurface"))

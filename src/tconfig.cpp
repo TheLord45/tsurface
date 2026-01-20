@@ -15,29 +15,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#include <fstream>
-#include <iomanip>
-#include <filesystem>
+#include <QSettings>
 
 #include "tconfig.h"
 #include "terror.h"
 
-#define CONFIGFILE  "tsurface.conf"
-
-namespace  fs = std::filesystem;
-using std::string;
-using std::ifstream;
-using std::ofstream;
-using std::ios;
-using std::cout;
 using std::endl;
-using std::to_string;
-using std::to_integer;
 
 TConfig *TConfig::mCurrent = nullptr;
 
 TConfig::TConfig()
 {
+    mSettings = new QSettings("TheoSys", "TSurface");
+}
+
+TConfig::~TConfig()
+{
+    if (mSettings)
+        delete mSettings;
 }
 
 /**
@@ -61,157 +56,132 @@ TConfig &TConfig::Current()
 void TConfig::init()
 {
     initDefaults();
-    // Search for configuration file
-    char *home = getenv("HOME");
-    string sHome;
 
-    if (home)
-        sHome = string(home);
+    if (!readConfig())
+    {
+        initDefaults();
+        saveConfig();
+    }
     else
-        sHome = "/";
+        setLogging();
 
-    string path = sHome + "/.config";
     mInitialized = true;
-
-    try
-    {
-        if (!fs::exists(path))
-        {
-            fs::create_directories(path);
-            saveConfig();
-            return;
-        }
-
-        if (!readConfig())
-        {
-            initDefaults();
-            saveConfig();
-        }
-        else
-            setLogging();
-    }
-    catch(std::exception& e)
-    {
-        MSG_ERROR("Config error: " << e.what());
-        return;
-    }
 }
 
 void TConfig::initDefaults()
 {
     char *home = getenv("HOME");
-    string sHome;
+    QString sHome;
 
     if (home)
-        sHome = string(home);
+        sHome = QString(home);
     else
         sHome = "/";
 
-    mConfigFile = sHome + "/.config/" + CONFIGFILE;
     mLastDirectory = sHome;
-    mPosition.left = 10;
-    mPosition.top = 10;
-    mPosition.width = 1100;
-    mPosition.height = 800;
+    mPosition.setLeft(10);
+    mPosition.setTop(10);
+    mPosition.setWidth(1100);
+    mPosition.setHeight(800);
+    mSplitterPosition = 260;
 
     setLogging();
 }
 
 void TConfig::setLogging()
 {
-    mLogLevel = "PROTOCOL";
-    char *logfile = getenv("TSLOGFILE");
-
-    if (logfile)
+    if (!mInitialized)
     {
-        mLogFile = logfile;
-        TStreamError::setLogFile(mLogFile);
-    }
+        mLogLevel = "PROTOCOL";
+        char *logfile = getenv("TSLOGFILE");
 
-    char *loglevel = getenv("TSLOGLEVEL");
+        if (logfile)
+        {
+            mLogFile = logfile;
+            TStreamError::setLogFile(mLogFile.toStdString());
+        }
 
-    if (loglevel)
-    {
-        mLogLevel = loglevel;
-        TStreamError::setLogLevel(mLogLevel);
+        char *loglevel = getenv("TSLOGLEVEL");
+
+        if (loglevel)
+        {
+            mLogLevel = loglevel;
+            TStreamError::setLogLevel(mLogLevel.toStdString());
+        }
+        else
+            TStreamError::setLogLevel(mLogLevel.toStdString());
     }
     else
-        TStreamError::setLogLevel(mLogLevel);
+    {
+        if (!mLogFile.isEmpty())
+            TStreamError::setLogFile(mLogFile.toStdString());
+
+        if (!mLogLevel.isEmpty())
+            TStreamError::setLogLevel(mLogLevel.toStdString());
+        else
+        {
+            TStreamError::setLogLevel("PROTOCOL");
+            mLogLevel = "PROTOCOL";
+        }
+    }
 }
 
 void TConfig::saveConfig()
 {
     DECL_TRACER("TConfig::saveConfig()");
 
-    ofstream file;
+    if (!mSettings)
+        return;
 
-    try
-    {
-        file.open(mConfigFile, ios::trunc | ios::out);
-        MSG_DEBUG("Last directory:  " << mLastDirectory << endl
-               << "Position left:   " << to_string(mPosition.left) << endl
-               << "Position top:    " << to_string(mPosition.top) << endl
-               << "Position width:  " << to_string(mPosition.width) << endl
-               << "Position height: " << to_string(mPosition.height) << endl
-               << "Log level:       " << mLogLevel << endl
-               << "Log file:        " << mLogFile);
-
-        file << mLastDirectory << endl
-             << to_string(mPosition.left) << endl
-             << to_string(mPosition.top) << endl
-             << to_string(mPosition.width) << endl
-             << to_string(mPosition.height) << endl
-             << mLogLevel << endl
-             << mLogFile << endl;
-        file.close();
-    }
-    catch (std::exception& e)
-    {
-        MSG_ERROR("Error writing config file: " << e.what());
-
-        if (file.is_open())
-            file.close();
-    }
+    mSettings->setValue("lastDirectory", mLastDirectory);
+    mSettings->setValue("position", mPosition);
+    mSettings->setValue("logLevel", mLogLevel);
+    mSettings->setValue("logFile", mLogFile);
+    mSettings->setValue("splitter", mSplitterPosition);
+    mSettings->sync();
+#ifdef QT_DEBUG
+        MSG_DEBUG("Configuration options:" << endl
+               << "Last directory:  " << mLastDirectory.toStdString() << endl
+               << "Position left:   " << mPosition.left() << endl
+               << "Position top:    " << mPosition.top() << endl
+               << "Position width:  " << mPosition.width() << endl
+               << "Position height: " << mPosition.height() << endl
+               << "Log level:       " << mLogLevel.toStdString() << endl
+               << "Log file:        " << mLogFile.toStdString() << endl
+               << "Splitter pos:    " << mSplitterPosition);
+#endif
 }
 
 bool TConfig::readConfig()
 {
     DECL_TRACER("TConfig::readConfig()");
 
-    ifstream file;
-
-    try
+    if (!mSettings)
     {
-        file.open(mConfigFile, ios::in);
-        int zeile = 0;
-
-        for (string line; getline(file, line);)
-        {
-            zeile++;
-
-            switch(zeile)
-            {
-                case 1: mLastDirectory   = line; break;
-                case 2: mPosition.left   = atoi(line.c_str()); break;
-                case 3: mPosition.top    = atoi(line.c_str()); break;
-                case 4: mPosition.width  = atoi(line.c_str()); break;
-                case 5: mPosition.height = atoi(line.c_str()); break;
-                case 6: mLogLevel        = line; break;
-                case 7: mLogFile         = line; break;
-            }
-        }
-
-        file.close();
-    }
-    catch(std::exception& e)
-    {
-        MSG_ERROR("Error reading config file: " << e.what());
-
-        if (file.is_open())
-            file.close();
-
+        MSG_WARNING("Configuration not initialized!");
         return false;
     }
+
+    mLastDirectory = mSettings->value("lastDirectory").toString();
+    mPosition = mSettings->value("position").toRect();
+    mLogLevel = mSettings->value("logLevel").toString();
+    mLogFile = mSettings->value("logFile").toString();
+    mSplitterPosition = mSettings->value("splitter").toInt();
+
+#ifdef QT_DEBUG
+    MSG_DEBUG("Configuration options read:" << endl
+              << "Last directory:  " << mLastDirectory.toStdString() << endl
+              << "Position left:   " << mPosition.left() << endl
+              << "Position top:    " << mPosition.top() << endl
+              << "Position width:  " << mPosition.width() << endl
+              << "Position height: " << mPosition.height() << endl
+              << "Log level:       " << mLogLevel.toStdString() << endl
+              << "Log file:        " << mLogFile.toStdString() << endl
+              << "Splitter pos:    " << mSplitterPosition);
+#endif
+
+    if (mPosition.width() == 0)
+        return false;
 
     return true;
 }

@@ -33,7 +33,10 @@ QValidator::State TValidatePort::validate(QString &input, int &pos) const
     if (input == mSysString)
         return QValidator::Acceptable;
 
-    if (input.isEmpty() || pos > 3)
+    if (input.isEmpty())
+        return QValidator::Intermediate;
+
+    if (input.length() > 3)
         return QValidator::Invalid;
 
     for (int i = 0; i < pos; ++i)

@@ -36,3 +36,16 @@ QString pathname(const QString& path)
 
     return path.left(pos);
 }
+
+int getObjectID(const QString& name, const QString& hint)
+{
+    if (!name.contains("_"))
+        return -1;
+
+    if (!hint.isEmpty() && !name.startsWith(hint))
+        return -1;
+
+    QString s = name;
+    qsizetype pos = s.lastIndexOf('_');
+    return s.remove(0, pos+1).toInt();
+}

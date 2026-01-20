@@ -22,6 +22,7 @@
 #include <QFile>
 
 #include "tpagehandler.h"
+#include "tcanvaswidget.h"
 #include "tconfmain.h"
 #include "terror.h"
 
@@ -60,7 +61,7 @@ TPageHandler& TPageHandler::Current()
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)
+int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)
 {
     DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)");
 
@@ -85,7 +86,7 @@ int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)
+int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)
 {
     DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)");
 
@@ -201,7 +202,7 @@ void TPageHandler::bringToFront(int number)
     }
 }
 
-QWidget *TPageHandler::getWidget(int number)
+TCanvasWidget *TPageHandler::getWidget(int number)
 {
     DECL_TRACER("TPageHandler::getWidget(int number)");
 
@@ -216,7 +217,7 @@ QWidget *TPageHandler::getWidget(int number)
     return nullptr;
 }
 
-void TPageHandler::setWidget(QWidget *w, int number)
+void TPageHandler::setWidget(TCanvasWidget *w, int number)
 {
     DECL_TRACER("TPageHandler::setWidget(QWidget *w, int number)");
 
