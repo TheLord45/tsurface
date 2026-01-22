@@ -28,20 +28,20 @@ class TResizableWidget : public QWidget
     public:
         explicit TResizableWidget(QWidget* content = nullptr, QWidget* parent = nullptr);
         void setContentWidget(QWidget* w);
-        QWidget* contentWidget() const { return m_content; }
+        QWidget* contentWidget() const { return mContent; }
 
-        void setMinimumSize(const QSize& s) { m_minSize = s; QWidget::setMinimumSize(s); }
+        void setMinimumSize(const QSize& s) { mMinSize = s; QWidget::setMinimumSize(s); }
         void setMinimumSize(int w, int h) { setMinimumSize(QSize(w, h)); }
 
         // Selection
         void setSelected(bool on);
-        bool isSelected() const { return m_selected; }
+        bool isSelected() const { return mSelected; }
 
         // Grid snapping configuration (kept for compatibility; snapping uses Canvas settings)
-        void setGridSize(const QSize& s) { m_grid = QSize(qMax(1, s.width()), qMax(1, s.height())); }
-        QSize gridSize() const { return m_grid; }
-        void setSnapToGrid(bool on) { m_snapToGrid = on; }
-        bool snapToGrid() const { return m_snapToGrid; }
+        void setGridSize(const QSize& s) { mGrid = QSize(qMax(1, s.width()), qMax(1, s.height())); }
+        QSize gridSize() const { return mGrid; }
+        void setSnapToGrid(bool on) { mSnapToGrid = on; }
+        bool snapToGrid() const { return mSnapToGrid; }
 
     protected:
         void paintEvent(QPaintEvent*) override;
@@ -71,21 +71,21 @@ class TResizableWidget : public QWidget
         void updateMove(const QPoint& globalPos);
         void endMove();
 
-        QWidget* m_content = nullptr;
-        QSize m_minSize = QSize(60, 40);
-        int m_frameMargin = 2;      // space for dotted frame
-        int m_gripSize = 10;        // size of grip widgets
+        QWidget* mContent = nullptr;
+        QSize mMinSize = QSize(60, 40);
+        int mFrameMargin = 2;      // space for dotted frame
+        int mGripSize = 10;        // size of grip widgets
         std::array<Grip*, HandleCount> m_grips{};
 
-        bool m_moving = false;
-        QPoint m_moveStartGlobal;
-        QRect m_moveStartGeom;
+        bool mMoving = false;
+        QPoint mMoveStartGlobal;
+        QRect mMoveStartGeom;
 
         // Grid (unused by group snapping directly)
-        QSize m_grid = QSize(20, 20);
-        bool m_snapToGrid = true;
+        QSize mGrid = QSize(20, 20);
+        bool mSnapToGrid = true;
 
-        bool m_selected = false;
+        bool mSelected = false;
 };
 
 #endif

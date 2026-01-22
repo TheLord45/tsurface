@@ -106,6 +106,8 @@ void TCanvasWidget::mousePressEvent(QMouseEvent* e)
             !(e->modifiers() & Qt::ControlModifier))
         {
             clearSelection();
+            // In this case we're calling a method to inform the owner about this event.
+            emit failedClickAt(e->pos());
         }
     }
 
@@ -170,9 +172,9 @@ void TCanvasWidget::selectAll()
 {
     DECL_TRACER("TCanvasWidget::selectAll()");
 
-    const auto all = mResizableChildren();
+    const QList<TResizableWidget *> all = mResizableChildren();
 
-    for (auto* w : all)
+    for (TResizableWidget *w : all)
     {
         if (!mSelection.contains(w))
         {
@@ -301,4 +303,39 @@ void TCanvasWidget::endGroupMove()
     mGroupMoving = false;
     mMoveItems.clear();
     mMoveLead = nullptr;
+}
+
+void TCanvasWidget::removeSelected()
+{
+    DECL_TRACER("TCanvasWidget::removeSelected()");
+
+    const QList<TResizableWidget *> all = mResizableChildren();
+
+    for (TResizableWidget *w : all)
+    {
+        if (mSelection.contains(w) && w->isSelected())
+        {
+            QSet<TResizableWidget*>::Iterator iter = mSelection.find(w);
+
+            if (iter != mSelection.end())
+                mSelection.erase(iter);
+
+            w->close();
+        }
+    }
+}
+
+void TCanvasWidget::removeObject(TResizableWidget *w)
+{
+    DECL_TRACER("TCanvasWidget::removeObject(TResizableWidget *w)");
+
+    if (!w || !mSelection.contains(w))
+        return;
+
+    QSet<TResizableWidget*>::Iterator iter = mSelection.find(w);
+
+    if (iter != mSelection.end())
+        mSelection.erase(iter);
+
+    w->close();
 }

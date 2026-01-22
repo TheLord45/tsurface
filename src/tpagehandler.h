@@ -26,9 +26,18 @@
 #include "tobjecthandler.h"
 
 class TCanvasWidget;
+class QMdiArea;
 
 namespace Page
 {
+    enum TOOL
+    {
+        TOOL_NONE,
+        TOOL_DRAW,
+        TOOL_SELECT,
+        TOOL_POPUP
+    };
+
     enum PAGE_TYPE
     {
         PT_UNKNOWN,
@@ -166,7 +175,9 @@ namespace Page
         QString name;                           // The name of the popup/page
         QString description;                    // Optional description of page
         TCanvasWidget *widget{nullptr};         // Internal use: A pointer to the MDI widget
-        bool visible{false};                    // TRUE = The page/popup is visible as MDI window
+        bool visible{false};                    // Internal use: TRUE = The page/popup is visible as MDI window
+        bool gridVisible{false};                // Internal use: TRUE = Grid is visible
+        bool snapToGrid{true};                  // Internal use: FALSE = No snap to grid
         int ap{0};                              // Default: 0; Address port
         int ad{1};                              // Default: 1; Address code
         int cp{0};                              // Default: 0; Channel port
@@ -219,14 +230,18 @@ class TPageHandler : public QObject
         int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
         void reset();
         void setVisible(int number, bool visible);
+        Page::PAGE_t getCurrentPage(QMdiArea *area);
         void bringToFront(int number);
         int getNextPageNumber() { mMaxPageNumber++; return mMaxPageNumber; }
         int getNextPopupNumber() { mMaxPopupNumber++; return mMaxPopupNumber; }
         bool isVisible(int number);
+        bool isGridVisible(int number);
+        bool isSnapToGrid(int number);
         TCanvasWidget *getWidget(int number);
         void setWidget(TCanvasWidget *w, int number);
         bool saveAllPages();
         bool readPages(const QStringList& list);
+        ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
         // Getter/Setter
         Page::PAGE_t getPage(int number);
         Page::PAGE_t getPage(const QString& name);
@@ -238,12 +253,19 @@ class TPageHandler : public QObject
         QStringList getGroupNames();
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
         void changePageName(int id, const QString& name);
+        void setGridVisible(int number, bool state);
+        void setSnapToGrid(int number, bool state);
+        void setObject(int num, ObjHandler::TOBJECT_t& object);
+        ObjHandler::TOBJECT_t getObject(int page, int bi);
 
     protected:
         bool savePage(const Page::PAGE_t& page);
         bool savePopup(const Page::PAGE_t& popup);
         QJsonObject getSr(Page::PAGE_TYPE pt, const Page::SR_t& sr, int number=0);
         void parsePage(const QJsonObject& page);
+        void parseObjects(Page::PAGE_t *page, const QJsonArray& obj);
+        QJsonArray getObjects(const QList<ObjHandler::TOBJECT_t>& objects);
+        Page::PAGE_t *getPagePointer(int num);
 
 //    signals:
 

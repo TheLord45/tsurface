@@ -109,7 +109,11 @@ TSurface::TSurface(QWidget *parent)
 
     m_ui->setupUi(this);
 
-    TWorkSpaceHandler::Current(m_ui->treeViewPages, m_ui->tableWidgetGeneral, m_ui->tableWidgetProgramming, this);
+    TWorkSpaceHandler::Current(m_ui->treeViewPages,
+                               m_ui->tableWidgetGeneral,
+                               m_ui->tableWidgetProgramming,
+                               m_ui->treeWidgetStates,
+                               this);
 
     int splitt = TConfig::Current().getSplitterPosition();
     MSG_DEBUG("Setting Splitter to " << splitt)
@@ -118,7 +122,7 @@ TSurface::TSurface(QWidget *parent)
 
     m_ui->tableWidgetGeneral->horizontalHeader()->hide();
     m_ui->tableWidgetGeneral->verticalHeader()->hide();
-    // Diable Menu points
+    // Disable Menu points
     m_ui->actionResource_Manager->setDisabled(true);
     m_ui->actionAdd_page->setDisabled(true);
     m_ui->actionAdd_popup_page->setDisabled(true);
@@ -131,25 +135,8 @@ TSurface::TSurface(QWidget *parent)
     setWindowIcon(QIcon(":images/tsurface_512.png"));
     setUnifiedTitleAndToolBarOnMac(true);
     // Add symbols to the toolbar
-    mActionStateManager = new QAction(QIcon(":images/statemanager.png"), tr("State manager"));
-    m_ui->mainToolBar->addAction(mActionStateManager);
-
-    mActionPlay = new QAction(QIcon(":images/play_screen.png"), tr("Play"));
-    m_ui->mainToolBar->addAction(mActionPlay);
-
-    mActionSearch = new QAction(QIcon(":images/search_screen.png"), tr("Search"));
-    m_ui->mainToolBar->addAction(mActionSearch);
-
-    mActionChannels = new QAction(QIcon(":images/show_channels.png"), tr("Hide channels"));
-    connect(mActionChannels, &QAction::triggered, this, &TSurface::onActionShowChannels);
-    mToggleChannels = true;     // Mark channels as visible
-    m_ui->mainToolBar->addAction(mActionChannels);
-
-    m_ui->mainToolBar->addSeparator();
-
-    mActionConnectionState = new QAction(QIcon(":images/disconnected.svg"), tr("Disconnected"));
-    m_ui->mainToolBar->addAction(mActionConnectionState);
-
+    initToolbar();
+    // Initialize the callbacks
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePage, this, &TSurface::onAddNewPage);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePopup, this, &TSurface::onAddNewPopup);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
@@ -170,6 +157,64 @@ TSurface::~TSurface()
         delete mCloseEater;
 
     TFonts::releaseFontConfig();
+}
+
+void TSurface::initToolbar()
+{
+    DECL_TRACER("TSurface::initToolbar()");
+
+    mActionStateManager = new QAction(QIcon(":images/statemanager.png"), tr("State manager"));
+    m_ui->mainToolBar->addAction(mActionStateManager);
+
+    mActionPlay = new QAction(QIcon(":images/play_screen.png"), tr("Play"));
+    m_ui->mainToolBar->addAction(mActionPlay);
+
+    mActionSearch = new QAction(QIcon(":images/search_screen.png"), tr("Search"));
+    m_ui->mainToolBar->addAction(mActionSearch);
+
+    mActionChannels = new QAction(QIcon(":images/show_channels.png"), tr("Hide channels"));
+    connect(mActionChannels, &QAction::triggered, this, &TSurface::onActionShowChannels);
+    mToggleChannels = true;     // Mark channels as visible
+    m_ui->mainToolBar->addAction(mActionChannels);
+
+    m_ui->mainToolBar->addSeparator();
+
+    mActionConnectionState = new QAction(QIcon(":images/disconnected.svg"), tr("Disconnected"));
+    m_ui->mainToolBar->addAction(mActionConnectionState);
+
+    m_ui->mainToolBar->addSeparator();
+
+    mActionShowHideGrid = new QAction(QIcon(":images/view-grid.svg"), tr("Show/Hide grid"));
+    mActionShowHideGrid->setCheckable(true);
+    mActionShowHideGrid->setChecked(false);
+    connect(mActionShowHideGrid, &QAction::triggered, this, &TSurface::onActionShowHideGrid);
+    m_ui->mainToolBar->addAction(mActionShowHideGrid);
+
+    mActionSnapToGrid = new QAction(QIcon(":images/snap-bounding-box-corners.svg"), tr("Snap to grid"));
+    mActionSnapToGrid->setCheckable(true);
+    mActionSnapToGrid->setChecked(false);
+    connect(mActionSnapToGrid, &QAction::triggered, this, &TSurface::onActionSnapToGrid);
+    m_ui->mainToolBar->addAction(mActionSnapToGrid);
+
+    m_ui->mainToolBar->addSeparator();
+
+    mActionToolSelect = new QAction(QIcon(":/images/edit-node.png"), tr("Selection tool"));
+    mActionToolSelect->setCheckable(true);
+    mActionToolSelect->setChecked(true);
+    mSelectedTool = Page::TOOL_SELECT;
+    m_ui->actionSelection_tool->setChecked(true);
+    connect(mActionToolSelect, &QAction::triggered, this, &TSurface::on_actionSelection_tool_triggered);
+    m_ui->mainToolBar->addAction(mActionToolSelect);
+
+    mActionToolDraw = new QAction(QIcon(":/images/document-edit.svg"), tr("Button draw tool"));
+    mActionToolDraw->setCheckable(true);
+    connect(mActionToolDraw, &QAction::triggered, this, &TSurface::on_actionButton_draw_tool_triggered);
+    m_ui->mainToolBar->addAction(mActionToolDraw);
+
+    mActionToolPopup = new QAction(QIcon(":/images/document-edit.png"), tr("Popup draw tool"));
+    mActionToolPopup->setCheckable(true);
+    connect(mActionToolPopup, &QAction::triggered, this, &TSurface::on_actionPopup_draw_tool_triggered);
+    m_ui->mainToolBar->addAction(mActionToolPopup);
 }
 
 void TSurface::updateGridFromUI(TCanvasWidget *widget)
@@ -193,7 +238,7 @@ void TSurface::applyGridToChildren(TCanvasWidget *widget)
 
     const QSize grid = widget->gridSize();
     const bool snap = widget->snapEnabled();
-    const auto children = widget->findChildren<TResizableWidget*>();
+    const QList<TResizableWidget*> children = widget->findChildren<TResizableWidget*>();
 
     for (TResizableWidget *w : children)
     {
@@ -207,19 +252,24 @@ void TSurface::addObject(int id, QPoint pt)
     DECL_TRACER("TSurface::addObject(int id, QPoint pt)");
 
     Page::PAGE_t page = TPageHandler::Current().getPage(id);
-    QWidget* content = new QWidget;
+
+    if (page.pageID <= 0 || !page.widget || !page.visible)
+        return;
+
     int btNumber = getNextObjectNumber(page.objects);
-    QString objName = QString("Canvas_%1").arg(btNumber);
-    page.widget->setObjectName(objName);
-    content->setStyleSheet(QString("%1 { background: %2; border: none }")
-                               .arg(objName)
-                               .arg(page.srPage.cf.name()));
+    ObjHandler::TOBJECT_t object = TPageHandler::Current().initNewObject(btNumber, QString("Button %1").arg(btNumber));
+    QWidget* content = new QWidget(page.widget);
+    QString objName = QString("Object_%1").arg(btNumber);
+    MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
+    content->setObjectName(objName);
+    content->setStyleSheet(QString("background: %1")
+                               .arg(object.sr[0].cf.name()));
 
     TResizableWidget* wrap = new TResizableWidget(content, page.widget);
-    wrap->setMinimumSize(20, 20);
+    wrap->setMinimumSize(40, 40);
     wrap->setGridSize(page.widget->gridSize());
     wrap->setSnapToGrid(page.widget->snapEnabled());
-    wrap->setGeometry(pt.x(), pt.y(), 20, 20);
+    wrap->setGeometry(pt.x(), pt.y(), 40, 40);
     wrap->show();
 }
 
@@ -567,7 +617,15 @@ void TSurface::on_actionSelection_tool_triggered(bool checked)
     {
         m_ui->actionButton_draw_tool->setChecked(false);
         m_ui->actionPopup_draw_tool->setChecked(false);
+        mActionToolDraw->setChecked(false);
+        mActionToolPopup->setChecked(false);
+        mSelectedTool = Page::TOOL_SELECT;
     }
+
+    if (!mActionToolSelect->isChecked())
+        mActionToolSelect->setChecked(true);
+    else if (!m_ui->actionSelection_tool->isChecked())
+        m_ui->actionSelection_tool->setChecked(true);
 }
 
 void TSurface::on_actionButton_draw_tool_triggered(bool checked)
@@ -578,7 +636,15 @@ void TSurface::on_actionButton_draw_tool_triggered(bool checked)
     {
         m_ui->actionSelection_tool->setChecked(false);
         m_ui->actionPopup_draw_tool->setChecked(false);
+        mActionToolSelect->setChecked(false);
+        mActionToolPopup->setChecked(false);
+        mSelectedTool = Page::TOOL_DRAW;
     }
+
+    if (!mActionToolDraw->isChecked())
+        mActionToolDraw->setChecked(true);
+    else if (!m_ui->actionButton_draw_tool->isChecked())
+        m_ui->actionButton_draw_tool->setChecked(true);
 }
 
 void TSurface::on_actionPopup_draw_tool_triggered(bool checked)
@@ -589,7 +655,15 @@ void TSurface::on_actionPopup_draw_tool_triggered(bool checked)
     {
         m_ui->actionButton_draw_tool->setChecked(false);
         m_ui->actionSelection_tool->setChecked(false);
+        mActionToolSelect->setChecked(false);
+        mActionToolDraw->setChecked(false);
+        mSelectedTool = Page::TOOL_DRAW;
     }
+
+    if (!mActionToolPopup->isChecked())
+        mActionToolPopup->setChecked(true);
+    else if (!m_ui->actionPopup_draw_tool->isChecked())
+        m_ui->actionPopup_draw_tool->setChecked(true);
 }
 
 void TSurface::on_actionCut_triggered()
@@ -1144,6 +1218,53 @@ void TSurface::onActionShowChannels(bool checked)
     }
 }
 
+void TSurface::onActionShowHideGrid(bool checked)
+{
+    DECL_TRACER("TSurface::onActionShowHideGrid(bool checked)");
+
+    if (mActionBlock)
+        return;
+
+    Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
+
+    if (page.pageID <= 0)
+        return;
+
+    page.widget->setShowGrid(checked);
+    TPageHandler::Current().setGridVisible(page.pageID, checked);
+
+    if (mActionShowHideGrid->isChecked() != checked)
+    {
+        mActionBlock = true;
+        mActionShowHideGrid->setChecked(checked);
+        mActionBlock = false;
+    }
+}
+
+void TSurface::onActionSnapToGrid(bool checked)
+{
+    DECL_TRACER("TSurface::onActionSnapToGrid(bool checked)");
+
+    if (mActionBlock)
+        return;
+
+    Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
+
+    if (page.pageID <= 0)
+        return;
+
+    page.widget->setSnapEnabled(checked);
+    applyGridToChildren(page.widget);
+    TPageHandler::Current().setSnapToGrid(page.pageID, checked);
+
+    if (mActionSnapToGrid->isChecked() != checked)
+    {
+        mActionBlock = true;
+        mActionSnapToGrid->setChecked(checked);
+        mActionBlock = false;
+    }
+}
+
 /**
  * @brief TSurface::onClickedPageTree
  * This method is triggered on a double click on an item in the page tree.
@@ -1192,24 +1313,44 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
         widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");
         int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, name, pg.width, pg.height);
-        QString objName(QString("QWidgetMDI_%1").arg(id));
+        QString objName(QString("Canvas_%1").arg(id));
         widget->setObjectName(objName);
         widget->installEventFilter(mCloseEater);
         MSG_DEBUG("Object name: " << objName.toStdString());
         TPageHandler::Current().setWidget(widget, num);
 
         QMdiSubWindow *page = new QMdiSubWindow;
+        objName = QString("SubWindow_%1").arg(id);
+        page->setObjectName(objName);
         page->setWidget(widget);
         page->setAttribute(Qt::WA_DeleteOnClose);
         page->installEventFilter(mCloseEater);
         page->setWindowIcon(QIcon(":images/tsurface_512.png"));
         m_ui->mdiArea->addSubWindow(page);
-        updateGridFromUI(widget);
         widget->activateWindow();
         widget->show();
+        updateGridFromUI(widget);
         connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
+        connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
         TPageHandler::Current().setVisible(num, true);
+        onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
+        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
+    }
+}
+
+void TSurface::onFailedClickAt(const QPoint& pt)
+{
+    DECL_TRACER("TSurface::onFailedClickAt(const QPoint& pt)");
+
+    if (mSelectedTool == Page::TOOL_DRAW)
+    {
+        Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
+
+        if (page.pageID <= 0)
+            return;
+
+        addObject(page.pageID, pt);
     }
 }
 
@@ -1358,21 +1499,20 @@ void TSurface::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void TSurface::mousePressEvent(QMouseEvent *event)
+void TSurface::keyPressEvent(QKeyEvent *event)
 {
-    DECL_TRACER("TSurface::mousePressEvent(QMouseEvent *event)");
+    DECL_TRACER("TSurface::keyPressEvent(QKeyEvent *event)");
 
-    if (event->button() == Qt::LeftButton)
+    if (event->key() == Qt::Key_Delete)     // Delete all selected objects if key Delete is pressed
     {
-        QWidget *widget = m_ui->mdiArea->activeSubWindow()->childAt(event->pos());
-        QString objName = widget->objectName();
-        int id = getObjectID(objName, "Canvas_");
+        Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
 
-        if (id > 0)
-            addObject(id, event->pos());
+        if (page.pageID <= 0 || !page.widget)
+            return;
+
+        page.widget->removeSelected();
+        event->accept();
     }
-
-    QWidget::mousePressEvent(event);
 }
 
 bool TSurface::closeRequest()

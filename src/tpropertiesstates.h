@@ -15,15 +15,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#include "tobjecthandler.h"
+#ifndef TPROPERTIESSTATES_H
+#define TPROPERTIESSTATES_H
 
+#include <QObject>
 
-TObjectHandler::TObjectHandler()
+#include "tpagehandler.h"
+#include "tmisc.h"
+
+class QTreeWidget;
+
+class TPropertiesStates : public QObject
 {
+    Q_OBJECT
 
-}
+    public:
+        TPropertiesStates(QTreeWidget *widget);
+        ~TPropertiesStates();
 
-TObjectHandler::TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name)
-{
+        void setStatesPage(const QString& name);
+        void setStatesPage(int id, bool loaded);
 
-}
+    protected:
+        // Interface methods
+        virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
+
+        // Other methods
+        void createPage();
+
+    private:
+        QTreeWidget *mTreeWidget{nullptr};
+        Page::PAGE_t mPage;
+        bool mChanged{false};
+        bool mInitialized{false};
+};
+
+#endif // TPROPERTIESSTATES_H

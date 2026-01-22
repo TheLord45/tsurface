@@ -22,17 +22,19 @@ TWorkSpaceHandler *TWorkSpaceHandler::mCurrent{nullptr};
 
 TWorkSpaceHandler::TWorkSpaceHandler()
     : TPageTree(nullptr, nullptr),
-    TPropertiesGeneral(nullptr)
+      TPropertiesGeneral(nullptr),
+      TPropertiesStates(nullptr)
 {
     DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler()");
 }
 
-TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)
+TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)
     : TPageTree(tree, parent),
       TPropertiesGeneral(general),
-      TPropertiesProgramming(prog)
+      TPropertiesProgramming(prog),
+      TPropertiesStates(states)
 {
-    DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)");
+    DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)");
 
     TPropertiesGeneral::setParent(parent);
     TPropertiesProgramming::setParent(parent);
@@ -48,17 +50,17 @@ TWorkSpaceHandler& TWorkSpaceHandler::Current()
     DECL_TRACER("TWorkSpaceHandler::Current()");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr);
+        mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr, nullptr);
 
     return *mCurrent;
 }
 
-TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)
+TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)
 {
-    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent)");
+    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(tree, general, prog, parent);
+        mCurrent = new TWorkSpaceHandler(tree, general, prog, states, parent);
 
     return *mCurrent;
 }

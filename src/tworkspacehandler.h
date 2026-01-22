@@ -25,22 +25,25 @@
 #include "tpagetree.h"
 #include "tpropertiesgeneral.h"
 #include "tpropertiesprogramming.h"
+#include "tpropertiesstates.h"
 
 class QTreeView;
 class QTableWidget;
+class QTreeWidget;
 
 class TWorkSpaceHandler
     : public TPageTree,
       public TPropertiesGeneral,
-      public TPropertiesProgramming
+      public TPropertiesProgramming,
+      public TPropertiesStates
 {
     public:
         TWorkSpaceHandler();
-        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent=nullptr);
+        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent=nullptr);
         ~TWorkSpaceHandler();
 
         static TWorkSpaceHandler& Current();
-        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QWidget *parent=nullptr);
+        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent=nullptr);
 
         void setParent(QWidget *widget);
         void setWorkspacePagesWidget(QTreeView *tree);
@@ -52,6 +55,9 @@ class TWorkSpaceHandler
         void setPage(int id);
         void setPopup(const QString& name);
         void setPopup(int id);
+
+        void setObject(ObjHandler::TOBJECT_t& object);
+
         // Callbacks
         // In this case we can't use the mechanism of Qt with "signals",
         // because all three subclasses define the Q_OBJECT. Therefore

@@ -20,13 +20,17 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QFile>
+#include <QMdiArea>
+#include <QMdiSubWindow>
 
 #include "tpagehandler.h"
 #include "tcanvaswidget.h"
 #include "tconfmain.h"
+#include "tmisc.h"
 #include "terror.h"
 
 using namespace Page;
+using std::vector;
 
 TPageHandler* TPageHandler::mCurrent{nullptr};
 
@@ -181,24 +185,94 @@ bool TPageHandler::isVisible(int number)
     return false;
 }
 
+bool TPageHandler::isGridVisible(int number)
+{
+    DECL_TRACER("TPageHandler::isGridVisible(int number)");
+
+    Page::PAGE_t *page = getPagePointer(number);
+
+    if (!page)
+        return false;
+
+    return page->gridVisible;
+}
+
+void TPageHandler::setGridVisible(int number, bool state)
+{
+    DECL_TRACER("TPageHandler::setGridVisible(int number, bool state)");
+
+    Page::PAGE_t *page = getPagePointer(number);
+
+    if (!page)
+        return;
+
+    page->gridVisible = state;
+}
+
+bool TPageHandler::isSnapToGrid(int number)
+{
+    DECL_TRACER("TPageHandler::isSnapToGrid(int number)");
+
+    PAGE_t *page = getPagePointer(number);
+
+    if (!page)
+        return false;
+
+    return page->snapToGrid;
+}
+
+void TPageHandler::setSnapToGrid(int number, bool state)
+{
+    DECL_TRACER("TPageHandler::setSnapToGrid(int number, bool state)");
+
+    PAGE_t *page = getPagePointer(number);
+
+    if (!page)
+        return;
+
+    page->snapToGrid = state;
+}
+
+PAGE_t TPageHandler::getCurrentPage(QMdiArea *area)
+{
+    DECL_TRACER("TPageHandler::getCurrentPage(QMdiArea *area)");
+
+    QMdiSubWindow *subWin = area->currentSubWindow();
+
+    if (!subWin)
+    {
+        MSG_DEBUG("No open subwindow found");
+        return PAGE_t();
+    }
+
+    int id = getObjectID(subWin->objectName(), "SubWindow_");
+
+    if (id <= 0)
+        return PAGE_t();
+
+    for (PAGE_t page : mPages)
+    {
+        if (page.pageID == id)
+            return page;
+    }
+
+    return PAGE_t();
+}
+
 void TPageHandler::bringToFront(int number)
 {
     DECL_TRACER("TPageHandler::bringToFront(int number)");
 
     MSG_DEBUG("Searing for window number: " << number);
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    if (!page)
+        return;
+
+    if (page->widget && page->widget->parentWidget())
     {
-        if (iter->pageID == number && iter->visible)
-        {
-            if (iter->widget && iter->widget->parentWidget())
-            {
-                iter->widget->parentWidget()->raise();
-                iter->widget->parentWidget()->show();
-                return;
-            }
-        }
+        page->widget->parentWidget()->raise();
+        page->widget->parentWidget()->show();
     }
 }
 
@@ -206,15 +280,12 @@ TCanvasWidget *TPageHandler::getWidget(int number)
 {
     DECL_TRACER("TPageHandler::getWidget(int number)");
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == number)
-            return iter->widget;
-    }
+    if (!page)
+        return nullptr;
 
-    return nullptr;
+    return page->widget;
 }
 
 void TPageHandler::setWidget(TCanvasWidget *w, int number)
@@ -224,16 +295,12 @@ void TPageHandler::setWidget(TCanvasWidget *w, int number)
     if (!w || number < 1 || mPages.empty())
         return;
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == number)
-        {
-            iter->widget = w;
-            break;
-        }
-    }
+    if (!page)
+        return;
+
+    page->widget = w;
 }
 
 QList<int> TPageHandler::getPageNumbers()
@@ -270,15 +337,12 @@ PAGE_t TPageHandler::getPage(int number)
     if (mPages.empty())
         return PAGE_t();
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == number)
-            return *iter;
-    }
+    if (!page)
+        return PAGE_t();
 
-    return PAGE_t();
+    return *page;
 }
 
 PAGE_t TPageHandler::getPage(const QString& name)
@@ -336,48 +400,36 @@ void TPageHandler::setPage(PAGE_t& page)
     if (page.pageID <= 0 || page.name.isEmpty())
         return;
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *pg = getPagePointer(page.pageID);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == page.pageID)
-        {
-            *iter = page;
-            break;
-        }
-    }
+    if (!pg)
+        return;
+
+    *pg = page;
 }
 
 void TPageHandler::setPageBgColor(int number, QColor& col)
 {
     DECL_TRACER("TPageHandler::setPageBgColor(int number, QColor& col)");
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == number)
-        {
-            iter->srPage.cf = col;
-            break;
-        }
-    }
+    if (!page)
+        return;
+
+    page->srPage.cf = col;
 }
 
 void TPageHandler::setPageTextColor(int number, QColor& col)
 {
     DECL_TRACER("TPageHandler::setPageTextColor(int number, QColor& col)");
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(number);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
-    {
-        if (iter->pageID == number)
-        {
-            iter->srPage.ct = col;
-            break;
-        }
-    }
+    if (!page)
+        return;
+
+    page->srPage.ct = col;
 }
 
 QStringList TPageHandler::getGroupNames()
@@ -404,21 +456,84 @@ void TPageHandler::changePageName(int id, const QString& name)
 {
     DECL_TRACER("TPageHandler::changePageName(int id, const QString& name)");
 
-    QList<PAGE_t>::Iterator iter;
+    Page::PAGE_t *page = getPagePointer(id);
 
-    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    if (!page)
+        return;
+
+    if (id > 0 && id < 500)
+        TConfMain::Current().renamePage(id, name);
+    else if (id > 500 && id < 1000)
+        TConfMain::Current().renamePopup(id, name);
+
+    page->name = name;
+}
+
+ObjHandler::TOBJECT_t TPageHandler::initNewObject(int bi, const QString& name)
+{
+    DECL_TRACER("TPageHandler::initNewObject(int bi, const QString& name)");
+
+    if (bi < 1 || name.isEmpty())
+        return ObjHandler::TOBJECT_t();
+
+    ObjHandler::TOBJECT_t object;
+    ObjHandler::SR_T sr;
+
+    object.bi = bi;
+    object.na = name;
+
+    sr.number = 1;
+    sr.cb = qRgb(255, 161, 0);  // Border color (#ffa100)
+    sr.cf = qRgb(151, 190, 13); // Fill color (#97be0d)
+    sr.ct = qRgb(0, 0, 0);      // Text color
+    object.sr.push_back(sr);
+
+    sr.number = 2;
+    object.sr.push_back(sr);
+
+    return object;
+}
+
+void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)
+{
+    DECL_TRACER("TPageHandler::addObject(int num, ObjHandler::TOBJECT_t& object)");
+
+    Page::PAGE_t *page = getPagePointer(num);
+
+    if (!page)
+        return;
+
+    // Make sure the object does not already exist
+    QList<ObjHandler::TOBJECT_t>::Iterator iter;
+
+    for (iter = page->objects.begin(); iter != page->objects.end(); ++iter)
     {
-        if (iter->pageID == id)
+        if (iter->bi == object.bi)
         {
-            if (id > 0 && id < 500)
-                TConfMain::Current().renamePage(id, name);
-            else if (id > 500 && id < 1000)
-                TConfMain::Current().renamePopup(id, name);
-
-            iter->name = name;
-            break;
+            *iter = object;
+            return;
         }
     }
+
+    page->objects.append(object);
+}
+
+ObjHandler::TOBJECT_t TPageHandler::getObject(int page, int bi)
+{
+    DECL_TRACER("TPageHandler::getObject(int page, int bi)");
+
+    PAGE_t pg = getPage(page);
+
+    if (pg.pageID <= 0)
+        return ObjHandler::TOBJECT_t();
+
+    for (ObjHandler::TOBJECT_t obj : pg.objects)
+    {
+        if (obj.bi == bi)
+            return obj;
+    }
+
+    return ObjHandler::TOBJECT_t();
 }
 
 bool TPageHandler::saveAllPages()
@@ -448,32 +563,27 @@ bool TPageHandler::savePage(const PAGE_t& page)
 {
     DECL_TRACER("TPageHandler::savePage(const PAGE_t& page)");
 
+    int setupPort = TConfMain::Current().getSetupPort();
+
     QJsonObject root;
     root.insert("type", page.popupType);
     root.insert("pageID", page.pageID);
     root.insert("name", page.name);
-    root.insert("description", page.description);
+    INSERTJ(root, "description", page.description, "");
     root.insert("width", page.width);
     root.insert("height", page.height);
-    root.insert("collapseDirection", page.collapseDirection);
-    root.insert("collapseOffset", page.collapseOffset);
+    INSERTJ(root, "collapseDirection", page.collapseDirection, 0);
+    INSERTJ(root, "collapseOffset", page.collapseOffset, 0);
+    INSERTJ(root, "ap", page.ap, setupPort);
+    INSERTJ(root, "ad", page.ad, 1);
+    INSERTJ(root, "cp", page.cp, setupPort);
+    INSERTJ(root, "ch", page.ch, 1);
 
-    if (page.ap != 0)
-        root.insert("ap", page.ap);
-
-    if (page.ad != 1)
-        root.insert("ad", page.ad);
-
-    if (page.cp != 0)
-        root.insert("cp", page.cp);
-
-    if (page.ch != 1)
-        root.insert("ch", page.ch);
+    QJsonArray objects = getObjects(page.objects);
+    root.insert("objects", objects);
 
     QJsonObject sr = getSr(page.popupType, page.srPage);
     root.insert("sr", sr);
-
-    // TODO: Add objects on page here
 
     QJsonDocument doc;
     doc.setObject(root);
@@ -499,7 +609,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     root.insert("type", popup.popupType);
     root.insert("pageID", popup.pageID);
     root.insert("name", popup.name);
-    root.insert("description", popup.description);
+    INSERTJ(root, "description", popup.description, "");
     root.insert("width", popup.width);
     root.insert("height", popup.height);
     root.insert("left", popup.left);
@@ -507,7 +617,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     root.insert("modal", popup.modal);
     root.insert("collapseDirection", popup.collapseDirection);
     root.insert("collapseOffset", popup.collapseOffset);
-    root.insert("group", popup.group);
+    INSERTJ(root, "group", popup.group, "");
     root.insert("timeout", popup.timeout);
     root.insert("showEffect", popup.showEffect);
     root.insert("showTime", popup.showTime);
@@ -558,7 +668,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
         root.insert("eventHide", eventHide);
     }
 
-    // TODO: Add objects on popup here
+    root.insert("objects", getObjects(popup.objects));
 
     QJsonObject sr = getSr(popup.popupType, popup.srPage);
     root.insert("sr", sr);
@@ -579,6 +689,198 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     return true;
 }
 
+QJsonArray TPageHandler::getObjects(const QList<ObjHandler::TOBJECT_t>& objects)
+{
+    DECL_TRACER("TPageHandler::getObjects(const QList<ObjHandler::TOBJECT_t>& objects)");
+
+    int setupPort = TConfMain::Current().getSetupPort();
+    QJsonArray obj;
+
+    for (ObjHandler::TOBJECT_t e : objects)
+    {
+        QJsonObject bt;
+        bt.insert("type", e.type);
+        bt.insert("bi", e.bi);
+        bt.insert("na", e.na);
+        INSERTJ(bt, "bd", e.bd, "");
+        INSERTJ(bt, "lt", e.lt, 0);
+        INSERTJ(bt, "tp", e.tp, 0);
+        INSERTJ(bt, "wt", e.wt, 0);
+        INSERTJ(bt, "ht", e.ht, 0);
+        INSERTJ(bt, "zo", e.zo, 0);
+        INSERTJ(bt, "hs", e.hs, "");
+        INSERTJ(bt, "bs", e.bs, "");
+        INSERTJ(bt, "fb", e.fb, 0);
+        INSERTJ(bt, "ap", e.ap, 1);
+        INSERTJ(bt, "ad", e.ad, setupPort);
+        INSERTJ(bt, "ch", e.ch, setupPort);
+        INSERTJ(bt, "cp", e.cp, 1);
+        INSERTJ(bt, "lp", e.lp, setupPort);
+        INSERTJ(bt, "lv", e.lv, setupPort);
+        INSERTJ(bt, "ta", e.ta, 0);
+        INSERTJ(bt, "ti", e.ti, 0);
+        INSERTJ(bt, "tr", e.tr, 0);
+        INSERTJ(bt, "tc", e.tc, 0);
+        INSERTJ(bt, "tj", e.tj, 0);
+        INSERTJ(bt, "tk", e.tk, 0);
+        INSERTJ(bt, "of", e.of, 0);
+        INSERTJ(bt, "tg", e.tg, 0);
+        INSERTJ(bt, "so", e.so, 1);
+        INSERTJ(bt, "co", e.co, 1);
+        INSERTJ(bt, "dr", e.dr, "");
+        INSERTJ(bt, "va", e.va, 0);
+        INSERTJ(bt, "stateCount", e.stateCount, 0);
+        INSERTJ(bt, "rm", e.rm, 0);
+        INSERTJ(bt, "nu", e.nu, 2);
+        INSERTJ(bt, "nd", e.nd, 2);
+        INSERTJ(bt, "ar", e.ar, 0);
+        INSERTJ(bt, "ru", e.ru, 2);
+        INSERTJ(bt, "rd", e.rd, 2);
+        INSERTJ(bt, "lu", e.lu, 2);
+        INSERTJ(bt, "ld", e.ld, 2);
+        INSERTJ(bt, "rv", e.rv, 0);
+        INSERTJ(bt, "rl", e.rl, 0);
+        INSERTJ(bt, "rh", e.rh, 0);
+        INSERTJ(bt, "ri", e.ri, 0);
+        INSERTJ(bt, "ji", e.ji, 0);
+        INSERTJ(bt, "rn", e.rn, 0);
+        INSERTJ(bt, "ac", e.ac_di, 0);
+        INSERTJ(bt, "hd", e.hd, 0);
+        INSERTJ(bt, "da", e.da, 0);
+        INSERTJ(bt, "pp", e.pp, 0);
+        INSERTJ(bt, "lf", e.lf, "");
+        INSERTJ(bt, "sd", e.sd, "");
+        INSERTJ(bt, "vt", e.vt, "");
+        INSERTJ(bt, "cd", e.cd, "");
+        INSERTJ(bt, "sc", e.sc, "");
+        INSERTJ(bt, "cc", e.cc, "");
+        INSERTJ(bt, "mt", e.mt, 0);
+        INSERTJ(bt, "dt", e.dt, "");
+        INSERTJ(bt, "im", e.im, "");
+        INSERTJ(bt, "st", e.st, 0);
+        INSERTJ(bt, "ws", e.ws, 0);
+        INSERTJ(bt, "on", e.on, "");
+        INSERTJ(bt, "sa", e.sa, 0);
+        INSERTJ(bt, "dy", e.dy, 0);
+        INSERTJ(bt, "rs", e.rs, 0);
+        INSERTJ(bt, "ba", e.ba, 0);
+        INSERTJ(bt, "bo", e.bo, 0);
+        INSERTJ(bt, "sw", e.sw, 1);
+        INSERTJ(bt, "we", e.we, "");
+        INSERTJ(bt, "pc", e.pc, "");
+        INSERTJ(bt, "op", e.op, "");
+        INSERTJ(bt, "visible", e.visible, true);
+
+        QJsonArray cm;
+
+        for (QString s : e.cm)
+            cm.append(s);
+
+        bt.insert("cm", cm);
+
+        QJsonArray pushFunc;
+
+        for (ObjHandler::PUSH_FUNC_T f : e.pushFunc)
+        {
+            QJsonObject pf;
+            pf.insert("item", f.item);
+            pf.insert("pfType", f.pfType);
+            pf.insert("pfAction", f.pfAction);
+            pf.insert("pfName", f.pfName);
+            pf.insert("action", f.action);
+            pf.insert("id", f.ID);
+            pf.insert("event", f.event);
+            pushFunc.append(pf);
+        }
+
+        bt.insert("pushFunc", pushFunc);
+
+        QJsonArray sr;
+
+        for (ObjHandler::SR_T s : e.sr)
+        {
+            QJsonObject jsr;
+            jsr.insert("number", s.number);
+            INSERTJ(jsr, "do", s._do, "");
+            INSERTJ(jsr, "bs", s.bs, "");                   // Frame type (circle, ...)
+            INSERTJ(jsr, "mi", s.mi, "");                   // Chameleon image
+            jsr.insert("cb", s.cb.name(QColor::HexArgb));   // Border color
+            jsr.insert("ft", s.ft);                         // G5: Fill type for gradient colors.
+            jsr.insert("cf", s.cf.name(QColor::HexArgb));   // Fill color
+            jsr.insert("ct", s.ct.name(QColor::HexArgb));   // Text Color
+            jsr.insert("ec", s.ec.name(QColor::HexArgb));   // Text effect color
+            INSERTJ(jsr, "bm", s.bm, "");                   // bitmap file name
+            QJsonArray bitmaps;
+            bool haveBitmap = false;
+
+            for (int i = 0; i < 5; ++i)
+            {
+                QJsonObject bm;
+
+                if (!s.bitmaps[i].fileName.isEmpty())
+                {
+                    bm.insert("index", i);
+                    bm.insert("fileName", s.bitmaps[i].fileName);
+                    bm.insert("dynamic", s.bitmaps[i].dynamic);
+                    bm.insert("justification", s.bitmaps[i].justification);
+                    bm.insert("offsetX", s.bitmaps[i].offsetX);
+                    bm.insert("offsetY", s.bitmaps[i].offsetY);
+                    bitmaps.append(bm);
+                    haveBitmap = true;
+                }
+            }
+
+            if (haveBitmap)
+                jsr.insert("bitmapEntries", bitmaps);
+
+            if (!s.gradientColors.empty())
+            {
+                QJsonArray gradientColors;
+                vector<QString>::const_iterator iter;
+
+                for (iter = s.gradientColors.cbegin(); iter != s.gradientColors.cend(); ++iter)
+                    gradientColors.append(*iter);
+
+                jsr.insert("gradientColors", gradientColors);
+            }
+
+            INSERTJ(jsr, "gr", s.gr, 0);
+            INSERTJ(jsr, "gx", s.gx, 0);
+            INSERTJ(jsr, "gy", s.gy, 0);
+            INSERTJ(jsr, "sd", s.sd, "");
+            INSERTJ(jsr, "dynamic", s.dynamic, false);
+            INSERTJ(jsr, "sb", s.sb, 0);
+            INSERTJ(jsr, "jb", s.jb, 5);
+            INSERTJ(jsr, "bx", s.bx, 0);
+            INSERTJ(jsr, "by", s.by, 0);
+            INSERTJ(jsr, "fi", s.fi, 0);
+            INSERTJ(jsr, "te", s.te, "");
+            INSERTJ(jsr, "jt", s.jt, ObjHandler::ORI_CENTER_MIDDLE);
+            INSERTJ(jsr, "tx", s.tx, 0);
+            INSERTJ(jsr, "ty", s.ty, 0);
+            INSERTJ(jsr, "ff", s.ff, "");
+            INSERTJ(jsr, "fs", s.fs, 0);
+            INSERTJ(jsr, "ww", s.ww, 0);
+            INSERTJ(jsr, "et", s.et, 0);
+
+            if (s.oo >= 0)
+                jsr.insert("oo", s.oo);
+
+            INSERTJ(jsr, "md", s.md, 0);
+            INSERTJ(jsr, "mr", s.mr, 0);
+            INSERTJ(jsr, "ms", s.ms, 1);
+            INSERTJ(jsr, "vf", s.vf, "");
+
+            sr.append(jsr);
+        }
+
+        bt.insert("sr", sr);
+        obj.append(bt);
+    }
+
+    return obj;
+}
+
 QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
 {
     DECL_TRACER("TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)");
@@ -588,14 +890,14 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
     if (pt == PT_POPUP)
         sr.insert("number", number);
 
-    sr.insert("bs", srPage.bs);                         // Frame type (circle, ...)
-    sr.insert("mi", srPage.mi);                         // Chameleon image
+    INSERTJ(sr, "bs", srPage.bs, "");                         // Frame type (circle, ...)
+    INSERTJ(sr, "mi", srPage.mi, "");                         // Chameleon image
     sr.insert("cb", srPage.cb.name(QColor::HexArgb));   // Border color
     sr.insert("ft", srPage.ft);                         // G5: Fill type for gradient colors.
     sr.insert("cf", srPage.cf.name(QColor::HexArgb));   // Fill color
     sr.insert("ct", srPage.ct.name(QColor::HexArgb));   // Text Color
     sr.insert("ec", srPage.ec.name(QColor::HexArgb));   // Text effect color
-    sr.insert("bm", srPage.bm);                         // bitmap file name
+    INSERTJ(sr, "bm", srPage.bm, "");                         // bitmap file name
     QJsonArray bitmaps;
     bool haveBitmap = false;
 
@@ -632,22 +934,22 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
         sr.insert("gradientColors", gradientColors);
     }
 
-    sr.insert("gr", srPage.gr);
-    sr.insert("gx", srPage.gx);
-    sr.insert("gy", srPage.gy);
+    INSERTJ(sr, "gr", srPage.gr, 0);
+    INSERTJ(sr, "gx", srPage.gx, 0);
+    INSERTJ(sr, "gy", srPage.gy, 0);
     sr.insert("dynamic", srPage.dynamic);
-    sr.insert("jb", srPage.jb);
-    sr.insert("bx", srPage.bx);
-    sr.insert("by", srPage.by);
-    sr.insert("fi", srPage.fi);
-    sr.insert("te", srPage.te);
-    sr.insert("jt", srPage.jt);
-    sr.insert("tx", srPage.tx);
-    sr.insert("ty", srPage.ty);
-    sr.insert("ff", srPage.ff);
-    sr.insert("fs", srPage.fs);
-    sr.insert("ww", srPage.ww);
-    sr.insert("et", srPage.et);
+    INSERTJ(sr, "jb", srPage.jb, 5);
+    INSERTJ(sr, "bx", srPage.bx, 0);
+    INSERTJ(sr, "by", srPage.by, 0);
+    INSERTJ(sr, "fi", srPage.fi, 0);
+    INSERTJ(sr, "te", srPage.te, "");
+    INSERTJ(sr, "jt", srPage.jt, 5);
+    INSERTJ(sr, "tx", srPage.tx, 0);
+    INSERTJ(sr, "ty", srPage.ty, 0);
+    INSERTJ(sr, "ff", srPage.ff, "");
+    INSERTJ(sr, "fs", srPage.fs, 0);
+    INSERTJ(sr, "ww", srPage.ww, 0);
+    INSERTJ(sr, "et", srPage.et, 0);
 
     if (srPage.oo >= 0)
         sr.insert("oo", srPage.oo);
@@ -690,6 +992,21 @@ bool TPageHandler::readPages(const QStringList& list)
     }
 
     return true;
+}
+
+Page::PAGE_t *TPageHandler::getPagePointer(int num)
+{
+    DECL_TRACER("TPageHandler::getPagePointer(int num)");
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->pageID == num)
+            return &(*iter);
+    }
+
+    return nullptr;
 }
 
 void TPageHandler::parsePage(const QJsonObject& page)
@@ -761,8 +1078,8 @@ void TPageHandler::parsePage(const QJsonObject& page)
         pg.srPage.gradientColors.append(QColor::fromString(gradientColors[i].toString()));
 
     pg.srPage.gr = srPage.value("gr").toInt(0);
-    pg.srPage.gx = srPage.value("gx").toInt();
-    pg.srPage.gy = srPage.value("gy").toInt();
+    pg.srPage.gx = srPage.value("gx").toInt(0);
+    pg.srPage.gy = srPage.value("gy").toInt(0);
     pg.srPage.dynamic = srPage.value("dynamic").toBool(false);
     pg.srPage.sb = srPage.value("sb").toInt(0);
     pg.srPage.jb = srPage.value("jb").toInt(5);
@@ -809,6 +1126,179 @@ void TPageHandler::parsePage(const QJsonObject& page)
         pg.eventHide.append(event);
     }
 
-    // TODO: Add code to parse the objects
+    parseObjects(&pg, page.value("objects").toArray());
     mPages.append(pg);
+}
+
+void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
+{
+    DECL_TRACER("TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)");
+
+    int setupPort = TConfMain::Current().getSetupPort();
+    QList<ObjHandler::TOBJECT_t> objects;
+
+    for (int i = 0; i < obj.count(); ++i)
+    {
+        QJsonObject jo = obj[i].toObject();
+        ObjHandler::TOBJECT_t object;
+        object.type = static_cast<ObjHandler::BUTTONTYPE>(jo.value("type").toInt(ObjHandler::BUTTONTYPE::NONE));
+        object.bi = jo.value("bi").toInt(0);
+        object.na = jo.value("na").toString();
+        object.bd = jo.value("bd").toString();
+        object.lt = jo.value("lt").toInt(0);
+        object.tp = jo.value("tp").toInt(0);
+        object.wt = jo.value("wt").toInt(0);
+        object.ht = jo.value("ht").toInt(0);
+        object.zo = jo.value("zo").toInt(0);
+        object.hs = jo.value("hs").toString();
+        object.bs = jo.value("bs").toString();
+        object.fb = static_cast<ObjHandler::FEEDBACK>(jo.value("fb").toInt(ObjHandler::FEEDBACK::FB_NONE));
+        object.ap = jo.value("ap").toInt(1);
+        object.ad = jo.value("ad").toInt(setupPort);
+        object.ch = jo.value("ch").toInt(setupPort);
+        object.cp = jo.value("cp").toInt(1);
+        object.lp = jo.value("lp").toInt(1);
+        object.lv = jo.value("lv").toInt(setupPort);
+        object.ta = jo.value("ta").toInt(0);
+        object.ti = jo.value("ti").toInt(0);
+        object.tr = jo.value("tr").toInt(0);
+        object.tc = jo.value("tc").toInt(0);
+        object.tj = jo.value("tj").toInt(0);
+        object.tk = jo.value("tk").toInt(0);
+        object.of = jo.value("of").toInt(0);
+        object.tg = jo.value("tg").toInt(0);
+        object.so = jo.value("so").toInt(1);
+        object.co = jo.value("co").toInt(1);
+
+        QJsonArray cm = jo.value("cm").toArray();
+
+        for (int j = 0; j < cm.count(); ++j)
+            object.cm.push_back(cm[j].toString());
+
+        object.dr = jo.value("dr").toString();
+        object.va = jo.value("va").toInt(0);
+        object.stateCount = jo.value("stateCount").toInt(0);
+        object.rm = jo.value("rm").toInt(0);
+        object.nu = jo.value("nu").toInt(2);
+        object.nd = jo.value("nd").toInt(2);
+        object.ar = jo.value("ar").toInt(0);
+        object.ru = jo.value("ru").toInt(2);
+        object.rd = jo.value("rd").toInt(2);
+        object.lu = jo.value("lu").toInt(2);
+        object.ld = jo.value("ld").toInt(2);
+        object.rv = jo.value("rv").toInt(0);
+        object.rl = jo.value("rl").toInt(0);
+        object.rh = jo.value("rh").toInt(0);
+        object.ri = jo.value("ri").toInt(0);
+        object.ji = jo.value("ji").toInt(0);
+        object.rn = jo.value("rn").toInt(0);
+        object.ac_di = jo.value("ac").toInt(0);
+        object.hd = jo.value("hd").toInt(0);
+        object.da = jo.value("da").toInt(0);
+        object.pp = jo.value("pp").toInt(0);
+        object.lf = jo.value("lf").toString();
+        object.sd = jo.value("sd").toString();
+        object.vt = jo.value("vt").toString();
+        object.cd = jo.value("cd").toString();
+        object.sc = jo.value("sc").toString();
+        object.cc = jo.value("cc").toString();
+        object.mt = jo.value("mt").toInt(0);
+        object.dt = jo.value("dt").toString();
+        object.im = jo.value("im").toString();
+        object.st = jo.value("st").toInt(0);
+        object.ws = jo.value("ws").toInt(0);
+        object.on = jo.value("on").toString();
+        object.sa = jo.value("sa").toInt(0);
+        object.dy = jo.value("dy").toInt(0);
+        object.rs = jo.value("rs").toInt(0);
+        object.ba = jo.value("ba").toInt(0);
+        object.bo = jo.value("bo").toInt(0);
+        object.sw = jo.value("sw").toInt(1);
+        object.we = jo.value("we").toString();
+        object.pc = jo.value("pc").toString();
+        object.op = jo.value("op").toString();
+        object.visible = jo.value("visible").toBool(true);
+
+        QJsonArray pushFunc = jo.value("pushFunc").toArray();
+
+        for (int j = 0; j < pushFunc.count(); ++j)
+        {
+            ObjHandler::PUSH_FUNC_T pf;
+            QJsonObject jpf = pushFunc[j].toObject();
+            pf.item = jpf.value("item").toInt(0);
+            pf.pfType = jpf.value("pfType").toString();
+            pf.pfAction = jpf.value("pfAction").toString();
+            pf.pfName = jpf.value("pfName").toString();
+            pf.action = static_cast<ObjHandler::BUTTON_ACTION_t>(jpf.value("action").toInt(ObjHandler::BUTTON_ACTION_t::BT_ACTION_PGFLIP));
+            pf.ID = jpf.value("id").toInt(0);
+            pf.event = static_cast<ObjHandler::BUTTON_EVENT_t>(jpf.value("event").toInt(ObjHandler::BUTTON_EVENT_t::EVENT_NONE));
+            object.pushFunc.push_back(pf);
+        }
+
+        QJsonArray sr = jo.value("sr").toArray();
+
+        for (int j = 0; j < sr.count(); ++j)
+        {
+            QJsonObject jsr = sr[j].toObject();
+            ObjHandler::SR_T s;
+            s.number = jsr.value("number").toInt(0);
+            s._do = jsr.value("do").toString();
+            s.bs = jsr.value("bs").toString();
+            s.mi = jsr.value("mi").toString();
+            s.cb = jsr.value("cb").toString();
+            s.ft = jsr.value("ft").toString();
+            s.cf = jsr.value("cf").isString();
+            s.ct = jsr.value("ct").isString();
+            s.ec = jsr.value("ec").isString();
+            s.bm = jsr.value("bm").toString();
+            QJsonArray bitmaps = jsr.value("bitmaps").toArray();
+
+            for (int k = 0; k < bitmaps.count(); ++k)
+            {
+                QJsonObject bm = bitmaps[k].toObject();
+                ObjHandler::BITMAPS_t m;
+                m.fileName = bm.value("fileName").toString();
+                m.index = bm.value("index").toInt(-1);
+                m.dynamic = bm.value("dynamic").toBool(false);
+                m.justification = static_cast<ObjHandler::ORIENTATION>(bm.value("justification").toInt(ObjHandler::ORIENTATION::ORI_CENTER_MIDDLE));
+                m.offsetX = bm.value("offsetX").toInt(0);
+                m.offsetY = bm.value("offsetY").toInt(0);
+
+                if (m.index >= 0 && m.index < 5)
+                    s.bitmaps[m.index] = m;
+                else
+                    s.bitmaps[k] = m;
+            }
+
+            QJsonArray gradients = jsr.value("gradientColors").toArray();
+
+            for (int k = 0; k < gradients.count(); ++k)
+                s.gradientColors.push_back(gradients[k].toString());
+
+            s.gr = jsr.value("gr").toInt(15);
+            s.gx = jsr.value("gx").toInt(50);
+            s.gy = jsr.value("gy").toInt(50);
+            s.sd = jsr.value("sd").toString();
+            s.dynamic = jsr.value("dynamic").toBool(false);
+            s.sb = jsr.value("sb").toInt(0);
+            s.jb = jsr.value("jb").toInt(5);
+            s.bx = jsr.value("bx").toInt(0);
+            s.by = jsr.value("by").toInt(0);
+            s.fi = jsr.value("fi").toInt(0);
+            s.te = jsr.value("te").toString();
+            s.jt = static_cast<ObjHandler::ORIENTATION>(jsr.value("jt").toInt(ObjHandler::ORIENTATION::ORI_CENTER_MIDDLE));
+            s.tx = jsr.value("tx").toInt(0);
+            s.ty = jsr.value("ty").toInt(0);
+            s.ff = jsr.value("ff").toString();
+            s.fs = jsr.value("fs").toInt(0);
+            s.ww = jsr.value("ww").toInt(0);
+            s.et = jsr.value("et").toInt(0);
+            s.oo = jsr.value("oo").toInt(-1);
+            s.md = jsr.value("md").toInt(0);
+            s.mr = jsr.value("mr").toInt(0);
+            s.ms = jsr.value("ms").toInt(1);
+            s.vf = jsr.value("vf").toString();
+            object.sr.push_back(s);
+        }
+    }
 }

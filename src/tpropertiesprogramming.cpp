@@ -62,7 +62,7 @@ void TPropertiesProgramming::setProgrammingPage(const QString& name)
     }
 
     if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
     mPage = Page::PAGE_t();

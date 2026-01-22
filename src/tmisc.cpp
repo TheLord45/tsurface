@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include "tmisc.h"
+#include "terror.h"
 
 QString basename(const QString& path)
 {
@@ -39,6 +40,8 @@ QString pathname(const QString& path)
 
 int getObjectID(const QString& name, const QString& hint)
 {
+    MSG_DEBUG("Searching for object " << name.toStdString() << " with hint " << hint.toStdString());
+
     if (!name.contains("_"))
         return -1;
 

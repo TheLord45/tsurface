@@ -50,5 +50,7 @@
         <file>images/view-list-tree.svg</file>
         <file>images/view-group.svg</file>
         <file>images/document-new.svg</file>
+        <file>images/view-grid.svg</file>
+        <file>images/snap-bounding-box-corners.svg</file>
     </qresource>
 </RCC>

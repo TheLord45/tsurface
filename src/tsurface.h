@@ -51,7 +51,7 @@ class TSurface : public QMainWindow
     protected:
         void resizeEvent(QResizeEvent *event) override;
         void closeEvent(QCloseEvent *event) override;
-        void mousePressEvent(QMouseEvent *event) override;
+        void keyPressEvent(QKeyEvent *event) override;
 
         void updateGridFromUI(TCanvasWidget *widget);
         void applyGridToChildren(TCanvasWidget *widget);
@@ -62,9 +62,12 @@ class TSurface : public QMainWindow
         void onAddNewPage();
         void onAddNewPopup();
         void onActionShowChannels(bool checked);
+        void onActionShowHideGrid(bool checked);
+        void onActionSnapToGrid(bool checked);
         void onItemToFront(int id);
         void onDataChanged(Page::PAGE_t *page);
         void onMarkDirty();
+        void onFailedClickAt(const QPoint& pt);
 
     private slots:
         // Splitter
@@ -226,6 +229,7 @@ class TSurface : public QMainWindow
         bool saveNormal();
         bool closeRequest();
         void enableBaseMenus();
+        void initToolbar();
 
         const std::unique_ptr<Ui::tsurface> m_ui;
         bool mForceClose{false};
@@ -241,8 +245,15 @@ class TSurface : public QMainWindow
         QAction *mActionChannels{nullptr};
         bool mToggleChannels{false};                // TRUE = Channels are visible
         QAction *mActionConnectionState{nullptr};
+        QAction *mActionShowHideGrid{nullptr};
+        QAction *mActionSnapToGrid{nullptr};
+        QAction *mActionToolSelect{nullptr};
+        QAction *mActionToolDraw{nullptr};
+        QAction *mActionToolPopup{nullptr};
+        bool mActionBlock{false};
         // Basic information about active project
         QString mPathTemporary;         // The temporary path were all files are plain
+        Page::TOOL mSelectedTool{Page::TOOL_NONE};
 };
 
 #endif // TSURFACE_H

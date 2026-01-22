@@ -33,4 +33,6 @@ QString basename(const QString& path);
 QString pathname(const QString& path);
 int getObjectID(const QString& name, const QString& hint="");
 
+#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
+
 #endif // TMISC_H

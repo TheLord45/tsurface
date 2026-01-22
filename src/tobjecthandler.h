@@ -1,7 +1,25 @@
+/*
+ * Copyright (C) 2026 by Andreas Theofilu <andreas@theosys.at>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
 #ifndef TOBJECTHANDLER_H
 #define TOBJECTHANDLER_H
 
 #include <QString>
+#include <QColor>
 
 namespace ObjHandler
 {
@@ -197,23 +215,23 @@ namespace ObjHandler
     typedef struct SR_T
     {
         int number{0};
-        QString _do;        // Order on how to show a multistate bargraph (010203...)
-        QString bs;         // Frame type (circle, ...)
-        QString mi;         // Chameleon image
+        QString _do;            // Order on how to show a multistate bargraph (010203...)
+        QString bs;             // Frame type (circle, ...)
+        QString mi;             // Chameleon image
         int mi_width{0};        // Width of image
         int mi_height{0};       // Height of image
-        QString cb;         // Border color
-        QString ft;         // G5: Fill type for gradient colors.
-        QString cf;         // Fill color
-        QString ct;         // Text Color
-        QString ec;         // Text effect color
-        QString bm;         // bitmap file name
+        QColor cb;              // Border color
+        QString ft;             // G5: Fill type for gradient colors.
+        QColor cf;              // Fill color
+        QColor ct;              // Text Color
+        QColor ec;              // Text effect color
+        QString bm;             // bitmap file name
         BITMAPS_t bitmaps[5];   // G5 table of bitmaps
         std::vector<QString> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
         int gy{50};             // G5 Gradient center Y in percent
-        QString sd;         // Sound file to play
+        QString sd;             // Sound file to play
         int bm_width{0};        // Width of image
         int bm_height{0};       // Height of image
         bool dynamic{false};    // TRUE = moving image
@@ -226,11 +244,11 @@ namespace ObjHandler
         int bx{0};              // Absolute image position x
         int by{0};              // Absolute image position y
         int fi{0};              // Font index
-        QString te;         // Text
+        QString te;             // Text
         ORIENTATION jt{ORI_CENTER_MIDDLE}; // Text orientation
         int tx{0};              // Text X position
         int ty{0};              // Text Y position
-        QString ff;         // G5 font file name
+        QString ff;             // G5 font file name
         int fs{0};              // G5 font size
         int ww{0};              // line break when 1
         int et{0};              // Text effect (^TEF)
@@ -238,7 +256,7 @@ namespace ObjHandler
         int md{0};              // Marquee type: 1 = scroll left, 2 = scroll right, 3 = ping pong, 4 = scroll up, 5 = scroll down
         int mr{0};              // Marquee enabled: 1 = enabled, 0 = disabled
         int ms{1};              // Marquee speed: Range: 1 to 10 (look for command ^MSP to see of how to set this)
-        QString vf;         // G5: Video fill color; Marks the button reserved for video
+        QString vf;             // G5: Video fill color; Marks the button reserved for video
     } SR_T;
 
     typedef struct EXTBUTTON_t

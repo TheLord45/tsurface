@@ -57,9 +57,14 @@ class TCanvasWidget : public QWidget
         void updateGroupMove(const QPoint& globalPos);
         void endGroupMove();
 
+        // Deletion and cleanup
+        void removeSelected();
+        void removeObject(TResizableWidget *w);
+
     signals:
         void gridChanged(const QSize& size);
         void snapChanged(bool enabled);
+        void failedClickAt(const QPoint& pt);
 
     protected:
         void paintEvent(QPaintEvent*) override;

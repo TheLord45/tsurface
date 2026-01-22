@@ -152,7 +152,7 @@ TResizableWidget::TResizableWidget(QWidget* content, QWidget* parent)
     for (int i = 0; i < HandleCount; ++i)
     {
         m_grips[i] = new Grip(this, static_cast<Handle>(i));
-        m_grips[i]->setFixedSize(m_gripSize, m_gripSize);
+        m_grips[i]->setFixedSize(mGripSize, mGripSize);
         m_grips[i]->raise();
         m_grips[i]->hide(); // hidden until selected
     }
@@ -165,25 +165,25 @@ void TResizableWidget::setContentWidget(QWidget* w)
 {
     DECL_TRACER("TResizableWidget::setContentWidget(QWidget* w)");
 
-    if (m_content == w)
+    if (mContent == w)
         return;
 
-    if (m_content)
+    if (mContent)
     {
-        m_content->removeEventFilter(this);
-        m_content->deleteLater();
+        mContent->removeEventFilter(this);
+        mContent->deleteLater();
     }
 
-    m_content = w;
+    mContent = w;
 
-    if (m_content)
+    if (mContent)
     {
-        m_content->setParent(this);
-        m_content->installEventFilter(this);
-        m_content->show();
-        m_content->raise();
+        mContent->setParent(this);
+        mContent->installEventFilter(this);
+        mContent->show();
+        mContent->raise();
         layoutGrips();
-        setSelected(m_selected);
+        setSelected(mSelected);
     }
 }
 
@@ -191,21 +191,21 @@ void TResizableWidget::setSelected(bool on)
 {
     DECL_TRACER("TResizableWidget::setSelected(bool on)");
 
-    if (m_selected == on)
+    if (mSelected == on)
         return;
 
-    m_selected = on;
+    mSelected = on;
     updateGripsVisibility();
 
-    if (m_content)
-        m_content->setCursor(m_selected ? Qt::SizeAllCursor : Qt::ArrowCursor);
+    if (mContent)
+        mContent->setCursor(mSelected ? Qt::SizeAllCursor : Qt::ArrowCursor);
 
     update();
 }
 
 void TResizableWidget::paintEvent(QPaintEvent*)
 {
-    if (!m_selected)
+    if (!mSelected)
         return;
 
     QPainter p(this);
@@ -220,10 +220,10 @@ void TResizableWidget::paintEvent(QPaintEvent*)
 
 void TResizableWidget::resizeEvent(QResizeEvent*)
 {
-    if (m_content)
+    if (mContent)
     {
-        const int m = m_frameMargin + 2;
-        m_content->setGeometry(m, m, std::max(0, width() - 2 * m), std::max(0, height() - 2 * m));
+        const int m = mFrameMargin + 2;
+        mContent->setGeometry(m, m, std::max(0, width() - 2 * m), std::max(0, height() - 2 * m));
     }
 
     layoutGrips();
@@ -233,7 +233,7 @@ void TResizableWidget::layoutGrips()
 {
     DECL_TRACER("TResizableWidget::layoutGrips()");
 
-    const int s = m_gripSize;
+    const int s = mGripSize;
     const int w = width();
     const int h = height();
 
@@ -263,7 +263,7 @@ void TResizableWidget::updateGripsVisibility()
         if (!g)
             continue;
 
-        m_selected ? g->show() : g->hide();
+        mSelected ? g->show() : g->hide();
     }
 }
 
@@ -288,9 +288,9 @@ Qt::CursorShape TResizableWidget::cursorFor(Handle h)
 // ---- Drag-to-move delegation to CanvasWidget (group move) ----
 void TResizableWidget::beginMove(const QPoint& globalPos)
 {
-    m_moving = true;
-    m_moveStartGlobal = globalPos;
-    m_moveStartGeom = geometry();
+    mMoving = true;
+    mMoveStartGlobal = globalPos;
+    mMoveStartGeom = geometry();
 
     if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
         canvas->beginGroupMove(this, globalPos);
@@ -300,7 +300,7 @@ void TResizableWidget::beginMove(const QPoint& globalPos)
 
 void TResizableWidget::updateMove(const QPoint& globalPos)
 {
-    if (!m_moving)
+    if (!mMoving)
         return;
 
     if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
@@ -309,13 +309,13 @@ void TResizableWidget::updateMove(const QPoint& globalPos)
 
 void TResizableWidget::endMove()
 {
-    if (!m_moving)
+    if (!mMoving)
         return;
 
     if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
         canvas->endGroupMove();
 
-    m_moving = false;
+    mMoving = false;
     releaseMouse();
 }
 
@@ -356,7 +356,7 @@ void TResizableWidget::mousePressEvent(QMouseEvent* e)
 
 void TResizableWidget::mouseMoveEvent(QMouseEvent* e)
 {
-    if (m_moving)
+    if (mMoving)
     {
         updateMove(e->globalPosition().toPoint());
         e->accept();
@@ -368,7 +368,7 @@ void TResizableWidget::mouseMoveEvent(QMouseEvent* e)
 
 void TResizableWidget::mouseReleaseEvent(QMouseEvent* e)
 {
-    if (m_moving && e->button() == Qt::LeftButton)
+    if (mMoving && e->button() == Qt::LeftButton)
     {
         endMove();
         e->accept();
@@ -380,17 +380,17 @@ void TResizableWidget::mouseReleaseEvent(QMouseEvent* e)
 
 bool TResizableWidget::eventFilter(QObject* obj, QEvent* ev)
 {
-    if (obj == m_content)
+    if (obj == mContent)
     {
         switch (ev->type())
         {
             case QEvent::MouseButtonPress:
             {
-                auto* e = static_cast<QMouseEvent*>(ev);
+                QMouseEvent *e = static_cast<QMouseEvent*>(ev);
 
                 if (e->button() == Qt::LeftButton)
                 {
-                    auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget());
+                    TCanvasWidget *canvas = qobject_cast<TCanvasWidget*>(parentWidget());
                     const bool ctrl = e->modifiers() & Qt::ControlModifier;
 
                     if (canvas)
@@ -411,11 +411,12 @@ bool TResizableWidget::eventFilter(QObject* obj, QEvent* ev)
                 }
                 break;
             }
+
             case QEvent::MouseMove:
             {
-                auto* e = static_cast<QMouseEvent*>(ev);
+                QMouseEvent *e = static_cast<QMouseEvent*>(ev);
 
-                if (m_moving)
+                if (mMoving)
                 {
                     updateMove(e->globalPosition().toPoint());
                     ev->accept();
@@ -426,9 +427,9 @@ bool TResizableWidget::eventFilter(QObject* obj, QEvent* ev)
 
             case QEvent::MouseButtonRelease:
             {
-                auto* e = static_cast<QMouseEvent*>(ev);
+                QMouseEvent *e = static_cast<QMouseEvent*>(ev);
 
-                if (m_moving && e->button() == Qt::LeftButton)
+                if (mMoving && e->button() == Qt::LeftButton)
                 {
                     endMove();
                     ev->accept();
