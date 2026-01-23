@@ -38,6 +38,7 @@ TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTa
 
     TPropertiesGeneral::setParent(parent);
     TPropertiesProgramming::setParent(parent);
+    TPropertiesStates::setParent(parent);
 }
 
 TWorkSpaceHandler::~TWorkSpaceHandler()

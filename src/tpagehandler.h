@@ -38,6 +38,15 @@ namespace Page
         TOOL_POPUP
     };
 
+    enum STATE_TYPE
+    {
+        STATE_UNKNOWN,
+        STATE_PAGE,
+        STATE_POPUP,
+        STATE_BUTTON,
+        STATE_BARGRAPH
+    };
+
     enum PAGE_TYPE
     {
         PT_UNKNOWN,

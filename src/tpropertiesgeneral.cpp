@@ -118,17 +118,17 @@ void TPropertiesGeneral::setGeneralPage(int id, bool loaded)
 
         switch(i)
         {
-        case 0:
-            cell1->setText(tr("Name"));
-            cell2->setText(mPage.name);
+            case 0:
+                cell1->setText(tr("Name"));
+                cell2->setText(mPage.name);
             break;
 
-        case 1:
-            cell1->setText(tr("Description"));
-            cell2->setText(mPage.description);
-            delete cell2;
-            cell2 = nullptr;
-            mTable->setCellWidget(i, 1, makeLabelTool(mPage.description, i));
+            case 1:
+                cell1->setText(tr("Description"));
+                cell2->setText(mPage.description);
+                delete cell2;
+                cell2 = nullptr;
+                mTable->setCellWidget(i, 1, makeLabelTool(mPage.description, i));
             break;
         }
 
@@ -404,11 +404,10 @@ QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
 
     QLineEdit *line = new QLineEdit(text);
     line->setObjectName(QString("lineEdit_%1").arg(id));
-    QSizePolicy policy;
-    QSizePolicy sizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    sizePolicy.setHorizontalStretch(0);
-    sizePolicy.setVerticalStretch(0);
-    sizePolicy.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
+    QSizePolicy policy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
+    policy.setHorizontalStretch(0);
+    policy.setVerticalStretch(0);
+    policy.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
     line->setSizePolicy(policy);
     mLineDescription = line;
     connect(line, &QLineEdit::textChanged, this, &TPropertiesGeneral::onLineEditTextChanged);

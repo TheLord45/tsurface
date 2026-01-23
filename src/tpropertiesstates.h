@@ -24,6 +24,8 @@
 #include "tmisc.h"
 
 class QTreeWidget;
+class QWidget;
+class QComboBox;
 
 class TPropertiesStates : public QObject
 {
@@ -40,14 +42,33 @@ class TPropertiesStates : public QObject
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
 
+        // Callbacks
+        void onComboBoxFillTypeIndex(int index);
+        void onPushButtonColorSelector(bool checked);
+        void onComboBoxVideoFill(int index);
+        void onPushButtonBitmapSelector(bool checked);
+
         // Other methods
+        void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
+        QWidget *createTableWidget(Page::STATE_TYPE stype);
+        QString getLeftColText(Page::STATE_TYPE stype, int state, int line);
+        QWidget *makeFillType();
+        QWidget *makeColorSelector(const QColor& col, const QString& name);
+        QWidget *makeVideoFill();
+        QWidget *makeBitmapSelector(const QString& bitmap, const QString& name);
 
     private:
         QTreeWidget *mTreeWidget{nullptr};
+        QWidget *mParent{nullptr};
         Page::PAGE_t mPage;
         bool mChanged{false};
         bool mInitialized{false};
+        // Elements
+        QComboBox *mComboBoxFillType{nullptr};
+        QWidget *mWidgetColorSelector{nullptr};
+        QComboBox *mComboBoxVideoFill{nullptr};
+        QWidget *mWidgetBitmapSelector{nullptr};
 };
 
 #endif // TPROPERTIESSTATES_H
