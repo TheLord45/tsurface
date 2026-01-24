@@ -100,14 +100,16 @@ void TCanvasWidget::mousePressEvent(QMouseEvent* e)
 {
     if (e->button() == Qt::LeftButton)
     {
-        QWidget* w = childAt(e->pos());
+        QWidget *w = childAt(e->pos());
         // Clicked background (or non-resizable): clear selection unless Ctrl is held
         if ((!w || !qobject_cast<TResizableWidget*>(w->parentWidget() ? w->parentWidget() : w)) &&
             !(e->modifiers() & Qt::ControlModifier))
         {
             clearSelection();
             // In this case we're calling a method to inform the owner about this event.
-            emit failedClickAt(e->pos());
+            // But only if the DRAW tool is selected.
+            if (mSelectedTool == TOOL_DRAW)
+                emit failedClickAt(e->pos());
         }
     }
 
@@ -199,10 +201,19 @@ int TCanvasWidget::totalWidgetCount() const
     return mResizableChildren().size();
 }
 
+TResizableWidget *TCanvasWidget::currentSelectedWidget()
+{
+    DECL_TRACER("TCanvasWidget::currentSelectedWidget()");
+
+    if (mResizableChildren().size() == 1)
+        return mResizableChildren()[0];
+
+    return nullptr;
+}
+
 static inline int clampInt(int v, int lo, int hi)
 {
     return std::min(std::max(v, lo), hi);
-
 }
 
 inline int TCanvasWidget::mSnapCoord(int v, int step)

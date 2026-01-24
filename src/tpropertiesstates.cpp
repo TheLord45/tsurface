@@ -171,7 +171,7 @@ QWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype)
     return table;
 }
 
-QString TPropertiesStates::getLeftColText(Page::STATE_TYPE stype, int state, int line)
+QString TPropertiesStates::getLeftColText(STATE_TYPE stype, int state, int line)
 {
     DECL_TRACER("TPropertiesStates::getLeftColText(Page::STATE_TYPE stype, int state, int line)");
 

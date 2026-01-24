@@ -29,6 +29,23 @@ typedef enum
     TBL_EVENTS
 }PROPERTIES_t;
 
+enum TOOL
+{
+    TOOL_NONE,
+    TOOL_DRAW,
+    TOOL_SELECT,
+    TOOL_POPUP
+};
+
+enum STATE_TYPE
+{
+    STATE_UNKNOWN,
+    STATE_PAGE,
+    STATE_POPUP,
+    STATE_BUTTON,
+    STATE_BARGRAPH
+};
+
 QString basename(const QString& path);
 QString pathname(const QString& path);
 int getObjectID(const QString& name, const QString& hint="");

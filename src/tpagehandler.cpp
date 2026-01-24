@@ -536,6 +536,22 @@ ObjHandler::TOBJECT_t TPageHandler::getObject(int page, int bi)
     return ObjHandler::TOBJECT_t();
 }
 
+void TPageHandler::setSelectedToolToAllPages(TOOL t)
+{
+    DECL_TRACER("TPageHandler::setSelectedToolToAllPages(TOOL t)");
+
+    if (mPages.empty())
+        return;
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->widget && iter->visible)
+            iter->widget->setCurrentTool(t);
+    }
+}
+
 bool TPageHandler::saveAllPages()
 {
     DECL_TRACER("TPageHandler::saveAllPages()");

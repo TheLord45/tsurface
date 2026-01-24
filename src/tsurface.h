@@ -30,6 +30,8 @@ namespace Ui {
 class tsurface;
 }
 
+class TResizableWidget;
+
 class winCloseEater : public QObject
 {
     Q_OBJECT
@@ -68,6 +70,10 @@ class TSurface : public QMainWindow
         void onDataChanged(Page::PAGE_t *page);
         void onMarkDirty();
         void onFailedClickAt(const QPoint& pt);
+        void onObjectSelectChanged(TResizableWidget *w, bool selected);
+        void onObjectMoved(TResizableWidget *w, QPoint pt);
+        void onObjectSizeChanged(TResizableWidget *w, QSize size);
+        TOOL onGetCurrentTool() { return mSelectedTool; };
 
     private slots:
         // Splitter
@@ -253,7 +259,7 @@ class TSurface : public QMainWindow
         bool mActionBlock{false};
         // Basic information about active project
         QString mPathTemporary;         // The temporary path were all files are plain
-        Page::TOOL mSelectedTool{Page::TOOL_NONE};
+        TOOL mSelectedTool{TOOL_NONE};
 };
 
 #endif // TSURFACE_H

@@ -43,6 +43,17 @@ class TResizableWidget : public QWidget
         void setSnapToGrid(bool on) { mSnapToGrid = on; }
         bool snapToGrid() const { return mSnapToGrid; }
 
+        // Identity settings
+        void setId(int id) { mID = id; }
+        int getId() { return mID; }
+        void setPageId(int id) { mPageID = id; }
+        int getPageId() { return mPageID; }
+
+    signals:
+        void selectChanged(TResizableWidget *w, bool selected);
+        void objectMoved(TResizableWidget *w, QPoint pt);
+        void objectSizeChanged(TResizableWidget *w, QSize size);
+
     protected:
         void paintEvent(QPaintEvent*) override;
         void resizeEvent(QResizeEvent*) override;
@@ -75,7 +86,7 @@ class TResizableWidget : public QWidget
         QSize mMinSize = QSize(60, 40);
         int mFrameMargin = 2;      // space for dotted frame
         int mGripSize = 10;        // size of grip widgets
-        std::array<Grip*, HandleCount> m_grips{};
+        std::array<Grip*, HandleCount> mGrips{};
 
         bool mMoving = false;
         QPoint mMoveStartGlobal;
@@ -86,6 +97,9 @@ class TResizableWidget : public QWidget
         bool mSnapToGrid = true;
 
         bool mSelected = false;
+        // Identifier settings
+        int mID{0};             // Button ID
+        int mPageID{0};         // The ID of the page this object belongs to.
 };
 
 #endif

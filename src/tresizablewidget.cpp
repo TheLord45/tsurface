@@ -29,7 +29,7 @@ class TResizableWidget::Grip : public QWidget
 {
     public:
         Grip(TResizableWidget* owner, Handle h)
-            : QWidget(owner), m_owner(owner), m_handle(h)
+            : QWidget(owner), mOwner(owner), mHandle(h)
         {
             setCursor(TResizableWidget::cursorFor(h));
             setAttribute(Qt::WA_NoMousePropagation, true);
@@ -44,24 +44,24 @@ class TResizableWidget::Grip : public QWidget
             if (e->button() != Qt::LeftButton)
                 return;
 
-            m_dragging = true;
-            m_startGlobal = e->globalPosition().toPoint();
-            m_startGeom = m_owner->geometry();
+            mDragging = true;
+            mStartGlobal = e->globalPosition().toPoint();
+            mStartGeom = mOwner->geometry();
             grabMouse();
             e->accept();
         }
 
         void mouseMoveEvent(QMouseEvent* e) override
         {
-            if (!m_dragging)
+            if (!mDragging)
                 return;
 
             const QPoint gp = e->globalPosition().toPoint();
-            const QPoint delta = gp - m_startGlobal;
+            const QPoint delta = gp - mStartGlobal;
 
-            QRect g = m_startGeom;
-            const int minW = m_owner->minimumWidth();
-            const int minH = m_owner->minimumHeight();
+            QRect g = mStartGeom;
+            const int minW = mOwner->minimumWidth();
+            const int minH = mOwner->minimumHeight();
 
             auto clampLeft = [&](int newLeft)
             {
@@ -74,48 +74,48 @@ class TResizableWidget::Grip : public QWidget
                 return std::min(newTop, maxTop);
             };
 
-            switch (m_handle)
+            switch (mHandle)
             {
                 case TopLeft:
-                    g.setLeft(clampLeft(m_startGeom.left() + delta.x()));
-                    g.setTop(clampTop(m_startGeom.top() + delta.y()));
+                    g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
+                    g.setTop(clampTop(mStartGeom.top() + delta.y()));
                     break;
                 case Top:
-                    g.setTop(clampTop(m_startGeom.top() + delta.y()));
+                    g.setTop(clampTop(mStartGeom.top() + delta.y()));
                     break;
                 case TopRight:
-                    g.setRight(std::max(m_startGeom.right() + delta.x(), m_startGeom.left() + minW - 1));
-                    g.setTop(clampTop(m_startGeom.top() + delta.y()));
+                    g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
+                    g.setTop(clampTop(mStartGeom.top() + delta.y()));
                     break;
                 case Right:
-                    g.setRight(std::max(m_startGeom.right() + delta.x(), m_startGeom.left() + minW - 1));
+                    g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
                     break;
                 case BottomRight:
-                    g.setRight(std::max(m_startGeom.right() + delta.x(), m_startGeom.left() + minW - 1));
-                    g.setBottom(std::max(m_startGeom.bottom() + delta.y(), m_startGeom.top() + minH - 1));
+                    g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
+                    g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
                     break;
                 case Bottom:
-                    g.setBottom(std::max(m_startGeom.bottom() + delta.y(), m_startGeom.top() + minH - 1));
+                    g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
                     break;
                 case BottomLeft:
-                    g.setLeft(clampLeft(m_startGeom.left() + delta.x()));
-                    g.setBottom(std::max(m_startGeom.bottom() + delta.y(), m_startGeom.top() + minH - 1));
+                    g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
+                    g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
                     break;
                 case Left:
-                    g.setLeft(clampLeft(m_startGeom.left() + delta.x()));
+                    g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
                     break;
                 default: break;
             }
 
-            m_owner->setGeometry(g);
+            mOwner->setGeometry(g);
             e->accept();
         }
 
         void mouseReleaseEvent(QMouseEvent* e) override
         {
-            if (m_dragging && e->button() == Qt::LeftButton)
+            if (mDragging && e->button() == Qt::LeftButton)
             {
-                m_dragging = false;
+                mDragging = false;
                 releaseMouse();
                 e->accept();
             }
@@ -131,11 +131,11 @@ class TResizableWidget::Grip : public QWidget
         }
 
     private:
-        TResizableWidget* m_owner;
-        Handle m_handle;
-        bool m_dragging = false;
-        QPoint m_startGlobal;
-        QRect m_startGeom;
+        TResizableWidget* mOwner;
+        Handle mHandle;
+        bool mDragging = false;
+        QPoint mStartGlobal;
+        QRect mStartGeom;
 };
 
 // TResizableWidget implementation
@@ -151,10 +151,10 @@ TResizableWidget::TResizableWidget(QWidget* content, QWidget* parent)
 
     for (int i = 0; i < HandleCount; ++i)
     {
-        m_grips[i] = new Grip(this, static_cast<Handle>(i));
-        m_grips[i]->setFixedSize(mGripSize, mGripSize);
-        m_grips[i]->raise();
-        m_grips[i]->hide(); // hidden until selected
+        mGrips[i] = new Grip(this, static_cast<Handle>(i));
+        mGrips[i]->setFixedSize(mGripSize, mGripSize);
+        mGrips[i]->raise();
+        mGrips[i]->hide(); // hidden until selected
     }
 
     if (content)
@@ -195,6 +195,7 @@ void TResizableWidget::setSelected(bool on)
         return;
 
     mSelected = on;
+    emit selectChanged(this, on);
     updateGripsVisibility();
 
     if (mContent)
@@ -223,7 +224,11 @@ void TResizableWidget::resizeEvent(QResizeEvent*)
     if (mContent)
     {
         const int m = mFrameMargin + 2;
-        mContent->setGeometry(m, m, std::max(0, width() - 2 * m), std::max(0, height() - 2 * m));
+        int w = std::max(0, width() - 2 * m);
+        int h = std::max(0, height() - 2 * m);
+        mContent->setGeometry(m, m, w, h);
+        emit objectSizeChanged(this, QSize(w, h));
+        emit objectMoved(this, QPoint(mContent->geometry().left(), mContent->geometry().top()));
     }
 
     layoutGrips();
@@ -239,8 +244,8 @@ void TResizableWidget::layoutGrips()
 
     auto place = [&](Handle hnd, int x, int y)
     {
-        m_grips[hnd]->move(x, y);
-        m_grips[hnd]->raise();
+        mGrips[hnd]->move(x, y);
+        mGrips[hnd]->raise();
     };
 
     place(TopLeft,       0,          0);
@@ -258,7 +263,7 @@ void TResizableWidget::updateGripsVisibility()
 {
     DECL_TRACER("TResizableWidget::updateGripsVisibility()");
 
-    for (auto* g : m_grips)
+    for (auto* g : mGrips)
     {
         if (!g)
             continue;
@@ -292,7 +297,7 @@ void TResizableWidget::beginMove(const QPoint& globalPos)
     mMoveStartGlobal = globalPos;
     mMoveStartGeom = geometry();
 
-    if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
+    if (TCanvasWidget *canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
         canvas->beginGroupMove(this, globalPos);
 
     grabMouse();
@@ -303,7 +308,7 @@ void TResizableWidget::updateMove(const QPoint& globalPos)
     if (!mMoving)
         return;
 
-    if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
+    if (TCanvasWidget *canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
         canvas->updateGroupMove(globalPos);
 }
 
@@ -312,10 +317,11 @@ void TResizableWidget::endMove()
     if (!mMoving)
         return;
 
-    if (auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
+    if (TCanvasWidget *canvas = qobject_cast<TCanvasWidget*>(parentWidget()))
         canvas->endGroupMove();
 
     mMoving = false;
+    emit objectMoved(this, QPoint(geometry().left(), geometry().top()));
     releaseMouse();
 }
 
@@ -327,21 +333,24 @@ void TResizableWidget::mousePressEvent(QMouseEvent* e)
         QWidget* child = childAt(e->pos());
         const bool onGrip = child && dynamic_cast<Grip*>(child) != nullptr;
 
-        auto* canvas = qobject_cast<TCanvasWidget*>(parentWidget());
+        TCanvasWidget *canvas = qobject_cast<TCanvasWidget*>(parentWidget());
         const bool ctrl = e->modifiers() & Qt::ControlModifier;
 
         if (!onGrip)
         {
             if (canvas)
             {
-                if (ctrl)
-                    canvas->toggleSelection(this);
-                else
-                    canvas->selectOnly(this);
+                if (canvas->currentTool() == TOOL_SELECT)
+                {
+                    if (ctrl && !canvas->isSelected(this))
+                        canvas->toggleSelection(this);
+                    else if (!ctrl)
+                        canvas->selectOnly(this);
 
-                // Start group move only if this widget is selected after toggle
-                if (canvas->isSelected(this))
-                    beginMove(e->globalPosition().toPoint());
+                    // Start group move only if this widget is selected after toggle
+                    if (canvas->isSelected(this))
+                        beginMove(e->globalPosition().toPoint());
+                }
             }
             else
                 beginMove(e->globalPosition().toPoint());
@@ -395,13 +404,16 @@ bool TResizableWidget::eventFilter(QObject* obj, QEvent* ev)
 
                     if (canvas)
                     {
-                        if (ctrl)
-                            canvas->toggleSelection(this);
-                        else
-                            canvas->selectOnly(this);
+                        if (canvas->currentTool() == TOOL_SELECT)
+                        {
+                            if (ctrl && !canvas->isSelected(this))
+                                canvas->toggleSelection(this);
+                            else if (!ctrl)
+                                canvas->selectOnly(this);
 
-                        if (canvas->isSelected(this))
-                            beginMove(e->globalPosition().toPoint());
+                            if (canvas->isSelected(this))
+                                beginMove(e->globalPosition().toPoint());
+                        }
                     }
                     else
                         beginMove(e->globalPosition().toPoint());

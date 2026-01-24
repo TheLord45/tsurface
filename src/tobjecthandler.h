@@ -21,6 +21,8 @@
 #include <QString>
 #include <QColor>
 
+#include "tresizablewidget.h"
+
 namespace ObjHandler
 {
     typedef enum ORIENTATION
@@ -350,7 +352,8 @@ namespace ObjHandler
 
     typedef struct TOBJECT_t
     {
-        BUTTONTYPE type;
+        TResizableWidget *w{nullptr};   // Internal use: Pointer to object.
+        BUTTONTYPE type;        // The type of the button
         int bi{0};              // button ID
         QString na;             // name
         QString bd;             // Description --> ignored

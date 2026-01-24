@@ -404,6 +404,7 @@ QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
 
     QLineEdit *line = new QLineEdit(text);
     line->setObjectName(QString("lineEdit_%1").arg(id));
+
     QSizePolicy policy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
     policy.setHorizontalStretch(0);
     policy.setVerticalStretch(0);
@@ -412,8 +413,14 @@ QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
     mLineDescription = line;
     connect(line, &QLineEdit::textChanged, this, &TPropertiesGeneral::onLineEditTextChanged);
 
+    QSizePolicy policyBt(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Preferred);
+    policyBt.setHorizontalStretch(0);
+    policyBt.setVerticalStretch(0);
+    policyBt.setHeightForWidth(true);
+
     QPushButton *button = new QPushButton;
     button->setObjectName(QString("ToolButton_%1").arg(id));
+    button->setSizePolicy(policyBt);
     button->setText("...");
     connect(button, &QPushButton::clicked, this, &TPropertiesGeneral::onToolButtonClicked);
 

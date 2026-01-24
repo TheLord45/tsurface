@@ -22,6 +22,8 @@
 #include <QSet>
 #include <QVector>
 
+#include "tmisc.h"
+
 class TResizableWidget;
 
 class TCanvasWidget : public QWidget
@@ -35,6 +37,8 @@ class TCanvasWidget : public QWidget
         void setGridSize(const QSize& s);
         void setGridSize(int w, int h) { setGridSize(QSize(w, h)); }
         QSize gridSize() const { return mGrid; }
+        void setCurrentTool(TOOL t) { mSelectedTool = t; }
+        TOOL currentTool() { return mSelectedTool; }
 
         void setSnapEnabled(bool on);
         bool snapEnabled() const { return mSnapEnabled; }
@@ -51,6 +55,7 @@ class TCanvasWidget : public QWidget
         bool allSelected() const;
         int selectedCount() const { return mSelection.size(); }
         int totalWidgetCount() const;
+        TResizableWidget *currentSelectedWidget();
 
         // Group move (called by TResizableWidget)
         void beginGroupMove(TResizableWidget* lead, const QPoint& globalPos);
@@ -65,6 +70,7 @@ class TCanvasWidget : public QWidget
         void gridChanged(const QSize& size);
         void snapChanged(bool enabled);
         void failedClickAt(const QPoint& pt);
+        void selectChanged(TCanvasWidget *w, bool selected);
 
     protected:
         void paintEvent(QPaintEvent*) override;
@@ -74,6 +80,7 @@ class TCanvasWidget : public QWidget
         QSize mGrid = QSize(20, 20);
         bool mSnapEnabled = true;
         bool mShowGrid = true;
+        TOOL mSelectedTool{TOOL_NONE};
 
         QSet<TResizableWidget*> mSelection;
 

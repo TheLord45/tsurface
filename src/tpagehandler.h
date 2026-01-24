@@ -24,29 +24,13 @@
 #include <QColor>
 
 #include "tobjecthandler.h"
+#include "tmisc.h"
 
 class TCanvasWidget;
 class QMdiArea;
 
 namespace Page
 {
-    enum TOOL
-    {
-        TOOL_NONE,
-        TOOL_DRAW,
-        TOOL_SELECT,
-        TOOL_POPUP
-    };
-
-    enum STATE_TYPE
-    {
-        STATE_UNKNOWN,
-        STATE_PAGE,
-        STATE_POPUP,
-        STATE_BUTTON,
-        STATE_BARGRAPH
-    };
-
     enum PAGE_TYPE
     {
         PT_UNKNOWN,
@@ -266,6 +250,9 @@ class TPageHandler : public QObject
         void setSnapToGrid(int number, bool state);
         void setObject(int num, ObjHandler::TOBJECT_t& object);
         ObjHandler::TOBJECT_t getObject(int page, int bi);
+        void setCurrentState(STATE_TYPE s) { mCurrentState = s; }
+        STATE_TYPE getCurrentState() { return mCurrentState; }
+        void setSelectedToolToAllPages(TOOL t);
 
     protected:
         bool savePage(const Page::PAGE_t& page);
@@ -276,14 +263,13 @@ class TPageHandler : public QObject
         QJsonArray getObjects(const QList<ObjHandler::TOBJECT_t>& objects);
         Page::PAGE_t *getPagePointer(int num);
 
-//    signals:
-
     private:
         static TPageHandler *mCurrent;
         QString mPathTemporary;
         QList<Page::PAGE_t> mPages;
         int mMaxPageNumber{0};
         int mMaxPopupNumber{500};
+        STATE_TYPE mCurrentState{STATE_UNKNOWN};
 };
 
 #endif // TPAGEHANDLER_H

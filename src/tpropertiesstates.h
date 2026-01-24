@@ -51,8 +51,8 @@ class TPropertiesStates : public QObject
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
-        QWidget *createTableWidget(Page::STATE_TYPE stype);
-        QString getLeftColText(Page::STATE_TYPE stype, int state, int line);
+        QWidget *createTableWidget(STATE_TYPE stype);
+        QString getLeftColText(STATE_TYPE stype, int state, int line);
         QWidget *makeFillType();
         QWidget *makeColorSelector(const QColor& col, const QString& name);
         QWidget *makeVideoFill();

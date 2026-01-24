@@ -26,6 +26,7 @@
 #include "tpropertiesgeneral.h"
 #include "tpropertiesprogramming.h"
 #include "tpropertiesstates.h"
+#include "tmisc.h"
 
 class QTreeView;
 class QTableWidget;
@@ -50,6 +51,7 @@ class TWorkSpaceHandler
         void setPropertiesGeneralWidget(QTableWidget *widget);
         bool isChanged();
         Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
+        void setStateType(STATE_TYPE st) { mStateType = st; }
 
         void setPage(const QString& name);
         void setPage(int id);
@@ -77,6 +79,7 @@ class TWorkSpaceHandler
 
         static TWorkSpaceHandler *mCurrent;
         QWidget *mParent{nullptr};
+        STATE_TYPE mStateType{STATE_UNKNOWN};
 };
 
 #endif // TWORKSPACEHANDLER_H

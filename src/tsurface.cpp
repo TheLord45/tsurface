@@ -201,7 +201,7 @@ void TSurface::initToolbar()
     mActionToolSelect = new QAction(QIcon(":/images/edit-node.png"), tr("Selection tool"));
     mActionToolSelect->setCheckable(true);
     mActionToolSelect->setChecked(true);
-    mSelectedTool = Page::TOOL_SELECT;
+    mSelectedTool = TOOL_SELECT;
     m_ui->actionSelection_tool->setChecked(true);
     connect(mActionToolSelect, &QAction::triggered, this, &TSurface::on_actionSelection_tool_triggered);
     m_ui->mainToolBar->addAction(mActionToolSelect);
@@ -271,6 +271,11 @@ void TSurface::addObject(int id, QPoint pt)
     wrap->setSnapToGrid(page.widget->snapEnabled());
     wrap->setGeometry(pt.x(), pt.y(), 40, 40);
     wrap->show();
+    wrap->setId(btNumber);
+    wrap->setPageId(page.pageID);
+    connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
+    connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
+    connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -619,7 +624,8 @@ void TSurface::on_actionSelection_tool_triggered(bool checked)
         m_ui->actionPopup_draw_tool->setChecked(false);
         mActionToolDraw->setChecked(false);
         mActionToolPopup->setChecked(false);
-        mSelectedTool = Page::TOOL_SELECT;
+        mSelectedTool = TOOL_SELECT;
+        TPageHandler::Current().setSelectedToolToAllPages(mSelectedTool);
     }
 
     if (!mActionToolSelect->isChecked())
@@ -638,7 +644,8 @@ void TSurface::on_actionButton_draw_tool_triggered(bool checked)
         m_ui->actionPopup_draw_tool->setChecked(false);
         mActionToolSelect->setChecked(false);
         mActionToolPopup->setChecked(false);
-        mSelectedTool = Page::TOOL_DRAW;
+        mSelectedTool = TOOL_DRAW;
+        TPageHandler::Current().setSelectedToolToAllPages(mSelectedTool);
     }
 
     if (!mActionToolDraw->isChecked())
@@ -657,7 +664,8 @@ void TSurface::on_actionPopup_draw_tool_triggered(bool checked)
         m_ui->actionSelection_tool->setChecked(false);
         mActionToolSelect->setChecked(false);
         mActionToolDraw->setChecked(false);
-        mSelectedTool = Page::TOOL_DRAW;
+        mSelectedTool = TOOL_DRAW;
+        TPageHandler::Current().setSelectedToolToAllPages(mSelectedTool);
     }
 
     if (!mActionToolPopup->isChecked())
@@ -1333,6 +1341,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
+
         TPageHandler::Current().setVisible(num, true);
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
@@ -1343,7 +1352,7 @@ void TSurface::onFailedClickAt(const QPoint& pt)
 {
     DECL_TRACER("TSurface::onFailedClickAt(const QPoint& pt)");
 
-    if (mSelectedTool == Page::TOOL_DRAW)
+    if (mSelectedTool == TOOL_DRAW)
     {
         Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
 
@@ -1352,6 +1361,24 @@ void TSurface::onFailedClickAt(const QPoint& pt)
 
         addObject(page.pageID, pt);
     }
+}
+
+void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
+{
+    DECL_TRACER("TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)");
+
+    if (selected)
+        TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
+}
+
+void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
+{
+    DECL_TRACER("TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)");
+}
+
+void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
+{
+    DECL_TRACER("TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)");
 }
 
 void TSurface::onAddNewPage()
