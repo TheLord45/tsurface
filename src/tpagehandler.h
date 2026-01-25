@@ -199,7 +199,7 @@ namespace Page
         SR_t srPage;                            // The configuration for the page itself
         QList<EVENT_t> eventShow;               // G5: Events to start showing
         QList<EVENT_t> eventHide;               // G5: Events to start hiding
-        QList<ObjHandler::TOBJECT_t> objects;   // The objects belonging to the page/popup
+        QList<TObjectHandler *> objects;        // The objects belonging to the page/popup
     }PAGE_t;
 }
 
@@ -235,6 +235,7 @@ class TPageHandler : public QObject
         bool saveAllPages();
         bool readPages(const QStringList& list);
         ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
+        void appendObject(int pageID, TObjectHandler *object);
         // Getter/Setter
         Page::PAGE_t getPage(int number);
         Page::PAGE_t getPage(const QString& name);
@@ -250,9 +251,12 @@ class TPageHandler : public QObject
         void setSnapToGrid(int number, bool state);
         void setObject(int num, ObjHandler::TOBJECT_t& object);
         ObjHandler::TOBJECT_t getObject(int page, int bi);
+        TObjectHandler *getObjectHandler(int page, int bi);
         void setCurrentState(STATE_TYPE s) { mCurrentState = s; }
         STATE_TYPE getCurrentState() { return mCurrentState; }
         void setSelectedToolToAllPages(TOOL t);
+        QList<ObjHandler::TOBJECT_t> getObjectList(const Page::PAGE_t& page);
+        void setObjectGeometry(int pageID, int bi, const QRect& geom);
 
     protected:
         bool savePage(const Page::PAGE_t& page);
@@ -260,7 +264,7 @@ class TPageHandler : public QObject
         QJsonObject getSr(Page::PAGE_TYPE pt, const Page::SR_t& sr, int number=0);
         void parsePage(const QJsonObject& page);
         void parseObjects(Page::PAGE_t *page, const QJsonArray& obj);
-        QJsonArray getObjects(const QList<ObjHandler::TOBJECT_t>& objects);
+        QJsonArray getObjects(const QList<TObjectHandler *>& objects);
         Page::PAGE_t *getPagePointer(int num);
 
     private:

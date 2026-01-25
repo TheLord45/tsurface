@@ -494,6 +494,31 @@ ObjHandler::TOBJECT_t TPageHandler::initNewObject(int bi, const QString& name)
     return object;
 }
 
+void TPageHandler::appendObject(int pageID, TObjectHandler *object)
+{
+    DECL_TRACER("TPageHandler::appendObject(int pageID, TObjectHandler *object)");
+
+    if (pageID <= 0 || !object || object->getButtonIndex() <= 0)
+        return;
+
+    PAGE_t *page = getPagePointer(pageID);
+
+    if (!page)
+        return;
+
+    // Check if object is unique
+    for (TObjectHandler *o : page->objects)
+    {
+        if (o->getButtonIndex() == object->getButtonIndex())
+        {
+            MSG_WARNING("Attempt to insert duplicate button with button index " << o->getButtonIndex() << " for page " << pageID);
+            return;
+        }
+    }
+
+    page->objects.append(object);
+}
+
 void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)
 {
     DECL_TRACER("TPageHandler::addObject(int num, ObjHandler::TOBJECT_t& object)");
@@ -504,18 +529,22 @@ void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)
         return;
 
     // Make sure the object does not already exist
-    QList<ObjHandler::TOBJECT_t>::Iterator iter;
+    QList<TObjectHandler *>::Iterator iter;
 
     for (iter = page->objects.begin(); iter != page->objects.end(); ++iter)
     {
-        if (iter->bi == object.bi)
+        TObjectHandler *obj = *iter;
+
+        if (obj->getButtonIndex() == object.bi)
         {
-            *iter = object;
+            obj->setObject(object);
             return;
         }
     }
 
-    page->objects.append(object);
+    TObjectHandler *o = new TObjectHandler;
+    o->setObject(object);
+    page->objects.append(o);
 }
 
 ObjHandler::TOBJECT_t TPageHandler::getObject(int page, int bi)
@@ -527,13 +556,31 @@ ObjHandler::TOBJECT_t TPageHandler::getObject(int page, int bi)
     if (pg.pageID <= 0)
         return ObjHandler::TOBJECT_t();
 
-    for (ObjHandler::TOBJECT_t obj : pg.objects)
+    for (TObjectHandler *obj : pg.objects)
     {
-        if (obj.bi == bi)
-            return obj;
+        if (obj->getObject().bi == bi)
+            return obj->getObject();
     }
 
     return ObjHandler::TOBJECT_t();
+}
+
+TObjectHandler *TPageHandler::getObjectHandler(int page, int bi)
+{
+    DECL_TRACER("TPageHandler::getObjectHandler(int page, int bi)");
+
+    PAGE_t pg = getPage(page);
+
+    if (pg.pageID <= 0)
+        return nullptr;
+
+    for (TObjectHandler *obj : pg.objects)
+    {
+        if (obj->getObject().bi == bi)
+            return obj;
+    }
+
+    return nullptr;
 }
 
 void TPageHandler::setSelectedToolToAllPages(TOOL t)
@@ -549,6 +596,37 @@ void TPageHandler::setSelectedToolToAllPages(TOOL t)
     {
         if (iter->widget && iter->visible)
             iter->widget->setCurrentTool(t);
+    }
+}
+
+QList<ObjHandler::TOBJECT_t> TPageHandler::getObjectList(const Page::PAGE_t& page)
+{
+    DECL_TRACER("TPageHandler::getObjectList(const Page::PAGE_t& page)");
+
+    QList<ObjHandler::TOBJECT_t> objects;
+
+    for (TObjectHandler *obj : page.objects)
+        objects.append(obj->getObject());
+
+    return objects;
+}
+
+void TPageHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
+{
+    DECL_TRACER("TPageHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)");
+
+    PAGE_t *page = getPagePointer(pageID);
+
+    if (!page)
+        return;
+
+    for (TObjectHandler *obj : page->objects)
+    {
+        if (obj->getButtonIndex() == bi)
+        {
+            obj->setSize(geom);
+            break;
+        }
     }
 }
 
@@ -705,15 +783,16 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     return true;
 }
 
-QJsonArray TPageHandler::getObjects(const QList<ObjHandler::TOBJECT_t>& objects)
+QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
 {
-    DECL_TRACER("TPageHandler::getObjects(const QList<ObjHandler::TOBJECT_t>& objects)");
+    DECL_TRACER("TPageHandler::getObjects(const QList<TObjectHandler*>& objects)");
 
     int setupPort = TConfMain::Current().getSetupPort();
     QJsonArray obj;
 
-    for (ObjHandler::TOBJECT_t e : objects)
+    for (TObjectHandler *o : objects)
     {
+        ObjHandler::TOBJECT_t e = o->getObject();
         QJsonObject bt;
         bt.insert("type", e.type);
         bt.insert("bi", e.bi);
@@ -852,7 +931,7 @@ QJsonArray TPageHandler::getObjects(const QList<ObjHandler::TOBJECT_t>& objects)
             if (!s.gradientColors.empty())
             {
                 QJsonArray gradientColors;
-                vector<QString>::const_iterator iter;
+                QList<QString>::const_iterator iter;
 
                 for (iter = s.gradientColors.cbegin(); iter != s.gradientColors.cend(); ++iter)
                     gradientColors.append(*iter);

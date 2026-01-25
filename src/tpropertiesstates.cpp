@@ -44,6 +44,20 @@ TPropertiesStates::~TPropertiesStates()
     DECL_TRACER("TPropertiesStates::~TPropertiesStates()");
 }
 
+void TPropertiesStates::setGeometry(int bi, const QRect& geom)
+{
+    DECL_TRACER("TPropertiesStates::setGeometry(int bi, const QRect& geom)");
+
+    for (TObjectHandler *obj : mPage.objects)
+    {
+        if (obj->getButtonIndex() == bi)
+        {
+            obj->setSize(geom);
+            break;
+        }
+    }
+}
+
 void TPropertiesStates::setStatesPage(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::setStatesPage(const QString& name)");

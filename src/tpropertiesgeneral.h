@@ -42,6 +42,9 @@ class TPropertiesGeneral : public QObject
         void setGeneralPopup(int id, bool loaded=false);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
+        void setGeometryPopup(const QRect& geom);
+        void setGeometryButton(int bi, const QRect& geom);
+        void update();
 
     protected:
         typedef struct ACTIVE_t
@@ -54,6 +57,7 @@ class TPropertiesGeneral : public QObject
         virtual void pageNameChanged(int id, const QString& name) = 0;
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
+        virtual ObjHandler::TOBJECT_t getActualObject() = 0;
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);
@@ -82,6 +86,7 @@ class TPropertiesGeneral : public QObject
         bool mConnected{false};
         ACTIVE_t mCellActive;
         Page::PAGE_t mPage;
+        ObjHandler::TOBJECT_t mActObject;
         QLineEdit *mLineDescription{nullptr};
         bool mChanged{false};
         bool mInitialized{false};

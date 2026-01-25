@@ -144,6 +144,7 @@ TSurface::TSurface(QWidget *parent)
     TWorkSpaceHandler::Current().regMarkDirty(bind(&TSurface::onMarkDirty, this));
 
     connect(m_ui->splitter, &QSplitter::splitterMoved, this, &TSurface::onSplitterMoved);
+    connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &TSurface::onSubWindowActivated);
 }
 
 TSurface::~TSurface()
@@ -256,7 +257,8 @@ void TSurface::addObject(int id, QPoint pt)
     if (page.pageID <= 0 || !page.widget || !page.visible)
         return;
 
-    int btNumber = getNextObjectNumber(page.objects);
+    QList<ObjHandler::TOBJECT_t> olist = TPageHandler::Current().getObjectList(page);
+    int btNumber = getNextObjectNumber(olist);
     ObjHandler::TOBJECT_t object = TPageHandler::Current().initNewObject(btNumber, QString("Button %1").arg(btNumber));
     QWidget* content = new QWidget(page.widget);
     QString objName = QString("Object_%1").arg(btNumber);
@@ -276,6 +278,13 @@ void TSurface::addObject(int id, QPoint pt)
     connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
     connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
+    // Add to list
+    TObjectHandler *o = new TObjectHandler(ObjHandler::GENERAL, btNumber, objName);
+    o->setObject(wrap);
+    o->setObject(object);
+    o->setSize(wrap->geometry());
+    TPageHandler::Current().appendObject(page.pageID, o);
+    TWorkSpaceHandler::Current().setStatesPage(page.name);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -1374,11 +1383,25 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
 {
     DECL_TRACER("TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)");
+
+    QRect geom = w->geometry();
+    geom.setLeft(pt.x());
+    geom.setTop(pt.y());
+    TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+    object->setSize(geom);
+    TWorkSpaceHandler::Current().setActualObject(object);
 }
 
 void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 {
     DECL_TRACER("TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)");
+
+    QRect geom = w->geometry();
+    geom.setWidth(size.width());
+    geom.setHeight(size.height());
+    TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+    object->setSize(geom);
+    TWorkSpaceHandler::Current().setActualObject(object);
 }
 
 void TSurface::onAddNewPage()
@@ -1494,6 +1517,35 @@ void TSurface::onAddNewPopup()
     QString ffile = TFonts::getFontFile(font);
     TFonts::addFont(font, ffile);
     TPageHandler::Current().setPage(pg);
+}
+
+void TSurface::onSubWindowActivated(QMdiSubWindow *window)
+{
+    DECL_TRACER("TSurface::onSubWindowActivated(QMdiSubWindow *window)");
+
+    if (!window)
+        return;
+
+    QString objName = window->objectName();
+    int id = getObjectID(objName);
+
+    if (id <= 0)
+        return;
+
+    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+
+    if (page.pageID <= 0)
+        return;
+
+    if (page.popupType == Page::PT_PAGE)
+        TWorkSpaceHandler::Current().setPage(id);
+    else
+        TWorkSpaceHandler::Current().setPopup(id);
+
+    // TODO: Add code to check for a selected object. If there is
+    // one and only one, it is the actual one.
+    // If there are more than one selected, all should be deselected
+    // and the page data should be shown.
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

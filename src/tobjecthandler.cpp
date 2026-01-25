@@ -16,14 +16,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include "tobjecthandler.h"
+#include "terror.h"
 
+using namespace ObjHandler;
 
 TObjectHandler::TObjectHandler()
 {
-
+    DECL_TRACER("TObjectHandler::TObjectHandler()");
 }
 
 TObjectHandler::TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name)
 {
+    DECL_TRACER("TObjectHandler::TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name)");
 
+    mObject.type = bt;
+    mObject.bi = num;
+    mObject.na = name;
+}
+
+ObjHandler::SR_T TObjectHandler::getSr(int number)
+{
+    DECL_TRACER("TObjectHandler::getSr(int number)");
+
+    for (SR_T sr : mObject.sr)
+    {
+        if (sr.number == number)
+            return sr;
+    }
+
+    return SR_T();
 }

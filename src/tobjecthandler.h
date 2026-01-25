@@ -229,7 +229,7 @@ namespace ObjHandler
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
         BITMAPS_t bitmaps[5];   // G5 table of bitmaps
-        std::vector<QString> gradientColors;  // G5 optional gradient colors
+        QList<QString> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
         int gy{50};             // G5 Gradient center Y in percent
@@ -285,7 +285,7 @@ namespace ObjHandler
         int rh{0};              // Range high
         int rn{0};              // Bargraph: Range drag increment
         QString sc;         // Color of slider (for bargraph)
-        std::vector<SR_T> sr;
+        QList<SR_T> sr;
     }EXTBUTTON_t;
 
     typedef struct PUSH_FUNC
@@ -381,7 +381,7 @@ namespace ObjHandler
         int tg{0};              // Listbox managed: 0=no/1=yes
         int so{1};              // String output port
         int co{1};              // Command port
-        std::vector<QString> cm;// Commands to send on each button hit
+        QList<QString> cm;      // Commands to send on each button hit
         QString dr;             // Level "horizontal" or "vertical"
         int va{0};              // Level control value
         int stateCount{0};      // State count with multistate buttons (number of states)
@@ -425,8 +425,8 @@ namespace ObjHandler
         QString pc;             // Password character for text area
         QString op;             // String the button send
         bool visible{true};     // TRUE=Button is visible
-        std::vector<PUSH_FUNC_T> pushFunc;  // Push functions: This are executed on button press
-        std::vector<SR_T> sr;   // The elements the button consists of
+        QList<PUSH_FUNC_T> pushFunc;  // Push functions: This are executed on button press
+        QList<SR_T> sr;         // The elements the button consists of
     }TOBJECT_t;
 };
 
@@ -435,6 +435,26 @@ class TObjectHandler
     public:
         TObjectHandler();
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
+
+        int getButtonIndex() { return mObject.bi; }
+        void setObject(TResizableWidget *w) { mObject.w = w; }
+        void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
+        ObjHandler::TOBJECT_t& getObject() { return mObject; }
+        TResizableWidget *getObjectWidget() { return mObject.w; }
+
+        inline void setSize(const QRect& rect)
+        {
+            mObject.lt = rect.left();
+            mObject.tp = rect.top();
+            mObject.wt = rect.width();
+            mObject.ht = rect.height();
+        }
+
+        ObjHandler::SR_T getSr(int number);
+        QList<ObjHandler::SR_T>& getSrList() { return mObject.sr; }
+
+    private:
+        ObjHandler::TOBJECT_t mObject;
 };
 
 #endif // TOBJECTHANDLER_H

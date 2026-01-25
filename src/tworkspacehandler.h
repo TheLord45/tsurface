@@ -26,6 +26,7 @@
 #include "tpropertiesgeneral.h"
 #include "tpropertiesprogramming.h"
 #include "tpropertiesstates.h"
+#include "tobjecthandler.h"
 #include "tmisc.h"
 
 class QTreeView;
@@ -52,13 +53,13 @@ class TWorkSpaceHandler
         bool isChanged();
         Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
         void setStateType(STATE_TYPE st) { mStateType = st; }
+        void setObjectGeometry(int pageID, int bi, const QRect& geom);
+        void setActualObject(TObjectHandler *object);
 
         void setPage(const QString& name);
         void setPage(int id);
         void setPopup(const QString& name);
         void setPopup(int id);
-
-        void setObject(ObjHandler::TOBJECT_t& object);
 
         // Callbacks
         // In this case we can't use the mechanism of Qt with "signals",
@@ -72,6 +73,7 @@ class TWorkSpaceHandler
         void pageNameChanged(int id, const QString& name) override;
         void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
         void markChanged() override;
+        ObjHandler::TOBJECT_t getActualObject() override;
 
     private:
         std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};
@@ -80,6 +82,7 @@ class TWorkSpaceHandler
         static TWorkSpaceHandler *mCurrent;
         QWidget *mParent{nullptr};
         STATE_TYPE mStateType{STATE_UNKNOWN};
+        TObjectHandler *mObject{nullptr};
 };
 
 #endif // TWORKSPACEHANDLER_H

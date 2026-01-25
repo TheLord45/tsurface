@@ -59,6 +59,53 @@ TPropertiesGeneral::~TPropertiesGeneral()
     }
 }
 
+void TPropertiesGeneral::setGeometryPopup(const QRect& geom)
+{
+    DECL_TRACER("TPropertiesGeneral::setGeometry(const QRect& geom)");
+
+    if (!mTable || mPage.popupType != Page::PT_POPUP)
+        return;
+
+    mPage.left = geom.left();
+    mPage.top = geom.top();
+    mPage.width = geom.width();
+    mPage.height = geom.height();
+    onSpinLeftValue(mPage.left);
+    onSpinTopValue(mPage.top);
+    onSpinWidthValue(mPage.width);
+    onSpinHeightValue(mPage.height);
+}
+
+void TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom)
+{
+    DECL_TRACER("TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom)");
+
+    if (!mTable)
+        return;
+
+    onSpinLeftValue(mPage.left);
+    onSpinTopValue(mPage.top);
+    onSpinWidthValue(mPage.width);
+    onSpinHeightValue(mPage.height);
+}
+
+void TPropertiesGeneral::update()
+{
+    DECL_TRACER("TPropertiesGeneral::update()");
+
+    ObjHandler::TOBJECT_t object = getActualObject();
+
+    // If the object ID (bi) is less or equal 0, then we must show the
+    // data for a page or a popup.
+    if (object.bi <= 0)
+    {
+        if (mPage.popupType == Page::PT_PAGE)
+            setGeneralPage(mPage.pageID, true);
+        else if (mPage.popupType == Page::PT_POPUP)
+            setGeneralPopup(mPage.pageID, true);
+    }
+}
+
 void TPropertiesGeneral::setGeneralPage(const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::setPage(const QString& name)");

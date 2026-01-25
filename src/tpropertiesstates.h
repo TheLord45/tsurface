@@ -37,6 +37,7 @@ class TPropertiesStates : public QObject
 
         void setStatesPage(const QString& name);
         void setStatesPage(int id, bool loaded);
+        void update();
 
     protected:
         // Interface methods
@@ -57,6 +58,7 @@ class TPropertiesStates : public QObject
         QWidget *makeColorSelector(const QColor& col, const QString& name);
         QWidget *makeVideoFill();
         QWidget *makeBitmapSelector(const QString& bitmap, const QString& name);
+        void setGeometry(int bi, const QRect& geom);
 
     private:
         QTreeWidget *mTreeWidget{nullptr};

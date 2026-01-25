@@ -31,6 +31,7 @@ class tsurface;
 }
 
 class TResizableWidget;
+class QMdiSubWindow;
 
 class winCloseEater : public QObject
 {
@@ -63,6 +64,7 @@ class TSurface : public QMainWindow
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);
         void onAddNewPage();
         void onAddNewPopup();
+        void onSubWindowActivated(QMdiSubWindow *window);
         void onActionShowChannels(bool checked);
         void onActionShowHideGrid(bool checked);
         void onActionSnapToGrid(bool checked);

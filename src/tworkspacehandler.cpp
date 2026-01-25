@@ -99,12 +99,33 @@ bool TWorkSpaceHandler::isChanged()
     return false;
 }
 
+void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
+{
+    DECL_TRACER("TWorkSpaceHandler::setObjectGeometry(int bi, const QRect& geom)");
+
+    TPropertiesStates::setGeometry(bi, geom);
+    TPropertiesGeneral::update();
+}
+
+void TWorkSpaceHandler::setActualObject(TObjectHandler *object)
+{
+    DECL_TRACER("TWorkSpaceHandler::setActualObject(TObjectHandler *object)");
+
+    mObject = object;
+
+    if (!mObject)
+        return;
+
+    TPropertiesGeneral::update();
+}
+
 void TWorkSpaceHandler::setPage(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");
 
     setGeneralPage(name);
     setProgrammingPage(name);
+    setStatesPage(name);
 }
 
 void TWorkSpaceHandler::setPage(int id)
@@ -113,6 +134,7 @@ void TWorkSpaceHandler::setPage(int id)
 
     setGeneralPage(id);
     setProgrammingPage(id);
+    setStatesPage(id, false);
 }
 
 void TWorkSpaceHandler::setPopup(const QString& name)
@@ -121,6 +143,7 @@ void TWorkSpaceHandler::setPopup(const QString& name)
 
     setGeneralPopup(name);
     setProgrammingPopup(name);
+    setStatesPage(name);
 }
 
 void TWorkSpaceHandler::setPopup(int id)
@@ -129,6 +152,7 @@ void TWorkSpaceHandler::setPopup(int id)
 
     setGeneralPopup(id);
     setProgrammingPopup(id);
+    setStatesPage(id, false);
 }
 
 void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)
@@ -191,4 +215,12 @@ void TWorkSpaceHandler::markChanged()
 
     if (_markDirty)
         _markDirty();
+}
+
+
+ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject()
+{
+    DECL_TRACER("TWorkSpaceHandler::getActualObject()");
+
+    return ObjHandler::TOBJECT_t();
 }
