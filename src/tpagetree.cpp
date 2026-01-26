@@ -293,9 +293,7 @@ void TPageTree::onClicked(const QModelIndex& index)
         return;
 
     if (menu >= MENU_PAGE && menu <= MENU_APPS)
-    {
         menuPopup();
-    }
 }
 
 void TPageTree::menuPopup()

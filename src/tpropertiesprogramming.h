@@ -47,6 +47,7 @@ class TPropertiesProgramming : public QObject
 
     protected:
         void createPage();
+        void clear();
         // Callbacks
         void onComboAddrPort(int index);
         void onComboAddrPortText(const QString& text);

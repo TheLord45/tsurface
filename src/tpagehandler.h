@@ -159,6 +159,8 @@ namespace Page
         int ww{0};              // line break when 1
         int et{0};              // Text effect (^TEF)
         int oo{-1};             // Over all opacity
+        QString vf;             // G5: Video fill; Marks the button reserved for video (100 = video stream, 101 = MXA-MPL)
+        QString dv;             // G5: Streaming source; Only valid if "vf" is 100!
     } SR_t;
 
     typedef struct PAGE_t
@@ -224,7 +226,7 @@ class TPageHandler : public QObject
         void reset();
         void setVisible(int number, bool visible);
         Page::PAGE_t getCurrentPage(QMdiArea *area);
-        void bringToFront(int number);
+        bool bringToFront(int number);
         int getNextPageNumber() { mMaxPageNumber++; return mMaxPageNumber; }
         int getNextPopupNumber() { mMaxPopupNumber++; return mMaxPopupNumber; }
         bool isVisible(int number);

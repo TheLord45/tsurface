@@ -82,7 +82,7 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
 
     if (!loaded && mPage.pageID > 0 && mChanged)
     {
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_PROGRAM);
         mPage = Page::PAGE_t();
     }
 
@@ -108,7 +108,7 @@ void TPropertiesProgramming::setProgrammingPopup(const QString& name)
     }
 
     if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
     mPage = Page::PAGE_t();
@@ -127,7 +127,7 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
     }
 
     if (!loaded && mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
 
@@ -138,6 +138,20 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
         return;
 
     createPage();
+}
+
+void TPropertiesProgramming::clear()
+{
+    DECL_TRACER("TPropertiesProgramming::clear()");
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_PROGRAM);
+
+    mChanged = false;
+    mPage = Page::PAGE_t();
+    mTable->clear();
+    mTable->setRowCount(0);
+    mTable->setColumnCount(0);
 }
 
 void TPropertiesProgramming::createPage()

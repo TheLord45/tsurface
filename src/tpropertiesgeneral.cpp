@@ -106,6 +106,20 @@ void TPropertiesGeneral::update()
     }
 }
 
+void TPropertiesGeneral::clear()
+{
+    DECL_TRACER("TPropertiesGeneral::clear()");
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_GENERIC);
+
+    mPage = Page::PAGE_t();
+    mChanged = false;
+    mTable->clear();
+    mTable->setRowCount(0);
+    mTable->setColumnCount(0);
+}
+
 void TPropertiesGeneral::setGeneralPage(const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::setPage(const QString& name)");
@@ -448,30 +462,20 @@ QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
     QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setObjectName(QString("Layout_%1").arg(id));
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
 
     QLineEdit *line = new QLineEdit(text);
     line->setObjectName(QString("lineEdit_%1").arg(id));
-
-    QSizePolicy policy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    policy.setHorizontalStretch(0);
-    policy.setVerticalStretch(0);
-    policy.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
-    line->setSizePolicy(policy);
     mLineDescription = line;
     connect(line, &QLineEdit::textChanged, this, &TPropertiesGeneral::onLineEditTextChanged);
 
-    QSizePolicy policyBt(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Preferred);
-    policyBt.setHorizontalStretch(0);
-    policyBt.setVerticalStretch(0);
-    policyBt.setHeightForWidth(true);
-
     QPushButton *button = new QPushButton;
     button->setObjectName(QString("ToolButton_%1").arg(id));
-    button->setSizePolicy(policyBt);
     button->setText("...");
+    button->setMaximumWidth(30);
     connect(button, &QPushButton::clicked, this, &TPropertiesGeneral::onToolButtonClicked);
 
-    layout->addWidget(line);
+    layout->addWidget(line, 1);
     layout->addWidget(button);
     return widget;
 }

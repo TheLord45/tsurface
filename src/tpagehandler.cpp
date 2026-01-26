@@ -259,21 +259,24 @@ PAGE_t TPageHandler::getCurrentPage(QMdiArea *area)
     return PAGE_t();
 }
 
-void TPageHandler::bringToFront(int number)
+bool TPageHandler::bringToFront(int number)
 {
     DECL_TRACER("TPageHandler::bringToFront(int number)");
 
     MSG_DEBUG("Searing for window number: " << number);
     Page::PAGE_t *page = getPagePointer(number);
 
-    if (!page)
-        return;
+    if (!page || !page->visible)
+        return false;
 
     if (page->widget && page->widget->parentWidget())
     {
         page->widget->parentWidget()->raise();
         page->widget->parentWidget()->show();
+        return true;
     }
+
+    return false;
 }
 
 TCanvasWidget *TPageHandler::getWidget(int number)
@@ -864,7 +867,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "we", e.we, "");
         INSERTJ(bt, "pc", e.pc, "");
         INSERTJ(bt, "op", e.op, "");
-        INSERTJ(bt, "visible", e.visible, true);
+//        INSERTJ(bt, "visible", e.visible, true);
 
         QJsonArray cm;
 

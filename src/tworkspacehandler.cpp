@@ -119,6 +119,15 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object)
     TPropertiesGeneral::update();
 }
 
+void TWorkSpaceHandler::clear()
+{
+    DECL_TRACER("TWorkSpaceHandler::clear()");
+
+    TPropertiesGeneral::clear();
+    TPropertiesProgramming::clear();
+    TPropertiesStates::clear();
+}
+
 void TWorkSpaceHandler::setPage(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");

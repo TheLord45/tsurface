@@ -79,6 +79,7 @@ class TPropertiesGeneral : public QObject
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
         QWidget *makeLabelTool(const QString& text, int id);
+        void clear();
 
     private:
         QTableWidget *mTable{nullptr};

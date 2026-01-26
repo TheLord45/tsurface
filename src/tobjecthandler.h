@@ -258,7 +258,8 @@ namespace ObjHandler
         int md{0};              // Marquee type: 1 = scroll left, 2 = scroll right, 3 = ping pong, 4 = scroll up, 5 = scroll down
         int mr{0};              // Marquee enabled: 1 = enabled, 0 = disabled
         int ms{1};              // Marquee speed: Range: 1 to 10 (look for command ^MSP to see of how to set this)
-        QString vf;             // G5: Video fill color; Marks the button reserved for video
+        QString vf;             // G5: Video fill; Marks the button reserved for video (100 = video stream, 101 = MXA-MPL)
+        QString dv;             // G5: Streaming source; Only valid if "vf" is 100!
     } SR_T;
 
     typedef struct EXTBUTTON_t

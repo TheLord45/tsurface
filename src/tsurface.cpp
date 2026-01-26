@@ -90,7 +90,10 @@ bool winCloseEater::eventFilter(QObject *obj, QEvent *event)
             MSG_DEBUG("ID: " << id);
 
             if (id > 0)
+            {
                 TPageHandler::Current().setVisible(id, false);
+                TWorkSpaceHandler::Current().clear();
+            }
         }
         break;
 
@@ -1175,12 +1178,37 @@ void TSurface::onItemToFront(int id)
 {
     DECL_TRACER("TSurface::onItemToFront(int id)");
 
-    TPageHandler::Current().bringToFront(id);
+    int pageID = id;
+
+    if (!TPageHandler::Current().bringToFront(pageID))
+    {
+        QMdiSubWindow *w = m_ui->mdiArea->currentSubWindow();
+
+        if (!w)
+        {
+            MSG_DEBUG("Have no active subwindow");
+            TWorkSpaceHandler::Current().clear();
+            return;
+        }
+        else
+        {
+            pageID = getObjectID(w->objectName());
+
+            if (pageID <= 0 || !TPageHandler::Current().isVisible(pageID))
+            {
+                MSG_DEBUG("Page " << pageID << " is not visible");
+                TWorkSpaceHandler::Current().clear();
+                return;
+            }
+        }
+
+        MSG_DEBUG("Showing data of page " << pageID);
+    }
     // Set the properties
-    if (id < 500)
-        TWorkSpaceHandler::Current().setPage(id);
-    else if (id < 1000)
-        TWorkSpaceHandler::Current().setPopup(id);
+    if (pageID < 500)
+        TWorkSpaceHandler::Current().setPage(pageID);
+    else if (pageID < 1000)
+        TWorkSpaceHandler::Current().setPopup(pageID);
 }
 
 /**
@@ -1316,6 +1344,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
                 m_ui->mdiArea->setActiveSubWindow(sw);
                 m_ui->mdiArea->closeActiveSubWindow();
                 TPageHandler::Current().setVisible(num, false);
+                TWorkSpaceHandler::Current().clear();
                 break;
             }
         }
@@ -1323,13 +1352,30 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     else if (!visible)
     {
         MSG_DEBUG("Window is not visible. Generating it ...")
+        Page::PAGE_TYPE pType = Page::PT_UNKNOWN;
+
+        switch(wt)
+        {
+            case TPageTree::WTYPE_PAGE:     pType = Page::PT_PAGE; break;
+            case TPageTree::WTYPE_POPUP:    pType = Page::PT_POPUP; break;
+            case TPageTree::WTYPE_APP:      pType = Page::PT_SUBPAGE; break;
+        }
+
         Page::PAGE_t pg = TPageHandler::Current().getPage(num);
         widget = new TCanvasWidget(this);
         widget->setWindowTitle(name);
         widget->setFixedSize(QSize(pg.width, pg.height));
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
         widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");
-        int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, name, pg.width, pg.height);
+        int id = TPageHandler::Current().createPage(widget, pType, name, pg.width, pg.height);
+
+        if (id <= 0)
+        {
+            MSG_ERROR("Unable to create new page or popup!");
+            delete widget;
+            return;
+        }
+
         QString objName(QString("Canvas_%1").arg(id));
         widget->setObjectName(objName);
         widget->installEventFilter(mCloseEater);
@@ -1354,6 +1400,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         TPageHandler::Current().setVisible(num, true);
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
+        // TODO: Add code to draw all objects
     }
 }
 

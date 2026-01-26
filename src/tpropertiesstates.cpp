@@ -26,6 +26,9 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <QHeaderView>
+#include <QFontDialog>
+#include <QSpinBox>
 
 #include "tpropertiesstates.h"
 #include "tconfmain.h"
@@ -88,7 +91,7 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
 
     if (!loaded && mPage.pageID > 0 && mChanged)
     {
-        saveChangedData(&mPage);
+        saveChangedData(&mPage, TBL_STATES);
         mPage = Page::PAGE_t();
     }
 
@@ -103,31 +106,93 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
     createPage();
 }
 
+void TPropertiesStates::setActualButton(int bi)
+{
+    DECL_TRACER("TPropertiesStates::setActualButton(int bi)");
+
+    if (bi <= 0 || bi >= mPage.objects.size() || mActualObjectID == bi)
+        return;
+
+    mActualObjectID = bi;
+    // TODO: Add code to show the states for an object
+}
+
+void TPropertiesStates::update()
+{
+
+}
+
+void TPropertiesStates::clear()
+{
+    DECL_TRACER("TPropertiesStates::clear()");
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_STATES);
+
+    mChanged = true;
+    mPage = Page::PAGE_t();
+    mTreeWidget->clear();
+    mTreeWidget->setColumnCount(0);
+}
+
 void TPropertiesStates::createPage()
 {
     DECL_TRACER("TPropertiesStates::createPage()");
 
-    int setupPort = TConfMain::Current().getSetupPort();
+    if (!mTreeWidget)
+    {
+        MSG_WARNING("Tree widget is not initialized!")
+        return;
+    }
+
     mInitialized = false;
     QBrush brush;
     brush.setColor(Qt::GlobalColor::lightGray);
     mTreeWidget->clear();
     mTreeWidget->setColumnCount(1);
+    mTreeWidget->setHeaderHidden(true);
 
     if (mPage.popupType == PT_PAGE)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem;
-        item->setText(0, tr("Off"));
+        QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
+        top->setText(0, tr("Off"));
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(top);
+        item->setFirstColumnSpanned(true);
+        item->setFlags(Qt::ItemIsEnabled);      // Not selectable
+
+        QTableWidget *table = createTableWidget(STATE_PAGE);
+        mTreeWidget->setItemWidget(item, 0, table);
+        mTreeWidget->expandAll();
     }
+    else if (mPage.popupType == PT_POPUP)
+    {
+        QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
+        top->setText(0, tr("Off"));
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(top);
+        item->setFirstColumnSpanned(true);
+        item->setFlags(Qt::ItemIsEnabled);      // Not selectable
+
+        QTableWidget *table = createTableWidget(STATE_POPUP, mTreeWidget);
+        mTreeWidget->setItemWidget(item, 0, table);
+        mTreeWidget->expandAll();
+    }
+
+    mInitialized = true;
 }
 
-QWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype)
+QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)
 {
-    DECL_TRACER("TPropertiesStates::createTableWidget(STATE_TYPE stype)");
+    DECL_TRACER("TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)");
 
     QBrush brush;
     brush.setColor(Qt::GlobalColor::lightGray);
-    QTableWidget *table = new QTableWidget;
+    QTableWidget *table = new QTableWidget(parent);
+    table->verticalHeader()->setVisible(false);
+    table->horizontalHeader()->setVisible(false);
+    table->setShowGrid(true);
+    table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     table->setColumnCount(2);
     int rows = 0;
 
@@ -147,41 +212,74 @@ QWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype)
         QTableWidgetItem *col0 = new QTableWidgetItem;
         col0->setBackground(brush);
         col0->setText(getLeftColText(stype, 0, row));
+        col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+        table->setItem(row, 0, col0);
 
         switch(row)
         {
             case 0:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeFillType());
+                    table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PgFillType"));
             break;
 
             case 1:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "FillColor"));
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "PgFillColor"));
             break;
 
             case 2:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "TextColor"));
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ct, "PgTextColor"));
             break;
 
             case 3:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "TextEffectColor"));
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PgTextEffectColor"));
             break;
 
             case 4:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeVideoFill());
+                    table->setCellWidget(row, 1, makeVideoFill(mPage.srPage.vf, "PgVideoFill"));
             break;
 
             case 5:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps[0].fileName, "BitmapSelector"));
+                    table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps[0].fileName, "PgBitmapSelector"));
+            break;
+
+            case 6:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeFontSelector(mPage.srPage.ff, "PgFontSelector"));
+            break;
+
+            case 7:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.fs, "PgFontSize"));
+            break;
+
+            case 8:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, "PgText"));
+            break;
+
+            case 9:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeTextJustification(mPage.srPage.jt, "PgTextOrientation"));
+            break;
+
+            case 10:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeTextEffect(mPage.srPage.et, "PgTextEffect"));
+            break;
+
+            case 11:
+                if (stype == STATE_PAGE)
+                    table->setCellWidget(row, 1, makeWordWrap(mPage.srPage.ww, "PgWordWrap"));
             break;
         }
     }
 
+    table->resizeRowsToContents();
     return table;
 }
 
@@ -277,137 +375,279 @@ QString TPropertiesStates::getLeftColText(STATE_TYPE stype, int state, int line)
     return "";
 }
 
-QWidget *TPropertiesStates::makeFillType()
+QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeFillType()");
+    DECL_TRACER("TPropertiesStates::makeFillType(int ftype, const QString& name)");
 
-    mComboBoxFillType = new QComboBox;
-    mComboBoxFillType->addItem("solid");
-    mComboBoxFillType->addItem("radial");
-    mComboBoxFillType->addItem("sweep");
-    mComboBoxFillType->addItem("left to right");
-    mComboBoxFillType->addItem("top-left to bottom-right");
-    mComboBoxFillType->addItem("top to bottom");
-    mComboBoxFillType->addItem("top-right to bottom-left");
-    mComboBoxFillType->addItem("right to left");
-    mComboBoxFillType->addItem("bottom-right to top-left");
-    mComboBoxFillType->addItem("bottom to top");
-    connect(mComboBoxFillType, &QComboBox::currentIndexChanged, this, &TPropertiesStates::onComboBoxFillTypeIndex);
-    return mComboBoxFillType;
+    QList<QString> list = {
+        "solid", "radial", "sweep", "left to right",
+        "top-left to bottom-right", "top to bottom",
+        "top-right to bottom-left", "right to left",
+        "bottom-right to top-left", "bottom to top"
+    };
+
+    QComboBox *cbox = new QComboBox;
+    cbox->setObjectName(name);
+    int idx = 0;
+
+    for (QString txt : list)
+    {
+        cbox->addItem(txt);
+
+        if (txt == ftype)
+            cbox->setCurrentIndex(idx);
+
+        idx++;
+    }
+
+    connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
+        QString objName = cbox->objectName();
+        QString item = cbox->itemText(index);
+        setValue(objName, item);
+    });
+
+    return cbox;
 }
 
 QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeColorSelector(const QColor& col, const QString& name)");
 
-    mWidgetColorSelector = new QWidget;
-    mWidgetColorSelector->setObjectName(name);
-    mWidgetColorSelector->setAccessibleIdentifier(col.name(QColor::HexArgb));
-    QHBoxLayout *layout = new QHBoxLayout(mWidgetColorSelector);
+    QWidget *widget = new QWidget;
+//    widget->setObjectName(name);
+    widget->setAccessibleIdentifier(col.name(QColor::HexArgb));
+    QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
 
     QLabel *label = new QLabel;
-    label->setObjectName("LabelColorSelector");
-    QSizePolicy policy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    policy.setHorizontalStretch(0);
-    policy.setVerticalStretch(0);
-    label->setSizePolicy(policy);
+    label->setObjectName(name);
     label->setStyleSheet(QString("background-color: %1").arg(col.name()));
-    layout->addWidget(label);
+    layout->addWidget(label, 1);
 
     QPushButton *button = new QPushButton;
     button->setObjectName("PushButtonColorSelector");
     button->setText("...");
-    connect(button, &QPushButton::clicked, this, &TPropertiesStates::onPushButtonColorSelector);
     layout->addWidget(button);
-    return mWidgetColorSelector;
+
+    connect(button, &QPushButton::clicked, [this, label, col](bool) {
+        QColor color = col;
+        setColor(label, color);
+        setValue(label->objectName(), color);
+    });
+
+    return widget;
 }
 
-QWidget *TPropertiesStates::makeVideoFill()
+QWidget *TPropertiesStates::makeVideoFill(const QString& vf, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeVideoFill()");
+    DECL_TRACER("TPropertiesStates::makeVideoFill(const QString& vf, const QString& name)");
 
-    mComboBoxVideoFill = new QComboBox;
-    mComboBoxVideoFill->addItem("none");
-    mComboBoxVideoFill->addItem("streaming video");
-    mComboBoxVideoFill->addItem("MXA-MPL");     // Not supported by TPanel!
-    connect(mComboBoxVideoFill, &QComboBox::currentIndexChanged, this, &TPropertiesStates::onComboBoxVideoFill);
-    return mComboBoxVideoFill;
+    QList<QString> items = { "none", "streaming video", "MXA-MPL" };
+
+    QComboBox *cbox = new QComboBox;
+    cbox->setObjectName(name);
+    int idx = 0;
+
+    for (QString txt : items)
+    {
+        cbox->addItem(txt);
+
+        if (txt == vf)
+            cbox->setCurrentIndex(idx);
+    }
+
+    connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
+        QString vf = cbox->itemText(index);
+        setValue(cbox->objectName(), vf);
+    });
+
+    return cbox;
 }
 
 QWidget *TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QString& name)");
 
-    mWidgetBitmapSelector = new QWidget;
-    mWidgetBitmapSelector->setObjectName(name);
+    QWidget *widget = new QWidget;
+//    widget->setObjectName(name);
 
-    QHBoxLayout *layout = new QHBoxLayout(mWidgetBitmapSelector);
+    QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
 
     QLineEdit *line = new QLineEdit;
-    QSizePolicy policy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Preferred);
-    policy.setHorizontalStretch(0);
-    policy.setVerticalStretch(0);
-    line->setSizePolicy(policy);
+    line->setObjectName(name);
     line->setText(bitmap);
-    layout->addWidget(line);
+    layout->addWidget(line, 1);
 
     QPushButton *button = new QPushButton;
     button->setText("...");
-    connect(button, &QPushButton::clicked, this, &TPropertiesStates::onPushButtonBitmapSelector);
     layout->addWidget(button);
-    return mWidgetBitmapSelector;
+
+    connect(button, &QPushButton::clicked, [this, line](bool) {
+        setBitmap(line);
+    });
+
+    return widget;
 }
 
-// Callbacks
-
-void TPropertiesStates::onComboBoxFillTypeIndex(int index)
+QWidget *TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)
 {
+    DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
 
+    QWidget *widget = new QWidget;
+//    widget->setObjectName(name);
+
+    QHBoxLayout *layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
+
+    QLineEdit *line = new QLineEdit;
+    line->setObjectName(name);
+    QFont font;
+
+    if (fname.isEmpty())
+    {
+        font = line->font();
+        line->setText(font.family());
+    }
+    else
+    {
+        font = QFont(fname);
+        line->setText(fname);
+    }
+
+    layout->addWidget(line, 1);
+
+    QPushButton *button = new QPushButton;
+    button->setText("...");
+    button->setMaximumWidth(30);
+    layout->addWidget(button);
+
+    connect(button, &QPushButton::clicked, [this, font, line](bool) {
+        QFont f = chooseFont(font);
+        line->setText(f.family());
+    });
+
+    return widget;
 }
 
-void TPropertiesStates::onPushButtonColorSelector(bool checked)
+QSpinBox *TPropertiesStates::makeValueSelector(int value, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::onPushButtonColorSelector(bool checked)");
+    DECL_TRACER("TPropertiesStates::makeValueSelector(int value, const QString& name)");
+
+    QSpinBox *spin = new QSpinBox;
+    spin->setObjectName(name);
+    spin->setValue(value);
+
+    connect(spin, &QSpinBox::valueChanged, [this, spin](int value) { setValue(spin->objectName(), value); });
+    return spin;
+}
+
+QLineEdit *TPropertiesStates::makeTextValue(const QString& txt, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeTextValue(const QString& txt, const QString& name)");
+
+    QLineEdit *line = new QLineEdit;
+    line->setObjectName(name);
+    line->setText(txt);
+
+    connect(line, &QLineEdit::textChanged, [this, line](const QString& text) {
+        setValue(line->objectName(), text);
+    });
+
+    return line;
+}
+
+QComboBox *TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)");
+
+    QComboBox *cbox = new QComboBox;
+    cbox->setObjectName(name);
+    QList<QString> items = { "absolute", "top-left", "top-middle", "top-right",
+                             "center-left", "center-middle", "center-right",
+                            "bottom-left", "bottom-middle", "bottom-right" };
+    int o = ObjHandler::ORI_ABSOLUT;
+
+    for (QString entry : items)
+    {
+        cbox->addItem(entry, o);
+
+        if (static_cast<ObjHandler::ORIENTATION>(o) == ori)
+            cbox->setCurrentIndex(o);
+
+        o++;
+    }
+
+    return cbox;
+}
+
+QTreeWidget *TPropertiesStates::makeTextEffect(int ef, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeTextEffect(int ef, const QString& name)");
+
+    return new QTreeWidget;
+}
+
+QComboBox *TPropertiesStates::makeWordWrap(bool ww, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeWordWrap(bool ww, const QString& name)");
+
+    QComboBox *cbox = new QComboBox;
+    cbox->setObjectName(name);
+    cbox->addItem(tr("no"), false);
+    cbox->addItem(tr("yes"), true);
+
+    if (ww)
+        cbox->setCurrentIndex(1);
+
+    return cbox;
+}
+
+QFont TPropertiesStates::chooseFont(const QFont& font)
+{
+    DECL_TRACER("TPropertiesStates::chooseFont(const QFont& font)");
+
+    bool ok = false;
+    QFont f = QFontDialog::getFont(&ok, font, mParent, tr("Select font"));
+
+    if (ok)
+        return f;
+
+    return font;
+}
+
+void TPropertiesStates::setValue(const QString& name, const QVariant& value)
+{
+    DECL_TRACER("TPropertiesStates::setValue(const QString& name, const QVariant& value)");
+
+    if (name == "PgFillType")
+        mPage.srPage.ft = value.toString();
+
+    mChanged = true;
+    markChanged();
+    // TODO: Call to draw immediately
+}
+
+void TPropertiesStates::setColor(QLabel *label, QColor& color)
+{
+    DECL_TRACER("TPropertiesStates::setColor(QLabel *label, QColor& color)");
 
     QColorDialog colDialog(mParent);
-    colDialog.setCurrentColor(mWidgetColorSelector->accessibleIdentifier());
+    colDialog.setCurrentColor(color);
 
     if (colDialog.exec() == QDialog::Rejected)
         return;
 
-    QColor col = colDialog.selectedColor();
-    QString objName = mWidgetColorSelector->objectName();
-
-    QObjectList childs = mWidgetColorSelector->children();
-
-    for (QObject *obj : childs)
-    {
-        QString name = obj->objectName();
-
-        if (name == "LabelColorSelector")
-        {
-            QLabel *label = static_cast<QLabel*>(obj);
-            label->setStyleSheet(QString("background-color: %1").arg(col.name(QColor::HexArgb)));
-            label->setAccessibleIdentifier(col.name(QColor::HexArgb));
-            mChanged = true;
-            break;
-        }
-    }
-
-    if (objName == "FillColor")
-        mPage.srPage.cf = col;
+    color = colDialog.selectedColor();
+    label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
-
-void TPropertiesStates::onComboBoxVideoFill(int index)
+void TPropertiesStates::setBitmap(QLineEdit *line)
 {
+    DECL_TRACER("TPropertiesStates::setBitmap(QLineEdit *line)");
 
+    // TODO: Add bitmap dialog
 }
-
-void TPropertiesStates::onPushButtonBitmapSelector(bool checked)
-{
-
-}
-

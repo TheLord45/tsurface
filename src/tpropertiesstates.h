@@ -24,8 +24,12 @@
 #include "tmisc.h"
 
 class QTreeWidget;
+class QTableWidget;
 class QWidget;
 class QComboBox;
+class QLabel;
+class QLineEdit;
+class QSpinBox;
 
 class TPropertiesStates : public QObject
 {
@@ -37,40 +41,44 @@ class TPropertiesStates : public QObject
 
         void setStatesPage(const QString& name);
         void setStatesPage(int id, bool loaded);
+        void setActualButton(int bi);
         void update();
 
     protected:
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
-
-        // Callbacks
-        void onComboBoxFillTypeIndex(int index);
-        void onPushButtonColorSelector(bool checked);
-        void onComboBoxVideoFill(int index);
-        void onPushButtonBitmapSelector(bool checked);
+        virtual void markChanged() = 0;
 
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
-        QWidget *createTableWidget(STATE_TYPE stype);
+        QTableWidget *createTableWidget(STATE_TYPE stype, QWidget *parent=nullptr);
         QString getLeftColText(STATE_TYPE stype, int state, int line);
-        QWidget *makeFillType();
+        QComboBox *makeFillType(const QString& ftype, const QString& name);
         QWidget *makeColorSelector(const QColor& col, const QString& name);
-        QWidget *makeVideoFill();
+        QWidget *makeVideoFill(const QString& vf, const QString& name);
         QWidget *makeBitmapSelector(const QString& bitmap, const QString& name);
+        QWidget *makeFontSelector(const QString& fname, const QString& name);
+        QSpinBox *makeValueSelector(int value, const QString& name);
+        QLineEdit *makeTextValue(const QString& txt, const QString& name);
+        QComboBox *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
+        QTreeWidget *makeTextEffect(int ef, const QString& name);
+        QComboBox *makeWordWrap(bool ww, const QString& name);
         void setGeometry(int bi, const QRect& geom);
+        void clear();
 
     private:
+        QFont chooseFont(const QFont& font);
+        void setValue(const QString& name, const QVariant& value);
+        void setColor(QLabel *label, QColor& color);
+        void setBitmap(QLineEdit *line);
+
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
         Page::PAGE_t mPage;
+        int mActualObjectID{0};
         bool mChanged{false};
         bool mInitialized{false};
-        // Elements
-        QComboBox *mComboBoxFillType{nullptr};
-        QWidget *mWidgetColorSelector{nullptr};
-        QComboBox *mComboBoxVideoFill{nullptr};
-        QWidget *mWidgetBitmapSelector{nullptr};
 };
 
 #endif // TPROPERTIESSTATES_H

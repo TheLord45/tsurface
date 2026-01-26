@@ -55,6 +55,7 @@ class TWorkSpaceHandler
         void setStateType(STATE_TYPE st) { mStateType = st; }
         void setObjectGeometry(int pageID, int bi, const QRect& geom);
         void setActualObject(TObjectHandler *object);
+        void clear();
 
         void setPage(const QString& name);
         void setPage(int id);
