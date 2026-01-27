@@ -15,42 +15,36 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TMISC_H
-#define TMISC_H
+#ifndef TCHARACTERWIDGET_H
+#define TCHARACTERWIDGET_H
 
-#include <QString>
+#include <QWidget>
 
-typedef enum
+class TCharacterWidget : public QWidget
 {
-    TBL_UNKNOWN,
-    TBL_GENERIC,
-    TBL_PROGRAM,
-    TBL_STATES,
-    TBL_EVENTS
-}PROPERTIES_t;
+    Q_OBJECT
 
-enum TOOL
-{
-    TOOL_NONE,
-    TOOL_DRAW,
-    TOOL_SELECT,
-    TOOL_POPUP
+    public:
+        TCharacterWidget(QWidget *parent=nullptr);
+        QSize sizeHint() const;
+
+    public slots:
+        void updateFont(const QFont &font);
+        void updateSize(const QString &fontSize);
+
+    signals:
+        void characterSelected(const QString &character);
+
+    protected:
+        void mouseMoveEvent(QMouseEvent *event);
+        void mousePressEvent(QMouseEvent *event);
+        void paintEvent(QPaintEvent *event);
+
+    private:
+        QFont mDisplayFont;
+        int mColumns;
+        int mLastKey;
+        int mSquareSize;
 };
 
-enum STATE_TYPE
-{
-    STATE_UNKNOWN,
-    STATE_PAGE,
-    STATE_POPUP,
-    STATE_BUTTON,
-    STATE_BARGRAPH
-};
-
-QString basename(const QString& path);
-QString pathname(const QString& path);
-int getObjectID(const QString& name, const QString& hint="");
-QString wcharToUnicodeString(const QChar& ch);
-
-#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
-
-#endif // TMISC_H
+#endif // TCHARACTERWIDGET_H

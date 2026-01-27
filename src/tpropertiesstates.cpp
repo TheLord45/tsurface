@@ -31,7 +31,8 @@
 #include <QSpinBox>
 
 #include "tpropertiesstates.h"
-#include "tconfmain.h"
+#include "ttextboxdialog.h"
+#include "tbitmapdialog.h"
 #include "terror.h"
 
 using namespace Page;
@@ -205,6 +206,8 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
     else if (stype == STATE_BARGRAPH)
         rows = 16;
 
+    // The row count must be defined before rows are added to the table! Otherwise
+    // an empty table with only the grid will be visible.
     table->setRowCount(rows);
 
     for (int row = 0; row < rows; ++row)
@@ -259,7 +262,22 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
 
             case 8:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, "PgText"));
+                {
+                    QFont font;
+
+                    if (mPage.srPage.ff.isEmpty())
+                    {
+                        font = mParent->font();
+                        mPage.srPage.ff = font.family();
+                    }
+
+                    if (mPage.srPage.fs <= 0)
+                        font.setPointSize(10);
+                    else
+                        font.setPointSize(mPage.srPage.fs);
+
+                    table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, font, "PgText"));
+                }
             break;
 
             case 9:
@@ -414,7 +432,6 @@ QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& 
     DECL_TRACER("TPropertiesStates::makeColorSelector(const QColor& col, const QString& name)");
 
     QWidget *widget = new QWidget;
-//    widget->setObjectName(name);
     widget->setAccessibleIdentifier(col.name(QColor::HexArgb));
     QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -470,7 +487,6 @@ QWidget *TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QStr
     DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QString& name)");
 
     QWidget *widget = new QWidget;
-//    widget->setObjectName(name);
 
     QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -483,6 +499,7 @@ QWidget *TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QStr
 
     QPushButton *button = new QPushButton;
     button->setText("...");
+    button->setMaximumWidth(30);
     layout->addWidget(button);
 
     connect(button, &QPushButton::clicked, [this, line](bool) {
@@ -497,7 +514,6 @@ QWidget *TPropertiesStates::makeFontSelector(const QString& fname, const QString
     DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
 
     QWidget *widget = new QWidget;
-//    widget->setObjectName(name);
 
     QHBoxLayout *layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -545,19 +561,43 @@ QSpinBox *TPropertiesStates::makeValueSelector(int value, const QString& name)
     return spin;
 }
 
-QLineEdit *TPropertiesStates::makeTextValue(const QString& txt, const QString& name)
+QWidget *TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeTextValue(const QString& txt, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font, const QString& name)");
+
+    QWidget *widget = new QWidget;
+
+    QHBoxLayout *layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
 
     QLineEdit *line = new QLineEdit;
     line->setObjectName(name);
     line->setText(txt);
 
+    QPushButton *button = new QPushButton;
+    button->setText("...");
+    button->setMaximumWidth(30);
+
+    layout->addWidget(line);
+    layout->addWidget(button);
+
     connect(line, &QLineEdit::textChanged, [this, line](const QString& text) {
         setValue(line->objectName(), text);
     });
 
-    return line;
+    connect(button, &QPushButton::clicked, [this, line, font]() {
+        TTextBoxDialog dialog(mParent);
+        dialog.setTextFont(line->text(), font);
+
+        if (dialog.exec() == QDialog::Rejected)
+            return;
+
+        line->setText(dialog.getText());
+        setValue(line->objectName(), dialog.getText());
+    });
+
+    return widget;
 }
 
 QComboBox *TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)
@@ -649,5 +689,20 @@ void TPropertiesStates::setBitmap(QLineEdit *line)
 {
     DECL_TRACER("TPropertiesStates::setBitmap(QLineEdit *line)");
 
-    // TODO: Add bitmap dialog
+    TBitmapDialog bDialog(mParent);
+
+    QList<ObjHandler::BITMAPS_t> list;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        if (!mPage.srPage.bitmaps[i].fileName.isEmpty())
+            list.append(mPage.srPage.bitmaps[i]);
+    }
+
+    bDialog.setBitmaps(list);
+
+    if (bDialog.exec() == QDialog::Rejected)
+        return;
+
+    // TODO: data setting
 }

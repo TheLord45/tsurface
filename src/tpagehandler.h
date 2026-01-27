@@ -89,33 +89,6 @@ namespace Page
     }COLDIR_t;
 
     /**
-     * Justification values:
-     *    0 = absolut
-     *    1 = top right
-     *    2 = top middle
-     *    3 = top right
-     *    4 = center left
-     *    5 = center middle (default)
-     *    6 = center right
-     *    7 = bottom left
-     *    8 = bottom middle
-     *    9 = bottom right
-     *   10 = scale to fit (ignore aspect ration)
-     *   11 = scale maintain aspect ratio
-     */
-    typedef struct BITMAPS_t    // G5 bitmap entry
-    {
-        QString fileName;       // file name of the bitmap (replaces icons)
-        bool dynamic{false};    // Marks an image as a dynamic image (Video, camera, ...)
-        int index{-1};          // The bitmap index number
-        ObjHandler::ORIENTATION justification{ObjHandler::ORI_CENTER_MIDDLE};   // Justification of bitmap
-        int offsetX{0};         // Absolut X position (only if justification is 0)
-        int offsetY{0};         // Absolut Y position (only if justification is 0)
-        int width{0};           // Internal: The width of the image
-        int height{0};          // Internal: The height of the image
-    }BITMAPS_t;
-
-    /**
      * @brief struct SR_t
      * This structure is for a page or popup only and defines the background.
      * Therefore it is shortened and does not contain all features an object
@@ -133,7 +106,7 @@ namespace Page
         QColor ct;              // Text Color
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
-        BITMAPS_t bitmaps[5];   // G5 table of bitmaps
+        ObjHandler::BITMAPS_t bitmaps[5];   // G5 table of bitmaps
         QList<QColor> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent

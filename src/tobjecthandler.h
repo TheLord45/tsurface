@@ -204,7 +204,7 @@ namespace ObjHandler
      */
     typedef struct BITMAPS_t    // G5 bitmap entry
     {
-        QString fileName;   // file name of the bitmap (replaces icons)
+        QString fileName;       // file name of the bitmap (replaces icons)
         bool dynamic{false};    // Marks an image as a dynamic image (Video, camera, ...)
         int index{-1};          // The bitmap index number
         ORIENTATION justification{ORI_CENTER_MIDDLE};   // Justification of bitmap

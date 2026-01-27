@@ -35,6 +35,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 qt_add_executable(tsurface
     main.cpp
@@ -101,12 +103,21 @@ qt_add_executable(tsurface
     tdatamapdialog.cpp
     tdatamapdialog.h
     tdatamapdialog.ui
+    ttextboxdialog.cpp
+    ttextboxdialog.h
+    ttextboxdialog.ui
+    tcharactermapdialog.cpp
+    tcharactermapdialog.h
+    tcharacterwidget.cpp
+    tcharacterwidget.h
     tdownloader.cpp
     tdownloader.h
     tpropertiesgeneral.cpp
     tpropertiesgeneral.h
     tpropertiesprogramming.cpp
     tpropertiesprogramming.h
+    tpropertiesstates.cpp
+    tpropertiesstates.h
     tworkspacehandler.cpp
     tworkspacehandler.h
     ttexteditdialog.cpp
@@ -122,7 +133,9 @@ qt_add_executable(tsurface
     tcanvaswidget.h
     tresizablewidget.cpp
     tresizablewidget.h
-    tpropertiesstates.h tpropertiesstates.cpp
+    tbitmapdialog.h tbitmapdialog.cpp tbitmapdialog.ui
+    twidgetcombo.h twidgetcombo.cpp
+    tbitmapselectdialog.h tbitmapselectdialog.cpp tbitmapselectdialog.ui
 )
 
 # Use the Widgets module from Qt 6.
@@ -133,6 +146,8 @@ target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)

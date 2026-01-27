@@ -15,42 +15,36 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TMISC_H
-#define TMISC_H
+#ifndef TTEXTBOXDIALOG_H
+#define TTEXTBOXDIALOG_H
 
-#include <QString>
+#include <QDialog>
 
-typedef enum
+namespace Ui {
+    class TTextBoxDialog;
+}
+
+class TTextBoxDialog : public QDialog
 {
-    TBL_UNKNOWN,
-    TBL_GENERIC,
-    TBL_PROGRAM,
-    TBL_STATES,
-    TBL_EVENTS
-}PROPERTIES_t;
+    Q_OBJECT
 
-enum TOOL
-{
-    TOOL_NONE,
-    TOOL_DRAW,
-    TOOL_SELECT,
-    TOOL_POPUP
+    public:
+        explicit TTextBoxDialog(QWidget *parent = nullptr);
+        ~TTextBoxDialog();
+
+        void setTextFont(const QString& text, const QFont& font);
+        QString& getText() { return mText; }
+
+    private slots:
+        void on_textEditText_textChanged();
+        void on_checkBoxPreview_checkStateChanged(const Qt::CheckState &arg1);
+        void on_pushButtonCharacterMap_clicked();
+
+    private:
+        Ui::TTextBoxDialog *ui;
+        QString mText;
+        QFont mFont;
+        QFont mDefaultFont;
 };
 
-enum STATE_TYPE
-{
-    STATE_UNKNOWN,
-    STATE_PAGE,
-    STATE_POPUP,
-    STATE_BUTTON,
-    STATE_BARGRAPH
-};
-
-QString basename(const QString& path);
-QString pathname(const QString& path);
-int getObjectID(const QString& name, const QString& hint="");
-QString wcharToUnicodeString(const QChar& ch);
-
-#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
-
-#endif // TMISC_H
+#endif // TTEXTBOXDIALOG_H

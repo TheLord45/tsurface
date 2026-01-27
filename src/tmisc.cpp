@@ -15,8 +15,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <sstream>
+#include <iomanip>
+
 #include "tmisc.h"
 #include "terror.h"
+
+using std::stringstream;
+using std::hex;
+using std::setw;
+using std::setfill;
 
 QString basename(const QString& path)
 {
@@ -51,4 +59,12 @@ int getObjectID(const QString& name, const QString& hint)
     QString s = name;
     qsizetype pos = s.lastIndexOf('_');
     return s.remove(0, pos+1).toInt();
+}
+
+QString wcharToUnicodeString(const QChar& ch)
+{
+    char16_t letter = ch.unicode();
+    stringstream ss;
+    ss << setw(4) << setfill('0') << hex << letter;
+    return QString::fromStdString(ss.str());
 }

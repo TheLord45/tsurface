@@ -60,7 +60,7 @@ class TPropertiesStates : public QObject
         QWidget *makeBitmapSelector(const QString& bitmap, const QString& name);
         QWidget *makeFontSelector(const QString& fname, const QString& name);
         QSpinBox *makeValueSelector(int value, const QString& name);
-        QLineEdit *makeTextValue(const QString& txt, const QString& name);
+        QWidget *makeTextValue(const QString& txt, const QFont& font, const QString& name);
         QComboBox *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         QTreeWidget *makeTextEffect(int ef, const QString& name);
         QComboBox *makeWordWrap(bool ww, const QString& name);
