@@ -86,7 +86,6 @@ class TResourceDialog : public QDialog
 
         void addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model=nullptr);
         void editDynamicResource(const QString& name, bool neu=false);
-        QString getUrl(const ConfigMain::RESOURCE_t& res);
         void copyDynamicImageToClipboard();
 
         void onImageImportFinished(int result);
@@ -101,7 +100,6 @@ class TResourceDialog : public QDialog
         void copySoundFileToClipboard();
 
         void addDynamicData(const ConfigMain::DATASOURCE_t& data, QStandardItemModel *model=nullptr);
-        QString getUrl(const ConfigMain::DATASOURCE_t& data);
         void editDynamicData(ConfigMain::DATASOURCE_t& data);
         QString getFormat(int format);
         int getFormatFromString(const QString& format);

@@ -38,8 +38,9 @@
 #include "tmisc.h"
 
 namespace fs = std::filesystem;
-QSize iconSize(100, 100);
-QSize gridSize(128, 128);
+
+static QSize iconSize(100, 100);
+static QSize gridSize(128, 128);
 
 using std::string;
 
@@ -1169,7 +1170,7 @@ void TResourceDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, QSta
     cell3->setEditable(false);
 
     cell1->setText(res.name);
-    cell2->setText(getUrl(res));
+    cell2->setText(TConfMain::Current().getUrl(res));
     cell3->setText(QString("%1").arg(res.refreshRate));
 
     dynModel->setItem(row, 0, cell1);
@@ -1230,7 +1231,7 @@ void TResourceDialog::editDynamicResource(const QString& name, bool neu)
             return;
 
         int row = list[0]->row();
-        model->item(row, 1)->setText(getUrl(res));
+        model->item(row, 1)->setText(TConfMain::Current().getUrl(res));
         model->item(row, 2)->setText(QString("%1").arg(res.refreshRate));
     }
 
@@ -1270,7 +1271,7 @@ void TResourceDialog::addDynamicData(const ConfigMain::DATASOURCE_t& data, QStan
     cell6->setEditable(false);
 
     cell1->setText(data.name);
-    cell2->setText(getUrl(data));
+    cell2->setText(TConfMain::Current().getUrl(data));
 
     cell3->setText(data.format);
     cell4->setText(QString("%1").arg(data.refreshRate));
@@ -1344,7 +1345,7 @@ void TResourceDialog::editDynamicData(ConfigMain::DATASOURCE_t& data)
             return;
 
         int row = list[0]->row();
-        model->item(row, 1)->setText(getUrl(data));
+        model->item(row, 1)->setText(TConfMain::Current().getUrl(data));
         model->item(row, 2)->setText(data.format);
         model->item(row, 3)->setText(QString("%1").arg(data.refreshRate));
 
@@ -1438,42 +1439,6 @@ ConfigMain::DATASOURCE_t TResourceDialog::parseDynamicData(const QString& txt)
 
     data.refreshRate = parts[9].toInt();
     return data;
-}
-
-QString TResourceDialog::getUrl(const ConfigMain::RESOURCE_t& res)
-{
-    DECL_TRACER("TResourceDialog::getUrl(const ConfigMain::RESOURCE_t& res)");
-
-    QString txt = res.protocol + "://";
-
-    if (!res.user.isEmpty())
-        txt.append(res.user + "@");
-
-    txt.append(res.host + "/");
-
-    if (!res.path.isEmpty())
-        txt.append(res.path + "/");
-
-    txt.append(res.file);
-    return txt;
-}
-
-QString TResourceDialog::getUrl(const ConfigMain::DATASOURCE_t& data)
-{
-    DECL_TRACER("TResourceDialog::getUrl(const ConfigMain::DATASOURCE_t& data)");
-
-    QString txt = data.protocol + "://";
-
-    if (!data.user.isEmpty())
-        txt.append(data.user + "@");
-
-    txt.append(data.host + "/");
-
-    if (!data.path.isEmpty())
-        txt.append(data.path + "/");
-
-    txt.append(data.file);
-    return txt;
 }
 
 QString TResourceDialog::getFormat(int format)

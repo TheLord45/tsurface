@@ -893,3 +893,35 @@ void TConfMain::initConfig(bool force)
     if (!mFileName.isEmpty())
         mConfMain->fileName = basename(mFileName);
 }
+
+QString TConfMain::getUrl(const ConfigMain::DATASOURCE_t& data)
+{
+    DECL_TRACER("TConfMain::getUrl(const ConfigMain::DATASOURCE_t& data)");
+
+    ConfigMain::RESOURCE_t res;
+    res.protocol = data.protocol;
+    res.user = data.user;
+    res.file = data.file;
+    res.host = data.host;
+    res.password = data.password;
+    res.path = data.path;
+    return getUrl(res);
+}
+
+QString TConfMain::getUrl(const ConfigMain::RESOURCE_t& data)
+{
+    DECL_TRACER("TConfMain::getUrl(const ConfigMain::RESOURCE_t& data)");
+
+    QString txt = data.protocol + "://";
+
+    if (!data.user.isEmpty())
+        txt.append(data.user + "@");
+
+    txt.append(data.host + "/");
+
+    if (!data.path.isEmpty())
+        txt.append(data.path + "/");
+
+    txt.append(data.file);
+    return txt;
+}
