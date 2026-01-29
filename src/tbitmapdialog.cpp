@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2026 by Andreas Theofilu <andreas@theosys.at>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
 #include <QTreeWidgetItem>
 #include <QTableWidget>
 #include <QLineEdit>
@@ -6,6 +23,9 @@
 #include "tbitmapdialog.h"
 #include "ui_tbitmapdialog.h"
 #include "twidgetcombo.h"
+#include "tbitmapselectdialog.h"
+#include "telementbitmapselector.h"
+#include "tconfmain.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -55,7 +75,45 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
 
 void TBitmapDialog::on_pushButtonAdd_clicked()
 {
+    DECL_TRACER("TBitmapDialog::on_pushButtonAdd_clicked()");
 
+    TBitmapSelectDialog sDialog(this);
+    sDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
+
+    if (sDialog.exec() == QDialog::Rejected)
+        return;
+
+    QList<ObjHandler::BITMAPS_t> sel = sDialog.getSelected();
+
+    if (sel.empty())
+        return;
+
+    for (ObjHandler::BITMAPS_t bm : sel)
+    {
+        if (mRowCount >= 5)
+        {
+            ui->pushButtonAdd->setDisabled(true);
+            ui->pushButtonDelete->setDisabled(true);
+            ui->pushButtonMoveUp->setDisabled(true);
+            ui->pushButtonMoveDown->setDisabled(true);
+            break;
+        }
+
+        QTreeWidgetItem *top = new QTreeWidgetItem(ui->treeWidgetBitmaps);
+        top->setText(0, tr("Bitmap %1").arg(mRowCount+1));
+
+        QTreeWidgetItem *item = new QTreeWidgetItem(top);
+        item->setFirstColumnSpanned(true);
+        item->setFlags(Qt::ItemIsEnabled);      // Not selectable
+
+        QTableWidget *widget = createTable(bm);
+        ui->treeWidgetBitmaps->setItemWidget(item, 0, widget);
+
+        mBitmaps.append(bm);
+        mRowCount++;
+    }
+
+    ui->treeWidgetBitmaps->expandAll();
 }
 
 
@@ -139,31 +197,13 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
     return table;
 }
 
-QWidget *TBitmapDialog::makeBitmapSelector(const QString& bitmap, const QString& name)
+TElementBitmapSelector *TBitmapDialog::makeBitmapSelector(const QString& bitmap, const QString& name)
 {
     DECL_TRACER("TBitmapDialog::makeBitmapSelector(const QString& bitmap, const QString& name)");
 
-    QWidget *widget = new QWidget;
-
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
-
-    QLineEdit *line = new QLineEdit;
-    line->setObjectName(name);
-    line->setText(bitmap);
-    layout->addWidget(line, 1);
-
-    QPushButton *button = new QPushButton;
-    button->setText("...");
-    button->setMaximumWidth(30);
-    layout->addWidget(button);
-
-    connect(button, &QPushButton::clicked, [this, line](bool) {
-        setBitmap(line);
-    });
-
-    return widget;
+    ObjHandler::BITMAPS_t bm;
+    bm.fileName = bitmap;
+    return new TElementBitmapSelector(name, bm);
 }
 
 TWidgetCombo *TBitmapDialog::makeTextJustification(ORIENTATION ori, const QString& name)
@@ -199,7 +239,18 @@ void TBitmapDialog::setBitmap(QLineEdit *line)
 {
     DECL_TRACER("TBitmapDialog::setBitmap(QLineEdit *line)");
 
-    // TODO: Add bitmap dialog
+    TBitmapSelectDialog sDialog(this);
+    sDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
+
+    if (sDialog.exec() == QDialog::Rejected)
+        return;
+
+    QList<ObjHandler::BITMAPS_t> sel = sDialog.getSelected();
+
+    if (sel.empty())
+        return;
+
+    line->setText(sel[0].fileName);
 }
 
 void TBitmapDialog::setValue(const QString& name, const QVariant& value)

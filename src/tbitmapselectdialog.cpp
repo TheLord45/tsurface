@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2026 by Andreas Theofilu <andreas@theosys.at>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ */
 #include <QStandardItemModel>
 
 #include "tbitmapselectdialog.h"
@@ -13,6 +30,26 @@ TBitmapSelectDialog::TBitmapSelectDialog(QWidget *parent)
       ui(new Ui::TBitmapSelectDialog)
 {
     DECL_TRACER("TBitmapSelectDialog::TBitmapSelectDialog(QWidget *parent)");
+}
+
+TBitmapSelectDialog::~TBitmapSelectDialog()
+{
+    DECL_TRACER("TBitmapSelectDialog::~TBitmapSelectDialog()");
+
+    delete ui;
+}
+
+void TBitmapSelectDialog::setTemporaryPath(const QString& path)
+{
+    DECL_TRACER("TBitmapSelectDialog::setTemporaryPath(const QString& path)");
+
+    mPathTemporary = path;
+    init();
+}
+
+void TBitmapSelectDialog::init()
+{
+    DECL_TRACER("TBitmapSelectDialog::init()");
 
     ui->setupUi(this);
     ui->listViewImages->setGridSize(gridSize);
@@ -54,17 +91,10 @@ TBitmapSelectDialog::TBitmapSelectDialog(QWidget *parent)
     for (dynIter = mDynamicResources.begin(); dynIter != mDynamicResources.end(); ++dynIter)
         addDynamicResource(*dynIter, dynModel);
 
-    ui->listViewDynamic->setModel(dynModel);
-//    ui->listViewDynamic->resizeColumnsToContents();
-    ui->listViewDynamic->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->listViewDynamic->setSelectionMode(QAbstractItemView::SingleSelection);
-}
-
-TBitmapSelectDialog::~TBitmapSelectDialog()
-{
-    DECL_TRACER("TBitmapSelectDialog::~TBitmapSelectDialog()");
-
-    delete ui;
+    ui->tableViewDynamic->setModel(dynModel);
+    ui->tableViewDynamic->resizeColumnsToContents();
+    ui->tableViewDynamic->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableViewDynamic->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 void TBitmapSelectDialog::on_pushButtonImport_clicked()
@@ -109,7 +139,7 @@ void TBitmapSelectDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, 
     if (model)
         dynModel = model;
     else
-        dynModel = static_cast<QStandardItemModel *>(ui->listViewDynamic->model());
+        dynModel = static_cast<QStandardItemModel *>(ui->tableViewDynamic->model());
 
     if (!dynModel)
         return;
@@ -130,4 +160,43 @@ void TBitmapSelectDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, 
     dynModel->setItem(row, 0, cell1);
     dynModel->setItem(row, 1, cell2);
     dynModel->setItem(row, 2, cell3);
+}
+
+void TBitmapSelectDialog::accept()
+{
+    DECL_TRACER("TBitmapSelectDialog::accept()");
+
+    QItemSelectionModel *selModel = ui->listViewImages->selectionModel();
+
+    if (selModel && selModel->hasSelection())
+    {
+        QModelIndexList list = selModel->selectedIndexes();
+
+        for (QModelIndex idx : list)
+        {
+            ObjHandler::BITMAPS_t bm;
+            bm.fileName = idx.data().toString();
+            bm.dynamic = false;
+            mSelected.append(bm);
+        }
+    }
+
+    selModel = ui->tableViewDynamic->selectionModel();
+
+    if (selModel && selModel->hasSelection())
+    {
+        QModelIndexList list = selModel->selectedIndexes();
+        QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewDynamic->model());
+
+        for (QModelIndex idx : list)
+        {
+            int row = idx.row();
+            ObjHandler::BITMAPS_t bm;
+            bm.fileName = model->item(row, 0)->text();
+            bm.dynamic = true;
+            mSelected.append(bm);
+        }
+    }
+
+    done(QDialog::Accepted);
 }

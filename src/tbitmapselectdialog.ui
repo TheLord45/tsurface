@@ -38,7 +38,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QListView" name="listViewDynamic"/>
+        <widget class="QTableView" name="tableViewDynamic"/>
        </item>
       </layout>
      </widget>
