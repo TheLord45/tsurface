@@ -52,6 +52,11 @@ TElementBitmapSelector::TElementBitmapSelector(const QString& name, const QList<
     init();
 }
 
+TElementBitmapSelector::~TElementBitmapSelector()
+{
+    DECL_TRACER("TElementBitmapSelector::~TElementBitmapSelector()");
+}
+
 void TElementBitmapSelector::start()
 {
     DECL_TRACER("TElementBitmapSelector::start()");

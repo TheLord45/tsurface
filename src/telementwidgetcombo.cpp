@@ -38,6 +38,11 @@ TElementWidgetCombo::TElementWidgetCombo(const QString& name, QWidget *parent)
     init();
 }
 
+TElementWidgetCombo::~TElementWidgetCombo()
+{
+    DECL_TRACER("TElementWidgetCombo::~TElementWidgetCombo()");
+}
+
 void TElementWidgetCombo::init()
 {
     DECL_TRACER("TElementWidgetCombo::init()");

@@ -61,12 +61,17 @@ void TPropertiesProgramming::setProgrammingPage(const QString& name)
         return;
     }
 
+    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+
+    if (page.pageID == mPage.pageID)
+        return;
+
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
     mPage = Page::PAGE_t();
-    mPage = TPageHandler::Current().getPage(name);
+    mPage = page;
     setProgrammingPage(mPage.pageID, true);
 }
 
@@ -80,6 +85,16 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
         return;
     }
 
+    Page::PAGE_t page;
+
+    if (!loaded)
+    {
+        page = TPageHandler::Current().getPage(id);
+
+        if (page.pageID == mPage.pageID)
+            return;
+    }
+
     if (!loaded && mPage.pageID > 0 && mChanged)
     {
         saveChangedData(&mPage, TBL_PROGRAM);
@@ -89,7 +104,7 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
     mChanged = false;
 
     if (!loaded)
-        mPage = TPageHandler::Current().getPage(id);
+        mPage = page;
 
     if (mPage.pageID <= 0)
         return;
@@ -107,12 +122,16 @@ void TPropertiesProgramming::setProgrammingPopup(const QString& name)
         return;
     }
 
+    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+
+    if (page.pageID == mPage.pageID)
+        return;
+
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
-    mPage = Page::PAGE_t();
-    mPage = TPageHandler::Current().getPage(name);
+    mPage = page;
     setProgrammingPopup(mPage.pageID, true);
 }
 
@@ -126,13 +145,23 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
         return;
     }
 
+    Page::PAGE_t page;
+
+    if (!loaded)
+    {
+        page = TPageHandler::Current().getPage(id);
+
+        if (page.pageID == mPage.pageID)
+            return;
+    }
+
     if (!loaded && mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
 
     if (!loaded)
-        mPage = TPageHandler::Current().getPage(id);
+        mPage = page;
 
     if (mPage.pageID <= 0)
         return;

@@ -75,8 +75,9 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
         item->setFlags(Qt::ItemIsEnabled);
         item->setData(0, Qt::UserRole, i);
         // Add the table
-        QTableWidget *table = createTable(bm[i]);
+        QTableWidget *table = createTable(bm[i], i);
         ui->treeWidgetBitmaps->setItemWidget(item, 0, table);
+        mRowCount++;
     }
 
     ui->treeWidgetBitmaps->expandAll();
@@ -117,7 +118,7 @@ void TBitmapDialog::on_pushButtonAdd_clicked()
         item->setFirstColumnSpanned(true);
         item->setFlags(Qt::ItemIsEnabled);      // Not selectable
 
-        QTableWidget *widget = createTable(bm);
+        QTableWidget *widget = createTable(bm, mRowCount);
         ui->treeWidgetBitmaps->setItemWidget(item, 0, widget);
 
         mBitmaps.append(bm);
@@ -187,8 +188,8 @@ void TBitmapDialog::on_pushButtonMoveUp_clicked()
         return;
     }
 
-    QTableWidget *table1 = createTable(mBitmaps[mSelected-1]);
-    QTableWidget *table2 = createTable(mBitmaps[mSelected]);
+    QTableWidget *table1 = createTable(mBitmaps[mSelected-1], mSelected-1);
+    QTableWidget *table2 = createTable(mBitmaps[mSelected], mSelected);
 
     ui->treeWidgetBitmaps->removeItemWidget(item1, 0);
     ui->treeWidgetBitmaps->setItemWidget(item1, 0, table2);
@@ -229,8 +230,8 @@ void TBitmapDialog::on_pushButtonMoveDown_clicked()
         return;
     }
 
-    QTableWidget *table1 = createTable(mBitmaps[mSelected]);
-    QTableWidget *table2 = createTable(mBitmaps[mSelected+1]);
+    QTableWidget *table1 = createTable(mBitmaps[mSelected], mSelected);
+    QTableWidget *table2 = createTable(mBitmaps[mSelected+1], mSelected+1);
 
     ui->treeWidgetBitmaps->removeItemWidget(item1, 0);
     ui->treeWidgetBitmaps->setItemWidget(item1, 0, table2);
@@ -299,23 +300,25 @@ void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& da
 {
     DECL_TRACER("TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)");
 
-    int idx = getObjectID(name, "Orientation_");
+    Q_UNUSED(text);
+    int itemIdx = getObjectID(name, "Orientation_");
 
-    if (idx < 1 || idx > 5 || idx > mBitmaps.size())
+    if (itemIdx < 0 || itemIdx >= 5 || itemIdx >= mBitmaps.size())
     {
-        MSG_WARNING("Got invalid index " << idx);
+        MSG_WARNING("Got invalid item index " << itemIdx);
         return;
     }
 
-    MSG_DEBUG("Item with index: " << idx);
-    idx--;
-    ORIENTATION oldOri = mBitmaps[idx].justification;
-    mBitmaps[idx].justification = static_cast<ORIENTATION>(idx);
+    MSG_DEBUG("Item with index: " << itemIdx);
+    int ori = data.toInt();
+    MSG_DEBUG("Orientation: " << ori);
+    ORIENTATION oldOri = mBitmaps[itemIdx].justification;
+    mBitmaps[itemIdx].justification = static_cast<ORIENTATION>(ori);
 
-    if (idx != oldOri && idx == ORI_ABSOLUT)
+    if (ori != oldOri && ori == ORI_ABSOLUT)
     {
         QTreeWidgetItem *root = ui->treeWidgetBitmaps->invisibleRootItem();
-        QTreeWidgetItem *top = root->child(idx);
+        QTreeWidgetItem *top = root->child(itemIdx);
         QTableWidget *widget = static_cast<QTableWidget *>(ui->treeWidgetBitmaps->itemWidget(top->child(0), 0));
 
         if (!widget)
@@ -340,22 +343,23 @@ void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& da
             {
                 case 2:
                     col0->setText(tr("Bitmap X Offset"));
-                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[idx].offsetX, QString("XOffset_%1").arg(row)));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetX, QString("XOffset_%1").arg(row)));
                 break;
 
                 case 3:
                     col0->setText(tr("Bitmap Y Offset"));
-                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[idx].offsetX, QString("YOffset_%1").arg(row)));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetX, QString("YOffset_%1").arg(row)));
                 break;
             }
         }
 
+        widget->resizeColumnsToContents();
         ui->treeWidgetBitmaps->resizeColumnToContents(0);
     }
-    else if (oldOri == ORI_ABSOLUT && idx != oldOri)
+    else if (oldOri == ORI_ABSOLUT && ori != oldOri)
     {
         QTreeWidgetItem *root = ui->treeWidgetBitmaps->invisibleRootItem();
-        QTreeWidgetItem *top = root->child(idx);
+        QTreeWidgetItem *top = root->child(itemIdx);
         QTableWidget *widget = static_cast<QTableWidget *>(ui->treeWidgetBitmaps->itemWidget(top->child(0), 0));
 
         if (!widget)
@@ -368,13 +372,14 @@ void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& da
         widget->removeRow(3);
         widget->removeRow(2);
         widget->setRowCount(2);
+        widget->resizeColumnsToContents();
         ui->treeWidgetBitmaps->resizeColumnToContents(0);
     }
 }
 
-QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
+QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)
 {
-    DECL_TRACER("TBitmapDialog::createTable(const BITMAPS_t& bm)");
+    DECL_TRACER("TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)");
 
     QBrush brush;
     brush.setColor(Qt::GlobalColor::lightGray);
@@ -407,26 +412,27 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
         {
             case 0:
                 col0->setText(tr("Bitmap"));
-                table->setCellWidget(row, 1, makeBitmapSelector(bm, QString("Bitmap_%1").arg(row)));
+                table->setCellWidget(row, 1, makeBitmapSelector(bm, QString("Bitmap_%1").arg(idx)));
             break;
 
             case 1:
                 col0->setText(tr("Bitmap Justification"));
-                table->setCellWidget(row, 1, makeTextJustification(bm.justification, QString("Orientation_%1").arg(row)));
+                table->setCellWidget(row, 1, makeTextJustification(bm.justification, QString("Orientation_%1").arg(idx)));
             break;
 
             case 2:
                 col0->setText(tr("Bitmap X Offset"));
-                table->setCellWidget(row, 1, makeValueSelector(bm.offsetX, QString("XOffset_%1").arg(row)));
+                table->setCellWidget(row, 1, makeValueSelector(bm.offsetX, QString("XOffset_%1").arg(idx)));
             break;
 
             case 3:
                 col0->setText(tr("Bitmap Y Offset"));
-                table->setCellWidget(row, 1, makeValueSelector(bm.offsetX, QString("YOffset_%1").arg(row)));
+                table->setCellWidget(row, 1, makeValueSelector(bm.offsetX, QString("YOffset_%1").arg(idx)));
             break;
         }
     }
 
+    table->resizeColumnsToContents();
     return table;
 }
 

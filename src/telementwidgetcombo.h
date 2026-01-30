@@ -27,6 +27,7 @@ class TElementWidgetCombo : public QComboBox
     public:
         TElementWidgetCombo(QWidget *parent=nullptr);
         TElementWidgetCombo(const QString& name, QWidget *parent=nullptr);
+        ~TElementWidgetCombo();
 
         void addData(const QList<QVariant>& data);
         void setName(const QString& name);

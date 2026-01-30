@@ -78,6 +78,7 @@ class TPropertiesStates : public QObject
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
+        QList<ObjHandler::BITMAPS_t> bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[]);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};

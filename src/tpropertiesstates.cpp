@@ -73,11 +73,16 @@ void TPropertiesStates::setStatesPage(const QString& name)
         return;
     }
 
+    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+
+    if (page.pageID == mPage.pageID)
+        return;
+
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_STATES);
 
     mChanged = false;
-    mPage = TPageHandler::Current().getPage(name);
+    mPage = page;
     setStatesPage(mPage.pageID, true);
 }
 
@@ -91,6 +96,16 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
         return;
     }
 
+    Page::PAGE_t page;
+
+    if (!loaded)
+    {
+        page = TPageHandler::Current().getPage(id);
+
+        if (page.pageID == mPage.pageID)
+            return;
+    }
+
     if (!loaded && mPage.pageID > 0 && mChanged)
     {
         saveChangedData(&mPage, TBL_STATES);
@@ -100,7 +115,7 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
     mChanged = false;
 
     if (!loaded)
-        mPage = TPageHandler::Current().getPage(id);
+        mPage = page;
 
     if (mPage.pageID <= 0)
         return;
@@ -257,17 +272,7 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
 
             case 5:
                 if (stype == STATE_PAGE)
-                {
-                    QList<ObjHandler::BITMAPS_t> list;
-
-                    for (int i = 0; i < 5; ++i)
-                    {
-                        if (!mPage.srPage.bitmaps[i].fileName.isEmpty())
-                            list.append(mPage.srPage.bitmaps[i]);
-                    }
-
-                    table->setCellWidget(row, 1, makeBitmapSelector(list, "PgBitmapSelector"));
-                }
+                    table->setCellWidget(row, 1, makeBitmapSelector(bitmapArrayToList(mPage.srPage.bitmaps), "PgBitmapSelector"));
             break;
 
             case 6:
@@ -690,13 +695,44 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
     label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
+QList<ObjHandler::BITMAPS_t> TPropertiesStates::bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[])
+{
+    DECL_TRACER("TPropertiesStates::bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[])");
+
+    QList<ObjHandler::BITMAPS_t> list;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        if (bitmaps[i].fileName.isEmpty())
+            continue;
+
+        list.append(bitmaps[i]);
+    }
+
+    return list;
+}
+
 // Callbacks
 
 void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)");
 
+    MSG_DEBUG("Bitmap for name: " << name.toStdString());
 
+    if (name == "PgBitmapSelector")
+    {
+        int i = 0;
+
+        for (ObjHandler::BITMAPS_t bm : bitmaps)
+        {
+            if (i >= 5)
+                break;
+
+            mPage.srPage.bitmaps[i] = bm;
+            i++;
+        }
+    }
 }
 
 void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)

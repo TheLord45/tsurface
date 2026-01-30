@@ -45,7 +45,7 @@ class TBitmapDialog : public QDialog
         QList<ObjHandler::BITMAPS_t>& getBitmaps() { return mBitmaps; }
 
     protected:
-        QTableWidget *createTable(const ObjHandler::BITMAPS_t& bm);
+        QTableWidget *createTable(const ObjHandler::BITMAPS_t& bm, int idx);
         TElementBitmapSelector *makeBitmapSelector(const ObjHandler::BITMAPS_t& bitmap, const QString& name);
         TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         QSpinBox *makeValueSelector(int value, const QString& name);

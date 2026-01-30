@@ -46,6 +46,7 @@ class TElementBitmapSelector : public QWidget
         TElementBitmapSelector(QWidget *parent=nullptr);
         TElementBitmapSelector(const QString& name, const ObjHandler::BITMAPS_t& bm, QWidget *parent=nullptr);
         TElementBitmapSelector(const QString& name, const QList<ObjHandler::BITMAPS_t>& bm, QWidget *parent=nullptr);
+        ~TElementBitmapSelector();
 
         void start();
         ObjHandler::BITMAPS_t& getBitmap() { return mBitmaps[0]; }
