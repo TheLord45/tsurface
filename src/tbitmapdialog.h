@@ -26,9 +26,11 @@ namespace Ui {
 }
 
 class QTableWidget;
+class QTreeWidgetItem;
 class QLineEdit;
-class TWidgetCombo;
 class QSpinBox;
+
+class TElementWidgetCombo;
 class TElementBitmapSelector;
 
 class TBitmapDialog : public QDialog
@@ -44,23 +46,27 @@ class TBitmapDialog : public QDialog
 
     protected:
         QTableWidget *createTable(const ObjHandler::BITMAPS_t& bm);
-        TElementBitmapSelector *makeBitmapSelector(const QString& bitmap, const QString& name);
-        TWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
+        TElementBitmapSelector *makeBitmapSelector(const ObjHandler::BITMAPS_t& bitmap, const QString& name);
+        TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         QSpinBox *makeValueSelector(int value, const QString& name);
-        void setBitmap(QLineEdit *line);
         void setValue(const QString& name, const QVariant& value);
         void addBitmap(const ObjHandler::BITMAPS_t& bm);
+        // Callbacks
+        void onTreeWidgetItemActivated(QTreeWidgetItem *item, int column);
+        void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
+        void onOrientationChanged(const QString& text, const QVariant& data, const QString& name);
 
     private slots:
         void on_pushButtonAdd_clicked();
         void on_pushButtonDelete_clicked();
         void on_pushButtonMoveUp_clicked();
         void on_pushButtonMoveDown_clicked();
-        void on_pushButton_clicked();
+        void on_pushButtonClear_clicked();
 
     private:
         Ui::TBitmapDialog *ui;
         int mRowCount{0};
+        int mSelected{-1};
         QList<ObjHandler::BITMAPS_t> mBitmaps;
 };
 

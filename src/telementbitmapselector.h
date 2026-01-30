@@ -25,6 +25,19 @@
 class QLineEdit;
 class QPushButton;
 
+/**
+ * @brief The TElementBitmapSelector class
+ * The class creates a widget with an input line and a push button. It is
+ * designed to be displayed in a cell of a QTableWidget or a QTreeWidget.
+ * The class allows to select between the selection of a single bitmap or
+ * the selection up to 5 bitmaps.
+ * if "mSingleBitmap" is TRUE, clicking on the push button displays a
+ * dialog to select a single bitmap. This is used when this class is used
+ * in the dialog class "TBitmapDialog", for example.
+ * The default behavior is the selection of multiple bitmaps. Clicking on
+ * the push button displays a dialog where the selected bitmaps are
+ * visible. The dialog box allows to manage the bitmaps.
+ */
 class TElementBitmapSelector : public QWidget
 {
     Q_OBJECT
@@ -32,12 +45,19 @@ class TElementBitmapSelector : public QWidget
     public:
         TElementBitmapSelector(QWidget *parent=nullptr);
         TElementBitmapSelector(const QString& name, const ObjHandler::BITMAPS_t& bm, QWidget *parent=nullptr);
+        TElementBitmapSelector(const QString& name, const QList<ObjHandler::BITMAPS_t>& bm, QWidget *parent=nullptr);
 
         void start();
-        ObjHandler::BITMAPS_t& getBitmap() { return mBitmap; }
+        ObjHandler::BITMAPS_t& getBitmap() { return mBitmaps[0]; }
+        QList<ObjHandler::BITMAPS_t>& getBitmaps() { return mBitmaps; }
         QString& getName() { return mName; }
-        void setBitmap(const ObjHandler::BITMAPS_t& bm) { mBitmap = bm; }
+        void setBitmap(const ObjHandler::BITMAPS_t& bm) { mBitmaps.insert(0, bm); }
+        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bm) { mBitmaps = bm; }
         void setName(const QString& name) { mName = name; }
+        void setSingleBitmap(bool state) { mSingleBitmap = state; }
+
+    signals:
+        void bitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
 
     protected:
         void init();
@@ -49,7 +69,8 @@ class TElementBitmapSelector : public QWidget
         QLineEdit *mLine{nullptr};
         QPushButton *mButton{nullptr};
         QString mName;
-        ObjHandler::BITMAPS_t mBitmap;
+        QList<ObjHandler::BITMAPS_t> mBitmaps;
+        bool mSingleBitmap{false};          // TRUE = Hitting the "mButton" displays the bitmap selection dialog
 };
 
 #endif // TELEMENTBITMAPSELECTOR_H

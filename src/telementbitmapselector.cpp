@@ -20,6 +20,7 @@
 #include <QHBoxLayout>
 
 #include "telementbitmapselector.h"
+#include "tbitmapdialog.h"
 #include "tbitmapselectdialog.h"
 #include "terror.h"
 
@@ -31,11 +32,23 @@ TElementBitmapSelector::TElementBitmapSelector(QWidget *parent)
 
 TElementBitmapSelector::TElementBitmapSelector(const QString& name, const ObjHandler::BITMAPS_t& bm, QWidget *parent)
     : QWidget(parent),
-      mName(name),
-      mBitmap(bm)
+      mName(name)
 {
     DECL_TRACER("TElementBitmapSelector::TElementBitmapSelector(const QString& name, const QList<ObjHandler::BITMAPS_t>& bm, QWidget *parent)");
 
+    mBitmaps.insert(0, bm);
+    mSingleBitmap = true;
+    init();
+}
+
+TElementBitmapSelector::TElementBitmapSelector(const QString& name, const QList<ObjHandler::BITMAPS_t>& bm, QWidget *parent)
+    : QWidget(parent),
+      mName(name),
+      mBitmaps(bm)
+{
+    DECL_TRACER("TElementBitmapSelector::TElementBitmapSelector(const QString& name, const QList<ObjHandler::BITMAPS_t>& bm, QWidget *parent)");
+
+    mSingleBitmap = false;
     init();
 }
 
@@ -61,7 +74,10 @@ void TElementBitmapSelector::init()
     layout->setSpacing(2);
 
     mLine = new QLineEdit;
-    mLine->setText(mBitmap.fileName);
+
+    if (!mBitmaps.empty())
+        mLine->setText(mBitmaps[0].fileName);
+
     layout->addWidget(mLine, 1);
 
     mButton = new QPushButton;
@@ -77,25 +93,72 @@ void TElementBitmapSelector::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementBitmapSelector::onLineEditTextChanged(const QString& text)");
 
-    mBitmap.fileName = text;
-    mBitmap.dynamic = false;
+    if (mSingleBitmap)
+    {
+        ObjHandler::BITMAPS_t bm;
+        bm.fileName = text;
+        bm.dynamic = false;
+        mBitmaps.clear();
+        mBitmaps.append(bm);
+    }
+    else if (!mBitmaps.empty())
+    {
+        mBitmaps[0].fileName = text;
+        mBitmaps[0].dynamic = false;
+    }
+    else
+    {
+        ObjHandler::BITMAPS_t bm;
+        bm.fileName = text;
+        bm.dynamic = false;
+        mBitmaps.append(bm);
+    }
+
+    emit bitmapsChanged(mBitmaps, mName);
 }
 
 void TElementBitmapSelector::onPushButtonClicked()
 {
     DECL_TRACER("TElementBitmapSelector::onPushButtonClicked()");
 
-    TBitmapSelectDialog bmDialog(this);
-    bmDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
+    if (mSingleBitmap)
+    {
+        TBitmapSelectDialog bmDialog(this);
+        bmDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
+        bmDialog.setSingleSelect(mSingleBitmap);
 
-    if (bmDialog.exec() == QDialog::Rejected)
-        return;
+        if (bmDialog.exec() == QDialog::Rejected)
+            return;
 
-    QList<ObjHandler::BITMAPS_t> bm = bmDialog.getSelected();
+        QList<ObjHandler::BITMAPS_t> bm = bmDialog.getSelected();
 
-    if (bm.empty())
-        return;
+        if (bm.empty())
+            return;
 
-    mLine->setText(bm[0].fileName);
-    mBitmap = bm[0];
+        mLine->setText(bm[0].fileName);
+        mBitmaps.clear();
+        mBitmaps.append(bm[0]);
+    }
+    else
+    {
+        TBitmapDialog bmDialog(this);
+        bmDialog.setBitmaps(mBitmaps);
+
+        if (bmDialog.exec() == QDialog::Rejected)
+            return;
+
+        mBitmaps = bmDialog.getBitmaps();
+
+        if (!mBitmaps.empty())
+        {
+            if (mBitmaps[0].dynamic)
+                mLine->setText(mBitmaps[0].fileName + " (dynamic)");
+            else
+                mLine->setText(mBitmaps[0].fileName);
+        }
+        else
+            mLine->clear();
+    }
+
+    emit bitmapsChanged(mBitmaps, mName);
 }

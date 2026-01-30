@@ -31,6 +31,9 @@ class QLabel;
 class QLineEdit;
 class QSpinBox;
 
+class TElementBitmapSelector;
+class TElementWidgetCombo;
+
 class TPropertiesStates : public QObject
 {
     Q_OBJECT
@@ -57,21 +60,24 @@ class TPropertiesStates : public QObject
         QComboBox *makeFillType(const QString& ftype, const QString& name);
         QWidget *makeColorSelector(const QColor& col, const QString& name);
         QWidget *makeVideoFill(const QString& vf, const QString& name);
-        QWidget *makeBitmapSelector(const QString& bitmap, const QString& name);
+        TElementBitmapSelector *makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
         QWidget *makeFontSelector(const QString& fname, const QString& name);
         QSpinBox *makeValueSelector(int value, const QString& name);
         QWidget *makeTextValue(const QString& txt, const QFont& font, const QString& name);
-        QComboBox *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
+        TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         QTreeWidget *makeTextEffect(int ef, const QString& name);
         QComboBox *makeWordWrap(bool ww, const QString& name);
         void setGeometry(int bi, const QRect& geom);
         void clear();
 
+        // Callbacks
+        void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
+        void onOrientationChanged(const QString& text, const QVariant& data, const QString& name);
+
     private:
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
-        void setBitmap(QLineEdit *line);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
@@ -79,6 +85,7 @@ class TPropertiesStates : public QObject
         int mActualObjectID{0};
         bool mChanged{false};
         bool mInitialized{false};
+        bool mBlocked{false};       // TRUE = A dialog box is open. Recreating is blocked!
 };
 
 #endif // TPROPERTIESSTATES_H

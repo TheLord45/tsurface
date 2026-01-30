@@ -38,6 +38,7 @@ class TBitmapSelectDialog : public QDialog
 
         void setTemporaryPath(const QString& path);
         QList<ObjHandler::BITMAPS_t> getSelected() { return mSelected; }
+        void setSingleSelect(bool sel);
 
     protected:
         virtual void accept() override;
@@ -60,6 +61,7 @@ class TBitmapSelectDialog : public QDialog
         QList<ConfigMain::RESOURCE_t> mDynamicResources;
         QList<ObjHandler::BITMAPS_t> mSelected;
         int mCurrentTab{0};
+        bool mSingleSelect{false};
 };
 
 #endif // TBITMAPSELECTDIALOG_H

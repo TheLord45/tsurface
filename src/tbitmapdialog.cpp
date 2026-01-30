@@ -22,11 +22,13 @@
 
 #include "tbitmapdialog.h"
 #include "ui_tbitmapdialog.h"
-#include "twidgetcombo.h"
 #include "tbitmapselectdialog.h"
 #include "telementbitmapselector.h"
+#include "telementwidgetcombo.h"
+
 #include "tconfmain.h"
 #include "terror.h"
+#include "tmisc.h"
 
 using namespace ObjHandler;
 
@@ -37,6 +39,11 @@ TBitmapDialog::TBitmapDialog(QWidget *parent)
     DECL_TRACER("TBitmapDialog::TBitmapDialog(QWidget *parent)");
 
     ui->setupUi(this);
+
+    ui->pushButtonDelete->setDisabled(true);
+    ui->pushButtonMoveUp->setDisabled(true);
+    ui->pushButtonMoveDown->setDisabled(true);
+    connect(ui->treeWidgetBitmaps, &QTreeWidget::itemActivated, this, &TBitmapDialog::onTreeWidgetItemActivated);
 }
 
 TBitmapDialog::~TBitmapDialog()
@@ -60,11 +67,13 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
     {
         // Top item
         QTreeWidgetItem *top = new QTreeWidgetItem(ui->treeWidgetBitmaps);
+        top->setData(0, Qt::UserRole, i);
         top->setText(i, QString("Bitmap %1").arg(i+1));
         // Item for the table
         QTreeWidgetItem *item = new QTreeWidgetItem(top);
         item->setFirstColumnSpanned(true);
         item->setFlags(Qt::ItemIsEnabled);
+        item->setData(0, Qt::UserRole, i);
         // Add the table
         QTableWidget *table = createTable(bm[i]);
         ui->treeWidgetBitmaps->setItemWidget(item, 0, table);
@@ -96,11 +105,13 @@ void TBitmapDialog::on_pushButtonAdd_clicked()
             ui->pushButtonDelete->setDisabled(true);
             ui->pushButtonMoveUp->setDisabled(true);
             ui->pushButtonMoveDown->setDisabled(true);
+            ui->pushButtonClear->setEnabled(true);
             break;
         }
 
         QTreeWidgetItem *top = new QTreeWidgetItem(ui->treeWidgetBitmaps);
-        top->setText(0, tr("Bitmap %1").arg(mRowCount+1));
+        top->setData(0, Qt::UserRole, mRowCount);
+        top->setText(0, QString("Bitmap %1").arg(mRowCount+1));
 
         QTreeWidgetItem *item = new QTreeWidgetItem(top);
         item->setFirstColumnSpanned(true);
@@ -119,25 +130,246 @@ void TBitmapDialog::on_pushButtonAdd_clicked()
 
 void TBitmapDialog::on_pushButtonDelete_clicked()
 {
+    DECL_TRACER("TBitmapDialog::on_pushButtonDelete_clicked()");
 
+    if (mSelected < 0 || mSelected >= 5)
+        return;
+
+    // If we get a result here, we get the top level items!
+    QList<QTreeWidgetItem *> list = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected+1), Qt::MatchExactly, 0);
+
+    if (list.empty())
+    {
+        MSG_WARNING("No item found!");
+        return;
+    }
+
+    ui->treeWidgetBitmaps->removeItemWidget(list[0]->child(0), 0);
+    delete list[0];
+    mBitmaps.remove(mSelected);
+    mRowCount--;
+    // Rename the top level items
+    QTreeWidgetItem *root = ui->treeWidgetBitmaps->invisibleRootItem();
+    int number = root->childCount();
+
+    for (int i = 0; i < number; ++i)
+    {
+        QTreeWidgetItem *item = root->child(i);
+        item->setData(0, Qt::UserRole, i);
+        item->setText(0, QString("Bitmap %1").arg(i+1));
+    }
 }
 
 
 void TBitmapDialog::on_pushButtonMoveUp_clicked()
 {
+    DECL_TRACER("TBitmapDialog::on_pushButtonMoveUp_clicked()");
 
+    if (mSelected == 0)
+        ui->pushButtonMoveUp->setDisabled(true);
+
+    // If we get a result here, we get the top level items!
+    QList<QTreeWidgetItem *> list1 = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected), Qt::MatchExactly, 0);
+    QList<QTreeWidgetItem *> list2 = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected+1), Qt::MatchExactly, 0);
+
+    if (list1.empty() || list2.empty())
+    {
+        MSG_WARNING("Couldn't find 1 or 2 entries!");
+        return;
+    }
+
+    QTreeWidgetItem *item1 = list1[0]->child(0);
+    QTreeWidgetItem *item2 = list2[0]->child(0);
+
+    if (!item1 || !item2)
+    {
+        MSG_WARNING("Missing 1 or 2 childs!");
+        return;
+    }
+
+    QTableWidget *table1 = createTable(mBitmaps[mSelected-1]);
+    QTableWidget *table2 = createTable(mBitmaps[mSelected]);
+
+    ui->treeWidgetBitmaps->removeItemWidget(item1, 0);
+    ui->treeWidgetBitmaps->setItemWidget(item1, 0, table2);
+
+    ui->treeWidgetBitmaps->removeItemWidget(item2, 0);
+    ui->treeWidgetBitmaps->setItemWidget(item2, 0, table1);
+
+    mBitmaps.swapItemsAt(mSelected-1, mSelected);
 }
 
 
 void TBitmapDialog::on_pushButtonMoveDown_clicked()
 {
+    DECL_TRACER("TBitmapDialog::on_pushButtonMoveDown_clicked()");
 
+    if (mSelected < 0 || mSelected >= 5)
+        return;
+
+    if (mSelected == 4)
+        ui->pushButtonMoveDown->setDisabled(true);
+
+    // If we get a result here, we get the top level items!
+    QList<QTreeWidgetItem *> list1 = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected+1), Qt::MatchExactly, 0);
+    QList<QTreeWidgetItem *> list2 = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected+2), Qt::MatchExactly, 0);
+
+    if (list1.empty() || list2.empty())
+    {
+        MSG_WARNING("Couldn't find 1 or 2 entries!");
+        return;
+    }
+
+    QTreeWidgetItem *item1 = list1[0]->child(0);
+    QTreeWidgetItem *item2 = list2[0]->child(0);
+
+    if (!item1 || !item2)
+    {
+        MSG_WARNING("Missing 1 or 2 childs!");
+        return;
+    }
+
+    QTableWidget *table1 = createTable(mBitmaps[mSelected]);
+    QTableWidget *table2 = createTable(mBitmaps[mSelected+1]);
+
+    ui->treeWidgetBitmaps->removeItemWidget(item1, 0);
+    ui->treeWidgetBitmaps->setItemWidget(item1, 0, table2);
+
+    ui->treeWidgetBitmaps->removeItemWidget(item2, 0);
+    ui->treeWidgetBitmaps->setItemWidget(item2, 0, table1);
+
+    mBitmaps.swapItemsAt(mSelected, mSelected+1);
 }
 
 
-void TBitmapDialog::on_pushButton_clicked()
+void TBitmapDialog::on_pushButtonClear_clicked()
 {
+    DECL_TRACER("TBitmapDialog::on_pushButtonClear_clicked()");
 
+    ui->treeWidgetBitmaps->clear();
+    mBitmaps.clear();
+    mSelected = -1;
+    mRowCount = 0;
+    ui->pushButtonAdd->setEnabled(true);
+    ui->pushButtonDelete->setDisabled(true);
+    ui->pushButtonMoveUp->setDisabled(true);
+    ui->pushButtonMoveDown->setDisabled(true);
+    ui->pushButtonClear->setDisabled(true);
+}
+
+void TBitmapDialog::onTreeWidgetItemActivated(QTreeWidgetItem *item, int column)
+{
+    DECL_TRACER("TBitmapDialog::onTreeWidgetItemActivated(QTreeWidgetItem *item, int column)");
+
+    ui->pushButtonDelete->setEnabled(true);
+    ui->pushButtonMoveUp->setEnabled(true);
+    ui->pushButtonMoveDown->setEnabled(true);
+    mSelected = item->data(0, Qt::UserRole).toInt();
+    MSG_DEBUG("Current selected bitmap: " << mSelected);
+
+    if (mSelected == 0)
+    {
+        ui->pushButtonMoveUp->setDisabled(true);
+        ui->pushButtonMoveDown->setEnabled(true);
+    }
+
+    if (mSelected == (mBitmaps.size() - 1))
+    {
+        ui->pushButtonMoveDown->setDisabled(true);
+
+        if (mBitmaps.size() > 1)
+        ui->pushButtonMoveUp->setEnabled(true);
+    }
+
+    if (mBitmaps.size() < 5)
+        ui->pushButtonAdd->setEnabled(true);
+    else
+        ui->pushButtonAdd->setDisabled(true);
+}
+
+void TBitmapDialog::onBitmapsChanged(const QList<BITMAPS_t>& bitmaps, const QString& name)
+{
+    DECL_TRACER("TBitmapDialog::onBitmapsChanged(const QList<BITMAPS_t>& bitmaps, const QString& name)");
+
+    Q_UNUSED(name);
+    mBitmaps = bitmaps;
+}
+
+void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    int idx = getObjectID(name, "Orientation_");
+
+    if (idx < 1 || idx > 5 || idx > mBitmaps.size())
+    {
+        MSG_WARNING("Got invalid index " << idx);
+        return;
+    }
+
+    MSG_DEBUG("Item with index: " << idx);
+    idx--;
+    ORIENTATION oldOri = mBitmaps[idx].justification;
+    mBitmaps[idx].justification = static_cast<ORIENTATION>(idx);
+
+    if (idx != oldOri && idx == ORI_ABSOLUT)
+    {
+        QTreeWidgetItem *root = ui->treeWidgetBitmaps->invisibleRootItem();
+        QTreeWidgetItem *top = root->child(idx);
+        QTableWidget *widget = static_cast<QTableWidget *>(ui->treeWidgetBitmaps->itemWidget(top->child(0), 0));
+
+        if (!widget)
+        {
+            MSG_WARNING("Couldn't get the table widget!");
+            return;
+        }
+
+        MSG_DEBUG("Object name of widget: " << widget->objectName().toStdString());
+        QBrush brush;
+        brush.setColor(Qt::GlobalColor::lightGray);
+
+        for (int row = 2; row < 4; ++row)
+        {
+            widget->insertRow(row);
+            QTableWidgetItem *col0 = new QTableWidgetItem;
+            col0->setBackground(brush);
+            col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+            widget->setItem(row, 0, col0);
+
+            switch(row)
+            {
+                case 2:
+                    col0->setText(tr("Bitmap X Offset"));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[idx].offsetX, QString("XOffset_%1").arg(row)));
+                break;
+
+                case 3:
+                    col0->setText(tr("Bitmap Y Offset"));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[idx].offsetX, QString("YOffset_%1").arg(row)));
+                break;
+            }
+        }
+
+        ui->treeWidgetBitmaps->resizeColumnToContents(0);
+    }
+    else if (oldOri == ORI_ABSOLUT && idx != oldOri)
+    {
+        QTreeWidgetItem *root = ui->treeWidgetBitmaps->invisibleRootItem();
+        QTreeWidgetItem *top = root->child(idx);
+        QTableWidget *widget = static_cast<QTableWidget *>(ui->treeWidgetBitmaps->itemWidget(top->child(0), 0));
+
+        if (!widget)
+        {
+            MSG_WARNING("Couldn't get the table widget!");
+            return;
+        }
+
+        MSG_DEBUG("Object name of widget (removing rows): " << widget->objectName().toStdString());
+        widget->removeRow(3);
+        widget->removeRow(2);
+        widget->setRowCount(2);
+        ui->treeWidgetBitmaps->resizeColumnToContents(0);
+    }
 }
 
 QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
@@ -148,6 +380,7 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
     brush.setColor(Qt::GlobalColor::lightGray);
 
     QTableWidget *table = new QTableWidget(this);
+    table->setObjectName(bm.fileName);
     table->verticalHeader()->setVisible(false);
     table->horizontalHeader()->setVisible(false);
     table->setShowGrid(true);
@@ -174,7 +407,7 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
         {
             case 0:
                 col0->setText(tr("Bitmap"));
-                table->setCellWidget(row, 1, makeBitmapSelector(bm.fileName, QString("Bitmap_%1").arg(row)));
+                table->setCellWidget(row, 1, makeBitmapSelector(bm, QString("Bitmap_%1").arg(row)));
             break;
 
             case 1:
@@ -197,21 +430,20 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm)
     return table;
 }
 
-TElementBitmapSelector *TBitmapDialog::makeBitmapSelector(const QString& bitmap, const QString& name)
+TElementBitmapSelector *TBitmapDialog::makeBitmapSelector(const BITMAPS_t& bitmap, const QString& name)
 {
-    DECL_TRACER("TBitmapDialog::makeBitmapSelector(const QString& bitmap, const QString& name)");
+    DECL_TRACER("TBitmapDialog::makeBitmapSelector(const BITMAPS_t& bitmap, const QString& name)");
 
-    ObjHandler::BITMAPS_t bm;
-    bm.fileName = bitmap;
-    return new TElementBitmapSelector(name, bm);
+    TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmap, this);
+    connect(bs, &TElementBitmapSelector::bitmapsChanged, this, &TBitmapDialog::onBitmapsChanged);
+    return bs;
 }
 
-TWidgetCombo *TBitmapDialog::makeTextJustification(ORIENTATION ori, const QString& name)
+TElementWidgetCombo *TBitmapDialog::makeTextJustification(ORIENTATION ori, const QString& name)
 {
     DECL_TRACER("TBitmapDialog::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)");
 
-    TWidgetCombo *cbox = new TWidgetCombo;
-    cbox->setObjectName(name);
+    TElementWidgetCombo *cbox = new TElementWidgetCombo(name);
     QList<QString> items = { "absolute", "top-left", "top-middle", "top-right",
                             "center-left", "center-middle", "center-right",
                             "bottom-left", "bottom-middle", "bottom-right" };
@@ -219,7 +451,7 @@ TWidgetCombo *TBitmapDialog::makeTextJustification(ORIENTATION ori, const QStrin
     cbox->addItems(items);
     cbox->addData(data);
     cbox->setCurrentIndex(ori);
-    // Add code to set data
+    connect(cbox, &TElementWidgetCombo::selectionChanged, this, &TBitmapDialog::onOrientationChanged);
     return cbox;
 }
 
@@ -233,24 +465,6 @@ QSpinBox *TBitmapDialog::makeValueSelector(int value, const QString& name)
 
     connect(spin, &QSpinBox::valueChanged, [this, spin](int value) { setValue(spin->objectName(), value); });
     return spin;
-}
-
-void TBitmapDialog::setBitmap(QLineEdit *line)
-{
-    DECL_TRACER("TBitmapDialog::setBitmap(QLineEdit *line)");
-
-    TBitmapSelectDialog sDialog(this);
-    sDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
-
-    if (sDialog.exec() == QDialog::Rejected)
-        return;
-
-    QList<ObjHandler::BITMAPS_t> sel = sDialog.getSelected();
-
-    if (sel.empty())
-        return;
-
-    line->setText(sel[0].fileName);
 }
 
 void TBitmapDialog::setValue(const QString& name, const QVariant& value)

@@ -15,19 +15,21 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TWIDGETCOMBO_H
-#define TWIDGETCOMBO_H
+#ifndef TELEMENTWIDGETCOMBO_H
+#define TELEMENTWIDGETCOMBO_H
 
 #include <QComboBox>
 
-class TWidgetCombo : public QComboBox
+class TElementWidgetCombo : public QComboBox
 {
     Q_OBJECT
 
     public:
-        TWidgetCombo(QWidget *parent=nullptr);
+        TElementWidgetCombo(QWidget *parent=nullptr);
+        TElementWidgetCombo(const QString& name, QWidget *parent=nullptr);
 
         void addData(const QList<QVariant>& data);
+        void setName(const QString& name);
         void setDefaultText(const QString& text);
         void setDefaultText(const QString& text, const QVariant& data);
         QString& actText() { return mActText; }
@@ -35,17 +37,20 @@ class TWidgetCombo : public QComboBox
         QVariant& actData() { return mActData; }
 
     signals:
-        void selectionChanged(const QString& text, const QVariant& data);
+        void selectionChanged(const QString& text, const QVariant& data, const QString& name);
 
     protected:
         void onCurrentTextChanged(const QString &text);
         void onCurrentIndexChanged(int index);
 
     private:
+        void init();
+
         QString mActText;
         QVariant mActData;
+        QString mName;
         int mActIndex{0};
         bool mHaveData{false};
 };
 
-#endif // TWIDGETCOMBO_H
+#endif // TELEMENTWIDGETCOMBO_H

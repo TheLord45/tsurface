@@ -32,7 +32,8 @@
 
 #include "tpropertiesstates.h"
 #include "ttextboxdialog.h"
-#include "tbitmapdialog.h"
+#include "telementbitmapselector.h"
+#include "telementwidgetcombo.h"
 #include "terror.h"
 
 using namespace Page;
@@ -127,6 +128,9 @@ void TPropertiesStates::clear()
 {
     DECL_TRACER("TPropertiesStates::clear()");
 
+    if (mBlocked)
+        return;
+
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_STATES);
 
@@ -139,6 +143,9 @@ void TPropertiesStates::clear()
 void TPropertiesStates::createPage()
 {
     DECL_TRACER("TPropertiesStates::createPage()");
+
+    if (mBlocked)
+        return;
 
     if (!mTreeWidget)
     {
@@ -186,6 +193,9 @@ void TPropertiesStates::createPage()
 QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)
 {
     DECL_TRACER("TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)");
+
+    if (mBlocked)
+        return nullptr;
 
     QBrush brush;
     brush.setColor(Qt::GlobalColor::lightGray);
@@ -247,7 +257,17 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
 
             case 5:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps[0].fileName, "PgBitmapSelector"));
+                {
+                    QList<ObjHandler::BITMAPS_t> list;
+
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        if (!mPage.srPage.bitmaps[i].fileName.isEmpty())
+                            list.append(mPage.srPage.bitmaps[i]);
+                    }
+
+                    table->setCellWidget(row, 1, makeBitmapSelector(list, "PgBitmapSelector"));
+                }
             break;
 
             case 6:
@@ -419,9 +439,11 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
     }
 
     connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
+        mBlocked = true;
         QString objName = cbox->objectName();
         QString item = cbox->itemText(index);
         setValue(objName, item);
+        mBlocked = false;
     });
 
     return cbox;
@@ -448,9 +470,11 @@ QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& 
     layout->addWidget(button);
 
     connect(button, &QPushButton::clicked, [this, label, col](bool) {
+        mBlocked = true;
         QColor color = col;
         setColor(label, color);
         setValue(label->objectName(), color);
+        mBlocked = false;
     });
 
     return widget;
@@ -475,38 +499,22 @@ QWidget *TPropertiesStates::makeVideoFill(const QString& vf, const QString& name
     }
 
     connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
+        mBlocked = true;
         QString vf = cbox->itemText(index);
         setValue(cbox->objectName(), vf);
+        mBlocked = false;
     });
 
     return cbox;
 }
 
-QWidget *TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QString& name)
+TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QString& bitmap, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)");
 
-    QWidget *widget = new QWidget;
-
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
-
-    QLineEdit *line = new QLineEdit;
-    line->setObjectName(name);
-    line->setText(bitmap);
-    layout->addWidget(line, 1);
-
-    QPushButton *button = new QPushButton;
-    button->setText("...");
-    button->setMaximumWidth(30);
-    layout->addWidget(button);
-
-    connect(button, &QPushButton::clicked, [this, line](bool) {
-        setBitmap(line);
-    });
-
-    return widget;
+    TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mParent);
+    connect(bs, &TElementBitmapSelector::bitmapsChanged, this, &TPropertiesStates::onBitmapsChanged);
+    return bs;
 }
 
 QWidget *TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)
@@ -542,8 +550,10 @@ QWidget *TPropertiesStates::makeFontSelector(const QString& fname, const QString
     layout->addWidget(button);
 
     connect(button, &QPushButton::clicked, [this, font, line](bool) {
+        mBlocked = true;
         QFont f = chooseFont(font);
         line->setText(f.family());
+        mBlocked = false;
     });
 
     return widget;
@@ -587,6 +597,7 @@ QWidget *TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font
     });
 
     connect(button, &QPushButton::clicked, [this, line, font]() {
+        mBlocked = true;
         TTextBoxDialog dialog(mParent);
         dialog.setTextFont(line->text(), font);
 
@@ -595,33 +606,27 @@ QWidget *TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font
 
         line->setText(dialog.getText());
         setValue(line->objectName(), dialog.getText());
+        mBlocked = false;
     });
 
     return widget;
 }
 
-QComboBox *TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)
+TElementWidgetCombo *TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)");
 
-    QComboBox *cbox = new QComboBox;
-    cbox->setObjectName(name);
     QList<QString> items = { "absolute", "top-left", "top-middle", "top-right",
-                             "center-left", "center-middle", "center-right",
+                            "center-left", "center-middle", "center-right",
                             "bottom-left", "bottom-middle", "bottom-right" };
-    int o = ObjHandler::ORI_ABSOLUT;
+    QList<QVariant> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    for (QString entry : items)
-    {
-        cbox->addItem(entry, o);
-
-        if (static_cast<ObjHandler::ORIENTATION>(o) == ori)
-            cbox->setCurrentIndex(o);
-
-        o++;
-    }
-
-    return cbox;
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mParent);
+    combo->addItems(items);
+    combo->addData(data);
+    combo->setCurrentIndex(5);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesStates::onOrientationChanged);
+    return combo;
 }
 
 QTreeWidget *TPropertiesStates::makeTextEffect(int ef, const QString& name)
@@ -685,24 +690,18 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
     label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
-void TPropertiesStates::setBitmap(QLineEdit *line)
+// Callbacks
+
+void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::setBitmap(QLineEdit *line)");
+    DECL_TRACER("TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)");
 
-    TBitmapDialog bDialog(mParent);
 
-    QList<ObjHandler::BITMAPS_t> list;
+}
 
-    for (int i = 0; i < 5; ++i)
-    {
-        if (!mPage.srPage.bitmaps[i].fileName.isEmpty())
-            list.append(mPage.srPage.bitmaps[i]);
-    }
+void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)");
 
-    bDialog.setBitmaps(list);
-
-    if (bDialog.exec() == QDialog::Rejected)
-        return;
-
-    // TODO: data setting
+    setValue(name, data);
 }

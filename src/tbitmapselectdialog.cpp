@@ -97,6 +97,18 @@ void TBitmapSelectDialog::init()
     ui->tableViewDynamic->setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
+void TBitmapSelectDialog::setSingleSelect(bool sel)
+{
+    DECL_TRACER("TBitmapSelectDialog::setSingleSelect(bool sel)");
+
+    mSingleSelect = sel;
+
+    if (sel)
+        ui->listViewImages->setSelectionMode(QAbstractItemView::SingleSelection);
+    else
+        ui->listViewImages->setSelectionMode(QAbstractItemView::ExtendedSelection);
+}
+
 void TBitmapSelectDialog::on_pushButtonImport_clicked()
 {
 

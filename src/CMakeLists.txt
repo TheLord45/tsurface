@@ -29,16 +29,6 @@ if(APPLE)
     include_directories("/opt/homebrew/Cellar/libarchive/3.8.5/include")
 endif(APPLE)
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
@@ -134,23 +124,20 @@ qt_add_executable(tsurface
     tcanvaswidget.h
     tresizablewidget.cpp
     tresizablewidget.h
-    tbitmapdialog.h tbitmapdialog.cpp tbitmapdialog.ui
-    twidgetcombo.h twidgetcombo.cpp
-    tbitmapselectdialog.h tbitmapselectdialog.cpp tbitmapselectdialog.ui
-    telementbitmapselector.h telementbitmapselector.cpp
+    tbitmapdialog.cpp
+    tbitmapdialog.h
+    tbitmapdialog.ui
+    telementwidgetcombo.cpp
+    telementwidgetcombo.h
+    tbitmapselectdialog.cpp
+    tbitmapselectdialog.h
+    tbitmapselectdialog.ui
+    telementbitmapselector.cpp
+    telementbitmapselector.h
 )
 
 # Use the Widgets module from Qt 6.
-target_link_libraries(tsurface PRIVATE Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)
