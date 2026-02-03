@@ -34,6 +34,9 @@
 #include "ttextboxdialog.h"
 #include "telementbitmapselector.h"
 #include "telementwidgetcombo.h"
+#include "telementwidgetfont.h"
+#include "telementtexteffect.h"
+#include "telementbordername.h"
 #include "terror.h"
 
 using namespace Page;
@@ -223,9 +226,31 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
     int rows = 0;
 
     if (stype == STATE_PAGE)
+    {
         rows = 12;
+
+        if (mPage.srPage.ff.isEmpty())
+        {
+            QFont font = mParent->font();
+            mPage.srPage.ff = font.family();
+        }
+
+        if (mPage.srPage.fs <= 0)
+            mPage.srPage.fs = 10;
+    }
     else if (stype == STATE_POPUP)
+    {
         rows = 15;
+
+        if (mPage.srPage.ff.isEmpty())
+        {
+            QFont font = mParent->font();
+            mPage.srPage.ff = font.family();
+        }
+
+        if (mPage.srPage.fs <= 0)
+            mPage.srPage.fs = 10;
+    }
     else if (stype == STATE_BUTTON)
         rows = 17;
     else if (stype == STATE_BARGRAPH)
@@ -248,41 +273,57 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
             case 0:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PgFillType"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeBorderName(mPage.srPage.bs, "PopupBorderName"));
             break;
 
             case 1:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "PgFillColor"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cb, "PopupBorderColor"));
             break;
 
             case 2:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ct, "PgTextColor"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PopupFillType"));
             break;
 
             case 3:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PgTextEffectColor"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "PopupFillColor"));
             break;
 
             case 4:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeVideoFill(mPage.srPage.vf, "PgVideoFill"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ct, "PopupTextColor"));
             break;
 
             case 5:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeBitmapSelector(bitmapArrayToList(mPage.srPage.bitmaps), "PgBitmapSelector"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PopupTextEffectColor"));
             break;
 
             case 6:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeFontSelector(mPage.srPage.ff, "PgFontSelector"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.oo, "PopupOverallOpacity"));
             break;
 
             case 7:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.fs, "PgFontSize"));
+                else if (stype == STATE_POPUP)
+                   table->setCellWidget(row, 1, makeVideoFill(mPage.srPage.vf, "PopupVideoFill"));
             break;
 
             case 8:
@@ -302,27 +343,68 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
                         font.setPointSize(mPage.srPage.fs);
 
                     table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, font, "PgText"));
+                    table->resizeRowToContents(row);
                 }
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeBitmapSelector(bitmapArrayToList(mPage.srPage.bitmaps), "PopupBitmapSelector"));
             break;
 
             case 9:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeTextJustification(mPage.srPage.jt, "PgTextOrientation"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeFontSelector(mPage.srPage.ff, "PopupFontSelector"));
             break;
 
             case 10:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeTextEffect(mPage.srPage.et, "PgTextEffect"));
+                else if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.fs, "PopupFontSize"));
             break;
 
             case 11:
                 if (stype == STATE_PAGE)
                     table->setCellWidget(row, 1, makeWordWrap(mPage.srPage.ww, "PgWordWrap"));
+                else if (stype == STATE_POPUP)
+                {
+                    QFont font;
+
+                    if (mPage.srPage.ff.isEmpty())
+                    {
+                        font = mParent->font();
+                        mPage.srPage.ff = font.family();
+                    }
+
+                    if (mPage.srPage.fs <= 0)
+                        font.setPointSize(10);
+                    else
+                        font.setPointSize(mPage.srPage.fs);
+
+                    table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, font, "PopupText"));
+                    table->resizeRowToContents(row);
+                }
+            break;
+
+            case 12:
+                if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeTextJustification(mPage.srPage.jt, "PopupTextOrientation"));
+            break;
+
+            case 13:
+                if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeTextEffect(mPage.srPage.et, "PopupTextEffect"));
+            break;
+
+            case 14:
+                if (stype == STATE_POPUP)
+                    table->setCellWidget(row, 1, makeWordWrap(mPage.srPage.ww, "PopupWordWrap"));
             break;
         }
     }
 
     table->resizeRowsToContents();
+    table->resizeColumnsToContents();
     return table;
 }
 
@@ -418,6 +500,15 @@ QString TPropertiesStates::getLeftColText(STATE_TYPE stype, int state, int line)
     return "";
 }
 
+TElementBorderName *TPropertiesStates::makeBorderName(const QString& border, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeBorderName(const QString& border, const QString& name)");
+
+    TElementBorderName *brd = new TElementBorderName(border, name, mParent);
+    connect(brd, &TElementBorderName::borderChanged, this, &TPropertiesStates::onBorderNameChanged);
+    return brd;
+}
+
 QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFillType(int ftype, const QString& name)");
@@ -472,6 +563,7 @@ QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& 
     QPushButton *button = new QPushButton;
     button->setObjectName("PushButtonColorSelector");
     button->setText("...");
+    button->setMaximumWidth(30);
     layout->addWidget(button);
 
     connect(button, &QPushButton::clicked, [this, label, col](bool) {
@@ -522,45 +614,12 @@ TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QList<ObjHan
     return bs;
 }
 
-QWidget *TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)
+TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
 
-    QWidget *widget = new QWidget;
-
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
-
-    QLineEdit *line = new QLineEdit;
-    line->setObjectName(name);
-    QFont font;
-
-    if (fname.isEmpty())
-    {
-        font = line->font();
-        line->setText(font.family());
-    }
-    else
-    {
-        font = QFont(fname);
-        line->setText(fname);
-    }
-
-    layout->addWidget(line, 1);
-
-    QPushButton *button = new QPushButton;
-    button->setText("...");
-    button->setMaximumWidth(30);
-    layout->addWidget(button);
-
-    connect(button, &QPushButton::clicked, [this, font, line](bool) {
-        mBlocked = true;
-        QFont f = chooseFont(font);
-        line->setText(f.family());
-        mBlocked = false;
-    });
-
+    TElementWidgetFont *widget = new TElementWidgetFont(QFont(fname), name, mParent);
+    connect(widget, &TElementWidgetFont::fontChanged, this, &TPropertiesStates::onFontChanged);
     return widget;
 }
 
@@ -629,30 +688,35 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(ObjHandler::ORIENT
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mParent);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(5);
+    combo->setCurrentIndex(ori);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesStates::onOrientationChanged);
     return combo;
 }
 
-QTreeWidget *TPropertiesStates::makeTextEffect(int ef, const QString& name)
+TElementTextEffect *TPropertiesStates::makeTextEffect(int ef, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextEffect(int ef, const QString& name)");
 
-    return new QTreeWidget;
+    TElementTextEffect *eff = new TElementTextEffect(ef, name, mParent);
+    connect(eff, &TElementTextEffect::effectChanged, this, &TPropertiesStates::onTextEffectChanged);
+    return eff;
 }
 
-QComboBox *TPropertiesStates::makeWordWrap(bool ww, const QString& name)
+TElementWidgetCombo *TPropertiesStates::makeWordWrap(bool ww, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeWordWrap(bool ww, const QString& name)");
 
-    QComboBox *cbox = new QComboBox;
-    cbox->setObjectName(name);
-    cbox->addItem(tr("no"), false);
-    cbox->addItem(tr("yes"), true);
+    QList<QString> items = { tr("no"), tr("yes") };
+    QList<QVariant> data = { false, true };
+
+    TElementWidgetCombo *cbox = new TElementWidgetCombo(name, mParent);
+    cbox->addItems(items);
+    cbox->addData(data);
 
     if (ww)
         cbox->setCurrentIndex(1);
 
+    connect(cbox, &TElementWidgetCombo::selectionChanged, this, &TPropertiesStates::onWordWrapChanged);
     return cbox;
 }
 
@@ -673,12 +737,40 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 {
     DECL_TRACER("TPropertiesStates::setValue(const QString& name, const QVariant& value)");
 
-    if (name == "PgFillType")
+    if (name == "PgFillType" || name == "PopupFillType")
         mPage.srPage.ft = value.toString();
+    else if (name == "PgFillColor" || name == "PopupFillColor")
+        mPage.srPage.cf = value.toString();
+    else if (name == "PgTextColor" || name == "PopupTextColor")
+        mPage.srPage.ct = value.toString();
+    else if (name == "PgTextEffectColor" || name == "PopupTextEffectColor")
+        mPage.srPage.ec = value.toString();
+    else if (name == "PgVideoFill" || name == "PopupVideoFill")
+        mPage.srPage.vf = value.toString();
+    else if (name == "PgFontSelector" || name == "PopupFontSelector")
+        mPage.srPage.ff = value.toString();
+    else if (name == "PgFontSize" || name == "PopupFontSize")
+        mPage.srPage.fs = value.toInt();
+    else if (name == "PgText" || name == "PopupText")
+        mPage.srPage.te = value.toString();
+    else if (name == "PgTextOrientation" || name == "PopupTextOrientation")
+        mPage.srPage.jt = static_cast<ObjHandler::ORIENTATION>(value.toInt());
+    else if (name == "PgTextEffect" || name == "PopupTextEffect")
+        mPage.srPage.et = value.toInt();
+    else if (name == "PgWordWrap" || name == "PopupWordWrap")
+        mPage.srPage.ww = (value.toBool() ? 1 : 0);
+
+    if (name == "PopupBorderName")
+        mPage.srPage.bs = value.toString();
+    else if (name == "PopupBorderColor")
+        mPage.srPage.cb = value.toString();
+    else if (name == "PopupOverallOpacity")
+        mPage.srPage.oo = value.toInt();
 
     mChanged = true;
-    markChanged();
-    // TODO: Call to draw immediately
+    saveChangedData(&mPage, TBL_STATES);
+    // Call to draw immediately
+    requestRedraw(&mPage);
 }
 
 void TPropertiesStates::setColor(QLabel *label, QColor& color)
@@ -712,6 +804,22 @@ QList<ObjHandler::BITMAPS_t> TPropertiesStates::bitmapArrayToList(const ObjHandl
     return list;
 }
 
+void TPropertiesStates::bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& list, ObjHandler::BITMAPS_t *bitmaps[])
+{
+    DECL_TRACER("TPropertiesStates::bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& list, ObjHandler::BITMAPS_t *bitmaps[])");
+
+    if (!bitmaps)
+        return;
+
+    for (int i = 0; i < 5; ++i)
+    {
+        if (list[i].fileName.isEmpty())
+            continue;
+
+        *bitmaps[i] = list[i];
+    }
+}
+
 // Callbacks
 
 void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
@@ -720,24 +828,48 @@ void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bit
 
     MSG_DEBUG("Bitmap for name: " << name.toStdString());
 
-    if (name == "PgBitmapSelector")
+    if (name == "PgBitmapSelector" || name == "PopupBitmapSelector")
     {
-        int i = 0;
-
-        for (ObjHandler::BITMAPS_t bm : bitmaps)
-        {
-            if (i >= 5)
-                break;
-
-            mPage.srPage.bitmaps[i] = bm;
-            i++;
-        }
+        ObjHandler::BITMAPS_t *bm = mPage.srPage.bitmaps;
+        bitmapListToArray(bitmaps, &bm);
+        saveChangedData(&mPage, TBL_STATES);
+        mChanged = false;
     }
 }
 
 void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    setValue(name, data);
+}
+
+void TPropertiesStates::onFontChanged(const QFont& font, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onFontChanged(const QFont& font, const QString& name)");
+
+    setValue(name, font.family());
+}
+
+void TPropertiesStates::onTextEffectChanged(int eff, const QString& effect, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onTextEffectChanged(int eff, const QString& effect, const QString& name)");
+
+    MSG_DEBUG("Number: " << eff << ", Name: " << effect.toStdString() << ", Element name: " << name.toStdString());
+    setValue(name, eff);
+}
+
+void TPropertiesStates::onBorderNameChanged(const QString& border, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onBorderNameChanged(const QString& border, const QString& name)");
+
+    MSG_DEBUG("Selected border: " << border.toStdString() << ", Elemnt name: " << name.toStdString());
+    setValue(name, border);
+}
+
+void TPropertiesStates::onWordWrapChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onWordWrapChanged(const QString& text, const QVariant& data, const QString& name)");
 
     setValue(name, data);
 }

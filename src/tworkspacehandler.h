@@ -69,16 +69,19 @@ class TWorkSpaceHandler
         // the methods of "functional". The result is the same.
         void regDataChanged(std::function<void (Page::PAGE_t *page)> func) { _dataChanged = func; }
         void regMarkDirty(std::function<void ()> func) { _markDirty = func; }
+        void regRequestDraw(std::function<void (Page::PAGE_t *page)> func) { _requestDraw = func; }
 
     protected:
         void pageNameChanged(int id, const QString& name) override;
         void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
         void markChanged() override;
         ObjHandler::TOBJECT_t getActualObject() override;
+        void requestRedraw(Page::PAGE_t *page) override;
 
     private:
         std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};
         std::function<void ()> _markDirty{nullptr};
+        std::function<void (Page::PAGE_t *page)> _requestDraw{nullptr};
 
         static TWorkSpaceHandler *mCurrent;
         QWidget *mParent{nullptr};

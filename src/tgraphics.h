@@ -259,8 +259,6 @@ namespace Graphics
         QString imageBase;  // The base image file.
         QString imageAlpha; // The alpha image file.
     }CURSOR_t;
-
-
 }
 
 class TGraphics
@@ -270,6 +268,11 @@ class TGraphics
 
         static TGraphics& Current();
         QStringList getBorderNames();
+        QList<Graphics::FAMILY_t> getBorders();
+        QList<Graphics::FAMILY_t> getEfects();
+        int getEffectStyleNumber(const QString& name);
+        QString getEffectStyleName(int number);
+        Graphics::EFFECT_STYLE_t getEffectDetails(int number);
         bool writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath);
 
     protected:

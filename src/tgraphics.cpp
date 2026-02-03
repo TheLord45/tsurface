@@ -8033,6 +8033,110 @@ QStringList TGraphics::getBorderNames()
     return list;
 }
 
+QList<FAMILY_t> TGraphics::getBorders()
+{
+    DECL_TRACER("TGraphics::getBorders()");
+
+    QList<FAMILY_t> borders;
+
+    for (FAMILY_t family : mDraw.borders)
+        borders.append(family);
+
+    // Sort with simple bubble sort in ascending order
+    bool changed = false;
+
+    do
+    {
+        changed = false;
+
+        for (qsizetype i = 0; i < borders.count(); ++i)
+        {
+            if (i == 0)
+                continue;
+
+            if (borders[i].name < borders[i-1].name)
+            {
+                borders.swapItemsAt(i, i-1);
+                changed = true;
+            }
+        }
+    }while (changed);
+
+    return borders;
+}
+
+QList<FAMILY_t> TGraphics::getEfects()
+{
+    DECL_TRACER("TGraphics::getEfects()");
+
+    QList<FAMILY_t> eff;
+    vector<FAMILY_t> effects = mDraw.effects;
+
+    for (FAMILY_t family : effects)
+        eff.append(family);
+
+    // Sort with simple bubble sort in ascending order
+    bool changed = false;
+
+    do
+    {
+        changed = false;
+
+        for (qsizetype i = 0; i < eff.count(); ++i)
+        {
+            if (i == 0)
+                continue;
+
+            if (eff[i].name < eff[i-1].name)
+            {
+                eff.swapItemsAt(i, i-1);
+                changed = true;
+            }
+        }
+    }while (changed);
+
+    return eff;
+}
+
+int TGraphics::getEffectStyleNumber(const QString& name)
+{
+    DECL_TRACER("TGraphics::getEffectStyleNumber(const QString& name)");
+
+    for (EFFECT_STYLE_t style : mDraw.effectStyles)
+    {
+        if (style.name == name)
+            return style.number;
+    }
+
+    return 0;
+}
+
+QString TGraphics::getEffectStyleName(int number)
+{
+    DECL_TRACER("TGraphics::getEffectStyleName(int number)");
+
+    for (EFFECT_STYLE_t style : mDraw.effectStyles)
+    {
+        if (style.number == number)
+            return style.name;
+    }
+
+    return QString();
+}
+
+EFFECT_STYLE_t TGraphics::getEffectDetails(int number)
+{
+    DECL_TRACER("TGraphics::getEffectDetails(int number)");
+
+    for (EFFECT_STYLE_t style : mDraw.effectStyles)
+    {
+        if (style.number == number)
+            return style;
+    }
+
+    return EFFECT_STYLE_t();
+}
+
 bool TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)
 {
     DECL_TRACER("TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)");

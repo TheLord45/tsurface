@@ -211,6 +211,11 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
             pg.ch = page->ch;
         break;
 
+        case TBL_STATES:
+            pg.srPage = page->srPage;
+            pg.objects = page->objects;
+        break;
+
         default:
             return;
     }
@@ -226,10 +231,17 @@ void TWorkSpaceHandler::markChanged()
         _markDirty();
 }
 
-
 ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject()
 {
     DECL_TRACER("TWorkSpaceHandler::getActualObject()");
 
     return ObjHandler::TOBJECT_t();
+}
+
+void TWorkSpaceHandler::requestRedraw(Page::PAGE_t *page)
+{
+    DECL_TRACER("TWorkSpaceHandler::requestRedraw(Page::PAGE_t *page)");
+
+    if (_requestDraw)
+        _requestDraw(page);
 }

@@ -33,6 +33,9 @@ class QSpinBox;
 
 class TElementBitmapSelector;
 class TElementWidgetCombo;
+class TElementWidgetFont;
+class TElementTextEffect;
+class TElementBorderName;
 
 class TPropertiesStates : public QObject
 {
@@ -51,34 +54,41 @@ class TPropertiesStates : public QObject
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
+        virtual void requestRedraw(Page::PAGE_t *page) = 0;
 
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
         QTableWidget *createTableWidget(STATE_TYPE stype, QWidget *parent=nullptr);
         QString getLeftColText(STATE_TYPE stype, int state, int line);
+        TElementBorderName *makeBorderName(const QString& border, const QString& name);
         QComboBox *makeFillType(const QString& ftype, const QString& name);
         QWidget *makeColorSelector(const QColor& col, const QString& name);
         QWidget *makeVideoFill(const QString& vf, const QString& name);
         TElementBitmapSelector *makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
-        QWidget *makeFontSelector(const QString& fname, const QString& name);
+        TElementWidgetFont *makeFontSelector(const QString& fname, const QString& name);
         QSpinBox *makeValueSelector(int value, const QString& name);
         QWidget *makeTextValue(const QString& txt, const QFont& font, const QString& name);
         TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
-        QTreeWidget *makeTextEffect(int ef, const QString& name);
-        QComboBox *makeWordWrap(bool ww, const QString& name);
+        TElementTextEffect *makeTextEffect(int ef, const QString& name);
+        TElementWidgetCombo *makeWordWrap(bool ww, const QString& name);
         void setGeometry(int bi, const QRect& geom);
         void clear();
 
         // Callbacks
         void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
         void onOrientationChanged(const QString& text, const QVariant& data, const QString& name);
+        void onFontChanged(const QFont& font, const QString& name);
+        void onTextEffectChanged(int eff, const QString& effect, const QString& name);
+        void onBorderNameChanged(const QString& border, const QString& name);
+        void onWordWrapChanged(const QString& text, const QVariant&data, const QString& name);
 
     private:
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
         QList<ObjHandler::BITMAPS_t> bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[]);
+        void bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& botmaps, ObjHandler::BITMAPS_t *bitmaps[]);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};

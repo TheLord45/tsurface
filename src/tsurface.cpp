@@ -38,6 +38,7 @@
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
 #include "tresourcedialog.h"
+#include "tdrawtext.h"
 #include "tgraphics.h"
 #include "tfonts.h"
 #include "tconfig.h"
@@ -145,6 +146,7 @@ TSurface::TSurface(QWidget *parent)
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
     TWorkSpaceHandler::Current().regDataChanged(bind(&TSurface::onDataChanged, this, std::placeholders::_1));
     TWorkSpaceHandler::Current().regMarkDirty(bind(&TSurface::onMarkDirty, this));
+    TWorkSpaceHandler::Current().regRequestDraw(bind(&TSurface::onRedrawRequest, this, std::placeholders::_1));
 
     connect(m_ui->splitter, &QSplitter::splitterMoved, this, &TSurface::onSplitterMoved);
     connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &TSurface::onSubWindowActivated);
@@ -1401,6 +1403,8 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
         // TODO: Add code to draw all objects
+        pg.widget = widget;
+        onRedrawRequest(&pg);
     }
 }
 
@@ -1593,6 +1597,25 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
     // one and only one, it is the actual one.
     // If there are more than one selected, all should be deselected
     // and the page data should be shown.
+}
+
+void TSurface::onRedrawRequest(Page::PAGE_t *page)
+{
+    DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
+
+    if (!page->srPage.te.isEmpty())
+    {
+        TDrawText dt(page->widget, page->srPage.te, page->srPage.ff, page->srPage.jt, page->srPage.tx, page->srPage.ty);
+        dt.setFontSize(page->srPage.fs);
+        dt.setTextColor(page->srPage.ct);
+        dt.setTextEffect(page->srPage.et, page->srPage.ec);
+
+        if (!dt.draw())
+        {
+            MSG_WARNING("Couldn't draw a background text!");
+            return;
+        }
+    }
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

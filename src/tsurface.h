@@ -76,6 +76,7 @@ class TSurface : public QMainWindow
         void onObjectMoved(TResizableWidget *w, QPoint pt);
         void onObjectSizeChanged(TResizableWidget *w, QSize size);
         TOOL onGetCurrentTool() { return mSelectedTool; };
+        void onRedrawRequest(Page::PAGE_t *page);
 
     private slots:
         // Splitter

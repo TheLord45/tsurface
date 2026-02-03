@@ -29,6 +29,10 @@ if(APPLE)
     include_directories("/opt/homebrew/Cellar/libarchive/3.8.5/include")
 endif(APPLE)
 
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
@@ -134,10 +138,22 @@ qt_add_executable(tsurface
     tbitmapselectdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
+    telementwidgettext.cpp
+    telementwidgettext.h
+    telementwidgetfont.cpp
+    telementwidgetfont.h
+    telementtexteffect.cpp
+    telementtexteffect.h
+    telementbordername.cpp
+    telementbordername.h
+    tdrawtext.h tdrawtext.cpp
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)
