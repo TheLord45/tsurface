@@ -811,7 +811,7 @@ void TPropertiesStates::bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& li
     if (!bitmaps)
         return;
 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < qMin(5, list.size()); ++i)
     {
         if (list[i].fileName.isEmpty())
             continue;

@@ -38,6 +38,7 @@
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
 #include "tresourcedialog.h"
+#include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tgraphics.h"
 #include "tfonts.h"
@@ -1602,6 +1603,21 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
 void TSurface::onRedrawRequest(Page::PAGE_t *page)
 {
     DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
+
+    if (!page->srPage.bitmaps[0].fileName.isEmpty())
+    {
+        TDrawImage drawImage(page->srPage.bitmaps[0].fileName, page->widget);
+        drawImage.draw();
+        // TODO: Add code to draw the bitmap stake
+        for (int i = 1; i < 5; ++i)
+        {
+            if (page->srPage.bitmaps[i].fileName.isEmpty())
+                continue;
+
+            drawImage.setFile(page->srPage.bitmaps[i].fileName);
+            drawImage.draw();
+        }
+    }
 
     if (!page->srPage.te.isEmpty())
     {
