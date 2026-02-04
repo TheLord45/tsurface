@@ -28,6 +28,210 @@
 
 using namespace ObjHandler;
 
+ShadowLabel::ShadowLabel(QWidget *parent)
+            : QLabel(parent)
+{
+    DECL_TRACER("ShadowLabel::ShadowLabel(QWidget *parent)");
+
+    setAttribute(Qt::WA_TranslucentBackground);
+    setStyleSheet("QLabel { background: transparent; }");
+}
+
+void ShadowLabel::setShadowType(int number)
+{
+    DECL_TRACER("ShadowLabel::setShadowType(int number)");
+
+    mTextEffect = number;
+    mStyle = TGraphics::Current().getEffectDetails(number);
+    updateEffect();
+}
+
+void ShadowLabel::setTextColor(const QColor &color)
+{
+    DECL_TRACER("ShadowLabel::setTextColor(const QColor &color)");
+
+    mTextColor = color;
+    update();
+}
+
+void ShadowLabel::setTextEffectolor(const QColor& color)
+{
+    DECL_TRACER("ShadowLabel::setTextEffectolor(const QColor& color)");
+
+    mTextEffectColor = color;
+    update();
+}
+
+// Outline: 1 - 4
+// Glow: 5 - 8
+// Soft Drop Shadow: 9 - 16
+// Medium Drop Shadow: 17 - 24
+// Hard Drop Shadow: 25 - 32
+// Soft Drop Shadow with outline: 33 - 40
+// Medium Drop Shadow with Outline: 41 - 48
+// Hard Drop Shadow with Outline: 49 - 56
+void ShadowLabel::paintEvent(QPaintEvent *event)
+{
+    DECL_TRACER("ShadowLabel::paintEvent(QPaintEvent *event)");
+
+    if ((mTextEffect >= 1 && mTextEffect <= 4) ||   // Outline
+        (mTextEffect >= 33 && mTextEffect <= 56))
+    {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setFont(font());
+        QPen pen(mTextEffectColor, mTextEffect);
+        p.setPen(pen);
+
+        for (int dx = ((mStyle.width / 2) * -1); dx <= (mStyle.width / 2); ++dx)
+        {
+            for (int dy = ((mStyle.height / 2) * -1); dy <= (mStyle.height / 2); ++dy)
+            {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                p.drawText(rect().translated(dx, dy), alignment(), text());
+            }
+        }
+
+        p.setPen(mTextColor);
+        p.drawText(rect(), alignment(), text());
+    }
+    else
+    {
+        if (graphicsEffect())
+        {
+            // Shadow effect active, just draw text with textColor
+            QPainter p(this);
+            p.setRenderHint(QPainter::Antialiasing);
+            p.setPen(mTextColor);
+            p.setFont(font());
+            p.drawText(rect(), alignment(), text());
+        }
+        else
+            QLabel::paintEvent(event);
+    }
+}
+
+void ShadowLabel::updateEffect()
+{
+    DECL_TRACER("ShadowLabel::updateEffect()");
+
+    setGraphicsEffect(nullptr);
+
+    if (mStyle.number != mTextEffect)
+        return;
+    // Outline: 1 - 4
+    // Glow: 5 - 8
+    if (mTextEffect >= 5 && mTextEffect <= 8)   // Glow
+    {
+        QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
+        shadow->setColor(mTextEffectColor);
+        qreal sigma = 0.0;
+
+        switch(mTextEffect)
+        {
+            case 5: sigma = 4.0; break;     // Glow-S
+            case 6: sigma = 8.0; break;     // Glow-M
+            case 7: sigma = 12.0; break;    // Glow-L
+            case 8: sigma = 16.0; break;    // Glow-X
+        }
+
+        shadow->setBlurRadius(sigma);
+        shadow->setOffset(0, 0);
+        update();
+        setGraphicsEffect(shadow);
+        return;
+    }
+
+    if (mTextEffect == 0 || (mTextEffect >= 1 && mTextEffect <= 8))
+    {
+        update();
+        return;
+    }
+
+    // Draw a shadow
+    // Calculate offset
+    if (mTextEffect >= 9 && mTextEffect <= 32)
+    {
+        QString stName = mStyle.name;
+        qsizetype pos = stName.lastIndexOf(" ");
+
+        if (pos > 0)
+            mOffset = stName.remove(0, pos+1).toInt();
+    }
+    else if (mTextEffect > 32)
+    {
+        if (mTextEffect > 48)
+            mOffset = mTextEffect - 48;
+        else if (mTextEffect > 40)
+            mOffset = mTextEffect - 40;
+        else
+            mOffset = mTextEffect - 32;
+    }
+
+    QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
+    shadow->setColor(mTextEffectColor);
+    // Soft Drop Shadow: 9 - 16
+    // Medium Drop Shadow: 17 - 24
+    // Hard Drop Shadow: 25 - 32
+    // Soft Drop Shadow with outline: 33 - 40
+    // Medium Drop Shadow with Outline: 41 - 48
+    // Hard Drop Shadow with Outline: 49 - 56
+    if ((mTextEffect >= 25 && mTextEffect <= 32) ||
+        (mTextEffect >= 49 && mTextEffect <= 56))
+        shadow->setBlurRadius(0);
+    else if ((mTextEffect >= 17 && mTextEffect <= 24) ||
+             (mTextEffect >= 41 && mTextEffect <= 48))
+        shadow->setBlurRadius(8);
+    else if ((mTextEffect >= 9 && mTextEffect <= 16) ||
+             (mTextEffect >= 33 && mTextEffect <= 40))
+        shadow->setBlurRadius(15);
+    else
+        shadow->setBlurRadius(0);
+
+    shadow->setOffset(mOffset, mOffset);
+    update();
+    setGraphicsEffect(shadow);
+}
+
+QPixmap ShadowLabel::makePixmapFromString(const QString& str)
+{
+    DECL_TRACER("ShadowLabel::makePixmapFromString(const QString& str)");
+    QString byte;
+    int pos = 1;
+    int x = 0, y = 0;
+    QPixmap px;
+    QImage img;
+
+    for (QChar c : str)
+    {
+        if ((pos % 2) == 0)
+        {
+            uint pixel = byte.toUInt(nullptr, 16);
+            byte.clear();
+            img.setPixel(x, y, pixel);
+            x++;
+
+            if (x >= mStyle.width)
+            {
+                x = 0;
+                y++;
+            }
+            else
+                x++;
+        }
+
+        byte.append(c);
+    }
+
+    px = QPixmap::fromImage(img);
+    return px;
+}
+
+//
+// -----------------------------------------------------------------
+//
 TDrawText::TDrawText(QWidget *widget)
     : mWidget(widget)
 {
@@ -71,7 +275,7 @@ bool TDrawText::draw()
     {
         if (obj->objectName() == LABEL_NAME)
         {
-            mLabel = static_cast<QLabel *>(obj);
+            mLabel = static_cast<ShadowLabel *>(obj);
             haveLabel = true;
             break;
         }
@@ -80,23 +284,22 @@ bool TDrawText::draw()
     if (!haveLabel)
     {
         MSG_DEBUG("Adding a new label to widget ...");
-        mLabel = new QLabel(mWidget);
+        mLabel = new ShadowLabel(mWidget);
         mLabel->setObjectName(LABEL_NAME);
-//        mLabel->setMargin(0);
-        mLabel->move(0, 0);
-        mLabel->setFixedSize(mWidget->size());
-        QRect rect = mLabel->rect();
-        MSG_DEBUG("Size of label: " << rect.x() << ", " << rect.y() << ", " << rect.width() << ", " << rect.height());
-
-//        QPalette palette(mWidget->palette());
-//        palette.setColor(QPalette::Window, Qt::transparent);
-//        mLabel->setPalette(palette);
+        mLabel->hide();
+        mLabel->setScaledContents(true);
+        mLabel->setGeometry(mWidget->rect());
         mLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+        mLabel->setAttribute(Qt::WA_TranslucentBackground);
+        mLabel->show();
     }
 
     mLabel->setFont(mFont);
     mLabel->setText(mText);
-    mLabel->setStyleSheet(QString("color: %1").arg(mColor.name(QColor::HexArgb)));
+    mLabel->setTextColor(mColor);
+    mLabel->setTextEffectolor(mTextEffectColor);
+    mLabel->setShadowType(mTextEffect);
+    mLabel->setStyleSheet(QString("background: transparent; color: %1").arg(mColor.name(QColor::HexArgb)));
     MSG_DEBUG("Using text color: " << mColor.name(QColor::HexArgb).toStdString());
 
     switch(mOrientation)
@@ -123,33 +326,6 @@ bool TDrawText::draw()
             mLabel->setAlignment(Qt::AlignCenter);
     }
 
-    if (mTextEffect > 0)
-        drawTextEffect(mTextEffect);
-
     mLabel->show();
     return true;
-}
-
-void TDrawText::drawTextEffect(int number)
-{
-    DECL_TRACER("TDrawText::drawTextEffect()");
-
-    Graphics::EFFECT_STYLE_t style = TGraphics::Current().getEffectDetails(number);
-
-    if (style.number != number)
-        return;
-
-    MSG_DEBUG("Using effect: " << number);
-    // Drop shadow
-    if (number >= 9 && number <= 32)
-    {
-        QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect;
-        shadow->setColor(mTextEffectColor);
-        shadow->setOffset(style.startx, style.starty);
-        shadow->setBlurRadius(style.width);
-        shadow->setEnabled(true);
-        mLabel->setGraphicsEffect(shadow);
-        MSG_DEBUG("Offset: " << style.startx << ", " << style.starty);
-        MSG_DEBUG("Radius: " << style.width);
-    }
 }

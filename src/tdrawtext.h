@@ -18,11 +18,36 @@
 #ifndef TDRAWTEXT_H
 #define TDRAWTEXT_H
 
-#include <QObject>
+#include <QWidget>
+#include <QLabel>
 
 #include "tobjecthandler.h"
+#include "tgraphics.h"
 
-class QLabel;
+class ShadowLabel : public QLabel
+{
+    Q_OBJECT
+
+    public:
+        ShadowLabel(QWidget *parent = nullptr);
+
+        void setShadowType(int number);
+        void setTextColor(const QColor &color);
+        void setTextEffectolor(const QColor& color);
+
+    protected:
+        void paintEvent(QPaintEvent *event) override;
+
+    private:
+        int mTextEffect{0};
+        QColor mTextColor{Qt::black};
+        QColor mTextEffectColor{Qt::red};
+        int mOffset{1};
+        Graphics::EFFECT_STYLE_t mStyle;
+
+        void updateEffect();
+        QPixmap makePixmapFromString(const QString& str);
+};
 
 class TDrawText
 {
@@ -39,9 +64,6 @@ class TDrawText
         void setTextEffect(int effect, const QColor& color) { mTextEffect = effect; mTextEffectColor = color; };
         bool draw();
 
-    protected:
-        void drawTextEffect(int number);
-
     private:
         QWidget *mWidget{nullptr};
         QFont mFont;
@@ -53,7 +75,7 @@ class TDrawText
         int mTextEffect{0};
         QColor mTextEffectColor{qRgb(0, 0, 0)};
 
-        QLabel *mLabel{nullptr};
+        ShadowLabel *mLabel{nullptr};
 };
 
 #endif // TDRAWTEXT_H
