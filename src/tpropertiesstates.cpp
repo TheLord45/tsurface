@@ -215,8 +215,6 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
     if (mBlocked)
         return nullptr;
 
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
     QTableWidget *table = new QTableWidget(parent);
     table->verticalHeader()->setVisible(false);
     table->horizontalHeader()->setVisible(false);
@@ -263,7 +261,7 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
     for (int row = 0; row < rows; ++row)
     {
         QTableWidgetItem *col0 = new QTableWidgetItem;
-        col0->setBackground(brush);
+        col0->setBackground(Qt::lightGray);
         col0->setText(getLeftColText(stype, 0, row));
         col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
         table->setItem(row, 0, col0);
@@ -307,7 +305,7 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
 
             case 5:
                 if (stype == STATE_PAGE)
-                    table->setCellWidget(row, 1, makeBitmapSelector(bitmapArrayToList(mPage.srPage.bitmaps), "PgBitmapSelector"));
+                    table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps, "PgBitmapSelector"));
                 else if (stype == STATE_POPUP)
                     table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PopupTextEffectColor"));
             break;
@@ -346,7 +344,7 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
                     table->resizeRowToContents(row);
                 }
                 else if (stype == STATE_POPUP)
-                    table->setCellWidget(row, 1, makeBitmapSelector(bitmapArrayToList(mPage.srPage.bitmaps), "PopupBitmapSelector"));
+                    table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps, "PopupBitmapSelector"));
             break;
 
             case 9:
@@ -538,6 +536,7 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
         mBlocked = true;
         QString objName = cbox->objectName();
         QString item = cbox->itemText(index);
+        addGradientLines(item, objName);
         setValue(objName, item);
         mBlocked = false;
     });
@@ -787,36 +786,104 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
     label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
-QList<ObjHandler::BITMAPS_t> TPropertiesStates::bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[])
+void TPropertiesStates::addGradientLines(const QString& gradient, const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[])");
+    DECL_TRACER("TPropertiesStates::addGradientLines(const QString& gradient, const QString& name)");
 
-    QList<ObjHandler::BITMAPS_t> list;
-
-    for (int i = 0; i < 5; ++i)
-    {
-        if (bitmaps[i].fileName.isEmpty())
-            continue;
-
-        list.append(bitmaps[i]);
-    }
-
-    return list;
-}
-
-void TPropertiesStates::bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& list, ObjHandler::BITMAPS_t *bitmaps[])
-{
-    DECL_TRACER("TPropertiesStates::bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& list, ObjHandler::BITMAPS_t *bitmaps[])");
-
-    if (!bitmaps)
+    if (gradient == mPage.srPage.ft)
         return;
 
-    for (int i = 0; i < qMin(5, list.size()); ++i)
-    {
-        if (list[i].fileName.isEmpty())
-            continue;
+    int insLine = 0;
+    int itemIdx = 0;
+    QString pre;
 
-        *bitmaps[i] = list[i];
+    if (name == "PgFillType")
+    {
+        insLine = 1;
+        pre = "Pg";
+    }
+    else
+    {
+        insLine = 3;
+
+        if (name == "PopupFillType")
+            pre = "Popup";
+    }
+    // TODO: Calculate itemIdx for each stage!
+
+    QTreeWidgetItem *root = mTreeWidget->invisibleRootItem();
+    QTreeWidgetItem *top = root->child(itemIdx);
+    QTableWidget *widget = static_cast<QTableWidget *>(mTreeWidget->itemWidget(top->child(0), 0));
+
+    if (!widget)
+    {
+        MSG_WARNING("Couldn't get the table widget!");
+        return;
+    }
+
+    MSG_DEBUG("Object name of widget: " << widget->objectName().toStdString());
+
+    if (mPage.srPage.ft == "radial" && gradient != "solid")
+    {
+        // TODO: Remove lines
+    }
+
+    if (gradient == "radial")
+    {
+        int cnt = 0;
+
+        for (int row = insLine; row < (insLine + 4); ++row, ++cnt)
+        {
+            widget->insertRow(row);
+            QTableWidgetItem *col0 = new QTableWidgetItem;
+            col0->setBackground(Qt::lightGray);
+            col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+            widget->setItem(row, 0, col0);
+
+            switch(cnt)
+            {
+                case 0:
+                    col0->setText(tr("Fill Gradient Colors"));
+                    widget->setCellWidget(row, 1, makeValueSelector(0, QString("%1FillGradientColors_%2").arg(pre).arg(row)));
+                break;
+
+                case 1:
+                    col0->setText(tr("GradientRadius"));
+                    widget->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gr, QString("%1GradientRadius_%2").arg(pre).arg(row)));
+                break;
+
+                case 2:
+                    col0->setText(tr("Gradient Center X%"));
+                    widget->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gx, QString("%1GradientCenterX_%2").arg(pre).arg(row)));
+                break;
+
+                case 3:
+                    col0->setText(tr("Gradient Center Y%"));
+                    widget->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gy, QString("%1GradientCenterY_%2").arg(pre).arg(row)));
+                break;
+            }
+        }
+
+        widget->resizeColumnsToContents();
+        mTreeWidget->resizeColumnToContents(0);
+    }
+    else
+    {
+        int cnt = 0;
+
+        for (int row = insLine; row < (insLine + 4); ++row, ++cnt)
+        {
+            widget->insertRow(row);
+            QTableWidgetItem *col0 = new QTableWidgetItem;
+            col0->setBackground(Qt::lightGray);
+            col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+            widget->setItem(row, 0, col0);
+            col0->setText(tr("Fill Gradient Colors"));
+            widget->setCellWidget(row, 1, makeValueSelector(0, QString("%1FillGradientColors_%2").arg(pre).arg(row)));
+        }
+
+        widget->resizeColumnsToContents();
+        mTreeWidget->resizeColumnToContents(0);
     }
 }
 
@@ -830,10 +897,10 @@ void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bit
 
     if (name == "PgBitmapSelector" || name == "PopupBitmapSelector")
     {
-        ObjHandler::BITMAPS_t *bm = mPage.srPage.bitmaps;
-        bitmapListToArray(bitmaps, &bm);
+        mPage.srPage.bitmaps = bitmaps;
         saveChangedData(&mPage, TBL_STATES);
         mChanged = false;
+        requestRedraw(&mPage);
     }
 }
 

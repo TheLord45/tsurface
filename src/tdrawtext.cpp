@@ -22,6 +22,7 @@
 
 #include "tdrawtext.h"
 #include "tgraphics.h"
+#include "tcanvaswidget.h"
 #include "terror.h"
 
 #define LABEL_NAME  "LabelText"
@@ -232,21 +233,21 @@ QPixmap ShadowLabel::makePixmapFromString(const QString& str)
 //
 // -----------------------------------------------------------------
 //
-TDrawText::TDrawText(QWidget *widget)
-    : mWidget(widget)
+TDrawText::TDrawText(TBASEOBJ_t *object)
+    : mObject(object)
 {
-    DECL_TRACER("TDrawText::TDrawText(QWidget *widget)");
+    DECL_TRACER("TDrawText::TDrawText(TBASEOBJ_t *object)");
 }
 
-TDrawText::TDrawText(QWidget *widget, const QString& text, const QFont& font, ORIENTATION ori, int x, int y)
-    : mWidget(widget),
+TDrawText::TDrawText(TBASEOBJ_t *object, const QString& text, const QFont& font, ORIENTATION ori, int x, int y)
+    : mObject(object),
       mText(text),
       mFont(font),
       mOrientation(ori),
       mX(x),
       mY(y)
 {
-    DECL_TRACER("TDrawText::TDrawText(QWidget *widget, const QString& text, const QFont& font, ORIENTATION ori, int x, int y)");
+    DECL_TRACER("TDrawText::TDrawText(TBASEOBJ_t *object, const QString& text, const QFont& font, ORIENTATION ori, int x, int y)");
 }
 
 void TDrawText::setAbolutePosition(int x, int y)
@@ -264,12 +265,12 @@ bool TDrawText::draw()
 {
     DECL_TRACER("TDrawText::draw()");
 
-    if (!mWidget || mText.isEmpty())
+    if (!mObject || !mObject->widget || mText.isEmpty())
         return false;
 
     MSG_DEBUG("Drawing text: " << mText.toStdString());
     bool haveLabel = false;
-    QObjectList objects = mWidget->children();
+    QObjectList objects = mObject->widget->children();
 
     for (QObject *obj : objects)
     {
@@ -284,11 +285,11 @@ bool TDrawText::draw()
     if (!haveLabel)
     {
         MSG_DEBUG("Adding a new label to widget ...");
-        mLabel = new ShadowLabel(mWidget);
+        mLabel = new ShadowLabel(mObject->widget);
         mLabel->setObjectName(LABEL_NAME);
         mLabel->hide();
         mLabel->setScaledContents(true);
-        mLabel->setGeometry(mWidget->rect());
+        mLabel->setGeometry(mObject->widget->rect());
         mLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
         mLabel->setAttribute(Qt::WA_TranslucentBackground);
         mLabel->show();
@@ -306,7 +307,7 @@ bool TDrawText::draw()
     {
         case ORI_ABSOLUT:
         {
-            QRect rect = mWidget->geometry();
+            QRect rect = mObject->widget->geometry();
             mLabel->setGeometry(QRect(mX, mY, rect.width() - mX, rect.height() - mY));
             mLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
         }

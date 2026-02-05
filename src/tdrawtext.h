@@ -52,8 +52,8 @@ class ShadowLabel : public QLabel
 class TDrawText
 {
     public:
-        TDrawText(QWidget *widget);
-        TDrawText(QWidget *widget, const QString& text, const QFont& font, ObjHandler::ORIENTATION ori=ObjHandler::ORI_CENTER_MIDDLE, int x=0, int y=0);
+        TDrawText(ObjHandler::TBASEOBJ_t *object);
+        TDrawText(ObjHandler::TBASEOBJ_t *object, const QString& text, const QFont& font, ObjHandler::ORIENTATION ori=ObjHandler::ORI_CENTER_MIDDLE, int x=0, int y=0);
 
         void setText(const QString& text) { mText = text; }
         void setFont(const QFont& font) { mFont = font; }
@@ -65,7 +65,7 @@ class TDrawText
         bool draw();
 
     private:
-        QWidget *mWidget{nullptr};
+        ObjHandler::TBASEOBJ_t *mObject{nullptr};
         QFont mFont;
         QString mText;
         ObjHandler::ORIENTATION mOrientation{ObjHandler::ORI_CENTER_MIDDLE};

@@ -114,7 +114,7 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
         page.height = height;
     }
 
-    page.widget = w;
+    page.baseObject.widget = w;
 
     QList<PAGE_t>::Iterator iter;
 
@@ -133,8 +133,8 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
                 iter->top = top;
             }
 
-            if (iter->widget && iter->widget != w)
-                iter->widget = w;
+            if (iter->baseObject.widget && iter->baseObject.widget != w)
+                iter->baseObject.widget = w;
 
             return iter->pageID;
         }
@@ -269,10 +269,10 @@ bool TPageHandler::bringToFront(int number)
     if (!page || !page->visible)
         return false;
 
-    if (page->widget && page->widget->parentWidget())
+    if (page->baseObject.widget && page->baseObject.widget->parentWidget())
     {
-        page->widget->parentWidget()->raise();
-        page->widget->parentWidget()->show();
+        page->baseObject.widget->parentWidget()->raise();
+        page->baseObject.widget->parentWidget()->show();
         return true;
     }
 
@@ -288,7 +288,7 @@ TCanvasWidget *TPageHandler::getWidget(int number)
     if (!page)
         return nullptr;
 
-    return page->widget;
+    return page->baseObject.widget;
 }
 
 void TPageHandler::setWidget(TCanvasWidget *w, int number)
@@ -303,7 +303,7 @@ void TPageHandler::setWidget(TCanvasWidget *w, int number)
     if (!page)
         return;
 
-    page->widget = w;
+    page->baseObject.widget = w;
 }
 
 QList<int> TPageHandler::getPageNumbers()
@@ -597,8 +597,8 @@ void TPageHandler::setSelectedToolToAllPages(TOOL t)
 
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
-        if (iter->widget && iter->visible)
-            iter->widget->setCurrentTool(t);
+        if (iter->baseObject.widget && iter->visible)
+            iter->baseObject.widget->setCurrentTool(t);
     }
 }
 
@@ -909,26 +909,23 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             jsr.insert("ec", s.ec.name(QColor::HexArgb));   // Text effect color
             INSERTJ(jsr, "bm", s.bm, "");                   // bitmap file name
             QJsonArray bitmaps;
-            bool haveBitmap = false;
+            int idx = 0;
 
-            for (int i = 0; i < 5; ++i)
+            for (ObjHandler::BITMAPS_t bitmap : s.bitmaps)
             {
                 QJsonObject bm;
 
-                if (!s.bitmaps[i].fileName.isEmpty())
-                {
-                    bm.insert("index", i);
-                    bm.insert("fileName", s.bitmaps[i].fileName);
-                    bm.insert("dynamic", s.bitmaps[i].dynamic);
-                    bm.insert("justification", s.bitmaps[i].justification);
-                    bm.insert("offsetX", s.bitmaps[i].offsetX);
-                    bm.insert("offsetY", s.bitmaps[i].offsetY);
-                    bitmaps.append(bm);
-                    haveBitmap = true;
-                }
+                bm.insert("index", idx);
+                bm.insert("fileName", bitmap.fileName);
+                bm.insert("dynamic", bitmap.dynamic);
+                bm.insert("justification", bitmap.justification);
+                bm.insert("offsetX", bitmap.offsetX);
+                bm.insert("offsetY", bitmap.offsetY);
+                bitmaps.append(bm);
+                idx++;
             }
 
-            if (haveBitmap)
+            if (!s.bitmaps.empty())
                 jsr.insert("bitmapEntries", bitmaps);
 
             if (!s.gradientColors.empty())
@@ -997,29 +994,23 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
     sr.insert("ec", srPage.ec.name(QColor::HexArgb));   // Text effect color
     INSERTJ(sr, "bm", srPage.bm, "");                         // bitmap file name
     QJsonArray bitmaps;
-    bool haveBitmap = false;
+    int idx = 0;
 
-    for (int i = 0; i < 5; ++i)
+    for (ObjHandler::BITMAPS_t bitmap : srPage.bitmaps)
     {
         QJsonObject bm;
-
-        if (!srPage.bitmaps[i].fileName.isEmpty())
-        {
-            bm.insert("index", i);
-            bm.insert("fileName", srPage.bitmaps[i].fileName);
-            bm.insert("dynamic", srPage.bitmaps[i].dynamic);
-            bm.insert("justification", srPage.bitmaps[i].justification);
-            bm.insert("offsetX", srPage.bitmaps[i].offsetX);
-            bm.insert("offsetY", srPage.bitmaps[i].offsetY);
-            bm.insert("width", srPage.bitmaps[i].width);
-            bm.insert("height", srPage.bitmaps[i].height);
-            bitmaps.append(bm);
-            haveBitmap = true;
-        }
+        bm.insert("index", idx);
+        bm.insert("fileName", bitmap.fileName);
+        bm.insert("dynamic", bitmap.dynamic);
+        bm.insert("justification", bitmap.justification);
+        bm.insert("offsetX", bitmap.offsetX);
+        bm.insert("offsetY", bitmap.offsetY);
+        bitmaps.append(bm);
+        idx++;
     }
 
-    if (haveBitmap)
-        sr.insert("bitmapEntries", bitmaps);
+    if (!srPage.bitmaps.empty())
+        sr.insert("bitmaps", bitmaps);
 
     if (!srPage.gradientColors.empty())
     {
@@ -1156,18 +1147,13 @@ void TPageHandler::parsePage(const QJsonObject& page)
     for (int i = 0; i < bitmaps.count(); ++i)
     {
         QJsonObject entry = bitmaps[i].toObject();
-        int idx = entry.value("index").toInt(-1);
-
-        if (idx < 0)
-            continue;
-
-        pg.srPage.bitmaps[idx].fileName = entry.value("fileName").toString();
-        pg.srPage.bitmaps[idx].dynamic = entry.value("dynamic").toBool(false);
-        pg.srPage.bitmaps[idx].justification = static_cast<ObjHandler::ORIENTATION>(entry.value("justification").toInt(ObjHandler::ORI_CENTER_MIDDLE));
-        pg.srPage.bitmaps[idx].offsetX = entry.value("offsetX").toInt(0);
-        pg.srPage.bitmaps[idx].offsetY = entry.value("offsetY").toInt(0);
-        pg.srPage.bitmaps[idx].width = entry.value("width").toInt(0);
-        pg.srPage.bitmaps[idx].height = entry.value("height").toInt(0);
+        ObjHandler::BITMAPS_t bm;
+        bm.fileName = entry.value("fileName").toString();
+        bm.dynamic = entry.value("dynamic").toBool(false);
+        bm.justification = static_cast<ObjHandler::ORIENTATION>(entry.value("justification").toInt(ObjHandler::ORI_CENTER_MIDDLE));
+        bm.offsetX = entry.value("offsetX").toInt(0);
+        bm.offsetY = entry.value("offsetY").toInt(0);
+        pg.srPage.bitmaps.append(bm);
     }
 
     QJsonArray gradientColors = srPage.value("gradientColors").toArray();
@@ -1361,11 +1347,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
                 m.justification = static_cast<ObjHandler::ORIENTATION>(bm.value("justification").toInt(ObjHandler::ORIENTATION::ORI_CENTER_MIDDLE));
                 m.offsetX = bm.value("offsetX").toInt(0);
                 m.offsetY = bm.value("offsetY").toInt(0);
-
-                if (m.index >= 0 && m.index < 5)
-                    s.bitmaps[m.index] = m;
-                else
-                    s.bitmaps[k] = m;
+                s.bitmaps.append(m);
             }
 
             QJsonArray gradients = jsr.value("gradientColors").toArray();

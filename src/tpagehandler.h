@@ -106,7 +106,7 @@ namespace Page
         QColor ct;              // Text Color
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
-        ObjHandler::BITMAPS_t bitmaps[5];   // G5 table of bitmaps
+        QList<ObjHandler::BITMAPS_t> bitmaps;   // G5 table of bitmaps. Limited to 5 max.
         QList<QColor> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
@@ -138,11 +138,11 @@ namespace Page
 
     typedef struct PAGE_t
     {
+        ObjHandler::TBASEOBJ_t baseObject;      // Internal use; Contains pointers for drawing
         PAGE_TYPE popupType{PT_UNKNOWN};        // The type of the popup (popup only)
         int pageID{0};                          // Unique ID of popup/page
         QString name;                           // The name of the popup/page
         QString description;                    // Optional description of page
-        TCanvasWidget *widget{nullptr};         // Internal use: A pointer to the MDI widget
         bool visible{false};                    // Internal use: TRUE = The page/popup is visible as MDI window
         bool gridVisible{false};                // Internal use: TRUE = Grid is visible
         bool snapToGrid{true};                  // Internal use: FALSE = No snap to grid

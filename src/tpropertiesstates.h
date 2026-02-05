@@ -87,8 +87,7 @@ class TPropertiesStates : public QObject
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
-        QList<ObjHandler::BITMAPS_t> bitmapArrayToList(const ObjHandler::BITMAPS_t bitmaps[]);
-        void bitmapListToArray(const QList<ObjHandler::BITMAPS_t>& botmaps, ObjHandler::BITMAPS_t *bitmaps[]);
+        void addGradientLines(const QString& gradient, const QString& name);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};

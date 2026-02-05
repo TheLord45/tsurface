@@ -57,6 +57,7 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
 {
     DECL_TRACER("TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)");
 
+    mBitmaps = bm;
     ui->treeWidgetBitmaps->clear();
     ui->treeWidgetBitmaps->setColumnCount(1);
     ui->treeWidgetBitmaps->setHeaderHidden(true);
@@ -68,7 +69,7 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
         // Top item
         QTreeWidgetItem *top = new QTreeWidgetItem(ui->treeWidgetBitmaps);
         top->setData(0, Qt::UserRole, i);
-        top->setText(i, QString("Bitmap %1").arg(i+1));
+        top->setText(0, QString("Bitmap %1").arg(i+1));
         // Item for the table
         QTreeWidgetItem *item = new QTreeWidgetItem(top);
         item->setFirstColumnSpanned(true);
@@ -81,6 +82,7 @@ void TBitmapDialog::setBitmaps(const QList<BITMAPS_t>& bm)
     }
 
     ui->treeWidgetBitmaps->expandAll();
+    ui->treeWidgetBitmaps->resizeColumnToContents(0);
 }
 
 void TBitmapDialog::on_pushButtonAdd_clicked()
@@ -136,6 +138,11 @@ void TBitmapDialog::on_pushButtonDelete_clicked()
     if (mSelected < 0 || mSelected >= 5)
         return;
 
+    if (mBitmaps.size() <= mSelected)
+    {
+        MSG_DEBUG("The number of stored bitmaps is inconsistent! Have " << mBitmaps.size() << " entries but selection is " << mSelected);
+        return;
+    }
     // If we get a result here, we get the top level items!
     QList<QTreeWidgetItem *> list = ui->treeWidgetBitmaps->findItems(QString("Bitmap %1").arg(mSelected+1), Qt::MatchExactly, 0);
 
@@ -328,14 +335,12 @@ void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& da
         }
 
         MSG_DEBUG("Object name of widget: " << widget->objectName().toStdString());
-        QBrush brush;
-        brush.setColor(Qt::GlobalColor::lightGray);
 
         for (int row = 2; row < 4; ++row)
         {
             widget->insertRow(row);
             QTableWidgetItem *col0 = new QTableWidgetItem;
-            col0->setBackground(brush);
+            col0->setBackground(Qt::lightGray);
             col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
             widget->setItem(row, 0, col0);
 
@@ -343,12 +348,12 @@ void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& da
             {
                 case 2:
                     col0->setText(tr("Bitmap X Offset"));
-                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetX, QString("XOffset_%1").arg(row)));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetX, QString("XOffset_%1").arg(itemIdx)));
                 break;
 
                 case 3:
                     col0->setText(tr("Bitmap Y Offset"));
-                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetX, QString("YOffset_%1").arg(row)));
+                    widget->setCellWidget(row, 1, makeValueSelector(mBitmaps[itemIdx].offsetY, QString("YOffset_%1").arg(itemIdx)));
                 break;
             }
         }
@@ -381,9 +386,6 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)
 {
     DECL_TRACER("TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)");
 
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
-
     QTableWidget *table = new QTableWidget(this);
     table->setObjectName(bm.fileName);
     table->verticalHeader()->setVisible(false);
@@ -404,7 +406,7 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)
     for (int row = 0; row < rows; ++row)
     {
         QTableWidgetItem *col0 = new QTableWidgetItem;
-        col0->setBackground(brush);
+        col0->setBackground(Qt::lightGray);
         col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
         table->setItem(row, 0, col0);
 
@@ -427,7 +429,7 @@ QTableWidget *TBitmapDialog::createTable(const BITMAPS_t& bm, int idx)
 
             case 3:
                 col0->setText(tr("Bitmap Y Offset"));
-                table->setCellWidget(row, 1, makeValueSelector(bm.offsetX, QString("YOffset_%1").arg(idx)));
+                table->setCellWidget(row, 1, makeValueSelector(bm.offsetY, QString("YOffset_%1").arg(idx)));
             break;
         }
     }
@@ -467,6 +469,7 @@ QSpinBox *TBitmapDialog::makeValueSelector(int value, const QString& name)
 
     QSpinBox *spin = new QSpinBox;
     spin->setObjectName(name);
+    spin->setRange(0, 10000);
     spin->setValue(value);
 
     connect(spin, &QSpinBox::valueChanged, [this, spin](int value) { setValue(spin->objectName(), value); });
@@ -477,5 +480,16 @@ void TBitmapDialog::setValue(const QString& name, const QVariant& value)
 {
     DECL_TRACER("TBitmapDialog::setValue(const QString& name, const QVariant& value)");
 
-}
+    int bmIdx = getObjectID(name);
 
+    if (bmIdx >= mBitmaps.size())
+    {
+        MSG_WARNING("Invalid bitmap index " << bmIdx);
+        return;
+    }
+
+    if (name.startsWith("XOffset_"))
+        mBitmaps[bmIdx].offsetX = value.toInt();
+    else
+        mBitmaps[bmIdx].offsetY = value.toInt();
+}

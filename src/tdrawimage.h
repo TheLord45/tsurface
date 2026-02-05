@@ -24,21 +24,16 @@
 class TDrawImage
 {
     public:
-        TDrawImage(const QString& file, QWidget *widget);
+        TDrawImage(const QList<ObjHandler::BITMAPS_t>& bitmaps, ObjHandler::TBASEOBJ_t *object);
 
-        void setFile(const QString& file) { mFileName = file; };
-        void setPosition(ObjHandler::ORIENTATION ori, int x=0, int y=0);
+        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps) { mBitmaps = bitmaps; };
         void setOpacity(int oo);
         void draw();
 
     private:
-        QString mFileName;
-        QWidget *mWidget{nullptr};
-        QPixmap mPixmap;
-        ObjHandler::ORIENTATION mOrientation{ObjHandler::ORI_CENTER_MIDDLE};
-        int mX{0};
-        int mY{0};
-        int mOpacity;
+        ObjHandler::TBASEOBJ_t *mObject{nullptr};
+        QList<ObjHandler::BITMAPS_t> mBitmaps;
+        int mOpacity{-1};
 };
 
 #endif // TDRAWIMAGE_H

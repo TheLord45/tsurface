@@ -23,6 +23,9 @@
 
 #include "tresizablewidget.h"
 
+class TCanvasWidget;
+class QLabel;
+
 namespace ObjHandler
 {
     typedef enum ORIENTATION
@@ -228,7 +231,7 @@ namespace ObjHandler
         QColor ct;              // Text Color
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
-        BITMAPS_t bitmaps[5];   // G5 table of bitmaps
+        QList<BITMAPS_t> bitmaps;   // G5 table of bitmaps. Limited to 5 max.
         QList<QString> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
@@ -351,9 +354,16 @@ namespace ObjHandler
         LIST_SORT_OVERRIDE
     }LIST_SORT;
 
+    typedef struct TBASEOBJ_t
+    {
+        TCanvasWidget *widget{nullptr};
+        QLabel *qobject{nullptr};
+        QPixmap pixmap;
+    }TBASEOBJ_t;
+
     typedef struct TOBJECT_t
     {
-        TResizableWidget *w{nullptr};   // Internal use: Pointer to object.
+        TBASEOBJ_t baseObject;  // Internal use: Pointer to object.
         BUTTONTYPE type;        // The type of the button
         int bi{0};              // button ID
         QString na;             // name
@@ -438,10 +448,10 @@ class TObjectHandler
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
 
         int getButtonIndex() { return mObject.bi; }
-        void setObject(TResizableWidget *w) { mObject.w = w; }
+        void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
         ObjHandler::TOBJECT_t& getObject() { return mObject; }
-        TResizableWidget *getObjectWidget() { return mObject.w; }
+        TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
 
         inline void setSize(const QRect& rect)
         {

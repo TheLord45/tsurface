@@ -49,6 +49,7 @@
 #include "moc_tsurface.cpp"
 
 namespace fs = std::filesystem;
+using namespace ObjHandler;
 using std::cout;
 using std::endl;
 using std::bind;
@@ -260,23 +261,23 @@ void TSurface::addObject(int id, QPoint pt)
 
     Page::PAGE_t page = TPageHandler::Current().getPage(id);
 
-    if (page.pageID <= 0 || !page.widget || !page.visible)
+    if (page.pageID <= 0 || !page.baseObject.widget || !page.visible)
         return;
 
     QList<ObjHandler::TOBJECT_t> olist = TPageHandler::Current().getObjectList(page);
     int btNumber = getNextObjectNumber(olist);
     ObjHandler::TOBJECT_t object = TPageHandler::Current().initNewObject(btNumber, QString("Button %1").arg(btNumber));
-    QWidget* content = new QWidget(page.widget);
+    QWidget* content = new QWidget(page.baseObject.widget);
     QString objName = QString("Object_%1").arg(btNumber);
     MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
     content->setStyleSheet(QString("background: %1")
                                .arg(object.sr[0].cf.name()));
 
-    TResizableWidget* wrap = new TResizableWidget(content, page.widget);
+    TResizableWidget* wrap = new TResizableWidget(content, page.baseObject.widget);
     wrap->setMinimumSize(40, 40);
-    wrap->setGridSize(page.widget->gridSize());
-    wrap->setSnapToGrid(page.widget->snapEnabled());
+    wrap->setGridSize(page.baseObject.widget->gridSize());
+    wrap->setSnapToGrid(page.baseObject.widget->snapEnabled());
     wrap->setGeometry(pt.x(), pt.y(), 40, 40);
     wrap->show();
     wrap->setId(btNumber);
@@ -286,7 +287,7 @@ void TSurface::addObject(int id, QPoint pt)
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
     // Add to list
     TObjectHandler *o = new TObjectHandler(ObjHandler::GENERAL, btNumber, objName);
-    o->setObject(wrap);
+    o->setObject(page.baseObject.widget);
     o->setObject(object);
     o->setSize(wrap->geometry());
     TPageHandler::Current().appendObject(page.pageID, o);
@@ -1278,7 +1279,7 @@ void TSurface::onActionShowHideGrid(bool checked)
     if (page.pageID <= 0)
         return;
 
-    page.widget->setShowGrid(checked);
+    page.baseObject.widget->setShowGrid(checked);
     TPageHandler::Current().setGridVisible(page.pageID, checked);
 
     if (mActionShowHideGrid->isChecked() != checked)
@@ -1301,8 +1302,8 @@ void TSurface::onActionSnapToGrid(bool checked)
     if (page.pageID <= 0)
         return;
 
-    page.widget->setSnapEnabled(checked);
-    applyGridToChildren(page.widget);
+    page.baseObject.widget->setSnapEnabled(checked);
+    applyGridToChildren(page.baseObject.widget);
     TPageHandler::Current().setSnapToGrid(page.pageID, checked);
 
     if (mActionSnapToGrid->isChecked() != checked)
@@ -1404,7 +1405,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
         // TODO: Add code to draw all objects
-        pg.widget = widget;
+        pg.baseObject.widget = widget;
         onRedrawRequest(&pg);
     }
 }
@@ -1604,24 +1605,15 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
 {
     DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
 
-    if (!page->srPage.bitmaps[0].fileName.isEmpty())
+    if (!page->srPage.bitmaps.empty())
     {
-        TDrawImage drawImage(page->srPage.bitmaps[0].fileName, page->widget);
+        TDrawImage drawImage(page->srPage.bitmaps, &page->baseObject);
         drawImage.draw();
-        // TODO: Add code to draw the bitmap stake
-        for (int i = 1; i < 5; ++i)
-        {
-            if (page->srPage.bitmaps[i].fileName.isEmpty())
-                continue;
-
-            drawImage.setFile(page->srPage.bitmaps[i].fileName);
-            drawImage.draw();
-        }
     }
 
     if (!page->srPage.te.isEmpty())
     {
-        TDrawText dt(page->widget, page->srPage.te, page->srPage.ff, page->srPage.jt, page->srPage.tx, page->srPage.ty);
+        TDrawText dt(&page->baseObject, page->srPage.te, page->srPage.ff, page->srPage.jt, page->srPage.tx, page->srPage.ty);
         dt.setFontSize(page->srPage.fs);
         dt.setTextColor(page->srPage.ct);
         dt.setTextEffect(page->srPage.et, page->srPage.ec);
@@ -1672,10 +1664,10 @@ void TSurface::keyPressEvent(QKeyEvent *event)
     {
         Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
 
-        if (page.pageID <= 0 || !page.widget)
+        if (page.pageID <= 0 || !page.baseObject.widget)
             return;
 
-        page.widget->removeSelected();
+        page.baseObject.widget->removeSelected();
         event->accept();
     }
 }
