@@ -18,27 +18,32 @@
 #ifndef TELEMENTGRADIENTCOLORS_H
 #define TELEMENTGRADIENTCOLORS_H
 
-#include <QObject>
+#include <QWidget>
 
 class QTableWidget;
+class QHBoxLayout;
 
-class TElementGradientColors :public QObject
+class TElementGradientColors : public QWidget
 {
     Q_OBJECT
 
     public:
         TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent=nullptr);
 
+    signals:
+        void gradientColorChanged(QList<QColor>& colors, const QString& name);
+
     protected:
         void onPushButtonClicked();
 
     private:
+        void createLine();
+
         QList<QColor> mGradients;
         QString mName;
         QWidget *mParent{nullptr};
         QTableWidget *mTable{nullptr};
-
-        QWidget *mBase{nullptr};
+        QHBoxLayout *mLayout{nullptr};
 };
 
 #endif // TELEMENTGRADIENTCOLORS_H

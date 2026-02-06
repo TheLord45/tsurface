@@ -20,10 +20,11 @@
 #include <QPushButton>
 
 #include "telementgradientcolors.h"
+#include "tgradientcolordialog.h"
 #include "terror.h"
 
 TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent)
-    : QObject(parent),
+    : QWidget(parent),
       mGradients(colors),
       mName(name),
       mParent(parent)
@@ -33,28 +34,71 @@ TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, cons
     if (!name.isEmpty())
         setObjectName(name);
 
-    mBase = new QWidget(parent);
-    QHBoxLayout *layout = new QHBoxLayout(mBase);
-    int itemNumber = 0;
-
-    for (QColor color : colors)
+    if (colors.empty())
     {
-        QLabel *item = new QLabel;
-        item->setMinimumWidth(35);
-        item->setObjectName(QString("Color_%1_%2").arg(itemNumber).arg(color.name(QColor::HexArgb)));
-        item->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
-        layout->addWidget(item);
+        mGradients.append(Qt::gray);
+        mGradients.append(Qt::white);
     }
 
-    layout->addStretch();
-    QPushButton *button = new QPushButton("...");
-    button->setFixedWidth(30);
-    layout->addWidget(button);
-
-    connect(button, &QPushButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
+    setContentsMargins(0, 0, 0, 0);
+    createLine();
 }
 
 void TElementGradientColors::onPushButtonClicked()
 {
     DECL_TRACER("TElementGradientColors::onPushButtonClicked()");
+
+    TGradientColorDialog dialog(mGradients, mParent);
+
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    mGradients = dialog.getColors();
+    // Insert all labels again.
+    createLine();
+}
+
+void TElementGradientColors::createLine()
+{
+    DECL_TRACER("TElementGradientColors::createLine()");
+
+    if (mLayout)
+    {
+        // Delete all widget contained by the layout
+        QList<QWidget*> childs = findChildren<QWidget*>();
+        MSG_DEBUG("Found " << childs.size() << " childs");
+
+        for (QWidget *item : childs)
+        {
+            MSG_DEBUG("Try to remove object \"" << item->objectName().toStdString() << "\"");
+
+            mLayout->removeWidget(item);
+            delete item;
+        }
+    }
+    else
+        mLayout = new QHBoxLayout(this);
+
+    mLayout->setObjectName("Layout");
+    mLayout->setContentsMargins(0, 0, 0, 0);
+    int itemNumber = 0;
+
+    for (QColor color : mGradients)
+    {
+        QLabel *item = new QLabel;
+        item->setMinimumWidth(35);
+        item->setObjectName(QString("Color_%1_%2").arg(itemNumber).arg(color.name(QColor::HexArgb)));
+        item->setFrameShape(QFrame::Box);
+        item->setMargin(0);
+        item->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
+        mLayout->addWidget(item);
+        itemNumber++;
+    }
+
+    mLayout->addStretch();
+    QPushButton *button = new QPushButton("...");
+    button->setFixedWidth(30);
+    mLayout->addWidget(button);
+
+    connect(button, &QPushButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
 }

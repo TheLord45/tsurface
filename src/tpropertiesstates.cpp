@@ -37,6 +37,7 @@
 #include "telementwidgetfont.h"
 #include "telementtexteffect.h"
 #include "telementbordername.h"
+#include "telementgradientcolors.h"
 #include "terror.h"
 
 using namespace Page;
@@ -189,7 +190,7 @@ void TPropertiesStates::createPage()
 
         QTableWidget *table = createTableWidget(STATE_PAGE);
         mTreeWidget->setItemWidget(item, 0, table);
-        mTreeWidget->expandAll();
+        addGradientLines(mPage.srPage.ft, "PgFillType", true);
     }
     else if (mPage.popupType == PT_POPUP)
     {
@@ -202,7 +203,7 @@ void TPropertiesStates::createPage()
 
         QTableWidget *table = createTableWidget(STATE_POPUP, mTreeWidget);
         mTreeWidget->setItemWidget(item, 0, table);
-        mTreeWidget->expandAll();
+        addGradientLines(mPage.srPage.ft, "PopupFillType", true);
     }
 
     mInitialized = true;
@@ -719,6 +720,15 @@ TElementWidgetCombo *TPropertiesStates::makeWordWrap(bool ww, const QString& nam
     return cbox;
 }
 
+TElementGradientColors *TPropertiesStates::makeGradientColors(const QList<QColor>& color, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeGradientColors(const QList<QColor>& color, const QString& name)");
+
+    TElementGradientColors *grad = new TElementGradientColors(color, name, mParent);
+    connect(grad, &TElementGradientColors::gradientColorChanged, this, &TPropertiesStates::onGradientColorChanged);
+    return grad;
+}
+
 QFont TPropertiesStates::chooseFont(const QFont& font)
 {
     DECL_TRACER("TPropertiesStates::chooseFont(const QFont& font)");
@@ -786,11 +796,11 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
     label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
-void TPropertiesStates::addGradientLines(const QString& gradient, const QString& name)
+void TPropertiesStates::addGradientLines(const QString& gradient, const QString& name, bool init)
 {
-    DECL_TRACER("TPropertiesStates::addGradientLines(const QString& gradient, const QString& name)");
+    DECL_TRACER("TPropertiesStates::addGradientLines(const QString& gradient, const QString& name, bool init)");
 
-    if (gradient == mPage.srPage.ft)
+    if (init && gradient == "solid")
         return;
 
     int insLine = 0;
@@ -801,13 +811,22 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
     {
         insLine = 1;
         pre = "Pg";
+
+        if (!init && gradient == mPage.srPage.ft)
+            return;
+
     }
     else
     {
         insLine = 3;
 
         if (name == "PopupFillType")
+        {
             pre = "Popup";
+
+            if (!init && gradient == mPage.srPage.ft)
+                return;
+        }
     }
     // TODO: Calculate itemIdx for each stage!
 
@@ -822,10 +841,35 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
     }
 
     MSG_DEBUG("Object name of widget: " << widget->objectName().toStdString());
-
+    // Remove the lines first, if there are any.
     if (mPage.srPage.ft == "radial" && gradient != "solid")
     {
-        // TODO: Remove lines
+        bool haveRow = false;
+
+        do
+        {
+            haveRow = false;
+            int rows = widget->rowCount();
+
+            for (int i = 0; i < rows; ++i)
+            {
+                QWidget *w = widget->cellWidget(i, 1);
+
+                if (!w)
+                    continue;
+
+                QString name = w->objectName();
+
+                if (name.contains("FillGradientColors") || name.contains("GradientRadius") || name.contains("GradientCenter"))
+                {
+                    widget->removeRow(i);
+                    widget->setRowCount(rows-1);
+                    haveRow = true;
+                    break;
+                }
+            }
+        }
+        while (haveRow);
     }
 
     if (gradient == "radial")
@@ -844,7 +888,7 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
             {
                 case 0:
                     col0->setText(tr("Fill Gradient Colors"));
-                    widget->setCellWidget(row, 1, makeValueSelector(0, QString("%1FillGradientColors_%2").arg(pre).arg(row)));
+                    widget->setCellWidget(row, 1, makeGradientColors(mPage.srPage.gradientColors, QString("%1FillGradientColors_%2").arg(pre).arg(row)));
                 break;
 
                 case 1:
@@ -939,4 +983,16 @@ void TPropertiesStates::onWordWrapChanged(const QString& text, const QVariant& d
     DECL_TRACER("TPropertiesStates::onWordWrapChanged(const QString& text, const QVariant& data, const QString& name)");
 
     setValue(name, data);
+}
+
+void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, const QString& name)");
+
+    if (name == "PgFillType" || name == "PopupFillType")
+        mPage.srPage.gradientColors = colors;
+
+    saveChangedData(&mPage, TBL_STATES);
+    mChanged = false;
+    requestRedraw(&mPage);
 }

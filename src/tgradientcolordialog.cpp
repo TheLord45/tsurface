@@ -33,15 +33,33 @@ TGradientColorDialog::TGradientColorDialog(const QList<QColor>& colors, QWidget 
 
     ui->setupUi(this);
 
-    ui->tableWidgetColors->setRowCount(colors.size());
+    ui->pushButtonDelete->setDisabled(true);
+    ui->pushButtonMoveUp->setDisabled(true);
+    ui->pushButtonMoveDown->setDisabled(true);
+
+    createTable();
+}
+
+TGradientColorDialog::~TGradientColorDialog()
+{
+    DECL_TRACER("TGradientColorDialog::~TGradientColorDialog()");
+
+    delete ui;
+}
+
+void TGradientColorDialog::createTable()
+{
+    DECL_TRACER("TGradientColorDialog::createTable()");
+
+    ui->tableWidgetColors->setRowCount(mColors.size());
     int row = 0;
 
-    for (QColor color : colors)
+    for (QColor color : mColors)
     {
         QTableWidgetItem *col0 = new QTableWidgetItem;
         col0->setBackground(Qt::lightGray);
         col0->setText(tr("Color %1").arg(row+1));
-//        col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+        //        col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
         ui->tableWidgetColors->setItem(row, 0, col0);
         ui->tableWidgetColors->setCellWidget(row, 1, makeColorSelector(color, row));
         row++;
@@ -51,19 +69,14 @@ TGradientColorDialog::TGradientColorDialog(const QList<QColor>& colors, QWidget 
     ui->tableWidgetColors->resizeColumnsToContents();
 }
 
-TGradientColorDialog::~TGradientColorDialog()
-{
-    DECL_TRACER("TGradientColorDialog::TGradientColorDialog(const QList<QColor>& colors, QWidget *parent)");
-
-    delete ui;
-}
-
 QWidget *TGradientColorDialog::makeColorSelector(const QColor& color, int row)
 {
     DECL_TRACER("TGradientColorDialog::makeColorSelector(const QColor& color, int row)");
 
-    QWidget *widget = new QWidget;
+    QWidget *widget = new QWidget(ui->tableWidgetColors);
+    widget->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
 
     QLabel *colLabel = new QLabel;
     colLabel->setFixedWidth(35);
@@ -104,6 +117,24 @@ void TGradientColorDialog::updateRow(const QColor& color, int row)
     ui->tableWidgetColors->setCellWidget(row, 1, makeColorSelector(color, row));
 }
 
+void TGradientColorDialog::deselectAll()
+{
+    DECL_TRACER("TGradientColorDialog::deselctAll()");
+
+    QList<QTableWidgetSelectionRange> list = ui->tableWidgetColors->selectedRanges();
+
+    if (list.empty())
+        return;
+
+    for (QTableWidgetSelectionRange sel : list)
+        ui->tableWidgetColors->setRangeSelected(sel, false);
+
+    mSelectedRow = -1;
+    ui->pushButtonDelete->setDisabled(true);
+    ui->pushButtonMoveUp->setDisabled(true);
+    ui->pushButtonMoveDown->setDisabled(true);
+}
+
 void TGradientColorDialog::on_pushButtonAdd_clicked()
 {
     DECL_TRACER("TGradientColorDialog::on_pushButtonAdd_clicked()");
@@ -123,6 +154,7 @@ void TGradientColorDialog::on_pushButtonAdd_clicked()
     col0->setText(tr("Color %1").arg(row+1));
     ui->tableWidgetColors->setItem(row, 0, col0);
     ui->tableWidgetColors->setCellWidget(row, 1, makeColorSelector(col, row));
+    deselectAll();
 }
 
 void TGradientColorDialog::on_pushButtonDelete_clicked()
@@ -136,6 +168,7 @@ void TGradientColorDialog::on_pushButtonDelete_clicked()
         ui->pushButtonDelete->setDisabled(true);
         ui->pushButtonMoveUp->setDisabled(true);
         ui->pushButtonMoveDown->setDisabled(true);
+        MSG_DEBUG("No line selected");
         return;
     }
 
@@ -148,62 +181,91 @@ void TGradientColorDialog::on_pushButtonDelete_clicked()
     }
 
     mColors.remove(row);
-    ui->tableWidgetColors->removeRow(row);
-    // Renumber column 0
-    for (int i = 0; i < mColors.size(); ++i)
-        ui->tableWidgetColors->item(i, 0)->setText(tr("Color %1").arg(i+1));
+    ui->tableWidgetColors->clear();
+    createTable();
 
-    ui->pushButtonDelete->setDisabled(true);
-    ui->pushButtonMoveUp->setDisabled(true);
-    ui->pushButtonMoveDown->setDisabled(true);
+    deselectAll();
 }
 
 void TGradientColorDialog::on_pushButtonMoveUp_clicked()
 {
     DECL_TRACER("TGradientColorDialog::on_pushButtonMoveUp_clicked()");
 
-    QList<QTableWidgetItem *> selItems = ui->tableWidgetColors->selectedItems();
-
-    if (selItems.empty())
+    if (mSelectedRow < 0 || mSelectedRow >= mColors.size())
     {
         ui->pushButtonDelete->setDisabled(true);
         ui->pushButtonMoveUp->setDisabled(true);
         ui->pushButtonMoveDown->setDisabled(true);
+        MSG_DEBUG("No line selected");
         return;
     }
 
-    int selRow = selItems[0]->row();
-//    ui->tableWidgetColors->t
+    if (mSelectedRow == 0)
+    {
+        ui->pushButtonMoveUp->setDisabled(true);
+        ui->pushButtonMoveDown->setEnabled(true);
+        return;
+    }
+
+    QTableWidgetItem *col1 = ui->tableWidgetColors->takeItem(mSelectedRow, 1);
+    QTableWidgetItem *col2 = ui->tableWidgetColors->takeItem(mSelectedRow-1, 1);
+
+    ui->tableWidgetColors->setItem(mSelectedRow, 1, col2);
+    ui->tableWidgetColors->setItem(mSelectedRow-1, 1, col1);
+
+    deselectAll();
 }
 
 void TGradientColorDialog::on_pushButtonMoveDown_clicked()
 {
     DECL_TRACER("TGradientColorDialog::on_pushButtonMoveDown_clicked()");
 
-    QList<QTableWidgetItem *> selItems = ui->tableWidgetColors->selectedItems();
-
-    if (selItems.empty())
+    if (mSelectedRow < 0 || mSelectedRow >= mColors.size())
     {
         ui->pushButtonDelete->setDisabled(true);
         ui->pushButtonMoveUp->setDisabled(true);
         ui->pushButtonMoveDown->setDisabled(true);
+        MSG_DEBUG("No line selected");
         return;
     }
+
+    if (mSelectedRow >= mColors.size())
+    {
+        ui->pushButtonMoveUp->setEnabled(true);
+        ui->pushButtonMoveDown->setDisabled(true);
+        return;
+    }
+
+    QTableWidgetItem *col1 = ui->tableWidgetColors->takeItem(mSelectedRow, 1);
+    QTableWidgetItem *col2 = ui->tableWidgetColors->takeItem(mSelectedRow-1, 1);
+
+    ui->tableWidgetColors->setItem(mSelectedRow, 1, col2);
+    ui->tableWidgetColors->setItem(mSelectedRow-1, 1, col1);
+
+    deselectAll();
 }
 
-void TGradientColorDialog::on_tableWidgetColors_cellEntered(int row, int column)
+void TGradientColorDialog::on_tableWidgetColors_cellActivated(int row, int column)
 {
-    DECL_TRACER("TGradientColorDialog::on_tableWidgetColors_cellEntered(int row, int column)");
+    DECL_TRACER("TGradientColorDialog::on_tableWidgetColors_cellActivated(int row, int column)");
 
-    QList<QTableWidgetItem *> selItems = ui->tableWidgetColors->selectedItems();
+    Q_UNUSED(column);
+    mSelectedRow = row;
+    ui->tableWidgetColors->selectRow(row);
 
-    if (!selItems.empty())
-        ui->pushButtonDelete->setEnabled(true);
+    ui->pushButtonDelete->setEnabled(true);
 
     if (mColors.size() > 1)
     {
-        ui->pushButtonMoveUp->setEnabled(true);
-        ui->pushButtonMoveDown->setEnabled(true);
+        if (row > 0)
+            ui->pushButtonMoveUp->setEnabled(true);
+        else
+            ui->pushButtonMoveUp->setDisabled(true);
+
+        if (row < (ui->tableWidgetColors->rowCount()-1))
+            ui->pushButtonMoveDown->setEnabled(true);
+        else
+            ui->pushButtonMoveDown->setDisabled(true);
     }
     else
     {
@@ -211,3 +273,4 @@ void TGradientColorDialog::on_tableWidgetColors_cellEntered(int row, int column)
         ui->pushButtonMoveDown->setDisabled(true);
     }
 }
+

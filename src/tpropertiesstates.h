@@ -36,6 +36,7 @@ class TElementWidgetCombo;
 class TElementWidgetFont;
 class TElementTextEffect;
 class TElementBorderName;
+class TElementGradientColors;
 
 class TPropertiesStates : public QObject
 {
@@ -72,6 +73,7 @@ class TPropertiesStates : public QObject
         TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         TElementTextEffect *makeTextEffect(int ef, const QString& name);
         TElementWidgetCombo *makeWordWrap(bool ww, const QString& name);
+        TElementGradientColors *makeGradientColors(const QList<QColor>& color, const QString& name);
         void setGeometry(int bi, const QRect& geom);
         void clear();
 
@@ -82,12 +84,13 @@ class TPropertiesStates : public QObject
         void onTextEffectChanged(int eff, const QString& effect, const QString& name);
         void onBorderNameChanged(const QString& border, const QString& name);
         void onWordWrapChanged(const QString& text, const QVariant&data, const QString& name);
+        void onGradientColorChanged(const QList<QColor>& colors, const QString& name);
 
     private:
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
-        void addGradientLines(const QString& gradient, const QString& name);
+        void addGradientLines(const QString& gradient, const QString& name, bool init=false);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};

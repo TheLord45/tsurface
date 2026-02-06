@@ -37,17 +37,20 @@ class TGradientColorDialog : public QDialog
     protected:
         QWidget *makeColorSelector(const QColor& color, int row);
         void updateRow(const QColor& color, int row);
+        void createTable();
+        void deselectAll();
 
     private slots:
         void on_pushButtonAdd_clicked();
         void on_pushButtonDelete_clicked();
         void on_pushButtonMoveUp_clicked();
         void on_pushButtonMoveDown_clicked();
-        void on_tableWidgetColors_cellEntered(int row, int column);
+        void on_tableWidgetColors_cellActivated(int row, int column);
 
     private:
         Ui::TGradientColorDialog *ui;
         QList<QColor> mColors;
+        int mSelectedRow{-1};
 };
 
 #endif // TGRADIENTCOLORDIALOG_H
