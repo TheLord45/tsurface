@@ -30,6 +30,7 @@ if(APPLE)
 endif(APPLE)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 qt_add_executable(tsurface
     main.cpp
@@ -149,10 +150,13 @@ qt_add_executable(tsurface
     tdrawtext.h
     tdrawtext.cpp
     tdrawimage.h tdrawimage.cpp
+    telementgradientcolors.h telementgradientcolors.cpp
+    tgradientcolordialog.h tgradientcolordialog.cpp tgradientcolordialog.ui
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable

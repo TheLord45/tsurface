@@ -196,40 +196,6 @@ void ShadowLabel::updateEffect()
     setGraphicsEffect(shadow);
 }
 
-QPixmap ShadowLabel::makePixmapFromString(const QString& str)
-{
-    DECL_TRACER("ShadowLabel::makePixmapFromString(const QString& str)");
-    QString byte;
-    int pos = 1;
-    int x = 0, y = 0;
-    QPixmap px;
-    QImage img;
-
-    for (QChar c : str)
-    {
-        if ((pos % 2) == 0)
-        {
-            uint pixel = byte.toUInt(nullptr, 16);
-            byte.clear();
-            img.setPixel(x, y, pixel);
-            x++;
-
-            if (x >= mStyle.width)
-            {
-                x = 0;
-                y++;
-            }
-            else
-                x++;
-        }
-
-        byte.append(c);
-    }
-
-    px = QPixmap::fromImage(img);
-    return px;
-}
-
 //
 // -----------------------------------------------------------------
 //

@@ -174,9 +174,10 @@ void TDrawImage::draw()
         label->setObjectName(LABEL_NAME);
         label->setGeometry(widget->rect());
         label->setAttribute(Qt::WA_TransparentForMouseEvents);
-//        label->setAttribute(Qt::WA_TranslucentBackground);
+        label->setAttribute(Qt::WA_TranslucentBackground);
     }
 
     label->setPixmap(*pixmap);
+    label->lower();
     label->show();
 }

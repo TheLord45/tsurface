@@ -1605,12 +1605,17 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
 {
     DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
 
+    // First draw everything on the background
+    //----------------------------------------
+    // Background color
+    page->baseObject.widget->setStyleSheet(QString("background-color: %1").arg(page->srPage.cf.name(QColor::HexArgb)));
+    // Draw bitmaps on background
     if (!page->srPage.bitmaps.empty())
     {
         TDrawImage drawImage(page->srPage.bitmaps, &page->baseObject);
         drawImage.draw();
     }
-
+    // Draw Text on background
     if (!page->srPage.te.isEmpty())
     {
         TDrawText dt(&page->baseObject, page->srPage.te, page->srPage.ff, page->srPage.jt, page->srPage.tx, page->srPage.ty);
@@ -1624,6 +1629,9 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
             return;
         }
     }
+
+    // Draw the objects
+    // TODO: Add code to draw objects
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

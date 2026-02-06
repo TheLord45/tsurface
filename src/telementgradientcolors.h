@@ -15,45 +15,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TMISC_H
-#define TMISC_H
+#ifndef TELEMENTGRADIENTCOLORS_H
+#define TELEMENTGRADIENTCOLORS_H
 
-#include <QString>
+#include <QObject>
 
-typedef enum
+class QTableWidget;
+
+class TElementGradientColors :public QObject
 {
-    TBL_UNKNOWN,
-    TBL_GENERIC,
-    TBL_PROGRAM,
-    TBL_STATES,
-    TBL_EVENTS
-}PROPERTIES_t;
+    Q_OBJECT
 
-enum TOOL
-{
-    TOOL_NONE,
-    TOOL_DRAW,
-    TOOL_SELECT,
-    TOOL_POPUP
+    public:
+        TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent=nullptr);
+
+    protected:
+        void onPushButtonClicked();
+
+    private:
+        QList<QColor> mGradients;
+        QString mName;
+        QWidget *mParent{nullptr};
+        QTableWidget *mTable{nullptr};
+
+        QWidget *mBase{nullptr};
 };
 
-enum STATE_TYPE
-{
-    STATE_UNKNOWN,
-    STATE_PAGE,
-    STATE_POPUP,
-    STATE_BUTTON,
-    STATE_BARGRAPH
-};
-
-class QPixmap;
-
-QString basename(const QString& path);
-QString pathname(const QString& path);
-int getObjectID(const QString& name, const QString& hint="");
-QString wcharToUnicodeString(const QChar& ch);
-QPixmap makePixmapFromString(const QString& str, int width);
-
-#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
-
-#endif // TMISC_H
+#endif // TELEMENTGRADIENTCOLORS_H

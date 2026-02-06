@@ -15,6 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include <QPixmap>
+
 #include <sstream>
 #include <iomanip>
 
@@ -67,4 +69,37 @@ QString wcharToUnicodeString(const QChar& ch)
     stringstream ss;
     ss << setw(4) << setfill('0') << hex << letter;
     return QString::fromStdString(ss.str());
+}
+
+QPixmap makePixmapFromString(const QString& str, int width)
+{
+    QString byte;
+    int pos = 1;
+    int x = 0, y = 0;
+    QPixmap px;
+    QImage img;
+
+    for (QChar c : str)
+    {
+        if ((pos % 2) == 0)
+        {
+            uint pixel = byte.toUInt(nullptr, 16);
+            byte.clear();
+            img.setPixel(x, y, pixel);
+            x++;
+
+            if (x >= width)
+            {
+                x = 0;
+                y++;
+            }
+            else
+                x++;
+        }
+
+        byte.append(c);
+    }
+
+    px = QPixmap::fromImage(img);
+    return px;
 }

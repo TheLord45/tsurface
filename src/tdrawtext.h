@@ -46,7 +46,6 @@ class ShadowLabel : public QLabel
         Graphics::EFFECT_STYLE_t mStyle;
 
         void updateEffect();
-        QPixmap makePixmapFromString(const QString& str);
 };
 
 class TDrawText
