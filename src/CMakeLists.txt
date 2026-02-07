@@ -20,27 +20,26 @@ if(${QT_VERSION_MAJOR} LESS 6)
     message(FATAL_ERROR "Qt with version ${QT_VERSION} is not supported!")
 endif()
 
+if(APPLE)
+    link_directories("/opt/homebrew/opt/libarchive/lib")
+    link_directories("/opt/homebrew/opt/fontconfig/lib")
+    link_directories("/opt/homebrew/opt/openssl/lib")
+    include_directories("/opt/homebrew/opt/libarchive/include")
+    include_directories("/opt/homebrew/opt/fontconfig/include")
+    include_directories("/opt/homebrew/opt/openssl/include")
+    set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
+endif(APPLE)
+
 find_package(OpenSSL REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Fontconfig REQUIRED)
 
-if(APPLE)
-    link_directories("/opt/homebrew/Cellar/libarchive/3.8.5/lib")
-    include_directories("/opt/homebrew/Cellar/libarchive/3.8.5/include")
-endif(APPLE)
-
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 qt_add_executable(tsurface
     main.cpp
     tsurface.ui
     tsurface.cpp
-    tsurface.qrc
-    borders.qrc
-    sliders.qrc
-    fonts.qrc
-    sounds.qrc
     tsurfacereader.cpp
     tsurfacereader.h
     terror.cpp
@@ -135,6 +134,9 @@ qt_add_executable(tsurface
     tbitmapselectdialog.cpp
     tbitmapselectdialog.h
     tbitmapselectdialog.ui
+    tgradientcolordialog.cpp
+    tgradientcolordialog.h
+    tgradientcolordialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp
@@ -145,19 +147,23 @@ qt_add_executable(tsurface
     telementtexteffect.h
     telementbordername.cpp
     telementbordername.h
+    telementgradientcolors.cpp
+    telementgradientcolors.h
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h
     tdrawtext.cpp
-    tdrawimage.h tdrawimage.cpp
-    telementgradientcolors.h telementgradientcolors.cpp
-    tgradientcolordialog.h tgradientcolordialog.cpp tgradientcolordialog.ui
+    tdrawimage.h
+    tdrawimage.cpp
+    tsurface.qrc
+    borders.qrc
+    sliders.qrc
+    fonts.qrc
+    sounds.qrc
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)
