@@ -225,6 +225,49 @@ void TSurface::initToolbar()
     m_ui->mainToolBar->addAction(mActionToolPopup);
 }
 
+void TSurface::drawBackgroundColor(const Page::PAGE_t& page)
+{
+    DECL_TRACER("TSurface::drawBackgroundColor(const Page::PAGE_t& page)");
+
+    QString colors, size;
+
+    if (page.srPage.ft != "solid")
+    {
+        if (page.srPage.gradientColors.empty())
+        {
+            MSG_WARNING("Have no gradient colors to draw!");
+            return;
+        }
+
+        for (QColor col : page.srPage.gradientColors)
+            colors.append(QString(", %1").arg(col.name()));
+
+        size = QString("width: %1; height %2;").arg(page.width).arg(page.height);
+        MSG_DEBUG("Stylesheet: " << QString("%1 background-image: radial-gradient(circle at %2% %3%%4);").arg(size).arg(page.srPage.gx).arg(page.srPage.gy).arg(colors).toStdString());
+    }
+
+    if (page.srPage.ft == "solid")
+        page.baseObject.widget->setStyleSheet(QString("background-color: %1").arg(page.srPage.cf.name(QColor::HexArgb)));
+    else if (page.srPage.ft == "radial")    // Colors in circles
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: radial-gradient(circle at %2% %3%%4);").arg(size).arg(page.srPage.gx).arg(page.srPage.gy).arg(colors));
+    else if (page.srPage.ft == "sweep")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: conic-gradient(from 90deg%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "left to right")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to right%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "top-left to bottom-right")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom right%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "top to bottom")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "top-right to bottom-left")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom left%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "right to left")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to left%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "bottom-right to top-left")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to top left%2);").arg(size).arg(colors));
+    else if (page.srPage.ft == "bottom to top")
+        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to top%2);").arg(size).arg(colors));
+}
+
 void TSurface::updateGridFromUI(TCanvasWidget *widget)
 {
     DECL_TRACER("TSurface::updateGridFromUI(TCanvasWidget *widget)");
@@ -374,9 +417,9 @@ void TSurface::on_actionOpen_triggered()
             MSG_DEBUG("Popuptype: " << pg.popupType);
 
             if (pg.popupType == Page::PT_PAGE)                              // Is it a page?
-                TWorkSpaceHandler::Current().addTreePage(pg.name, pg.pageID);           // Yes, then add it to page part of tree
+                TWorkSpaceHandler::Current().addTreePage(pg.name, pg.pageID);   // Yes, then add it to page part of tree
             else if (pg.popupType == Page::PT_POPUP)                        // Is it a popup?
-                TWorkSpaceHandler::Current().addTreePopup(pg.name, pg.pageID);          // Yes, then add it to popup part of tree
+                TWorkSpaceHandler::Current().addTreePopup(pg.name, pg.pageID);  // Yes, then add it to popup part of tree
         }
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
@@ -396,7 +439,7 @@ void TSurface::on_actionNew_triggered()
 {
     DECL_TRACER("TSurface::on_actionNew_triggered()");
 
-    if (mProjectChanged)
+    if (mProjectChanged)        // If there was already a project loaded and if it was changed, ask to save it.
     {
         int button = QMessageBox::question(this, tr("New project"), tr("<b>There are unsaved changes in this project!</b><br>Do you want to save the project?"));
 
@@ -414,37 +457,37 @@ void TSurface::on_actionNew_triggered()
             }
         }
 
-        m_ui->mdiArea->closeAllSubWindows();
-        std::error_code ec;
-        fs::remove_all(mPathTemporary.toStdString(), ec);
-        TConfMain::Current().reset();
-        mProjectChanged = false;
+        m_ui->mdiArea->closeAllSubWindows();                                    // Close all subwindows
+        std::error_code ec;                                                     // Used to get the error code. This avoids the need of an exception.
+        fs::remove_all(mPathTemporary.toStdString(), ec);                       // Delete all temporary files and directories.
+        TConfMain::Current().reset();                                           // Reset the configuration settings
+        mProjectChanged = false;                                                // Mark the project as untached.
     }
-    else if (mHaveProject)
+    else if (mHaveProject)          // If there is a project loaded but has no changes, ask if the project should really be closed.
     {
         int button = QMessageBox::question(this, tr("New project"), tr("Do you want to close the current project?"));
 
         if (button == QMessageBox::No)
             return;
 
-        m_ui->mdiArea->closeAllSubWindows();
-        std::error_code ec;
-        fs::remove_all(mPathTemporary.toStdString(), ec);
-        TConfMain::Current().reset();
-        mHaveProject = false;
+        m_ui->mdiArea->closeAllSubWindows();                                    // Close all subwindows
+        std::error_code ec;                                                     // Used to get the error code. This avoids the need of an exception.
+        fs::remove_all(mPathTemporary.toStdString(), ec);                       // Delete all temporary files and directories.
+        TConfMain::Current().reset();                                           // Reset the configuration settings
+        mHaveProject = false;                                                   // Mark the project as untached.
     }
 
-    mPageWidgets.clear();
-    TNewProjectDialog npd(this);
-    int ret = npd.exec();
+    mPageWidgets.clear();                                                       // Clear the list of widgets
+    TNewProjectDialog npd(this);                                                // Show a dialog to get the base parameters of the new project
+    int ret = npd.exec();                                                       // Execute the dialog and wait until it returns
 
-    if (ret == QDialog::Rejected)
+    if (ret == QDialog::Rejected)                                               // If the user clicked on "Cancel", we're done here
         return;
 
-    TConfMain& cmain = TConfMain::Current();
-    ConfigMain::PROJECTINFO_t projectInfo;
-    ConfigMain::SETUP_t setupInfo;
-    TPanelType tpType;
+    TConfMain& cmain = TConfMain::Current();                                    // Get the pointer to the instance of class TConfMain
+    ConfigMain::PROJECTINFO_t projectInfo;                                      // The project information structure
+    ConfigMain::SETUP_t setupInfo;                                              // The project setup structure
+    TPanelType tpType;                                                          // The management of known panel types
     projectInfo.jobName = npd.getProjectName();
     projectInfo.panelType = npd.getPanelName();
     projectInfo.panelSize = npd.getResolution();
@@ -479,21 +522,30 @@ void TSurface::on_actionNew_triggered()
     widget->setStyleSheet("background-color: " + npd.getColorBackground().name() + ";color: " + npd.getColorText().name()+ ";");
     widget->installEventFilter(mCloseEater);
     int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, npd.getPageName(), npd.getResolution().width(), npd.getResolution().height());
-    TPageHandler::Current().setPageBgColor(id, npd.getColorBackground());
-    TPageHandler::Current().setPageTextColor(id, npd.getColorText());
-    QString objName("QWidgetMDI_");
-    objName.append(QString::number(id));
+    QString objName(QString("Canvas_%1").arg(id));                              // Create a name for the object
     widget->setObjectName(objName);
+    TPageHandler::Current().setPageBgColor(id, npd.getColorBackground());       // Set the background color
+    TPageHandler::Current().setPageTextColor(id, npd.getColorText());           // Set the text color
     QMdiSubWindow *page = new QMdiSubWindow;
+    objName = QString("SubWindow_%1").arg(id);                                  // Create a name for the object
+    page->setObjectName(objName);
     page->setWidget(widget);
     page->setAttribute(Qt::WA_DeleteOnClose);
     page->installEventFilter(mCloseEater);
     page->setWindowIcon(QIcon(":images/tsurface_512.png"));
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
+    updateGridFromUI(widget);                                                   // Set the grid
     widget->show();
-    TPageHandler::Current().setVisible(id, true);
+
+    TPageHandler::Current().setVisible(id, true);                               // Mark the page as visible
+    onActionShowHideGrid(false);                                                // Hide the grid
+    onActionSnapToGrid(false);                                                  // Deactivate snap to grid.
     mHaveProject = true;
+    // Register callbacks
+    connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
+    connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
+    connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
     // Create new file structure
     mPathTemporary = createTemporaryPath(npd.getFileName());
     TConfMain::Current().setPathTemporary(mPathTemporary);
@@ -505,6 +557,10 @@ void TSurface::on_actionNew_triggered()
     TFonts::addFontFile(ffile);
     // Enable Menus
     enableBaseMenus();
+    // Draw the window with all known data
+    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
+    pg.baseObject.widget = widget;
+    onRedrawRequest(&pg);                                                   // Draw the components of the page
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -1333,7 +1389,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     bool visible = TPageHandler::Current().isVisible(num);
     MSG_DEBUG("Window is " << (visible ? "visible" : "not visible") << ", widget is " << (widget == nullptr ? "not available" : "available"));
 
-    if (widget && visible)
+    if (widget && visible)          // If the window is visible, hide it.
     {
         MSG_DEBUG("Window is visible. Closing it ...");
         QList<QMdiSubWindow *> swList = m_ui->mdiArea->subWindowList();
@@ -1353,60 +1409,43 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
             }
         }
     }
-    else if (!visible)
+    else if (!visible)          // If the window is invisible (not created yet), create it.
     {
         MSG_DEBUG("Window is not visible. Generating it ...")
-        Page::PAGE_TYPE pType = Page::PT_UNKNOWN;
-
-        switch(wt)
-        {
-            case TPageTree::WTYPE_PAGE:     pType = Page::PT_PAGE; break;
-            case TPageTree::WTYPE_POPUP:    pType = Page::PT_POPUP; break;
-            case TPageTree::WTYPE_APP:      pType = Page::PT_SUBPAGE; break;
-        }
-
-        Page::PAGE_t pg = TPageHandler::Current().getPage(num);
-        widget = new TCanvasWidget(this);
-        widget->setWindowTitle(name);
-        widget->setFixedSize(QSize(pg.width, pg.height));
-        widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
-        widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");
-        int id = TPageHandler::Current().createPage(widget, pType, name, pg.width, pg.height);
-
-        if (id <= 0)
-        {
-            MSG_ERROR("Unable to create new page or popup!");
-            delete widget;
-            return;
-        }
-
-        QString objName(QString("Canvas_%1").arg(id));
-        widget->setObjectName(objName);
-        widget->installEventFilter(mCloseEater);
+        Page::PAGE_t pg = TPageHandler::Current().getPage(num);                 // Get the whole page (structure)
+        widget = new TCanvasWidget(this);                                       // Create a new canvas widget --> subwindow in Mdi
+        widget->setWindowTitle(name);                                           // Set the title of the window
+        widget->setFixedSize(QSize(pg.width, pg.height));                       // Set the size
+        widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);    // Frame decorations
+        widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");  // Set the background color
+        QString objName(QString("Canvas_%1").arg(pg.pageID));                   // Create a name for the object
+        widget->setObjectName(objName);                                         // set the object name
+        widget->installEventFilter(mCloseEater);                                // Set an event filter to cache the click on the close button
         MSG_DEBUG("Object name: " << objName.toStdString());
-        TPageHandler::Current().setWidget(widget, num);
+        TPageHandler::Current().setWidget(widget, num);                         // Set the widget to the page data for internal use
 
-        QMdiSubWindow *page = new QMdiSubWindow;
-        objName = QString("SubWindow_%1").arg(id);
-        page->setObjectName(objName);
-        page->setWidget(widget);
-        page->setAttribute(Qt::WA_DeleteOnClose);
-        page->installEventFilter(mCloseEater);
-        page->setWindowIcon(QIcon(":images/tsurface_512.png"));
-        m_ui->mdiArea->addSubWindow(page);
-        widget->activateWindow();
-        widget->show();
-        updateGridFromUI(widget);
+        QMdiSubWindow *page = new QMdiSubWindow;                                // Create a new subwindow in the QMdiArea
+        objName = QString("SubWindow_%1").arg(pg.pageID);                       // Create a name for the object
+        page->setObjectName(objName);                                           // Set the name
+        page->setWidget(widget);                                                // Add the previous created widget to the subwindow
+        page->setAttribute(Qt::WA_DeleteOnClose);                               // Request that it should be deleted automatically on close of subwindow
+        page->installEventFilter(mCloseEater);                                  // Set an event filter to cache the click on the close button
+        page->setWindowIcon(QIcon(":images/tsurface_512.png"));                 // Give the window an icon
+        m_ui->mdiArea->addSubWindow(page);                                      // Add it to the QMdiArea
+        widget->activateWindow();                                               // Activate it
+        widget->show();                                                         // Make it visible
+        updateGridFromUI(widget);                                               // Set the grid
+        int id = pg.pageID;                                                     // Necessary to be able to give the page id to the lamda function
         connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
 
-        TPageHandler::Current().setVisible(num, true);
-        onActionShowHideGrid(TPageHandler::Current().isGridVisible(id));
-        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(id));
+        TPageHandler::Current().setVisible(num, true);                          // Mark the page as visible
+        onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg.pageID)); // Show or hide the grid
+        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg.pageID));    // Activate or deactivate snap to grid. This independable from the visibility of the grid.
         // TODO: Add code to draw all objects
-        pg.baseObject.widget = widget;
-        onRedrawRequest(&pg);
+        pg.baseObject.widget = widget;                                          // Add the widget to our local copy of the page structure
+        onRedrawRequest(&pg);                                                   // Draw the components of the page
     }
 }
 
@@ -1605,10 +1644,13 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
 {
     DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
 
+    if (!page || page->pageID <= 0)
+        return;
     // First draw everything on the background
     //----------------------------------------
     // Background color
-    page->baseObject.widget->setStyleSheet(QString("background-color: %1").arg(page->srPage.cf.name(QColor::HexArgb)));
+    drawBackgroundColor(*page);
+
     // Draw bitmaps on background
     if (!page->srPage.bitmaps.empty())
     {

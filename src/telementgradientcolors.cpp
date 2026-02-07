@@ -56,6 +56,7 @@ void TElementGradientColors::onPushButtonClicked()
     mGradients = dialog.getColors();
     // Insert all labels again.
     createLine();
+    emit gradientColorChanged(mGradients, mName);
 }
 
 void TElementGradientColors::createLine()

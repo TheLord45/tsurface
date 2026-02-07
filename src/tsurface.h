@@ -239,6 +239,7 @@ class TSurface : public QMainWindow
         bool closeRequest();
         void enableBaseMenus();
         void initToolbar();
+        void drawBackgroundColor(const Page::PAGE_t& page);
 
         const std::unique_ptr<Ui::tsurface> m_ui;
         bool mForceClose{false};

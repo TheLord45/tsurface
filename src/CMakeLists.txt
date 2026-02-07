@@ -38,8 +38,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 qt_add_executable(tsurface
     main.cpp
-    tsurface.ui
     tsurface.cpp
+    tsurface.ui
     tsurfacereader.cpp
     tsurfacereader.h
     terror.cpp

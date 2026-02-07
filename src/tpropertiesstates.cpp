@@ -911,7 +911,7 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
         widget->resizeColumnsToContents();
         mTreeWidget->resizeColumnToContents(0);
     }
-    else
+/*    else
     {
         int cnt = 0;
 
@@ -928,7 +928,7 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
 
         widget->resizeColumnsToContents();
         mTreeWidget->resizeColumnToContents(0);
-    }
+    } */
 }
 
 // Callbacks
@@ -989,8 +989,12 @@ void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, cons
 {
     DECL_TRACER("TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, const QString& name)");
 
-    if (name == "PgFillType" || name == "PopupFillType")
+    MSG_DEBUG("Name: " << name.toStdString());
+
+    if (name.startsWith("PgFillGradientColors") || name.startsWith("PopupFillGradientColors"))
         mPage.srPage.gradientColors = colors;
+
+    // TODO: Add code to save it to stages
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
