@@ -39,6 +39,10 @@ class TCanvasWidget : public QWidget
         QSize gridSize() const { return mGrid; }
         void setCurrentTool(TOOL t) { mSelectedTool = t; }
         TOOL currentTool() { return mSelectedTool; }
+        void setRadialGradient(const QRadialGradient& grad);
+        void setLinearGradient(const QLinearGradient& grad);
+        void setConicGradient(const QConicalGradient& grad);
+        void setSolidColor(const QColor& color);
 
         void setSnapEnabled(bool on);
         bool snapEnabled() const { return mSnapEnabled; }
@@ -77,10 +81,23 @@ class TCanvasWidget : public QWidget
         void mousePressEvent(QMouseEvent*) override;
 
     private:
+        typedef enum
+        {
+            GRAD_NONE,
+            GRAD_LINEAR,
+            GRAD_RADIAL,
+            GRAD_CONIC
+        }GRAD_t;
+
         QSize mGrid = QSize(20, 20);
         bool mSnapEnabled = true;
         bool mShowGrid = true;
         TOOL mSelectedTool{TOOL_NONE};
+        QRadialGradient mGradientRadial;
+        QLinearGradient mGradientLinear;
+        QConicalGradient mGradientConic;
+        QColor mSolidColor{qRgb(255, 255, 255)};
+        GRAD_t mGradient{GRAD_NONE};
 
         QSet<TResizableWidget*> mSelection;
 

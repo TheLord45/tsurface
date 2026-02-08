@@ -73,13 +73,61 @@ void TCanvasWidget::setShowGrid(bool on)
     update();
 }
 
+void TCanvasWidget::setLinearGradient(const QLinearGradient& grad)
+{
+    DECL_TRACER("TCanvasWidget::setLinearGradient(const QLinearGradient& grad)");
+
+    mGradientLinear = grad;
+    mGradient = GRAD_LINEAR;
+    update();
+}
+
+void TCanvasWidget::setRadialGradient(const QRadialGradient& grad)
+{
+    DECL_TRACER("TCanvasWidget::setRadialGradient(const QRadialGradient& grad)");
+
+    mGradientRadial = grad;
+    mGradient = GRAD_RADIAL;
+    update();
+}
+
+void TCanvasWidget::setConicGradient(const QConicalGradient& grad)
+{
+    DECL_TRACER("TCanvasWidget::setConicGradient(const QConicalGradient& grad)");
+
+    mGradientConic = grad;
+    mGradient = GRAD_CONIC;
+    update();
+}
+
+void TCanvasWidget::setSolidColor(const QColor& color)
+{
+    DECL_TRACER("TCanvasWidget::setSolidColor(const QColor& color)");
+
+    mSolidColor = color;
+    mGradient = GRAD_NONE;
+    update();
+}
+
 void TCanvasWidget::paintEvent(QPaintEvent*)
 {
-    if (!mShowGrid)
-        return;
+    DECL_TRACER("TCanvasWidget::paintEvent(QPaintEvent*)");
 
     QPainter p(this);
-    p.fillRect(rect(), palette().brush(QPalette::Base));
+    QPalette pal = palette();
+
+    switch(mGradient)
+    {
+        case GRAD_NONE:     pal.setBrush(QPalette::Base, mSolidColor); break;
+        case GRAD_LINEAR:   pal.setBrush(QPalette::Base, mGradientLinear); break;
+        case GRAD_RADIAL:   pal.setBrush(QPalette::Base, mGradientRadial); break;
+        case GRAD_CONIC:    pal.setBrush(QPalette::Base, mGradientConic); break;
+    }
+
+    p.fillRect(rect(), pal.brush(QPalette::Base));
+
+    if (!mShowGrid)
+        return;
 
     QPen pen(QColor(180, 180, 180));
     pen.setStyle(Qt::DotLine);

@@ -61,14 +61,14 @@ class TPropertiesStates : public QObject
         void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
         QTableWidget *createTableWidget(STATE_TYPE stype, QWidget *parent=nullptr);
-        QString getLeftColText(STATE_TYPE stype, int state, int line);
+        QString getLeftColText(int line);
         TElementBorderName *makeBorderName(const QString& border, const QString& name);
         QComboBox *makeFillType(const QString& ftype, const QString& name);
         QWidget *makeColorSelector(const QColor& col, const QString& name);
         QWidget *makeVideoFill(const QString& vf, const QString& name);
         TElementBitmapSelector *makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
         TElementWidgetFont *makeFontSelector(const QString& fname, const QString& name);
-        QSpinBox *makeValueSelector(int value, const QString& name);
+        QSpinBox *makeValueSelector(int value, const QString& name, int start=0, int max=0);
         QWidget *makeTextValue(const QString& txt, const QFont& font, const QString& name);
         TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
         TElementTextEffect *makeTextEffect(int ef, const QString& name);
@@ -91,6 +91,10 @@ class TPropertiesStates : public QObject
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
         void addGradientLines(const QString& gradient, const QString& name, bool init=false);
+        void createTablePage(QTableWidget *table);
+        void createTablePopup(QTableWidget *table);
+        void adjustTablePage(QTableWidget *table, QString gradient="");
+        void adjustTablePopup(QTableWidget *table, QString gradient="");
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};

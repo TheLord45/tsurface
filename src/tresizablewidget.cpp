@@ -35,7 +35,7 @@ class TResizableWidget::Grip : public QWidget
             setAttribute(Qt::WA_NoMousePropagation, true);
             setAttribute(Qt::WA_TransparentForMouseEvents, false);
             setMouseTracking(true);
-            setToolTip("Drag to resize");
+            setToolTip(tr("Drag to resize"));
         }
 
     protected:
@@ -79,32 +79,41 @@ class TResizableWidget::Grip : public QWidget
                 case TopLeft:
                     g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
                     g.setTop(clampTop(mStartGeom.top() + delta.y()));
-                    break;
+                break;
+
                 case Top:
                     g.setTop(clampTop(mStartGeom.top() + delta.y()));
-                    break;
+                break;
+
                 case TopRight:
                     g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
                     g.setTop(clampTop(mStartGeom.top() + delta.y()));
-                    break;
+                break;
+
                 case Right:
                     g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
-                    break;
+                break;
+
                 case BottomRight:
                     g.setRight(std::max(mStartGeom.right() + delta.x(), mStartGeom.left() + minW - 1));
                     g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
-                    break;
+                break;
+
                 case Bottom:
                     g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
-                    break;
+                break;
+
                 case BottomLeft:
                     g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
                     g.setBottom(std::max(mStartGeom.bottom() + delta.y(), mStartGeom.top() + minH - 1));
-                    break;
+                break;
+
                 case Left:
                     g.setLeft(clampLeft(mStartGeom.left() + delta.x()));
+                break;
+
+                default:
                     break;
-                default: break;
             }
 
             mOwner->setGeometry(g);

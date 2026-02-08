@@ -229,43 +229,105 @@ void TSurface::drawBackgroundColor(const Page::PAGE_t& page)
 {
     DECL_TRACER("TSurface::drawBackgroundColor(const Page::PAGE_t& page)");
 
-    QString colors, size;
-
-    if (page.srPage.ft != "solid")
+    if (!page.baseObject.widget)
     {
-        if (page.srPage.gradientColors.empty())
-        {
-            MSG_WARNING("Have no gradient colors to draw!");
-            return;
-        }
+        MSG_WARNING("Have no validwidget to draw to!");
+        return;
+    }
 
-        for (QColor col : page.srPage.gradientColors)
-            colors.append(QString(", %1").arg(col.name()));
+    QList<QColor> gradients = page.srPage.gradientColors;
 
-        size = QString("width: %1; height %2;").arg(page.width).arg(page.height);
-        MSG_DEBUG("Stylesheet: " << QString("%1 background-image: radial-gradient(circle at %2% %3%%4);").arg(size).arg(page.srPage.gx).arg(page.srPage.gy).arg(colors).toStdString());
+    if (gradients.empty() || gradients.size() < 2)
+    {
+        MSG_WARNING("No gradient colors! Will use default colors!");
+        gradients = { Qt::gray, Qt::white };
     }
 
     if (page.srPage.ft == "solid")
-        page.baseObject.widget->setStyleSheet(QString("background-color: %1").arg(page.srPage.cf.name(QColor::HexArgb)));
-    else if (page.srPage.ft == "radial")    // Colors in circles
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: radial-gradient(circle at %2% %3%%4);").arg(size).arg(page.srPage.gx).arg(page.srPage.gy).arg(colors));
+    {
+        page.baseObject.widget->setSolidColor(page.srPage.cf);
+        return;
+    }
+
+    int entity = qMax(page.width, page.height);
+    qreal stop = static_cast<qreal>(entity) / static_cast<qreal>(gradients.size()) / static_cast<qreal>(entity);
+    QGradientStops gstops;
+    qreal point = 0.0;
+
+    if (gradients.size() == 2)
+        stop = 1.0;
+
+    for (QColor col : gradients)
+    {
+        gstops.append(std::pair<qreal, QColor>(point, col));
+        point += stop;
+    }
+
+    gstops.last() = std::pair<qreal, QColor>(1.0, gradients.last());
+
+    if (page.srPage.ft == "radial")    // Colors in circles
+    {
+        QRadialGradient radial;
+        // Calculate center point;
+        qreal rx = static_cast<qreal>(page.width) / 100.0 * static_cast<qreal>(page.srPage.gx);
+        qreal ry = static_cast<qreal>(page.height) / 100.0 * static_cast<qreal>(page.srPage.gy);
+        radial.setCenter(rx, ry);
+        radial.setFocalPoint(rx, ry);
+        radial.setRadius(static_cast<qreal>(page.srPage.gr));
+        radial.setStops(gstops);
+        page.baseObject.widget->setRadialGradient(radial);
+        return;
+    }
     else if (page.srPage.ft == "sweep")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: conic-gradient(from 90deg%2);").arg(size).arg(colors));
-    else if (page.srPage.ft == "left to right")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to right%2);").arg(size).arg(colors));
+    {
+        QConicalGradient grad;
+        grad.setAngle(90.0);
+        grad.setCenter(page.baseObject.widget->rect().toRectF().center());
+        grad.setStops(gstops);
+        page.baseObject.widget->setConicGradient(grad);
+        return;
+    }
+
+    QLinearGradient linear;
+    linear.setStops(gstops);
+
+    if (page.srPage.ft == "left to right")
+    {
+        linear.setStart(0.0, static_cast<qreal>(page.height / 2));
+        linear.setFinalStop(static_cast<qreal>(page.width), static_cast<qreal>(page.height / 2));
+    }
     else if (page.srPage.ft == "top-left to bottom-right")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom right%2);").arg(size).arg(colors));
+    {
+        linear.setStart(0.0, 0.0);
+        linear.setFinalStop(static_cast<qreal>(page.width), static_cast<qreal>(page.height));
+    }
     else if (page.srPage.ft == "top to bottom")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom%2);").arg(size).arg(colors));
+    {
+        linear.setStart(static_cast<qreal>(page.width / 2), 0.0);
+        linear.setFinalStop(static_cast<qreal>(page.width / 2), static_cast<qreal>(page.height));
+    }
     else if (page.srPage.ft == "top-right to bottom-left")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to bottom left%2);").arg(size).arg(colors));
+    {
+        linear.setStart(static_cast<qreal>(page.width), 0.0);
+        linear.setFinalStop(0.0, static_cast<qreal>(page.height));
+    }
     else if (page.srPage.ft == "right to left")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to left%2);").arg(size).arg(colors));
+    {
+        linear.setStart(static_cast<qreal>(page.width), static_cast<qreal>(page.height / 2));
+        linear.setFinalStop(0.0, static_cast<qreal>(page.height / 2));
+    }
     else if (page.srPage.ft == "bottom-right to top-left")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to top left%2);").arg(size).arg(colors));
+    {
+        linear.setStart(static_cast<qreal>(page.width), static_cast<qreal>(page.height));
+        linear.setFinalStop(0.0, 0.0);
+    }
     else if (page.srPage.ft == "bottom to top")
-        page.baseObject.widget->setStyleSheet(QString("%1 background-image: linear-gradient(to top%2);").arg(size).arg(colors));
+    {
+        linear.setStart(static_cast<qreal>(page.width / 2), static_cast<qreal>(page.height));
+        linear.setFinalStop(static_cast<qreal>(page.width / 2), 0.0);
+    }
+
+    page.baseObject.widget->setLinearGradient(linear);
 }
 
 void TSurface::updateGridFromUI(TCanvasWidget *widget)
