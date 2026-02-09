@@ -15,47 +15,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TMISC_H
-#define TMISC_H
+#include <QLineEdit>
 
-#include <QString>
+#include "telementlineedit.h"
+#include "terror.h"
 
-typedef enum
+TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWidget *parent)
+    : QWidget(parent),
+      mName(name),
+      mText(text)
 {
-    TBL_UNKNOWN,
-    TBL_GENERIC,
-    TBL_PROGRAM,
-    TBL_STATES,
-    TBL_EVENTS
-}PROPERTIES_t;
+    DECL_TRACER("TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWidget *parent)");
 
-enum TOOL
+    QLineEdit *le = new QLineEdit(this);
+    le->setText(text);
+    connect(le, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
+}
+
+TElementLineEdit::~TElementLineEdit()
 {
-    TOOL_NONE,
-    TOOL_DRAW,
-    TOOL_SELECT,
-    TOOL_POPUP
-};
+    DECL_TRACER("TElementLineEdit::~TElementLineEdit()");
+}
 
-enum STATE_TYPE
+void TElementLineEdit::onTextChanged(const QString& text)
 {
-    STATE_UNKNOWN,
-    STATE_PAGE,
-    STATE_POPUP,
-    STAPE_SUBPAGE,
-    STATE_BUTTON,
-    STATE_BARGRAPH,
-    STATE_APP
-};
+    DECL_TRACER("TElementLineEdit::onTextChanged(const QString& text)");
 
-class QPixmap;
-
-QString basename(const QString& path);
-QString pathname(const QString& path);
-int getObjectID(const QString& name, const QString& hint="");
-QString wcharToUnicodeString(const QChar& ch);
-QPixmap makePixmapFromString(const QString& str, int width);
-
-#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
-
-#endif // TMISC_H
+    mText = text;
+    emit inputTextChanged(text, mName);
+}

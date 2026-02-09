@@ -27,6 +27,11 @@ class QWidget;
 class QComboBox;
 class QSpinBox;
 
+class TElementWidgetCombo;
+class TElementLineEdit;
+class TElementWidgetText;
+class TElementSpinBox;
+
 class TPropertiesGeneral : public QObject
 {
     Q_OBJECT
@@ -36,10 +41,12 @@ class TPropertiesGeneral : public QObject
         TPropertiesGeneral(QTableWidget *view);
         ~TPropertiesGeneral();
 
-        void setGeneralPage(const QString& name);
-        void setGeneralPage(int id, bool loaded=false);
-        void setGeneralPopup(const QString& name);
-        void setGeneralPopup(int id, bool loaded=false);
+        void setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid=0);
+//        void setGeneralPage(const QString& name);
+//        void setGeneralPage(int id, bool loaded=false);
+//        void setGeneralPopup(const QString& name);
+//        void setGeneralPopup(int id, bool loaded=false);
+        void setGeneralObjectID(int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
         void setGeometryPopup(const QRect& geom);
@@ -61,9 +68,15 @@ class TPropertiesGeneral : public QObject
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);
-        void onLineEditTextChanged(const QString& text);
-        void onToolButtonClicked();
-        void onComboPopupTypeChanged(int index);
+        void onComboPopupTypeChanged(const QString& text, const QVariant& data, const QString& name);
+        void onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name);
+        void onComboLockButtonName(const QString& text, const QVariant& data, const QString& name);
+        void onObjectNameChanged(const QString& text, const QString& name);
+        void onDescriptionChanged(const QString& text, const QString& name);
+        void onSpinGeometryChanged(int value, const QString& name);
+        void onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name);
+        void onPopupTimeout(int value, const QString& name);
+
         void onSpinLeftValue(int value);
         void onSpinTopValue(int value);
         void onSpinWidthValue(int value);
@@ -78,8 +91,21 @@ class TPropertiesGeneral : public QObject
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
-        QWidget *makeLabelTool(const QString& text, int id);
         void clear();
+        QString getLabelText(int line);
+        void createTable(STATE_TYPE stype);
+        void setTable(STATE_TYPE stype);
+
+        TElementWidgetCombo *makePopupType(const QString& name);
+        TElementWidgetCombo *makeButtonType(const QString& name);
+        TElementLineEdit *makeObjectName(const QString& text, const QString& name);
+        TElementWidgetCombo *makeButtonLockName(const QString& name);
+        TElementWidgetText *makeDescription(const QString& name);
+        TElementSpinBox *makeSpinGeometry(const QString& name);
+        TElementWidgetCombo *makePopupResetOnPos(const QString& name);
+        TElementLineEdit *makeObjectZOrder(const QString& name);
+        TElementWidgetCombo *makePopupGroups(const QString& name);
+        TElementSpinBox *makePopupTimeout(const QString& name);
 
     private:
         QTableWidget *mTable{nullptr};
@@ -91,6 +117,8 @@ class TPropertiesGeneral : public QObject
         QLineEdit *mLineDescription{nullptr};
         bool mChanged{false};
         bool mInitialized{false};
+        void loadPage(int pageID);
+        int mActObjectID{-1};
 
         QComboBox *mComboPopupType{nullptr};
         QSpinBox *mSpinLeft{nullptr};

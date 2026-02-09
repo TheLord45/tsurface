@@ -132,7 +132,8 @@ void TWorkSpaceHandler::setPage(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");
 
-    setGeneralPage(name);
+    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+    setGeneralPage(page, STATE_PAGE);
     setProgrammingPage(name);
     setStatesPage(name);
 }
@@ -141,7 +142,8 @@ void TWorkSpaceHandler::setPage(int id)
 {
     DECL_TRACER("TWorkSpaceHandler::setPage(int id)");
 
-    setGeneralPage(id);
+    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    setGeneralPage(page, STATE_PAGE);
     setProgrammingPage(id);
     setStatesPage(id, false);
 }
@@ -150,7 +152,8 @@ void TWorkSpaceHandler::setPopup(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPopup(const QString& name)");
 
-    setGeneralPopup(name);
+    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+    setGeneralPage(page, STATE_POPUP);
     setProgrammingPopup(name);
     setStatesPage(name);
 }
@@ -159,7 +162,8 @@ void TWorkSpaceHandler::setPopup(int id)
 {
     DECL_TRACER("TWorkSpaceHandler::setPopup(int id)");
 
-    setGeneralPopup(id);
+    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    setGeneralPage(page, STATE_POPUP);
     setProgrammingPopup(id);
     setStatesPage(id, false);
 }

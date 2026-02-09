@@ -187,7 +187,8 @@ namespace ObjHandler
         LISTBOX,
         COMPUTER_CONTROL,
         TAKE_NOTE,
-        SUBPAGE_VIEW
+        SUBPAGE_VIEW,
+        LISTVIEW
     } BUTTONTYPE;
 
     /**
@@ -367,6 +368,7 @@ namespace ObjHandler
         BUTTONTYPE type;        // The type of the button
         int bi{0};              // button ID
         QString na;             // name
+        bool li{false};         // TRUE = Lock button name
         QString bd;             // Description --> ignored
         int lt{0};              // pixel from left
         int tp{0};              // pixel from top
@@ -448,6 +450,7 @@ class TObjectHandler
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
 
         int getButtonIndex() { return mObject.bi; }
+        QString getButtonName() { return mObject.na; }
         void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
         ObjHandler::TOBJECT_t& getObject() { return mObject; }

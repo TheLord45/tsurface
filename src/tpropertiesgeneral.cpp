@@ -25,9 +25,45 @@
 #include <QPushButton>
 
 #include "tpropertiesgeneral.h"
+#include "telementbitmapselector.h"
+#include "telementbordername.h"
+#include "telementwidgetcombo.h"
+#include "telementwidgettext.h"
+#include "telementlineedit.h"
+#include "telementspinbox.h"
 #include "tconfmain.h"
-#include "ttexteditdialog.h"
 #include "terror.h"
+
+#define TTEXT_POPUPTYPE             1   // Popup only
+#define TTEXT_TYPE                  2   // Buttons only
+#define TTEXT_NAME                  3
+#define TTEXT_LOCK_BUTTON_NAME      4   // Buttons
+#define TTEXT_DESCRIPTION           5   // Page & Popup
+#define TTEXT_LEFT                  6
+#define TTEXT_TOP                   7
+#define TTEXT_WIDTH                 8
+#define TTEXT_HEIGHT                9
+#define TTEXT_ZORDER                10  // Buttons
+#define TTEXT_DRAGDROP_TYPE         11  // Buttons
+#define TTEXT_DROP_GROUP            12  // Button; Only if "draggable"
+#define TTEXT_RESET_POS_ON_SHOW     13
+#define TTEXT_GROUP                 14
+#define TTEXT_TIMEOUT               15
+#define TTEXT_MODAL                 16
+#define TTEXT_SHOW_EFFECT           17
+#define TTEXT_SHOW_EFFECT_TIME      18
+#define TTEXT_SHOW_EFFECT_X_POS     19
+#define TTEXT_SHOW_EFFECT_Y_POS     20
+#define TTEXT_HIDE_EFFECT           21
+#define TTEXT_HIDE_EFFECT_TIME      22
+#define TTEXT_HIDE_EFFECT_X_POS     23
+#define TTEXT_HIDE_EFFECT_Y_POS     24
+#define TTEXT_COLLAPSE_DIRECTION    25
+#define TTEXT_TOUCH_STYLE           26
+#define TTEXT_BORDER_STYLE          27
+#define TTEXT_DISABLED              28
+#define TTEXT_HIDDEN                29
+#define TTEXT_PASSWORD_PROTECTION   30
 
 TPropertiesGeneral::TPropertiesGeneral()
 {
@@ -100,10 +136,12 @@ void TPropertiesGeneral::update()
     if (object.bi <= 0)
     {
         if (mPage.popupType == Page::PT_PAGE)
-            setGeneralPage(mPage.pageID, true);
+            setTable(STATE_PAGE);
         else if (mPage.popupType == Page::PT_POPUP)
-            setGeneralPopup(mPage.pageID, true);
+            setTable(STATE_POPUP);
     }
+    else
+        mActObjectID = object.bi - 1;
 }
 
 void TPropertiesGeneral::clear()
@@ -120,6 +158,73 @@ void TPropertiesGeneral::clear()
     mTable->setColumnCount(0);
 }
 
+QString TPropertiesGeneral::getLabelText(int line)
+{
+    DECL_TRACER("TPropertiesGeneral::getLabelText(int line)");
+
+    switch(line)
+    {
+        case TTEXT_POPUPTYPE:           return tr("PopupType"); break;
+        case TTEXT_TYPE:                return tr("Type"); break;
+        case TTEXT_NAME:                return tr("Name");
+        case TTEXT_LOCK_BUTTON_NAME:    return tr("Lock Button Name"); break;
+        case TTEXT_DESCRIPTION:         return tr("Description"); break;
+        case TTEXT_LEFT:                return tr("Left"); break;
+        case TTEXT_TOP:                 return tr("Top"); break;
+        case TTEXT_WIDTH:               return tr("Width"); break;
+        case TTEXT_HEIGHT:              return tr("Height"); break;
+        case TTEXT_ZORDER:              return tr("Z-Order"); break;
+        case TTEXT_DRAGDROP_TYPE:       return tr("Drag/Drop Type");
+        case TTEXT_DROP_GROUP:          return tr("Drop Group"); break;
+        case TTEXT_RESET_POS_ON_SHOW:   return tr("Reset Pos On Show"); break;
+        case TTEXT_GROUP:               return tr("Group"); break;
+        case TTEXT_TIMEOUT:             return tr("Timeout"); break;
+        case TTEXT_MODAL:               return tr("Modal"); break;
+        case TTEXT_SHOW_EFFECT:         return tr("Show Effect"); break;
+        case TTEXT_SHOW_EFFECT_TIME:    return tr("Show Effect Time"); break;
+        case TTEXT_SHOW_EFFECT_X_POS:   return tr("Show Effect X Pos"); break;
+        case TTEXT_SHOW_EFFECT_Y_POS:   return tr("Show Effect Y Pos"); break;
+        case TTEXT_HIDE_EFFECT:         return tr("Hide Effect"); break;
+        case TTEXT_HIDE_EFFECT_TIME:    return tr("Hide Effect Time"); break;
+        case TTEXT_HIDE_EFFECT_X_POS:   return tr("Hide Effect X Pos"); break;
+        case TTEXT_HIDE_EFFECT_Y_POS:   return tr("Hide Effect Y Pos"); break;
+        case TTEXT_COLLAPSE_DIRECTION:  return tr("Collapse Direction"); break;
+        case TTEXT_TOUCH_STYLE:         return tr("Touch Style"); break;
+        case TTEXT_BORDER_STYLE:        return tr("Border Style"); break;
+        case TTEXT_DISABLED:            return tr("Disabled"); break;
+        case TTEXT_HIDDEN:              return tr("Hidden"); break;
+        case TTEXT_PASSWORD_PROTECTION: return tr("Password Protection"); break;
+    }
+
+        return QString();
+}
+
+void TPropertiesGeneral::loadPage(int pageID)
+{
+    DECL_TRACER("TPropertiesGeneral::loadPage(int pageID)");
+
+    if (pageID == mPage.pageID)
+        return;
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_GENERIC);
+
+    mPage = TPageHandler::Current().getPage(pageID);
+    mChanged = false;
+}
+
+void TPropertiesGeneral::setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid)
+{
+    DECL_TRACER("TPropertiesGeneral::setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid)");
+
+    if (page.pageID <= 0)
+        return;
+
+    mPage = page;
+    mActObjectID = objid;
+    setTable(stype);
+}
+/*
 void TPropertiesGeneral::setGeneralPage(const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::setPage(const QString& name)");
@@ -178,8 +283,6 @@ void TPropertiesGeneral::setGeneralPage(int id, bool loaded)
         return;
 
     mInitialized = false;
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(2);
@@ -276,8 +379,6 @@ void TPropertiesGeneral::setGeneralPopup(int id, bool loaded)
         return;
 
     mInitialized = false;
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(14);
@@ -480,32 +581,446 @@ void TPropertiesGeneral::setGeneralPopup(int id, bool loaded)
     mTable->resizeColumnsToContents();
     mInitialized = true;
 }
+*/
 
-QWidget* TPropertiesGeneral::makeLabelTool(const QString& text, int id)
+void TPropertiesGeneral::setGeneralObjectID(int index)
 {
-    DECL_TRACER("TPropertiesGeneral::makeLabelTool(const QString& text, int id)");
-    QWidget *widget = new QWidget;
-    widget->setObjectName(QString("Widget_%1").arg(id));
+    DECL_TRACER("TPropertiesGeneral::setGeneralObjectID(int index)");
 
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setObjectName(QString("Layout_%1").arg(id));
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
+    if (index < 0 || index >= mPage.objects.size())
+    {
+        MSG_WARNING("Got wrong index (" << index << ")!");
+        return;
+    }
 
-    QLineEdit *line = new QLineEdit(text);
-    line->setObjectName(QString("lineEdit_%1").arg(id));
-    mLineDescription = line;
-    connect(line, &QLineEdit::textChanged, this, &TPropertiesGeneral::onLineEditTextChanged);
+    mActObject = mPage.objects[index]->getObject();
+    mActObjectID = index;
+}
 
-    QPushButton *button = new QPushButton;
-    button->setObjectName(QString("ToolButton_%1").arg(id));
-    button->setText("...");
-    button->setMaximumWidth(30);
-    connect(button, &QPushButton::clicked, this, &TPropertiesGeneral::onToolButtonClicked);
+void TPropertiesGeneral::setTable(STATE_TYPE stype)
+{
+    DECL_TRACER("TPropertiesGeneral::setTable(STATE_TYPE stype)");
 
-    layout->addWidget(line, 1);
-    layout->addWidget(button);
-    return widget;
+    if (!mInitialized || !mTable)
+        createTable(stype);
+
+    // First hide all rows
+    for (int i = 0; i < 30; ++i)
+        mTable->setRowHidden(i, true);
+
+    // Now anable only the used rows
+    switch(stype)
+    {
+        case STATE_PAGE:
+            mTable->setRowHidden(2, false);
+            mTable->setRowHidden(4, false);
+        break;
+
+        case STATE_POPUP:
+            mTable->setRowHidden(0, false);
+            mTable->setRowHidden(2, false);
+            mTable->setRowHidden(4, false);
+            mTable->setRowHidden(5, false);
+            mTable->setRowHidden(6, false);
+            mTable->setRowHidden(7, false);
+            mTable->setRowHidden(8, false);
+            mTable->setRowHidden(9, false);
+            mTable->setRowHidden(10, false);
+            mTable->setRowHidden(11, false);
+            mTable->setRowHidden(12, false);
+            mTable->setRowHidden(13, false);
+            mTable->setRowHidden(14, false);
+            mTable->setRowHidden(15, false);
+        break;
+
+        case STATE_BUTTON:
+            mTable->setRowHidden(1, false);
+            mTable->setRowHidden(3, false);
+        break;
+    }
+}
+
+void TPropertiesGeneral::createTable(STATE_TYPE stype)
+{
+    DECL_TRACER("TPropertiesGeneral::createTable(STATE_TYPE stype)");
+
+    mInitialized = false;
+    int rows = 30;
+    mTable->clear();
+    mTable->setColumnCount(2);
+    mTable->setRowCount(rows);
+    QSize panelSize = TConfMain::Current().getPanelSize();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QTableWidgetItem *cell1 = new QTableWidgetItem;
+        QTableWidgetItem *cell2 = nullptr;
+
+        cell1->setBackground(Qt::lightGray);
+
+        switch(i)
+        {
+            case 0:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(getLabelText(TTEXT_POPUPTYPE));
+                    mTable->setCellWidget(i, 1, makePopupType("PopupPopupType"));
+                }
+            break;
+
+            case 1:
+                if (stype == STATE_BUTTON)
+                {
+                    cell1->setText(getLabelText(TTEXT_TYPE));
+                    mTable->setCellWidget(i, 1, makeButtonType("ButtonType"));
+                }
+            break;
+
+            case 2:
+                cell1->setText(getLabelText(TTEXT_NAME));
+
+                if (stype == STATE_PAGE || stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeObjectName(mPage.name, "PageName"));
+                else if (mActObjectID >= 0 && mPage.objects.size() >= (mActObjectID + 1))
+                    mTable->setCellWidget(i, 1, makeObjectName(mPage.objects[mActObjectID]->getButtonName(), "ObjectName"));
+            break;
+
+            case 3:
+                if (stype == STATE_BUTTON)
+                {
+                    cell1->setText(getLabelText(TTEXT_LOCK_BUTTON_NAME));
+                    mTable->setCellWidget(i, 1, makeButtonLockName("ButtonLockName"));
+                }
+            break;
+
+            case 4:
+                cell1->setText(getLabelText(TTEXT_DESCRIPTION));
+
+                if (stype == STATE_PAGE || stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeDescription("PageDescription"));
+                else
+                    mTable->setCellWidget(i, 1, makeDescription("ObjectDescription"));
+            break;
+
+            case 5:
+                cell1->setText(getLabelText(TTEXT_LEFT));
+
+                if (stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("PopupLeft"));
+                else if (stype != STATE_PAGE)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectLeft"));
+            break;
+
+            case 6:
+                cell1->setText(getLabelText(TTEXT_TOP));
+
+                if (stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("PopupTop"));
+                else if (stype != STATE_PAGE)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectTop"));
+            break;
+
+            case 7:
+                cell1->setText(getLabelText(TTEXT_WIDTH));
+
+                if (stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("PopupWidth"));
+                else if (stype != STATE_PAGE)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectWidth"));
+            break;
+
+            case 8:
+                cell1->setText(getLabelText(TTEXT_HEIGHT));
+
+                if (stype == STATE_POPUP)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("PopupHeight"));
+                else if (stype != STATE_PAGE)
+                    mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectHeight"));
+            break;
+
+            case 9:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(getLabelText(TTEXT_RESET_POS_ON_SHOW));
+                    mTable->setCellWidget(i, 1, makePopupResetOnPos("PopupResetOnPos"));
+                }
+                else if (stype != STATE_PAGE)
+                {
+                    cell1->setText(getLabelText(TTEXT_ZORDER));
+                    mTable->setCellWidget(i, 1, makePopupResetOnPos("ObjectZOrder"));
+                }
+            break;
+
+            case 10:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(getLabelText(TTEXT_GROUP));
+                    mTable->setCellWidget(i, 1, makePopupGroups("PopupGroups"));
+                }
+            break;
+
+            case 11:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(getLabelText(TTEXT_TIMEOUT));
+                    mTable->setCellWidget(i, 1, makePopupTimeout("PopupTimeout"));
+                }
+            break;
+
+            case 12:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(tr("Modal"));
+                    mComboModal = new QComboBox;
+                    mComboModal->addItem(tr("No"), 0);
+                    mComboModal->addItem(tr("Yes"), 1);
+                    connect(mComboModal, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboModalChanged);
+                    mTable->setCellWidget(i, 1, mComboModal);
+                }
+            break;
+
+            case 13:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(tr("Show effect"));
+                    mComboShow = new QComboBox;
+                    mComboShow->addItem(tr("None"), Page::SE_NONE);
+                    mComboShow->addItem(tr("Fade"), Page::SE_FADE);
+                    mComboShow->addItem(tr("Slide from left"), Page::SE_SLIDE_LEFT);
+                    mComboShow->addItem(tr("Slide from right"), Page::SE_SLIDE_RIGHT);
+                    mComboShow->addItem(tr("Slide from top"), Page::SE_SLIDE_TOP);
+                    mComboShow->addItem(tr("Slide from bottom"), Page::SE_SLIDE_BOTTOM);
+                    mComboShow->addItem(tr("Slide from left fade"), Page::SE_SLIDE_LEFT_FADE);
+                    mComboShow->addItem(tr("Slide from right fade"), Page::SE_SLIDE_RIGHT_FADE);
+                    mComboShow->addItem(tr("Slide from top fade"), Page::SE_SLIDE_TOP_FADE);
+                    mComboShow->addItem(tr("Slide from bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
+                    connect(mComboShow, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboShowChanged);
+                    mTable->setCellWidget(i, 1, mComboShow);
+                }
+            break;
+
+            case 14:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(tr("Hide effect"));
+                    mComboHide = new QComboBox;
+                    mComboHide->addItem(tr("None"), Page::SE_NONE);
+                    mComboHide->addItem(tr("Fade"), Page::SE_FADE);
+                    mComboHide->addItem(tr("Slide to left"), Page::SE_SLIDE_LEFT);
+                    mComboHide->addItem(tr("Slide to right"), Page::SE_SLIDE_RIGHT);
+                    mComboHide->addItem(tr("Slide to top"), Page::SE_SLIDE_TOP);
+                    mComboHide->addItem(tr("Slide to bottom"), Page::SE_SLIDE_BOTTOM);
+                    mComboHide->addItem(tr("Slide to left fade"), Page::SE_SLIDE_LEFT_FADE);
+                    mComboHide->addItem(tr("Slide to right fade"), Page::SE_SLIDE_RIGHT_FADE);
+                    mComboHide->addItem(tr("Slide to top fade"), Page::SE_SLIDE_TOP_FADE);
+                    mComboHide->addItem(tr("Slide to bottom fade"), Page::SE_SLIDE_BOTTOM_FADE);
+                    connect(mComboHide, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboHideChanged);
+                    mTable->setCellWidget(i, 1, mComboHide);
+                }
+            break;
+
+            case 15:
+                if (stype == STATE_POPUP)
+                {
+                    cell1->setText(tr("Collapse direction"));
+                    mComboColapse = new QComboBox;
+                    mComboColapse->addItem(tr("None"), Page::COLDIR_NONE);
+                    mComboColapse->addItem(tr("Left"), Page::COLDIR_LEFT);
+                    mComboColapse->addItem(tr("Right"), Page::COLDIR_RIGHT);
+                    mComboColapse->addItem(tr("Up"), Page::COLDIR_UP);
+                    mComboColapse->addItem(tr("Down"), Page::COLDIR_DOWN);
+                    connect(mComboColapse, &QComboBox::currentIndexChanged, this, &TPropertiesGeneral::onComboColapseChange);
+                    mTable->setCellWidget(i, 1, mComboColapse);
+                }
+            break;
+        }
+
+        cell1->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
+        mTable->setItem(i, 0, cell1);
+
+        if (cell2)
+        {
+            cell2->setData(Qt::UserRole, i);
+            mTable->setItem(i, 1, cell2);
+        }
+    }
+
+    mTable->resizeColumnsToContents();
+    mInitialized = true;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makePopupType(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makePopupType(const QString& name)");
+
+    QStringList items = { "Standard", "Subpage" };
+    QList<QVariant> data = { 1, 2 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboPopupTypeChanged);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeButtonType(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeButtonType(const QString& name)");
+
+    QStringList items = { "general", "multi-state general", "bargraph",
+                          "multi-state bargraph", "text input",
+                          "sub-page view", "listview" };
+    QList<QVariant> data = { 1, 2, 3, 4, 5, 6, 7 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboButtonTypeChanged);
+    return combo;
+}
+
+TElementLineEdit *TPropertiesGeneral::makeObjectName(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectName(const QString& text, const QString& name)");
+
+    TElementLineEdit *le = new TElementLineEdit(text, name, mTable);
+    connect(le, &TElementLineEdit::inputTextChanged, this, &TPropertiesGeneral::onObjectNameChanged);
+    return le;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeButtonLockName(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeButtonLockName(const QString& name)");
+
+    QStringList items = { "no", "yes" };
+    QList<QVariant> data = { false, true };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboLockButtonName);
+    return combo;
+}
+
+TElementWidgetText *TPropertiesGeneral::makeDescription(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeDescription(const QString& name)");
+
+    QString text;
+
+    if (name == "PageDescription")
+        text = mPage.description;
+    else
+    {
+        if (mActObject.bi == (mActObjectID + 1))
+            text = mActObject.bd;
+        else // We have no valid object. Maybe we can load it
+        {
+            if (mActObjectID >= 0 && mPage.objects.size() > mActObjectID)
+                text = mPage.objects[mActObjectID]->getObject().bd;
+        }
+    }
+
+    TElementWidgetText *wt = new TElementWidgetText(text, name, mTable);
+    connect(wt, &TElementWidgetText::textChanged, this, &TPropertiesGeneral::onDescriptionChanged);
+    return wt;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeSpinGeometry(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeSpinGeometry(const QString& name)");
+
+    int value = 0;
+
+    if (name.startsWith("Popup"))
+    {
+        if (name.endsWith("Left"))
+            value = mPage.left;
+        else if (name.endsWith("Top"))
+            value = mPage.top;
+        else if (name.endsWith("Width"))
+            value = mPage.width;
+        else if (name.endsWith("Height"))
+            value = mPage.height;
+    }
+    else
+    {
+        if (mActObjectID >= 0 && mPage.objects.size() > mActObjectID)
+        {
+            mActObject = mPage.objects[mActObjectID]->getObject();
+
+            if (name.endsWith("Left"))
+                value = mActObject.lt;
+            else if (name.endsWith("Top"))
+                value = mActObject.tp;
+            else if (name.endsWith("Width"))
+                value = mActObject.wt;
+            else if (name.endsWith("Height"))
+                value = mActObject.ht;
+        }
+    }
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinGeometryChanged);
+    return sbox;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makePopupResetOnPos(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makePopupResetOnPos(const QString& name)");
+
+    QStringList items = { "no", "yes" };
+    QList<QVariant> data = { false, true };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboLockButtonName);
+    return combo;
+}
+
+TElementLineEdit *TPropertiesGeneral::makeObjectZOrder(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectZOrder(const QString& name)");
+
+    QString value("0");
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+
+        if (mActObject.zo > 0)
+            value = QString("%1").arg(mActObject.zo);
+        else
+            value = QString("%1").arg(mActObject.bi);
+    }
+
+    TElementLineEdit *le = new TElementLineEdit(value, name, mTable);
+    le->setDisabled(true);
+    return le;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makePopupGroups(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makePopupGroups(const QString& name)");
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->setEditable(true);
+    QStringList groups = TPageHandler::Current().getGroupNames();
+    groups.insert(0, "none");
+    mComboGroupText->addItems(groups);
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboPopupGroupChanged);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesGeneral::makePopupTimeout(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makePopupTimeout(const QString& name)");
+
+    TElementSpinBox *sb = new TElementSpinBox(mPage.timeout, 0, 10000, name);
+    connect(sb, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinTimeoutValue);
+    return sb;
 }
 
 void TPropertiesGeneral::setWidget(QTableWidget *view)
@@ -587,58 +1102,153 @@ void TPropertiesGeneral::onCellActivated(int row, int column)
         return;
 }
 
-/**
- * @brief TPropertiesGeneral::onLineEditTextChanged
- * This method is called whenever the only edit line changes. Because there
- * is only one, it is allways the description.
- *
- * @param text  The changed text
- */
-void TPropertiesGeneral::onLineEditTextChanged(const QString& text)
+void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVariant& data, const QString& name)
 {
-    DECL_TRACER("TPropertiesGeneral::onLineEditTextChanged(const QString& text)");
+    DECL_TRACER("TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVariant& data, const QString& name)");
 
-    if (mPage.popupType == Page::PT_PAGE || mPage.popupType == Page::PT_POPUP)
-    {
-        mPage.description = text;
-        saveChangedData(&mPage, TBL_GENERIC);
-        mChanged = true;
-    }
+    int type = data.toInt();
+
+    if (type == 1)
+        mPage.popupType = Page::PT_POPUP;
+    else
+        mPage.popupType = Page::PT_SUBPAGE;
+
+    mChanged = true;
+    // TODO: Add code to change rows in mTable
 }
 
-/**
- * @brief TPropertiesGeneral::onToolButtonClicked
- * This method can be activated only if the button, the only one, is clicked.
- * This means, that the description may have changed.
- */
-void TPropertiesGeneral::onToolButtonClicked()
+void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)
 {
-    DECL_TRACER("TPropertiesGeneral::onToolButtonClicked()");
+    DECL_TRACER("TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)");
 
-    if (mPage.popupType == Page::PT_PAGE || mPage.popupType == Page::PT_POPUP)
+    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+        return;
+
+    mActObject = mPage.objects[mActObjectID]->getObject();
+    int type = data.toInt();
+
+    switch(type)
     {
-        TTextEditDialog dialog(mParent);
-        dialog.setCaption(tr("Description"));
-        dialog.setDescription(mPage.description);
+        case 1: mActObject.type = ObjHandler::GENERAL; break;
+        case 2: mActObject.type = ObjHandler::MULTISTATE_GENERAL; break;
+        case 3: mActObject.type = ObjHandler::BARGRAPH; break;
+        case 4: mActObject.type = ObjHandler::MULTISTATE_BARGRAPH; break;
+        case 5: mActObject.type = ObjHandler::TEXT_INPUT; break;
+        case 6: mActObject.type = ObjHandler::SUBPAGE_VIEW; break;
+        case 7: mActObject.type = ObjHandler::LISTVIEW; break;
+    }
 
-        if (dialog.exec() == QDialog::Rejected)
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVariant& data, const QString& name)");
+
+    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+        return;
+
+    mActObject = mPage.objects[mActObjectID]->getObject();
+    mActObject.li = data.toBool();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)");
+
+    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+        return;
+
+    mActObject = mPage.objects[mActObjectID]->getObject();
+    mActObject.na = text;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString& name)");
+
+    if (name.startsWith("Page"))
+        mPage.description = text;
+    else
+    {
+        if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
             return;
 
-        mPage.description = dialog.getDescription();
-
-        if (mLineDescription)
-            mLineDescription->setText(mPage.description);
-
-        saveChangedData(&mPage, TBL_GENERIC);
-        mChanged = false;
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject.bd = text;
     }
+
+    mChanged = true;
+    markChanged();
 }
 
-void TPropertiesGeneral::onComboPopupTypeChanged(int index)
+void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
 {
-    DECL_TRACER("TPropertiesGeneral::onComboPopupTypeChanged(int index)");
+    DECL_TRACER("TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)");
 
-    mPage.popupType = static_cast<Page::PAGE_TYPE>(mComboPopupType->itemData(index).toInt());
+    if (name.startsWith("Popup"))
+    {
+        if (name.endsWith("Left"))
+            mPage.left = value;
+        else if (name.endsWith("Top"))
+            mPage.top = value;
+        else if (name.endsWith("Width"))
+            mPage.width = value;
+        else if (name.endsWith("Height"))
+            mPage.height = value;
+    }
+    else
+    {
+        if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        {
+            mActObject = mPage.objects[mActObjectID]->getObject();
+
+            if (name.endsWith("Left"))
+                mActObject.lt = value;
+            else if (name.endsWith("Top"))
+                mActObject.tp = value;
+            else if (name.endsWith("Width"))
+                mActObject.wt = value;
+            else if (name.endsWith("Height"))
+                mActObject.ht = value;
+        }
+    }
+
+    mChanged = true;
+    saveChangedData(&mPage, TBL_GENERIC);
+}
+
+void TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(data);
+    Q_UNUSED(name);
+
+    if (text.isEmpty() || text == "none")
+        mPage.group = QString();
+    else
+        mPage.group = text;
+
+    mChanged = true;
+    saveChangedData(&mPage, TBL_GENERIC);
+}
+
+void TPropertiesGeneral::onPopupTimeout(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onPopupTimeout(int value, const QString& name)");
+
+    mPage.timeout = value;
+    mChanged = true;
+    saveChangedData(&mPage, TBL_GENERIC);
 }
 
 void TPropertiesGeneral::onSpinLeftValue(int value)

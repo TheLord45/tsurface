@@ -34,8 +34,6 @@ find_package(OpenSSL REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Fontconfig REQUIRED)
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-
 qt_add_executable(tsurface
     main.cpp
     tsurface.cpp
@@ -149,6 +147,10 @@ qt_add_executable(tsurface
     telementbordername.h
     telementgradientcolors.cpp
     telementgradientcolors.h
+    telementlineedit.cpp
+    telementlineedit.h
+    telementspinbox.cpp
+    telementspinbox.h
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h

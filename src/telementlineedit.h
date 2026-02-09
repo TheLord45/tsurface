@@ -15,47 +15,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TMISC_H
-#define TMISC_H
+#ifndef TELEMENTLINEEDIT_H
+#define TELEMENTLINEEDIT_H
 
-#include <QString>
+#include <QWidget>
 
-typedef enum
+class TElementLineEdit : public QWidget
 {
-    TBL_UNKNOWN,
-    TBL_GENERIC,
-    TBL_PROGRAM,
-    TBL_STATES,
-    TBL_EVENTS
-}PROPERTIES_t;
+    Q_OBJECT
 
-enum TOOL
-{
-    TOOL_NONE,
-    TOOL_DRAW,
-    TOOL_SELECT,
-    TOOL_POPUP
+    public:
+        TElementLineEdit(const QString& text, const QString& name, QWidget *parent=nullptr);
+        ~TElementLineEdit();
+
+        QString& getText() { return mText; };
+
+    signals:
+        void inputTextChanged(const QString& text, const QString& name);
+
+    protected:
+        void onTextChanged(const QString& text);
+
+    private:
+        QString mName;
+        QString mText;
 };
 
-enum STATE_TYPE
-{
-    STATE_UNKNOWN,
-    STATE_PAGE,
-    STATE_POPUP,
-    STAPE_SUBPAGE,
-    STATE_BUTTON,
-    STATE_BARGRAPH,
-    STATE_APP
-};
-
-class QPixmap;
-
-QString basename(const QString& path);
-QString pathname(const QString& path);
-int getObjectID(const QString& name, const QString& hint="");
-QString wcharToUnicodeString(const QChar& ch);
-QPixmap makePixmapFromString(const QString& str, int width);
-
-#define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
-
-#endif // TMISC_H
+#endif // TELEMENTLINEEDIT_H
