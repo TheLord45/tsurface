@@ -450,6 +450,7 @@ class TObjectHandler
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
 
         int getButtonIndex() { return mObject.bi; }
+        int getIndex();
         QString getButtonName() { return mObject.na; }
         void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }

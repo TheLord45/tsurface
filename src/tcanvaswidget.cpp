@@ -187,6 +187,7 @@ void TCanvasWidget::selectOnly(TResizableWidget* w)
     mSelection.clear();
     mSelection.insert(w);
     w->setSelected(true);
+    emit selectChanged(this, true);
 }
 
 void TCanvasWidget::toggleSelection(TResizableWidget* w)
@@ -200,11 +201,13 @@ void TCanvasWidget::toggleSelection(TResizableWidget* w)
     {
         mSelection.remove(w);
         w->setSelected(false);
+        emit selectChanged(this, false);
     }
     else
     {
         mSelection.insert(w);
         w->setSelected(true);
+        emit selectChanged(this, true);
     }
 }
 
@@ -216,6 +219,7 @@ void TCanvasWidget::clearSelection()
         s->setSelected(false);
 
     mSelection.clear();
+    emit selectChanged(this, false);
 }
 
 void TCanvasWidget::selectAll()
@@ -232,6 +236,8 @@ void TCanvasWidget::selectAll()
             w->setSelected(true);
         }
     }
+
+    emit selectChanged(this, true);
 }
 
 bool TCanvasWidget::allSelected() const
@@ -253,8 +259,11 @@ TResizableWidget *TCanvasWidget::currentSelectedWidget()
 {
     DECL_TRACER("TCanvasWidget::currentSelectedWidget()");
 
-    if (mResizableChildren().size() == 1)
-        return mResizableChildren()[0];
+    for (TResizableWidget *w : mResizableChildren())
+    {
+        if (w->isSelected())
+            return w;
+    }
 
     return nullptr;
 }

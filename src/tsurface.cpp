@@ -281,7 +281,7 @@ void TSurface::drawBackgroundColor(const Page::PAGE_t& page)
     else if (page.srPage.ft == "sweep")
     {
         QConicalGradient grad;
-        grad.setAngle(90.0);
+        grad.setAngle(0.0);
         grad.setCenter(page.baseObject.widget->rect().toRectF().center());
         grad.setStops(gstops);
         page.baseObject.widget->setConicGradient(grad);
@@ -395,8 +395,9 @@ void TSurface::addObject(int id, QPoint pt)
     o->setObject(page.baseObject.widget);
     o->setObject(object);
     o->setSize(wrap->geometry());
-    TPageHandler::Current().appendObject(page.pageID, o);
-    TWorkSpaceHandler::Current().setStatesPage(page.name);
+    int index = TPageHandler::Current().appendObject(page.pageID, o);
+    TWorkSpaceHandler::Current().setAllProperties(page, STATE_BUTTON, index);
+    TWorkSpaceHandler::Current().setStatesPage(page.pageID, false);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -1583,6 +1584,7 @@ void TSurface::onAddNewPage()
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
+    widget->setPageID(id);
     widget->installEventFilter(mCloseEater);
 
     QMdiSubWindow *page = new QMdiSubWindow;
@@ -1641,6 +1643,7 @@ void TSurface::onAddNewPopup()
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
+    widget->setPageID(id);
     widget->installEventFilter(mCloseEater);
 
     QMdiSubWindow *page = new QMdiSubWindow;

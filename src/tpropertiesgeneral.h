@@ -41,11 +41,7 @@ class TPropertiesGeneral : public QObject
         TPropertiesGeneral(QTableWidget *view);
         ~TPropertiesGeneral();
 
-        void setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid=0);
-//        void setGeneralPage(const QString& name);
-//        void setGeneralPage(int id, bool loaded=false);
-//        void setGeneralPopup(const QString& name);
-//        void setGeneralPopup(int id, bool loaded=false);
+        void setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid=-1);
         void setGeneralObjectID(int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
@@ -64,7 +60,8 @@ class TPropertiesGeneral : public QObject
         virtual void pageNameChanged(int id, const QString& name) = 0;
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
-        virtual ObjHandler::TOBJECT_t getActualObject() = 0;
+        virtual void requestRedraw(Page::PAGE_t *page) = 0;
+        virtual ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) = 0;
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);
@@ -76,18 +73,16 @@ class TPropertiesGeneral : public QObject
         void onSpinGeometryChanged(int value, const QString& name);
         void onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name);
         void onPopupTimeout(int value, const QString& name);
+        void onPopupModalChanged(const QString& text, const QVariant& data, const QString& name);
+        void onPopupShowEffectChanged(const QString& text, const QVariant& data, const QString& name);
+        void onPopupHideEffectChanged(const QString& text, const QVariant& data, const QString& name);
+        void onPopupCollapseDirChanged(const QString& text, const QVariant& data, const QString& name);
+        void onSpinTimeoutValue(int value, const QString& name);
+        void onSpinPopupEffectTimeChnaged(int value, const QString& name);
+        void onComboPopupEffectPos(const QString& text, const QVariant& data, const QString& name);
+        void onSpinCollapseOffset(int value, const QString& name);
+        void onComboCollapseShowOpen(const QString& text, const QVariant& data, const QString& name);
 
-        void onSpinLeftValue(int value);
-        void onSpinTopValue(int value);
-        void onSpinWidthValue(int value);
-        void onSpinHeightValue(int value);
-        void onComboResetPosChanged(int index);
-        void onComboGroupTextChanged(const QString& text);
-        void onSpinTimeoutValue(int value);
-        void onComboModalChanged(int index);
-        void onComboShowChanged(int index);
-        void onComboHideChanged(int index);
-        void onComboColapseChange(int index);
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
@@ -106,8 +101,18 @@ class TPropertiesGeneral : public QObject
         TElementLineEdit *makeObjectZOrder(const QString& name);
         TElementWidgetCombo *makePopupGroups(const QString& name);
         TElementSpinBox *makePopupTimeout(const QString& name);
+        TElementWidgetCombo *makePopupModal(const QString& name);
+        TElementWidgetCombo *makePopupShowEffect(const QString& name);
+        TElementWidgetCombo *makePopupHideEffect(const QString& name);
+        TElementWidgetCombo *makePopupCollapseDir(const QString& name);
+        TElementSpinBox *makePopupEffectTime(int t, const QString& name);
+        TElementWidgetCombo *makePopupEffectPos(Page::SHOWEFFECT effect, const QString& name);
+        TElementSpinBox *makePopupCollapseOffset(const QString& name);
+        TElementWidgetCombo *makePopupCollapseShowOpen(const QString& name);
 
     private:
+        void initYesNo(QStringList& list, QList<QVariant>& data);
+
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};
         bool mConnected{false};

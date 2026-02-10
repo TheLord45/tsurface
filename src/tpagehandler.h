@@ -158,6 +158,7 @@ namespace Page
         int showLockX{0};                       // G5 ?
         COLDIR_t collapseDirection{COLDIR_NONE};// G5: The direction the popup should move on collapse
         int collapseOffset{0};                  // G5: The offset to collapse to.
+        bool collapseShowOpen{false};           // G5: TRUE = On start show collapsible open
         bool collapsible{false};                // G5: Internal use: TRUE = popup is collapsible.
         COLLAPS_STATE_t colState{COL_CLOSED};   // G5: Internal use: Defines the state of a collapsable popup.
         QString group;                          // Name of the group the popup belongs (popup only)
@@ -210,7 +211,7 @@ class TPageHandler : public QObject
         bool saveAllPages();
         bool readPages(const QStringList& list);
         ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
-        void appendObject(int pageID, TObjectHandler *object);
+        int appendObject(int pageID, TObjectHandler *object);
         // Getter/Setter
         Page::PAGE_t getPage(int number);
         Page::PAGE_t getPage(const QString& name);

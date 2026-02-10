@@ -23,7 +23,7 @@
 typedef enum
 {
     TBL_UNKNOWN,
-    TBL_GENERIC,
+    TBL_GENERAL,
     TBL_PROGRAM,
     TBL_STATES,
     TBL_EVENTS

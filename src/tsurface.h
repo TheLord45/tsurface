@@ -77,10 +77,10 @@ class TSurface : public QMainWindow
         void onObjectSizeChanged(TResizableWidget *w, QSize size);
         TOOL onGetCurrentTool() { return mSelectedTool; };
         void onRedrawRequest(Page::PAGE_t *page);
-
-    private slots:
         // Splitter
         void onSplitterMoved(int pos, int index);
+
+    private slots:
         // Menu: File
         void on_actionOpen_triggered();
         void on_actionNew_triggered();

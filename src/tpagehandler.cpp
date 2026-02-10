@@ -497,17 +497,17 @@ ObjHandler::TOBJECT_t TPageHandler::initNewObject(int bi, const QString& name)
     return object;
 }
 
-void TPageHandler::appendObject(int pageID, TObjectHandler *object)
+int TPageHandler::appendObject(int pageID, TObjectHandler *object)
 {
     DECL_TRACER("TPageHandler::appendObject(int pageID, TObjectHandler *object)");
 
     if (pageID <= 0 || !object || object->getButtonIndex() <= 0)
-        return;
+        return -1;
 
     PAGE_t *page = getPagePointer(pageID);
 
     if (!page)
-        return;
+        return -1;
 
     // Check if object is unique
     for (TObjectHandler *o : page->objects)
@@ -515,11 +515,12 @@ void TPageHandler::appendObject(int pageID, TObjectHandler *object)
         if (o->getButtonIndex() == object->getButtonIndex())
         {
             MSG_WARNING("Attempt to insert duplicate button with button index " << o->getButtonIndex() << " for page " << pageID);
-            return;
+            return -1;
         }
     }
 
     page->objects.append(object);
+    return page->objects.size() - 1;
 }
 
 void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)

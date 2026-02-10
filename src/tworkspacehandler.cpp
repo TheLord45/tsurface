@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include "tworkspacehandler.h"
+#include "tcanvaswidget.h"
 #include "terror.h"
 
 TWorkSpaceHandler *TWorkSpaceHandler::mCurrent{nullptr};
@@ -168,6 +169,23 @@ void TWorkSpaceHandler::setPopup(int id)
     setStatesPage(id, false);
 }
 
+void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID)
+{
+    DECL_TRACER("TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID)");
+
+    if (page.pageID <= 0)
+        return;
+
+    setGeneralPage(page, stype, objectID);
+
+    if (stype == STATE_PAGE)
+        setProgrammingPage(page.pageID, false);
+    else if (stype == STATE_POPUP)
+        setProgrammingPopup(page.pageID, false);
+
+    setStatesPage(page.pageID, false);
+}
+
 void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::onPageNameChanged(int id, const QString& name)");
@@ -191,7 +209,7 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
 
     switch(prop)
     {
-        case TBL_GENERIC:
+        case TBL_GENERAL:
             pg.popupType = page->popupType;
             pg.name = page->name;
             pg.description = page->description;
@@ -235,9 +253,25 @@ void TWorkSpaceHandler::markChanged()
         _markDirty();
 }
 
-ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject()
+ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject(const Page::PAGE_t& page)
 {
-    DECL_TRACER("TWorkSpaceHandler::getActualObject()");
+    DECL_TRACER("TWorkSpaceHandler::getActualObject(const Page::PAGE_t& page)");
+
+    if (!page.baseObject.widget)
+        return ObjHandler::TOBJECT_t();
+
+    TResizableWidget *widget = page.baseObject.widget->currentSelectedWidget();
+
+    if (!widget || page.pageID != widget->getPageId())
+        return ObjHandler::TOBJECT_t();
+
+    int bi = widget->getId();
+
+    for (TObjectHandler *obj : page.objects)
+    {
+        if (obj->getButtonIndex() == bi)
+            return obj->getObject();
+    }
 
     return ObjHandler::TOBJECT_t();
 }

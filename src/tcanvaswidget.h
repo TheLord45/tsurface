@@ -70,6 +70,10 @@ class TCanvasWidget : public QWidget
         void removeSelected();
         void removeObject(TResizableWidget *w);
 
+        // Miscellaneous
+        void setPageID(int id) { mPageID = id; }
+        int getPageID() { return mPageID; }
+
     signals:
         void gridChanged(const QSize& size);
         void snapChanged(bool enabled);
@@ -103,7 +107,7 @@ class TCanvasWidget : public QWidget
 
         struct MoveItem
         {
-            TResizableWidget* w = nullptr;
+            TResizableWidget *w{nullptr};
             QRect startGeom;
         };
 
@@ -111,6 +115,7 @@ class TCanvasWidget : public QWidget
         QPoint mMoveStartGlobal;
         QVector<MoveItem> mMoveItems;
         TResizableWidget* mMoveLead{nullptr};
+        int mPageID{0};
 
         QList<TResizableWidget*> mResizableChildren() const;
         static inline int mSnapCoord(int v, int step);

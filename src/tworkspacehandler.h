@@ -61,6 +61,7 @@ class TWorkSpaceHandler
         void setPage(int id);
         void setPopup(const QString& name);
         void setPopup(int id);
+        void setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID=-1);
 
         // Callbacks
         // In this case we can't use the mechanism of Qt with "signals",
@@ -75,7 +76,7 @@ class TWorkSpaceHandler
         void pageNameChanged(int id, const QString& name) override;
         void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
         void markChanged() override;
-        ObjHandler::TOBJECT_t getActualObject() override;
+        ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) override;
         void requestRedraw(Page::PAGE_t *page) override;
 
     private:
