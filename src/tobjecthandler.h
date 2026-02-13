@@ -375,6 +375,7 @@ namespace ObjHandler
         int wt{0};              // width
         int ht{0};              // height
         int zo{0};              // Z-Order
+        QString ddt;            // G5: Drag/Drop type (dr = draggable, dt = drop target)
         QString hs;             // bounding, ...
         QString bs;             // Border style (circle, ...)
         FEEDBACK fb{FB_NONE};   // Feedback type (momentary, ...)

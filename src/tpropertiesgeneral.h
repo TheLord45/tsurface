@@ -31,6 +31,7 @@ class TElementWidgetCombo;
 class TElementLineEdit;
 class TElementWidgetText;
 class TElementSpinBox;
+class TElementBorderName;
 
 class TPropertiesGeneral : public QObject
 {
@@ -82,6 +83,10 @@ class TPropertiesGeneral : public QObject
         void onComboPopupEffectPos(const QString& text, const QVariant& data, const QString& name);
         void onSpinCollapseOffset(int value, const QString& name);
         void onComboCollapseShowOpen(const QString& text, const QVariant& data, const QString& name);
+        void onComboObjectDragDropType(const QString& text, const QVariant& data, const QString& name);
+        void onComboObjectDropGroup(const QString& text, const QVariant& data, const QString& name);
+        void onComboObjectTouchStyle(const QString& text, const QVariant& data, const QString& name);
+        void onObjectBorderStyle(const QString& border, const QString& name);
 
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
@@ -109,6 +114,10 @@ class TPropertiesGeneral : public QObject
         TElementWidgetCombo *makePopupEffectPos(Page::SHOWEFFECT effect, const QString& name);
         TElementSpinBox *makePopupCollapseOffset(const QString& name);
         TElementWidgetCombo *makePopupCollapseShowOpen(const QString& name);
+        TElementWidgetCombo *makeObjectDragDropType(const QString& name);
+        TElementWidgetCombo *makeObjectDropGroup(const QString& name);
+        TElementWidgetCombo *makeObjectTouchStyle(const QString& name);
+        TElementBorderName *makeObjectBorderStyle(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

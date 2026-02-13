@@ -25,13 +25,11 @@
 #include <QPushButton>
 
 #include "tpropertiesgeneral.h"
-#include "telementbitmapselector.h"
 #include "telementbordername.h"
 #include "telementwidgetcombo.h"
 #include "telementwidgettext.h"
 #include "telementlineedit.h"
 #include "telementspinbox.h"
-#include "tconfmain.h"
 #include "terror.h"
 
 #define TTEXT_POPUPTYPE             1   // Popup only
@@ -339,6 +337,13 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype)
             mTable->setRowHidden(12, false);        // ObjectTop
             mTable->setRowHidden(14, false);        // ObjectHeight
             mTable->setRowHidden(16, false);        // ObjectZOrder
+            mTable->setRowHidden(31, false);        // ObjectDragDropType
+
+            if (mActObject.ddt == "dr")
+                mTable->setRowHidden(32, false);    // ObjectDropGroup
+
+            mTable->setRowHidden(33, false);        // ObjectTouchStyle
+            mTable->setRowHidden(34, false);        // ObjectBorderStyle
             // TODO: To be continued
         break;
 
@@ -351,11 +356,14 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 {
     DECL_TRACER("TPropertiesGeneral::createTable(STATE_TYPE stype)");
 
-    int rows = 31;
+    if (!mTable)
+        return;
+
+    Q_UNUSED(stype);
+    int rows = 35;
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(rows);
-    QSize panelSize = TConfMain::Current().getPanelSize();
 
     for (int i = 0; i < rows; ++i)
     {
@@ -526,6 +534,26 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             case 30:
                 cell1->setText(getLabelText(TTEXT_COLLAPSE_SHOW_OPEN));
                 mTable->setCellWidget(i, 1, makePopupCollapseShowOpen("PopupCollapseShowOpen"));
+            break;
+
+            case 31:
+                cell1->setText(getLabelText(TTEXT_DRAGDROP_TYPE));
+                mTable->setCellWidget(i, 1, makeObjectDragDropType("ObjectDragDropType"));
+            break;
+
+            case 32:
+                cell1->setText(getLabelText(TTEXT_DROP_GROUP));
+                mTable->setCellWidget(i, 1, makeObjectDropGroup("ObjectDropGroup"));
+            break;
+
+            case 33:
+                cell1->setText(getLabelText(TTEXT_TOUCH_STYLE));
+                mTable->setCellWidget(i, 1, makeObjectTouchStyle("ObjectTouchStyle"));
+            break;
+
+            case 34:
+                cell1->setText(getLabelText(TTEXT_BORDER_STYLE));
+                mTable->setCellWidget(i, 1, makeObjectBorderStyle("ObjectBorderStyle"));
             break;
         }
 
@@ -814,6 +842,8 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupEffectPos(Page::SHOWEFFECT eff
 {
     DECL_TRACER("TPropertiesGeneral::makePopupEffectPos(Page::SHOWEFFECT effect, const QString& name)");
 
+    Q_UNUSED(effect);
+
     int start = 0;
     QStringList items;
     QList<QVariant> data;
@@ -877,6 +907,89 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupCollapseShowOpen(const QString
     combo->setCurrentIndex(mPage.collapseShowOpen ? 1 : 0);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboCollapseShowOpen);
     return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectDragDropType(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDragDropType(const QString& name)");
+
+    QStringList items = { "none", "draggable", "drop target" };
+    QList<QVariant> data = { "none", "dr", "dt" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        int idx = 0;
+
+        if (mActObject.ddt == "dr")
+            idx = 1;
+        else if (mActObject.ddt == "dt")
+            idx = 2;
+
+        combo->setCurrentIndex(idx);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboObjectDragDropType);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectDropGroup(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDropGroup(const QString& name)");
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->setItemText(0, "none");
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboObjectDropGroup);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectTouchStyle(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectTouchStyle(const QString& name)");
+
+    QStringList items = { "active touch", "bounding box", "pass through" };
+    QList<QVariant> data = { "none", "bounding", "passThru" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        int idx = 0;
+
+        if (mActObject.hs == "bounding")
+            idx = 1;
+        else if (mActObject.hs == "passThru")
+            idx = 2;
+
+        combo->setCurrentIndex(idx);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboObjectTouchStyle);
+    return combo;
+}
+
+TElementBorderName *TPropertiesGeneral::makeObjectBorderStyle(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectBorderStyle(const QString& name)");
+
+    QString border;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        border = mActObject.bs;
+    }
+
+    TElementBorderName *bn = new TElementBorderName(border, name, mTable);
+    connect(bn, &TElementBorderName::borderChanged, this, &TPropertiesGeneral::onObjectBorderStyle);
+    return bn;
 }
 
 void TPropertiesGeneral::setWidget(QTableWidget *view)
@@ -962,6 +1075,9 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
 {
     DECL_TRACER("TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVariant& data, const QString& name)");
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     int type = data.toInt();
 
     if (type == Page::PT_POPUP)
@@ -977,6 +1093,9 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
 void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
 
     if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
         return;
@@ -1009,6 +1128,9 @@ void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVaria
     if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
         return;
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     mActObject = mPage.objects[mActObjectID]->getObject();
     mActObject.li = data.toBool();
     mPage.objects[mActObjectID]->setObject(mActObject);
@@ -1019,6 +1141,8 @@ void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVaria
 void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)");
+
+    Q_UNUSED(name);
 
     if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
         return;
@@ -1108,6 +1232,8 @@ void TPropertiesGeneral::onPopupTimeout(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onPopupTimeout(int value, const QString& name)");
 
+    Q_UNUSED(name);
+
     mPage.timeout = value;
     mChanged = true;
     saveChangedData(&mPage, TBL_GENERAL);
@@ -1117,6 +1243,9 @@ void TPropertiesGeneral::onPopupModalChanged(const QString& text, const QVariant
 {
     DECL_TRACER("TPropertiesGeneral::onPopupModalChanged(const QString& text, const QVariant& data, const QString& name)");
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     mPage.modal = (data.toBool() ? 1 : 0);
     mChanged = true;
     saveChangedData(&mPage, TBL_GENERAL);
@@ -1125,6 +1254,9 @@ void TPropertiesGeneral::onPopupModalChanged(const QString& text, const QVariant
 void TPropertiesGeneral::onPopupShowEffectChanged(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onPopupShowEffectChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
 
     mPage.showEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
     mChanged = true;
@@ -1136,6 +1268,9 @@ void TPropertiesGeneral::onPopupHideEffectChanged(const QString& text, const QVa
 {
     DECL_TRACER("TPropertiesGeneral::onPopupHideEffectChanged(const QString& text, const QVariant& data, const QString& name)");
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     mPage.hideEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
     mChanged = true;
     saveChangedData(&mPage, TBL_GENERAL);
@@ -1146,6 +1281,9 @@ void TPropertiesGeneral::onPopupCollapseDirChanged(const QString& text, const QV
 {
     DECL_TRACER("TPropertiesGeneral::onPopupCollapseDirChanged(const QString& text, const QVariant& data, const QString& name)");
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     mPage.collapseDirection = static_cast<Page::COLDIR_t>(data.toInt());
     mChanged = true;
     saveChangedData(&mPage, TBL_GENERAL);
@@ -1155,6 +1293,8 @@ void TPropertiesGeneral::onPopupCollapseDirChanged(const QString& text, const QV
 void TPropertiesGeneral::onSpinTimeoutValue(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onSpinTimeoutValue(int value, const QStringName)");
+
+    Q_UNUSED(name);
 
     mPage.timeout = value;
     saveChangedData(&mPage, TBL_GENERAL);
@@ -1201,6 +1341,8 @@ void TPropertiesGeneral::onSpinCollapseOffset(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onSpinCollapseOffset(int value, const QString& name)");
 
+    Q_UNUSED(name);
+
     mPage.collapseOffset = value;
     saveChangedData(&mPage, TBL_GENERAL);
     mChanged = true;
@@ -1210,9 +1352,73 @@ void TPropertiesGeneral::onComboCollapseShowOpen(const QString& text, const QVar
 {
     DECL_TRACER("TPropertiesGeneral::onComboCollapseShowOpen(const QString& text, const QVariant& data, const QString& name)");
 
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
     mPage.collapseShowOpen = data.toBool();
     saveChangedData(&mPage, TBL_GENERAL);
     mChanged = true;
+}
+
+void TPropertiesGeneral::onComboObjectDragDropType(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onComboObjectDragDropType(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    if (data.toString() == "none")
+        mActObject.ddt.clear();
+    else
+        mActObject.ddt = data.toString();
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+    setTable(STATE_BUTTON);
+}
+
+void TPropertiesGeneral::onComboObjectDropGroup(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onComboObjectDropGroup(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(data);
+    Q_UNUSED(name);
+    // TODO: Find out what it is for.
+}
+
+void TPropertiesGeneral::onComboObjectTouchStyle(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onComboObjectTouchStyle(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    QString val = data.toString();
+
+    if (val == "none")
+        mActObject.hs.clear();
+    else
+        mActObject.hs = val;
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QString& name)");
+
+    Q_UNUSED(name);
+
+    if (border == "none")
+        mActObject.bs.clear();
+    else
+        mActObject.bs = border;
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)
