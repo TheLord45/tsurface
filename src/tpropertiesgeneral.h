@@ -87,6 +87,10 @@ class TPropertiesGeneral : public QObject
         void onComboObjectDropGroup(const QString& text, const QVariant& data, const QString& name);
         void onComboObjectTouchStyle(const QString& text, const QVariant& data, const QString& name);
         void onObjectBorderStyle(const QString& border, const QString& name);
+        void onObjectYesNoSelection(const QString& text, const QVariant& data, const QString& name);
+        void onObjectPasswordProtection(const QString& text, const QVariant& data, const QString& name);
+        void onObjectStateCount(int value, const QString& name);
+        void onObjectAnimateTime(int value, const QString& name);
 
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
@@ -118,6 +122,10 @@ class TPropertiesGeneral : public QObject
         TElementWidgetCombo *makeObjectDropGroup(const QString& name);
         TElementWidgetCombo *makeObjectTouchStyle(const QString& name);
         TElementBorderName *makeObjectBorderStyle(const QString& name);
+        TElementWidgetCombo *makeObjectYesNoSelect(const QString& name);
+        TElementWidgetCombo *makeObjectPasswordProtected(const QString& name);
+        TElementSpinBox *makeObjectStateCount(const QString& name);
+        TElementSpinBox *makeObjectAnimateTime(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

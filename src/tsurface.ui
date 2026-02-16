@@ -333,13 +333,44 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuQuick_Input">
+     <property name="title">
+      <string>Quick Input</string>
+     </property>
+     <addaction name="actionCurrent_Property"/>
+     <addaction name="actionText"/>
+     <addaction name="actionDisabled"/>
+    </widget>
     <addaction name="actionSelection_tool"/>
     <addaction name="actionButton_draw_tool"/>
     <addaction name="actionPopup_draw_tool"/>
+    <addaction name="actionGrab_Properties_Tool"/>
+    <addaction name="actionPaint_Properties_Tool"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_Grid"/>
+    <addaction name="actionSnap_To_Grid"/>
+    <addaction name="separator"/>
+    <addaction name="menuQuick_Input"/>
+    <addaction name="separator"/>
+    <addaction name="actionUndo_Button_Set_Dynamic_Data_Source"/>
+    <addaction name="actionRedo"/>
     <addaction name="separator"/>
     <addaction name="actionCut"/>
     <addaction name="actionCopy"/>
-    <addaction name="actionInsert"/>
+    <addaction name="actionPaste"/>
+    <addaction name="actionReplace"/>
+    <addaction name="actionDelete"/>
+    <addaction name="actionRename"/>
+    <addaction name="separator"/>
+    <addaction name="actionFind"/>
+    <addaction name="actionFind_Replace"/>
+    <addaction name="separator"/>
+    <addaction name="actionSelect_All"/>
+    <addaction name="actionApply_To_All"/>
+    <addaction name="actionEdit_Previous"/>
+    <addaction name="actionEdit_Next"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuPanel">
     <property name="title">
@@ -747,12 +778,12 @@
     <string>Copy</string>
    </property>
   </action>
-  <action name="actionInsert">
+  <action name="actionPaste">
    <property name="icon">
     <iconset theme="QIcon::ThemeIcon::EditPaste"/>
    </property>
    <property name="text">
-    <string>Insert</string>
+    <string>Paste</string>
    </property>
   </action>
   <action name="actionAdd_Application_Window">
@@ -1405,6 +1436,139 @@
    </property>
    <property name="text">
     <string>Popup draw tool</string>
+   </property>
+  </action>
+  <action name="actionGrab_Properties_Tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grab Properties Tool</string>
+   </property>
+  </action>
+  <action name="actionPaint_Properties_Tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Paint Properties Tool</string>
+   </property>
+  </action>
+  <action name="actionShow_Grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/view-grid.svg</normaloff>:/images/view-grid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show Grid</string>
+   </property>
+  </action>
+  <action name="actionSnap_To_Grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="tsurface.qrc">
+     <normaloff>:/images/snap-bounding-box-corners.svg</normaloff>:/images/snap-bounding-box-corners.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Snap To Grid</string>
+   </property>
+  </action>
+  <action name="actionCurrent_Property">
+   <property name="text">
+    <string>Current Property</string>
+   </property>
+  </action>
+  <action name="actionText">
+   <property name="text">
+    <string>Text</string>
+   </property>
+  </action>
+  <action name="actionDisabled">
+   <property name="text">
+    <string>Disabled</string>
+   </property>
+  </action>
+  <action name="actionUndo_Button_Set_Dynamic_Data_Source">
+   <property name="text">
+    <string>Undo Button Set Dynamic Data Source</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditRedo"/>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionReplace">
+   <property name="text">
+    <string>Replace</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditDelete"/>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionRename">
+   <property name="text">
+    <string>Rename</string>
+   </property>
+  </action>
+  <action name="actionFind">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditFind"/>
+   </property>
+   <property name="text">
+    <string>Find</string>
+   </property>
+  </action>
+  <action name="actionFind_Replace">
+   <property name="text">
+    <string>Find &amp;&amp; Replace</string>
+   </property>
+   <property name="toolTip">
+    <string>Find &amp;&amp; Replace</string>
+   </property>
+  </action>
+  <action name="actionSelect_All">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditSelectAll"/>
+   </property>
+   <property name="text">
+    <string>Select All</string>
+   </property>
+  </action>
+  <action name="actionApply_To_All">
+   <property name="text">
+    <string>Apply To All</string>
+   </property>
+  </action>
+  <action name="actionEdit_Previous">
+   <property name="text">
+    <string>Edit Previous</string>
+   </property>
+  </action>
+  <action name="actionEdit_Next">
+   <property name="text">
+    <string>Edit Next</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentProperties"/>
+   </property>
+   <property name="text">
+    <string>Preferences ...</string>
    </property>
   </action>
  </widget>

@@ -138,18 +138,42 @@ void TConfig::saveConfig()
     mSettings->setValue("logLevel", mLogLevel);
     mSettings->setValue("logFile", mLogFile);
     mSettings->setValue("splitter", mSplitterPosition);
+
+    mSettings->beginGroup("Preferences");
+    mSettings->setValue("SystemGeneratedName", mSystemGeneratedName);
+    mSettings->setValue("ReloadLastWorkspace", mReloadLastWorkspace);;
+    mSettings->setValue("ExpandWorkspaceNavigator", mExpandWorkspaceNavigator);
+    mSettings->setValue("WarnOnDeletingSources", mWarnOnDeletingSources);
+    mSettings->setValue("FlushClosedPages", mFlushClosedPages);
+    mSettings->setValue("CreateBackup", mCreateBackup);
+    mSettings->setValue("UsePostfix", mUsePostfix);
+    mSettings->setValue("RetainSelectedTool", mRetainSelectedTool);
+    mSettings->setValue("ImageCacheSize", mImageCacheSize);
+    mSettings->setValue("InitialZoom", mInitialZoom);
+    mSettings->setValue("VisibleSize", mVisibleSize);
+    mSettings->setValue("GutterColor", mGutterColor.name(QColor::HexArgb));
+    mSettings->setValue("StackWindows", mStackWindows);
+    mSettings->setValue("GridStyle", mGridStyle);
+    mSettings->setValue("GridSize", mGridSize);
+    mSettings->setValue("SnapTolerance", mSnapTolerance);
+    mSettings->setValue("GridColor", mGridColor.name(QColor::HexArgb));
+    mSettings->setValue("TransparencyStyle", mTransparencyStyle);
+    mSettings->setValue("TransparencySize", mTransparencySize);
+    mSettings->setValue("TransparencyCustomColor1", mTransparencyCustomColor1.name(QColor::HexArgb));
+    mSettings->setValue("TransparencyCustomColor2", mTransparencyCustomColor2.name(QColor::HexArgb));
+    mSettings->setValue("FilesPanels", mFilesPanels);
+    mSettings->setValue("FilesPanels", mFilesBackups);
+    mSettings->setValue("FilesTemp", mFilesTemp);
+    mSettings->setValue("EditorsImage", mEditorsImage);
+    mSettings->setValue("EditorsSound", mEditorsSound);
+    mSettings->setValue("EnableUndoSystem", mEnableUndoSystem);
+    mSettings->setValue("UndoLevels", mUndoLevels);
+    mSettings->setValue("UndoShowAffectedPages", mUndoShowAffectedPages);
+    mSettings->setValue("UndoChangeSelection", mUndoChangeSelection);
+    mSettings->setValue("RedoEnableSystem", mRedoEnableSystem);
+    mSettings->endGroup();
+
     mSettings->sync();
-#ifdef QT_DEBUG
-        MSG_DEBUG("Configuration options:" << endl
-               << "Last directory:  " << mLastDirectory.toStdString() << endl
-               << "Position left:   " << mPosition.left() << endl
-               << "Position top:    " << mPosition.top() << endl
-               << "Position width:  " << mPosition.width() << endl
-               << "Position height: " << mPosition.height() << endl
-               << "Log level:       " << mLogLevel.toStdString() << endl
-               << "Log file:        " << mLogFile.toStdString() << endl
-               << "Splitter pos:    " << mSplitterPosition);
-#endif
 }
 
 bool TConfig::readConfig()
@@ -168,17 +192,39 @@ bool TConfig::readConfig()
     mLogFile = mSettings->value("logFile").toString();
     mSplitterPosition = mSettings->value("splitter").toInt();
 
-#ifdef QT_DEBUG
-    MSG_DEBUG("Configuration options read:" << endl
-              << "Last directory:  " << mLastDirectory.toStdString() << endl
-              << "Position left:   " << mPosition.left() << endl
-              << "Position top:    " << mPosition.top() << endl
-              << "Position width:  " << mPosition.width() << endl
-              << "Position height: " << mPosition.height() << endl
-              << "Log level:       " << mLogLevel.toStdString() << endl
-              << "Log file:        " << mLogFile.toStdString() << endl
-              << "Splitter pos:    " << mSplitterPosition);
-#endif
+    mSettings->beginGroup("Preferences");
+    mSystemGeneratedName = mSettings->value("SystemGeneratedName", false).toBool();
+    mReloadLastWorkspace = mSettings->value("ReloadLastWorkspace", false).toBool();
+    mExpandWorkspaceNavigator = mSettings->value("ExpandWorkspaceNavigator", true).toBool();
+    mWarnOnDeletingSources = mSettings->value("WarnOnDeletingSources", true).toBool();
+    mFlushClosedPages = mSettings->value("FlushClosedPages", true).toBool();
+    mCreateBackup = mSettings->value("CreateBackup", true).toBool();
+    mUsePostfix = mSettings->value("UsePostfix", true).toBool();
+    mRetainSelectedTool = mSettings->value("RetainSelectedTool", true).toBool();
+    mImageCacheSize = mSettings->value("ImageCacheSize", 8).toInt();
+    mInitialZoom = mSettings->value("InitialZoom", 100).toInt();
+    mVisibleSize = mSettings->value("VisibleSize", 0.0).toReal();
+    mGutterColor = mSettings->value("GutterColor", QColor(qRgb(0, 0, 0)).name(QColor::HexArgb)).toString();
+    mStackWindows = mSettings->value("StackWindows", true).toBool();
+    mGridStyle = mSettings->value("GridStyle", 1).toInt();
+    mGridSize = mSettings->value("GridSize", 8).toInt();
+    mSnapTolerance = mSettings->value("SnapTolerance", 8).toInt();
+    mGridColor = mSettings->value("GridColor", QColor(Qt::gray).name(QColor::HexArgb)).toString();
+    mTransparencyStyle = mSettings->value("TransparencyStyle", 0).toInt();
+    mTransparencySize = mSettings->value("TransparencySize", 1).toInt();
+    mTransparencyCustomColor1 = mSettings->value("TransparencyCustomColor1", QColor(Qt::white).name(QColor::HexArgb)).toString();
+    mTransparencyCustomColor2 = mSettings->value("TransparencyCustomColor2", QColor(Qt::gray).name(QColor::HexArgb)).toString();
+    mFilesPanels = mSettings->value("FilesPanels").toString();
+    mFilesBackups = mSettings->value("FilesPanels").toString();
+    mFilesTemp = mSettings->value("FilesTemp").toString();
+    mEditorsImage = mSettings->value("EditorsImage").toStringList();
+    mEditorsSound = mSettings->value("EditorsSound").toStringList();
+    mEnableUndoSystem = mSettings->value("EnableUndoSystem", false).toBool();
+    mUndoLevels = mSettings->value("UndoLevels", 500).toInt();
+    mUndoShowAffectedPages = mSettings->value("UndoShowAffectedPages", false).toBool();
+    mUndoChangeSelection = mSettings->value("UndoChangeSelection", false).toBool();
+    mRedoEnableSystem = mSettings->value("RedoEnableSystem", false).toBool();
+    mSettings->endGroup();
 
     if (mPosition.width() == 0)
         return false;

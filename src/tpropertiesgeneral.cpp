@@ -64,6 +64,13 @@
 #define TTEXT_DISABLED              30
 #define TTEXT_HIDDEN                31
 #define TTEXT_PASSWORD_PROTECTION   32
+#define TTEXT_STATE_COUNT           33
+#define TTEXT_ANIMATE_TIME_UP       34
+#define TTEXT_ANIMATE_TIME_DOWN     35
+#define TTEXT_AUTO_REPEAT           36
+#define TTEXT_VALUE_DIRECTION       37
+#define TTEXT_SLIDER_NAME           38
+#define TTEXT_SLIDER_COLOR          39
 
 TPropertiesGeneral::TPropertiesGeneral()
 {
@@ -194,9 +201,16 @@ QString TPropertiesGeneral::getLabelText(int line)
         case TTEXT_DISABLED:            return tr("Disabled"); break;
         case TTEXT_HIDDEN:              return tr("Hidden"); break;
         case TTEXT_PASSWORD_PROTECTION: return tr("Password Protection"); break;
+        case TTEXT_STATE_COUNT:         return tr("State Count"); break;
+        case TTEXT_ANIMATE_TIME_UP:     return tr("Animate Time Up"); break;
+        case TTEXT_ANIMATE_TIME_DOWN:   return tr("Animate Time Down"); break;
+        case TTEXT_AUTO_REPEAT:         return tr("Auto-Repeat"); break;
+        case TTEXT_VALUE_DIRECTION:     return tr("Value Direction"); break;
+        case TTEXT_SLIDER_NAME:         return tr("Slider Name"); break;
+        case TTEXT_SLIDER_COLOR:        return tr("Slider Color"); break;
     }
 
-        return QString();
+    return QString();
 }
 
 void TPropertiesGeneral::loadPage(int pageID)
@@ -329,21 +343,50 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype)
         break;
 
         case STATE_BUTTON:
-            mTable->setRowHidden(1, false);         // ButtonType
-            mTable->setRowHidden(4, false);         // ButtonLockName
-            mTable->setRowHidden(6, false);         // ObjectDescription
-            mTable->setRowHidden(8, false);         // ObjectLeft
-            mTable->setRowHidden(10, false);        // ObjectTop
-            mTable->setRowHidden(12, false);        // ObjectTop
-            mTable->setRowHidden(14, false);        // ObjectHeight
-            mTable->setRowHidden(16, false);        // ObjectZOrder
-            mTable->setRowHidden(31, false);        // ObjectDragDropType
+            if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+                mActObject = mPage.objects[mActObjectID]->getObject();
+
+            mTable->setRowHidden(1, false);             // ButtonType
+            mTable->setRowHidden(3, false);             // ObjectName
+            mTable->setRowHidden(4, false);             // ButtonLockName
+            mTable->setRowHidden(6, false);             // ObjectDescription
+            mTable->setRowHidden(8, false);             // ObjectLeft
+            mTable->setRowHidden(10, false);            // ObjectTop
+            mTable->setRowHidden(12, false);            // ObjectTop
+            mTable->setRowHidden(14, false);            // ObjectHeight
+            mTable->setRowHidden(16, false);            // ObjectZOrder
+            mTable->setRowHidden(31, false);            // ObjectDragDropType
 
             if (mActObject.ddt == "dr")
-                mTable->setRowHidden(32, false);    // ObjectDropGroup
+                mTable->setRowHidden(32, false);        // ObjectDropGroup
 
-            mTable->setRowHidden(33, false);        // ObjectTouchStyle
-            mTable->setRowHidden(34, false);        // ObjectBorderStyle
+            mTable->setRowHidden(33, false);            // ObjectTouchStyle
+            mTable->setRowHidden(34, false);            // ObjectBorderStyle
+
+            if (mActObject.type == ObjHandler::MULTISTATE_GENERAL ||
+                mActObject.type == ObjHandler::MULTISTATE_BARGRAPH)
+            {
+                mTable->setRowHidden(35, false);        // ObjectStateCount
+
+                if (mActObject.type != ObjHandler::MULTISTATE_BARGRAPH)
+                {
+                    mTable->setRowHidden(36, false);    // ObjectAnimateTimeUp
+                    mTable->setRowHidden(37, false);    // ObjectAnimateTimeDown
+                }
+            }
+
+            mTable->setRowHidden(38, false);            // ObjectDisabled
+            mTable->setRowHidden(39, false);            // ObjectHidden
+
+            if (mActObject.type == ObjHandler::BARGRAPH)
+            {
+                mTable->setRowHidden(40, false);        // ObjectValueDirection
+                mTable->setRowHidden(41, false);        // ObjectSliderName
+                mTable->setRowHidden(42, false);        // ObjectSliderColor
+            }
+            else
+                mTable->setRowHidden(43, false);    // ObjectPasswordProtection
+
             // TODO: To be continued
         break;
 
@@ -360,7 +403,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
         return;
 
     Q_UNUSED(stype);
-    int rows = 35;
+    int rows = 41;
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(rows);
@@ -554,6 +597,51 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             case 34:
                 cell1->setText(getLabelText(TTEXT_BORDER_STYLE));
                 mTable->setCellWidget(i, 1, makeObjectBorderStyle("ObjectBorderStyle"));
+            break;
+
+            case 35:
+                cell1->setText(getLabelText(TTEXT_STATE_COUNT));
+                mTable->setCellWidget(i, 1, makeObjectStateCount("ObjectStateCount"));
+            break;
+
+            case 36:
+                cell1->setText(getLabelText(TTEXT_ANIMATE_TIME_UP));
+                mTable->setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeUp"));
+            break;
+
+            case 37:
+                cell1->setText(getLabelText(TTEXT_ANIMATE_TIME_DOWN));
+                mTable->setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeDown"));
+            break;
+
+            case 38:
+                cell1->setText(getLabelText(TTEXT_DISABLED));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisabled"));
+            break;
+
+            case 39:
+                cell1->setText(getLabelText(TTEXT_HIDDEN));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectHidden"));
+            break;
+/*
+            case 40:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectValueDirection"));
+                break;
+
+            case 41:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectSliderName"));
+                break;
+
+            case 42:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectSliderColor"));
+                break;
+*/
+            case 43:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectPasswordProtection"));
             break;
         }
 
@@ -992,6 +1080,91 @@ TElementBorderName *TPropertiesGeneral::makeObjectBorderStyle(const QString& nam
     return bn;
 }
 
+TElementWidgetCombo *TPropertiesGeneral::makeObjectYesNoSelect(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectYesNoSelect(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+
+        if (name == "ObjectDisabled")
+            combo->setCurrentIndex(mActObject.da);
+        else if (name == "ObjectHidden")
+            combo->setCurrentIndex(mActObject.hd);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectYesNoSelection);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectPasswordProtected(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectPasswordProtected(const QString& name)");
+
+    QStringList items = { "none", "password 1", "password 2", "password 3", "password 4" };
+    QList<QVariant> data = { 0, 1, 2, 3, 4 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        combo->setCurrentIndex(mActObject.pp);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectPasswordProtection);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectStateCount(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectStateCount(const QString& name)");
+
+    int value = 2;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        value = mActObject.stateCount;
+    }
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 2, 256, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectStateCount);
+    return sbox;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectAnimateTime(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectAnimateTime(const QString& name)");
+
+    int value = 2;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+
+        if (name == "ObjectAnimateTimeUp")
+            value = mActObject.nu;
+        else if (name == "ObjectAnimateTimeDown")
+            value = mActObject.nd;
+    }
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectStateCount);
+    return sbox;
+}
+
 void TPropertiesGeneral::setWidget(QTableWidget *view)
 {
     DECL_TRACER("TPropertiesGeneral::setWidget(QTableWidget *view)");
@@ -1419,6 +1592,65 @@ void TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QStrin
     saveChangedData(&mPage, TBL_GENERAL);
     mChanged = true;
     requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+
+    if (name == "ObjectDisabled")
+        mActObject.da = data.toBool() ? 1 : 0;
+    else if (name == "ObjectHidden")
+        mActObject.hd = data.toBool() ? 1 : 0;
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+
+void TPropertiesGeneral::onObjectPasswordProtection(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectPasswordProtection(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.pp = data.toInt();
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectStateCount(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectStateCount(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.stateCount = value;
+    mActObject.rm = value;          // Yes, this exists twice!
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)");
+
+    if (name == "ObjectAnimateTimeUp")
+    {
+        mActObject.nu = value;
+        mActObject.ru = value;
+    }
+    else if (name == "ObjectAnimateTimeDown")
+    {
+        mActObject.nd = value;
+        mActObject.rd = value;
+    }
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)

@@ -38,6 +38,7 @@
 #include "taddpagedialog.h"
 #include "taddpopupdialog.h"
 #include "tresourcedialog.h"
+#include "tpreferencesdialog.h"
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tgraphics.h"
@@ -809,6 +810,59 @@ void TSurface::on_actionPopup_draw_tool_triggered(bool checked)
         m_ui->actionPopup_draw_tool->setChecked(true);
 }
 
+void TSurface::on_actionGrab_Properties_Tool_triggered(bool checked)
+{
+
+}
+
+void TSurface::on_actionPaint_Properties_Tool_triggered(bool checked)
+{
+
+}
+
+void TSurface::on_actionShow_Grid_triggered(bool checked)
+{
+    DECL_TRACER("TSurface::on_actionShow_Grid_triggered(bool checked)");
+
+    mFromExtern = true;
+    onActionShowHideGrid(checked);
+    mFromExtern = false;
+}
+
+void TSurface::on_actionSnap_To_Grid(bool checked)
+{
+    DECL_TRACER("TSurface::on_actionSnap_To_Grid(bool checked)");
+
+    mFromExtern = true;
+    onActionSnapToGrid(checked);
+    mFromExtern = false;
+}
+
+void TSurface::on_actionCurrent_Property_triggered()
+{
+
+}
+
+void TSurface::on_actionDisabled_triggered()
+{
+
+}
+
+void TSurface::on_actionText_triggered()
+{
+
+}
+
+void TSurface::on_actionUndo_Button_Set_Dynamic_Data_Source_triggered()
+{
+
+}
+
+void TSurface::on_actionRedo_triggered()
+{
+
+}
+
 void TSurface::on_actionCut_triggered()
 {
 
@@ -817,10 +871,70 @@ void TSurface::on_actionCopy_triggered()
 {
 
 }
-void TSurface::on_actionInsert_triggered()
+void TSurface::on_actionPaste_triggered()
 {
 
 }
+
+void TSurface::on_actionReplace_triggered()
+{
+
+}
+
+void TSurface::on_actionDelete_triggered()
+{
+
+}
+
+void TSurface::on_actionRename_triggered()
+{
+
+}
+
+void TSurface::on_actionFind_triggered()
+{
+
+}
+
+void TSurface::on_actionFind_Replace_triggered()
+{
+
+}
+
+void TSurface::on_actionSelect_All_triggered()
+{
+
+}
+
+void TSurface::on_actionApply_To_All_triggered()
+{
+
+}
+
+void TSurface::on_actionEdit_Previous_triggered()
+{
+
+}
+
+void TSurface::on_actionEdit_Next_triggered()
+{
+
+}
+
+void TSurface::on_actionPreferences_triggered()
+{
+    DECL_TRACER("TSurface::on_actionPreferences_triggered()");
+
+    // TODO add preferences dialog
+    TPreferencesDialog dialog(this);
+
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    TConfig::Current().saveConfig();
+    // TODO: Apply settings
+}
+
 void TSurface::on_actionAdd_Application_Window_triggered()
 {
 
@@ -1393,6 +1507,9 @@ void TSurface::onActionShowHideGrid(bool checked)
     if (mActionBlock)
         return;
 
+    if (!mFromExtern)
+        m_ui->actionShow_Grid->setChecked(checked);
+
     Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
 
     if (page.pageID <= 0)
@@ -1415,6 +1532,9 @@ void TSurface::onActionSnapToGrid(bool checked)
 
     if (mActionBlock)
         return;
+
+    if (!mFromExtern)
+        m_ui->actionSnap_To_Grid->setChecked(checked);
 
     Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
 

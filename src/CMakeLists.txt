@@ -135,6 +135,9 @@ qt_add_executable(tsurface
     tgradientcolordialog.cpp
     tgradientcolordialog.h
     tgradientcolordialog.ui
+    tpreferencesdialog.cpp
+    tpreferencesdialog.h
+    tpreferencesdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp

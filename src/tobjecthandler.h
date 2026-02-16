@@ -403,8 +403,8 @@ namespace ObjHandler
         int nu{2};              // Animate time up
         int nd{2};              // Animate time down
         int ar{0};              // Auto repeat (1 = true)
-        int ru{2};              // Animate time up (bargraph)
-        int rd{2};              // Animate time down (bargraph)
+        int ru{2};              // Animate time up (Multistate-General)
+        int rd{2};              // Animate time down (Multistate-General)
         int lu{2};              // Animate time up (Bargraph)
         int ld{2};              // Animate time down (Bargraph)
         int rv{0};              // Level control repeat time

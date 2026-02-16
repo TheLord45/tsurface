@@ -93,9 +93,28 @@ class TSurface : public QMainWindow
         void on_actionButton_draw_tool_triggered(bool checked);
         void on_actionSelection_tool_triggered(bool checked);
         void on_actionPopup_draw_tool_triggered(bool checked);
+        void on_actionGrab_Properties_Tool_triggered(bool checked);
+        void on_actionPaint_Properties_Tool_triggered(bool checked);
+        void on_actionShow_Grid_triggered(bool checked);
+        void on_actionSnap_To_Grid(bool checked);
+        void on_actionCurrent_Property_triggered();
+        void on_actionDisabled_triggered();
+        void on_actionText_triggered();
+        void on_actionUndo_Button_Set_Dynamic_Data_Source_triggered();
+        void on_actionRedo_triggered();
         void on_actionCut_triggered();
         void on_actionCopy_triggered();
-        void on_actionInsert_triggered();
+        void on_actionPaste_triggered();
+        void on_actionReplace_triggered();
+        void on_actionDelete_triggered();
+        void on_actionRename_triggered();
+        void on_actionFind_triggered();
+        void on_actionFind_Replace_triggered();
+        void on_actionSelect_All_triggered();
+        void on_actionApply_To_All_triggered();
+        void on_actionEdit_Previous_triggered();
+        void on_actionEdit_Next_triggered();
+        void on_actionPreferences_triggered();
         // Menu: Panel
         void on_actionAdd_page_triggered();
         void on_actionAdd_popup_page_triggered();
@@ -247,6 +266,7 @@ class TSurface : public QMainWindow
         bool mProjectChanged{false};
         bool mHaveProject{false};
         bool mIsSaved{false};
+        bool mFromExtern{false};
         std::vector<QWidget *> mPageWidgets;
         winCloseEater *mCloseEater{nullptr};
         QAction *mActionStateManager{nullptr};
