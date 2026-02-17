@@ -34,6 +34,8 @@ find_package(OpenSSL REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Fontconfig REQUIRED)
 
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+
 qt_add_executable(tsurface
     main.cpp
     tsurface.cpp
@@ -154,6 +156,8 @@ qt_add_executable(tsurface
     telementlineedit.h
     telementspinbox.cpp
     telementspinbox.h
+    telementcolorselector.cpp
+    telementcolorselector.h
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h
@@ -165,10 +169,12 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
+    tcheckerboardwidget.h tcheckerboardwidget.cpp
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
+target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)

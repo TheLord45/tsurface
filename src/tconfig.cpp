@@ -17,10 +17,13 @@
  */
 #include <QSettings>
 
+#include <filesystem>
+
 #include "tconfig.h"
 #include "terror.h"
 
 using std::endl;
+namespace fs = std::filesystem;
 
 TConfig *TConfig::mCurrent = nullptr;
 
@@ -78,12 +81,41 @@ void TConfig::initDefaults()
     else
         sHome = "/";
 
-    mLastDirectory = sHome;
+    bool addDir = false;
+
+    if (fs::exists(QString("%1/%2").arg(sHome).arg("Documents").toStdString()))
+    {
+        mLastDirectory = sHome + "/Documents/Panels";
+        mFilesBackups = sHome + "/Documents";
+        addDir = true;
+    }
+    else if (fs::exists(QString("%1/%2").arg(sHome).arg("Dokumente").toStdString()))
+    {
+        mLastDirectory = sHome + "/Dokumente/Panels";
+        mFilesBackups = sHome + "/Dokumente";
+        addDir = true;
+    }
+    else
+        mLastDirectory = sHome;
+
     mPosition.setLeft(10);
     mPosition.setTop(10);
     mPosition.setWidth(1100);
     mPosition.setHeight(800);
     mSplitterPosition = 260;
+
+    if (addDir)
+    {
+        fs::create_directories(mLastDirectory.toStdString());
+        mFilesPanels = mLastDirectory;
+    }
+
+    if (fs::exists("/tmp"))
+        mFilesTemp = "/tmp";
+    else if (fs::exists("/temp"))
+        mFilesTemp = "/temp";
+    else
+        mFilesTemp = sHome;
 
     setLogging();
 }

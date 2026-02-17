@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>536</width>
-    <height>428</height>
+    <height>461</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -172,7 +172,7 @@
          <property name="title">
           <string>Window</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_5">
+         <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="labelInitialZoom">
             <property name="text">
@@ -262,12 +262,19 @@
           </item>
           <item row="2" column="1">
            <widget class="QFrame" name="frameGutterColor">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_3"/>
            </widget>
           </item>
           <item row="3" column="0" colspan="2">
@@ -285,7 +292,7 @@
          <property name="title">
           <string>Grid</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_6">
+         <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
            <widget class="QLabel" name="labelGridStyle">
             <property name="text">
@@ -349,12 +356,19 @@
           </item>
           <item row="3" column="1">
            <widget class="QFrame" name="frameGridColor">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_4"/>
            </widget>
           </item>
          </layout>
@@ -366,6 +380,37 @@
           <string>Transparency</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelSize">
+            <property name="text">
+             <string>Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QFrame" name="frameCustomColor2">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="labelCustomColors">
+            <property name="text">
+             <string>Custom Colors</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="comboBoxStyle">
             <item>
@@ -388,37 +433,6 @@
               <string>Custom</string>
              </property>
             </item>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="labelCustomColors">
-            <property name="text">
-             <string>Custom Colors</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelStyle">
-            <property name="text">
-             <string>Style</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QFrame" name="frameCustomColor1">
-            <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelSize">
-            <property name="text">
-             <string>Size</string>
-            </property>
            </widget>
           </item>
           <item row="1" column="1">
@@ -445,23 +459,37 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QFrame" name="frameCustomColor2">
+          <item row="0" column="3">
+           <widget class="QFrame" name="frameCustomColor1">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelStyle">
+            <property name="text">
+             <string>Style</string>
             </property>
            </widget>
           </item>
           <item row="0" column="4" rowspan="2">
-           <widget class="QFrame" name="frameCustomColor">
+           <widget class="TCheckerBoardWidget" name="labelCustomBackground">
             <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -587,6 +615,9 @@
             <property name="text">
              <string>...</string>
             </property>
+            <property name="icon">
+             <iconset theme="QIcon::ThemeIcon::ListRemove"/>
+            </property>
            </widget>
           </item>
           <item row="1" column="0" colspan="4">
@@ -596,6 +627,9 @@
            <widget class="QToolButton" name="toolButtonAdd">
             <property name="text">
              <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset theme="list-add"/>
             </property>
            </widget>
           </item>
@@ -766,10 +800,10 @@
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
-      <enum>QFrame::Shape::StyledPanel</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Shadow::Raised</enum>
+      <enum>QFrame::Shadow::Plain</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
@@ -808,6 +842,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TCheckerBoardWidget</class>
+   <extends>QLabel</extends>
+   <header>../../../../../src/tcheckerboardwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>checkBoxSystemGeneratedName</tabstop>

@@ -26,6 +26,9 @@ class TPreferencesDialog;
 
 }
 
+class TElementColorSelector;
+class QStandardItemModel;
+
 class TPreferencesDialog : public QDialog
 {
     Q_OBJECT
@@ -83,10 +86,24 @@ class TPreferencesDialog : public QDialog
 
     protected:
         void accept();
+        void onColorChanged(const QColor& color, const QString& name);
 
     private:
-        void init();
+        typedef enum
+        {
+            INIT_ALL,
+            INIT_APPLICATION,
+            INIT_APPEARANCE,
+            INIT_DIRECTORIES,
+            INIT_EDITORS,
+            INIT_UNDO
+        }INIT_t;
+
+        void init(INIT_t i=INIT_ALL);
         void save();
+        void setCheckerboardColor();
+        void fillImageEditorTable();
+        void fillSoundEditorTable();
 
         Ui::TPreferencesDialog *ui;
 
@@ -114,6 +131,10 @@ class TPreferencesDialog : public QDialog
         int mTransparencySize{1};
         QColor mTransparencyCustomColor1{Qt::white};
         QColor mTransparencyCustomColor2{Qt::gray};
+        TElementColorSelector *mColGutter{nullptr};
+        TElementColorSelector *mColGrid{nullptr};
+        TElementColorSelector *mColTrans1{nullptr};
+        TElementColorSelector *mColTrans2{nullptr};
         // Preferences: Directories
         QString mFilesPanels;
         QString mFilesBackups;
@@ -121,6 +142,7 @@ class TPreferencesDialog : public QDialog
         // Preferences: Editors
         QStringList mEditorsImage;
         QStringList mEditorsSound;
+        QStandardItemModel *mModel{nullptr};
         // Preferences: Undo/Redo
         bool mEnableUndoSystem{false};
         int mUndoLevels{500};

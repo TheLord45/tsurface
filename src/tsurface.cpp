@@ -931,8 +931,10 @@ void TSurface::on_actionPreferences_triggered()
     if (dialog.exec() == QDialog::Rejected)
         return;
 
+    TConfig::Current().setLastDirectory(TConfig::Current().getFilesPanels());
     TConfig::Current().saveConfig();
     // TODO: Apply settings
+    mLastOpenPath = TConfig::Current().getLastDirectory();
 }
 
 void TSurface::on_actionAdd_Application_Window_triggered()
@@ -2002,6 +2004,8 @@ QString TSurface::createTemporaryPath(const QString& name)
             }
         }
     }
+
+    TConfig::Current().setFilesTemp(temp);
 
     if (hidden)
         temp.append("/.");

@@ -100,16 +100,19 @@ class TConfig
         void setTransparencyCustomColor1(const QColor& col) { mTransparencyCustomColor1 = col; }
         QColor getTransparencyCustomColor2() { return mTransparencyCustomColor2; }
         void setTransparencyCustomColor2(const QColor& col) { mTransparencyCustomColor2 = col; }
+
         QString& getFilesPanels() { return mFilesPanels; }
         void setFilesPanels(const QString& file) { mFilesPanels = file; }
         QString& getFilesBackups() { return mFilesBackups; }
         void setFilesBackups(const QString& file) { mFilesBackups = file; }
         QString& getFilesTemp() { return mFilesTemp; }
         void setFilesTemp(const QString& file) { mFilesTemp = file; }
+
         QStringList& getEditorsImage() { return mEditorsImage; }
         void setEditorsImage(const QStringList& list) { mEditorsImage = list; }
         QStringList& getEditorsSound() { return mEditorsSound; }
         void setEditorsSound(const QStringList& list) { mEditorsSound = list; }
+
         bool getEnableUndoSystem() { return mEnableUndoSystem; }
         void setEnableUndoSystem(bool undo) { mEnableUndoSystem = undo; }
         int getUndoLevels() { return mUndoLevels; }
