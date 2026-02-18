@@ -116,6 +116,8 @@ TSurface::TSurface(QWidget *parent)
 
     m_ui->setupUi(this);
 
+    m_ui->mdiArea->setStyleSheet(QString("QMdiSubWindow{selection-background-color: %1;}").arg(TConfig::Current().getGutterColor().name()));
+
     TWorkSpaceHandler::Current(m_ui->treeViewPages,
                                m_ui->tableWidgetGeneral,
                                m_ui->tableWidgetProgramming,
@@ -338,7 +340,7 @@ void TSurface::updateGridFromUI(TCanvasWidget *widget)
     if (!widget)
         return;
 
-    widget->setGridSize(10, 10);
+    widget->setGridSize(TConfig::Current().getGridSize(), TConfig::Current().getGridSize());
     applyGridToChildren(widget);
 }
 
@@ -1980,10 +1982,16 @@ QString TSurface::createTemporaryPath(const QString& name)
     DECL_TRACER("TSurface::createTemporaryPath(const QString& name)");
 
     // Determine the temporary path of the OS
-    QString temp;
+    QString temp = TConfig::Current().getFilesTemp();
     bool hidden = false;
+    bool haveTemp = false;
 
-    if (fs::is_directory("/tmp"))
+    if (temp.isEmpty())
+        temp = QString::fromStdString(fs::temp_directory_path());
+
+    if (!temp.isEmpty() && fs::is_directory(temp.toStdString()))
+        haveTemp = true;
+    else if (fs::is_directory("/tmp"))
         temp = "/tmp";
     else
     {
@@ -2005,7 +2013,11 @@ QString TSurface::createTemporaryPath(const QString& name)
         }
     }
 
-    TConfig::Current().setFilesTemp(temp);
+    if (!haveTemp)
+    {
+        TConfig::Current().setFilesTemp(temp);
+        TConfig::Current().saveConfig();
+    }
 
     if (hidden)
         temp.append("/.");

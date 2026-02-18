@@ -18,8 +18,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStandardItemModel>
-
-#include <filesystem>
+#include <QMenu>
 
 #include "tpreferencesdialog.h"
 #include "telementcolorselector.h"
@@ -40,6 +39,7 @@ TPreferencesDialog::TPreferencesDialog(QWidget *parent)
 
     ui->setupUi(this);
 
+    connect(ui->tableViewEditorList, &QTableView::pressed, this, &TPreferencesDialog::onClicked);
     init();
 }
 
@@ -54,22 +54,33 @@ void TPreferencesDialog::init(INIT_t i)
 
     if (i == INIT_ALL || i == INIT_APPLICATION)
     {
-        ui->checkBoxSystemGeneratedName->setCheckState(TConfig::Current().getSystemGeneratedName() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxReloadLastWorkspace->setCheckState(TConfig::Current().getReloadLastWorkspace() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxExpandWorkspaceNavigator->setCheckState(TConfig::Current().getExpandWorkspaceNavigator() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxDeleteResource->setCheckState(TConfig::Current().getWarnOnDeletingSources() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxFlushClosedPages->setCheckState(TConfig::Current().getFlushClosedPages() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxCreateBackup->setCheckState(TConfig::Current().getCreateBackup() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxPostfix->setCheckState(TConfig::Current().getUsePostfix() ? Qt::Checked : Qt::Unchecked);
-        ui->checkBoxRetainSelectedTool->setCheckState(TConfig::Current().getRetainSelectedTool() ? Qt::Checked : Qt::Unchecked);
-        ui->spinBoxChacheSize->setValue(TConfig::Current().getImageCacheSize());
+        mSystemGeneratedName = TConfig::Current().getSystemGeneratedName();
+        mReloadLastWorkspace = TConfig::Current().getReloadLastWorkspace();
+        mExpandWorkspaceNavigator = TConfig::Current().getExpandWorkspaceNavigator();
+        mWarnOnDeletingSources = TConfig::Current().getWarnOnDeletingSources();
+        mFlushClosedPages = TConfig::Current().getFlushClosedPages();
+        mCreateBackup = TConfig::Current().getCreateBackup();
+        mUsePostfix = TConfig::Current().getUsePostfix();
+        mRetainSelectedTool = TConfig::Current().getRetainSelectedTool();
+        mImageCacheSize = TConfig::Current().getImageCacheSize();
+
+        ui->checkBoxSystemGeneratedName->setChecked(mSystemGeneratedName);
+        ui->checkBoxReloadLastWorkspace->setChecked(mReloadLastWorkspace);
+        ui->checkBoxExpandWorkspaceNavigator->setChecked(mExpandWorkspaceNavigator);
+        ui->checkBoxDeleteResource->setChecked(mWarnOnDeletingSources);
+        ui->checkBoxFlushClosedPages->setChecked(mFlushClosedPages);
+        ui->checkBoxCreateBackup->setChecked(mCreateBackup);
+        ui->checkBoxPostfix->setChecked(mUsePostfix);
+        ui->checkBoxRetainSelectedTool->setChecked(mRetainSelectedTool);
+        ui->spinBoxChacheSize->setValue(mImageCacheSize);
     }
 
     if (i == INIT_ALL || i == INIT_APPEARANCE)
     {
         int index = 0;
+        mInitialZoom = TConfig::Current().getInitialZoom();
 
-        switch(TConfig::Current().getInitialZoom())
+        switch(mInitialZoom)
         {
             case 25:  index = 0; break;
             case 50:  index = 1; break;
@@ -85,7 +96,8 @@ void TPreferencesDialog::init(INIT_t i)
         }
 
         ui->comboBoxInitialZoom->setCurrentIndex(index);
-        ui->lineEditVisibleSize->setText(QString("%1").arg(TConfig::Current().getVisibleSize()));
+        mVisibleSize = TConfig::Current().getVisibleSize();
+        ui->lineEditVisibleSize->setText(QString("%1").arg(mVisibleSize));
         // Add gutter color
         mGutterColor = TConfig::Current().getGutterColor();
 
@@ -97,9 +109,13 @@ void TPreferencesDialog::init(INIT_t i)
         else
             mColGutter->setColor(mGutterColor);
 
-        ui->comboBoxGridStyle->setCurrentIndex(TConfig::Current().getGridStyle());
-        ui->spinBoxGridSize->setValue(TConfig::Current().getGridSize());
-        ui->spinBoxSnapTolerance->setValue(TConfig::Current().getSnapTolerance());
+        mGridStyle = TConfig::Current().getGridStyle();
+        mGridSize = TConfig::Current().getGridSize();
+        mSnapTolerance = TConfig::Current().getSnapTolerance();
+
+        ui->comboBoxGridStyle->setCurrentIndex(mGridStyle);
+        ui->spinBoxGridSize->setValue(mGridSize);
+        ui->spinBoxSnapTolerance->setValue(mSnapTolerance);
         // Add grid color
         mGridColor = TConfig::Current().getGridColor();
 
@@ -113,7 +129,8 @@ void TPreferencesDialog::init(INIT_t i)
 
         mTransparencyStyle = TConfig::Current().getTransparencyStyle();
         ui->comboBoxStyle->setCurrentIndex(mTransparencyStyle);
-        ui->comboBoxSize->setCurrentIndex(TConfig::Current().getTransparencySize());
+        mTransparencySize = TConfig::Current().getTransparencySize();
+        ui->comboBoxSize->setCurrentIndex(mTransparencySize);
 
         if (mTransparencyStyle != 3)     // Custom?
         {
@@ -131,7 +148,7 @@ void TPreferencesDialog::init(INIT_t i)
         // Set checkerboard pattern
         int square = 0;
 
-        switch(TConfig::Current().getTransparencySize())
+        switch(mTransparencySize)
         {
             case 0: square = 5; break;      // Tiny
             case 1: square = 10; break;     // Small (default)
@@ -168,9 +185,13 @@ void TPreferencesDialog::init(INIT_t i)
 
     if (i == INIT_ALL || i == INIT_DIRECTORIES)
     {
-        ui->lineEditFolderPanels->setText(TConfig::Current().getFilesPanels());
-        ui->lineEditFolderBackup->setText(TConfig::Current().getFilesBackups());
-        ui->lineEditFolderTemp->setText(TConfig::Current().getFilesTemp());
+        mFilesPanels = TConfig::Current().getFilesPanels();
+        mFilesBackups = TConfig::Current().getFilesBackups();
+        mFilesTemp = TConfig::Current().getFilesTemp();
+
+        ui->lineEditFolderPanels->setText(mFilesPanels);
+        ui->lineEditFolderBackup->setText(mFilesBackups);
+        ui->lineEditFolderTemp->setText(mFilesTemp);
 
         ui->lineEditFolderTemp->setDisabled(true);
         ui->toolButtonFolderTemp->setDisabled(true);
@@ -180,6 +201,8 @@ void TPreferencesDialog::init(INIT_t i)
     {
         mEditorsImage = TConfig::Current().getEditorsImage();
         mEditorsSound = TConfig::Current().getEditorsSound();
+        mEditorImageSelected = TConfig::Current().getEditorImageSelected();
+        mEditorSoundSelected = TConfig::Current().getEditorSoundSelected();
 
         if (ui->comboBoxEditors->currentIndex() == 0)
             fillImageEditorTable();
@@ -189,19 +212,27 @@ void TPreferencesDialog::init(INIT_t i)
 
     if (i == INIT_ALL || i == INIT_UNDO)
     {
-        ui->checkBoxEnableUndo->setChecked(TConfig::Current().getEnableUndoSystem());
-        ui->spinBoxUndoLevels->setValue(TConfig::Current().getUndoLevels());
-        ui->checkBoxShowAffectedPages->setChecked(TConfig::Current().getUndoShowAffectedPages());
-        ui->checkBoxChangeSelection->setChecked(TConfig::Current().getUndoChangeSelection());
-        ui->checkBoxEnableRedo->setChecked(TConfig::Current().getRedoEnableSystem());
+        mEnableUndoSystem = TConfig::Current().getEnableUndoSystem();
+        mUndoLevels = TConfig::Current().getUndoLevels();
+        mUndoShowAffectedPages = TConfig::Current().getUndoShowAffectedPages();
+        mUndoChangeSelection = TConfig::Current().getUndoChangeSelection();
+        mRedoEnableSystem = TConfig::Current().getRedoEnableSystem();
 
-        if (!TConfig::Current().getEnableUndoSystem())
+        ui->checkBoxEnableUndo->setChecked(mEnableUndoSystem);
+        ui->spinBoxUndoLevels->setValue(mUndoLevels);
+        ui->checkBoxShowAffectedPages->setChecked(mUndoShowAffectedPages);
+        ui->checkBoxChangeSelection->setChecked(mUndoChangeSelection);
+        ui->checkBoxEnableRedo->setChecked(mRedoEnableSystem);
+
+        if (!mEnableUndoSystem)
         {
             ui->spinBoxUndoLevels->setDisabled(true);
             ui->checkBoxShowAffectedPages->setDisabled(true);
             ui->checkBoxChangeSelection->setDisabled(true);
             ui->checkBoxEnableRedo->setDisabled(true);
         }
+        else if (!mUndoShowAffectedPages)
+            ui->checkBoxChangeSelection->setDisabled(true);
     }
 
     mInitialized = true;
@@ -555,6 +586,8 @@ void TPreferencesDialog::on_toolButtonAdd_clicked()
     QString binPath;
 #ifdef __linux
     binPath = "/usr/bin";
+#elif defined(__APPLE__)
+    binPath = "/Applications";
 #else
     binPath = "/";
 #endif
@@ -579,11 +612,50 @@ void TPreferencesDialog::on_toolButtonAdd_clicked()
 
 void TPreferencesDialog::on_toolButtonDelete_clicked()
 {
+    DECL_TRACER("TPreferencesDialog::on_toolButtonDelete_clicked()");
 
+    if (mSelectedIndex < 0 || mSelectedIndex >= mModel->rowCount())
+        return;
+
+    int selIndex = 0;
+
+    mModel->removeRows(mSelectedIndex, 1);
+
+    if (ui->comboBoxEditors->currentIndex() == 0)
+    {
+        mEditorsImage.remove(mSelectedIndex);
+
+        if (mEditorImageSelected == mSelectedIndex)
+        {
+            mEditorImageSelected = 0;
+            mSelectedIndex = 0;
+        }
+        else
+            mSelectedIndex = mEditorImageSelected;
+    }
+    else
+    {
+        mEditorsSound.remove(mSelectedIndex);
+
+        if (mEditorSoundSelected == mSelectedIndex)
+        {
+            mEditorSoundSelected = 0;
+            mSelectedIndex = 0;
+        }
+        else
+            mSelectedIndex = mEditorSoundSelected;
+    }
+
+    onMenuTriggered(false);
+    mSelectedIndex = -1;
 }
 
 void TPreferencesDialog::on_tableViewEditorList_clicked(const QModelIndex &index)
-{}
+{
+    DECL_TRACER("TPreferencesDialog::on_tableViewEditorList_clicked(const QModelIndex &index)");
+
+    mSelectedIndex = index.row();
+}
 
 void TPreferencesDialog::on_pushButtonEditorReset_clicked()
 {
@@ -715,6 +787,60 @@ void TPreferencesDialog::onColorChanged(const QColor& color, const QString& name
     }
 }
 
+void TPreferencesDialog::onClicked(const QModelIndex& index)
+{
+    DECL_TRACER("TPreferencesDialog::onClicked(const QModelIndex& index)");
+
+    QStandardItem *item = mModel->itemFromIndex(index);
+
+    if (QGuiApplication::mouseButtons() != Qt::RightButton)
+        return;
+
+    QItemSelectionModel *selModel = ui->tableViewEditorList->selectionModel();
+
+    if (selModel && selModel->hasSelection())
+        mSelectedIndex = selModel->selectedIndexes()[0].row();
+
+    if (!mMenu)
+    {
+        mMenu = new QMenu;
+
+        QAction *action = mMenu->addAction(tr("Set default"));
+        connect(action, &QAction::triggered, this, &TPreferencesDialog::onMenuTriggered);
+    }
+
+    mMenu->popup(QCursor::pos());
+}
+
+void TPreferencesDialog::onMenuTriggered(bool checked)
+{
+    DECL_TRACER("TPreferencesDialog::onMenuTriggered(bool checked)");
+
+    if (mSelectedIndex < 0 || mSelectedIndex >= mModel->rowCount())
+        return;
+
+    Q_UNUSED(checked);
+    int edit = ui->comboBoxEditors->currentIndex();
+
+    if (!edit)
+        mEditorImageSelected = mSelectedIndex;
+    else
+        mEditorSoundSelected = mSelectedIndex;
+
+    for (int row = 0; row < mModel->rowCount(); ++row)
+    {
+        QStandardItem *item = mModel->item(row, 2);
+
+        if (item)
+        {
+            if (row == mSelectedIndex)
+                item->setText(tr("Yes"));
+            else
+                item->setText(tr("No"));
+        }
+    }
+}
+
 void TPreferencesDialog::save()
 {
     DECL_TRACER("TPreferencesDialog::save()");
@@ -748,6 +874,8 @@ void TPreferencesDialog::save()
 
     TConfig::Current().setEditorsImage(mEditorsImage);
     TConfig::Current().setEditorsSound(mEditorsSound);
+    TConfig::Current().setEditorImageSelected(mEditorImageSelected);
+    TConfig::Current().setEditorSoundSelected(mEditorSoundSelected);
 
     TConfig::Current().setEnableUndoSystem(mEnableUndoSystem);
     TConfig::Current().setUndoLevels(mUndoLevels);
@@ -770,6 +898,7 @@ void TPreferencesDialog::fillImageEditorTable()
         haveModel = true;
     }
 
+    MSG_DEBUG("Have " << mEditorsImage.size() << " entries.");
     mModel->setColumnCount(3);
     QStringList headers = { tr("Name"), tr("Path"), tr("Default") };
     mModel->setHorizontalHeaderLabels(headers);
@@ -787,11 +916,16 @@ void TPreferencesDialog::fillImageEditorTable()
 
         cell1->setText(basename(str));
         cell2->setText(pathname(str));
-        cell3->setText(tr("No"));
+
+        if (row == mEditorImageSelected)
+            cell3->setText(tr("Yes"));
+        else
+            cell3->setText(tr("No"));
 
         mModel->setItem(row, 0, cell1);
         mModel->setItem(row, 1, cell2);
         mModel->setItem(row, 2, cell3);
+        row++;
     }
 
     if (!haveModel)
@@ -832,11 +966,17 @@ void TPreferencesDialog::fillSoundEditorTable()
 
         cell1->setText(basename(str));
         cell2->setText(pathname(str));
-        cell3->setText(tr("No"));
+
+        if (row == mEditorSoundSelected)
+            cell3->setText(tr("Yes"));
+        else
+            cell3->setText(tr("No"));
 
         mModel->setItem(row, 0, cell1);
         mModel->setItem(row, 1, cell2);
         mModel->setItem(row, 2, cell3);
+
+        row++;
     }
 
     if (!haveModel)

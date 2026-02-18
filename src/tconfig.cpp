@@ -82,6 +82,7 @@ void TConfig::initDefaults()
         sHome = "/";
 
     bool addDir = false;
+    mFilesTemp = QString::fromStdString(fs::temp_directory_path());
 
     if (fs::exists(QString("%1/%2").arg(sHome).arg("Documents").toStdString()))
     {
@@ -110,12 +111,15 @@ void TConfig::initDefaults()
         mFilesPanels = mLastDirectory;
     }
 
-    if (fs::exists("/tmp"))
-        mFilesTemp = "/tmp";
-    else if (fs::exists("/temp"))
-        mFilesTemp = "/temp";
-    else
-        mFilesTemp = sHome;
+    if (mFilesTemp.isEmpty())
+    {
+        if (fs::exists("/tmp"))
+            mFilesTemp = "/tmp";
+        else if (fs::exists("/temp"))
+            mFilesTemp = "/temp";
+        else
+            mFilesTemp = sHome;
+    }
 
     setLogging();
 }
@@ -194,10 +198,12 @@ void TConfig::saveConfig()
     mSettings->setValue("TransparencyCustomColor1", mTransparencyCustomColor1.name(QColor::HexArgb));
     mSettings->setValue("TransparencyCustomColor2", mTransparencyCustomColor2.name(QColor::HexArgb));
     mSettings->setValue("FilesPanels", mFilesPanels);
-    mSettings->setValue("FilesPanels", mFilesBackups);
+    mSettings->setValue("FilesBackups", mFilesBackups);
     mSettings->setValue("FilesTemp", mFilesTemp);
     mSettings->setValue("EditorsImage", mEditorsImage);
     mSettings->setValue("EditorsSound", mEditorsSound);
+    mSettings->setValue("EditorImageSelected", mEditorImageSelected);
+    mSettings->setValue("EditorSoundSelected", mEditorSoundSelected);
     mSettings->setValue("EnableUndoSystem", mEnableUndoSystem);
     mSettings->setValue("UndoLevels", mUndoLevels);
     mSettings->setValue("UndoShowAffectedPages", mUndoShowAffectedPages);
@@ -247,10 +253,12 @@ bool TConfig::readConfig()
     mTransparencyCustomColor1 = mSettings->value("TransparencyCustomColor1", QColor(Qt::white).name(QColor::HexArgb)).toString();
     mTransparencyCustomColor2 = mSettings->value("TransparencyCustomColor2", QColor(Qt::gray).name(QColor::HexArgb)).toString();
     mFilesPanels = mSettings->value("FilesPanels").toString();
-    mFilesBackups = mSettings->value("FilesPanels").toString();
+    mFilesBackups = mSettings->value("FilesBackups").toString();
     mFilesTemp = mSettings->value("FilesTemp").toString();
     mEditorsImage = mSettings->value("EditorsImage").toStringList();
     mEditorsSound = mSettings->value("EditorsSound").toStringList();
+    mEditorImageSelected = mSettings->value("EditorImageSelected").toInt();
+    mEditorSoundSelected = mSettings->value("EditorSoundSelected").toInt();
     mEnableUndoSystem = mSettings->value("EnableUndoSystem", false).toBool();
     mUndoLevels = mSettings->value("UndoLevels", 500).toInt();
     mUndoShowAffectedPages = mSettings->value("UndoShowAffectedPages", false).toBool();

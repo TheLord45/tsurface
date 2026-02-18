@@ -87,6 +87,8 @@ class TPreferencesDialog : public QDialog
     protected:
         void accept();
         void onColorChanged(const QColor& color, const QString& name);
+        void onClicked(const QModelIndex& index);
+        void onMenuTriggered(bool checked);
 
     private:
         typedef enum
@@ -108,6 +110,7 @@ class TPreferencesDialog : public QDialog
         Ui::TPreferencesDialog *ui;
 
         bool mInitialized{false};
+        QMenu *mMenu{nullptr};
         // Preferences: Application
         bool mSystemGeneratedName{false};
         bool mReloadLastWorkspace{false};
@@ -143,6 +146,9 @@ class TPreferencesDialog : public QDialog
         QStringList mEditorsImage;
         QStringList mEditorsSound;
         QStandardItemModel *mModel{nullptr};
+        int mSelectedIndex{-1};
+        int mEditorImageSelected{0};
+        int mEditorSoundSelected{0};
         // Preferences: Undo/Redo
         bool mEnableUndoSystem{false};
         int mUndoLevels{500};

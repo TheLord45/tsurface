@@ -22,6 +22,7 @@
 
 #include "tresizablewidget.h"
 #include "tcanvaswidget.h"
+#include "tconfig.h"
 #include "terror.h"
 
 // Small grip widget that handles drag-resize
@@ -220,8 +221,17 @@ void TResizableWidget::paintEvent(QPaintEvent*)
 
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, false);
-    QPen pen(Qt::black);
-    pen.setStyle(Qt::DashLine);
+    QPen pen(TConfig::Current().getGridColor());
+
+    switch(TConfig::Current().getGridStyle())
+    {
+        case 0: pen.setStyle(Qt::SolidLine); break;
+        case 1: pen.setStyle(Qt::DashLine); break;
+
+        default:
+            pen.setStyle(Qt::DotLine);
+    }
+
     pen.setWidth(1);
     p.setPen(pen);
     const QRect frameRect = rect().adjusted(0, 0, -1, -1);

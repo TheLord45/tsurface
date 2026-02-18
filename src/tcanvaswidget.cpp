@@ -22,6 +22,7 @@
 
 #include "tcanvaswidget.h"
 #include "tresizablewidget.h"
+#include "tconfig.h"
 #include "terror.h"
 
 TCanvasWidget::TCanvasWidget(QWidget* parent)
@@ -34,6 +35,7 @@ TCanvasWidget::TCanvasWidget(QWidget* parent)
     setStyleSheet("#canvas { background: #f6f6f6; }");
     setMouseTracking(true);
     setMinimumSize(400, 300);
+    mGrid = QSize(TConfig::Current().getGridSize(), TConfig::Current().getGridSize());
 }
 
 void TCanvasWidget::setGridSize(const QSize& s)
@@ -130,7 +132,17 @@ void TCanvasWidget::paintEvent(QPaintEvent*)
         return;
 
     QPen pen(QColor(180, 180, 180));
-    pen.setStyle(Qt::DotLine);
+
+    switch(TConfig::Current().getGridStyle())
+    {
+        case 0: pen.setStyle(Qt::SolidLine); break;
+        case 1: pen.setStyle(Qt::DashLine); break;
+        case 2: pen.setStyle(Qt::DotLine); break;
+
+        default:
+            pen.setStyle(Qt::DotLine);
+    }
+
     pen.setWidth(1);
     p.setPen(pen);
 

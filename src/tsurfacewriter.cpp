@@ -24,7 +24,9 @@
 #include <QDirIterator>
 
 #include "tsurfacewriter.h"
+#include "tconfig.h"
 #include "terror.h"
+#include "tmisc.h"
 
 namespace fs = std::filesystem;
 
@@ -60,6 +62,44 @@ TSurfaceWriter::TSurfaceWriter(const QString& tmpPath, const QString& target)
             continue;
 
         list.append(entry);
+    }
+
+    if (TConfig::Current().getCreateBackup() && fs::exists(target.toStdString()))
+    {
+        QString t;
+        QString file = basename(target);
+        QString path = TConfig::Current().getFilesBackups();
+        bool haveName = false;
+        int num = 0;
+
+        if (path.isEmpty() || !fs::is_directory(path.toStdString()))
+            path = pathname(target);
+
+        do
+        {
+            if (num == 0)
+            {
+                if (TConfig::Current().getUsePostfix())
+                    t = path + "/copy-" + file;
+                else
+                    t = path + "/~" + file;
+            }
+            else
+            {
+                if (TConfig::Current().getUsePostfix())
+                    t = QString("%1/copy-%2_%3").arg(path).arg(num).arg(file);
+                else
+                    t = QString("%1/~%2_%3").arg(path).arg(num).arg(file);
+            }
+
+            if (!fs::exists(t.toStdString()))
+                haveName = true;
+            else
+                num++;
+        }
+        while (!haveName);
+
+        fs::rename(target.toStdString(), t.toStdString());
     }
 
     archiveFile(list, target);

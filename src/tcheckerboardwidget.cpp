@@ -26,7 +26,11 @@ TCheckerBoardWidget::TCheckerBoardWidget(QWidget *parent)
     DECL_TRACER("TCheckerBoardWidget::TCheckerBoardWidget(QWidget *parent)");
 
     if (parent)
-        setFixedSize(parent->size());
+    {
+        QSize size = parent->size();
+        size.setHeight(size.height() * 2);
+        setFixedSize(size);
+    }
 }
 
 void TCheckerBoardWidget::setSquareSize(int size)

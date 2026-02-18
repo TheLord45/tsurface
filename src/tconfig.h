@@ -110,8 +110,12 @@ class TConfig
 
         QStringList& getEditorsImage() { return mEditorsImage; }
         void setEditorsImage(const QStringList& list) { mEditorsImage = list; }
+        int getEditorImageSelected() { return mEditorImageSelected; }
+        void setEditorImageSelected(int idx) { mEditorImageSelected = idx; }
         QStringList& getEditorsSound() { return mEditorsSound; }
         void setEditorsSound(const QStringList& list) { mEditorsSound = list; }
+        int getEditorSoundSelected() { return mEditorSoundSelected; }
+        void setEditorSoundSelected(int idx) { mEditorSoundSelected = idx; }
 
         bool getEnableUndoSystem() { return mEnableUndoSystem; }
         void setEnableUndoSystem(bool undo) { mEnableUndoSystem = undo; }
@@ -174,6 +178,8 @@ class TConfig
         // Preferences: Editors
         QStringList mEditorsImage;
         QStringList mEditorsSound;
+        int mEditorImageSelected{0};
+        int mEditorSoundSelected{0};
         // Preferences: Undo/Redo
         bool mEnableUndoSystem{false};
         int mUndoLevels{500};
