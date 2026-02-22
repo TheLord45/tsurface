@@ -33,12 +33,13 @@ TElementSpinBox::TElementSpinBox(int value, const QString& name, QWidget * paren
 TElementSpinBox::TElementSpinBox(int value, int min, int max, const QString& name, QWidget *parent)
     : QWidget(parent),
       mName(name),
-      mValue(value)
+      mValue(value),
+      mMinValue(min),
+      mMaxValue(max)
 {
     DECL_TRACER("TElementSpinBox::TElementSpinBox(int value, int min, int max, const QString& name, QWidget *parent)");
 
     init();
-    mSpinBox->setRange(min, max);
 }
 
 TElementSpinBox::~TElementSpinBox()
@@ -51,7 +52,50 @@ void TElementSpinBox::init()
     DECL_TRACER("TElementSpinBox::init()");
 
     mSpinBox = new QSpinBox(this);
+    mSpinBox->setRange(mMinValue, mMaxValue);
+    mSpinBox->setValue(mValue);
     connect(mSpinBox, &QSpinBox::valueChanged, this, &TElementSpinBox::onValueChanged);
+}
+
+void TElementSpinBox::setValue(int value)
+{
+    DECL_TRACER("TElementSpinBox::setValue(int value)");
+
+    mValue = value;
+
+    if (mSpinBox)
+        mSpinBox->setValue(value);
+}
+
+void TElementSpinBox::setMinValue(int value)
+{
+    DECL_TRACER("TElementSpinBox::setMinValue(int value)");
+
+    mMinValue = value;
+
+    if (mSpinBox)
+        mSpinBox->setMinimum(value);
+}
+
+void TElementSpinBox::setMaxValue(int value)
+{
+    DECL_TRACER("TElementSpinBox::setMaxValue(int value)");
+
+    mMaxValue = value;
+
+    if (mSpinBox)
+        mSpinBox->setMaximum(value);
+}
+
+void TElementSpinBox::setMinMaxValue(int min, int max)
+{
+    DECL_TRACER("TElementSpinBox::setMinMaxValue(int min, int max)");
+
+    mMinValue = min;
+    mMaxValue = max;
+
+    if (mSpinBox)
+        mSpinBox->setRange(min, max);
 }
 
 void TElementSpinBox::onValueChanged(int value)

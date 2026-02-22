@@ -1603,18 +1603,22 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         widget = new TCanvasWidget(this);                                       // Create a new canvas widget --> subwindow in Mdi
         widget->setWindowTitle(name);                                           // Set the title of the window
         widget->setFixedSize(QSize(pg.width, pg.height));                       // Set the size
+        MSG_DEBUG("Window was set to size: " << pg.width << " x " << pg.height);
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);    // Frame decorations
         widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");  // Set the background color
         QString objName(QString("Canvas_%1").arg(pg.pageID));                   // Create a name for the object
         widget->setObjectName(objName);                                         // set the object name
         widget->installEventFilter(mCloseEater);                                // Set an event filter to cache the click on the close button
         MSG_DEBUG("Object name: " << objName.toStdString());
+        pg.baseObject.widget = widget;                                          // Add the widget to our local copy of the page structure
         TPageHandler::Current().setWidget(widget, num);                         // Set the widget to the page data for internal use
 
         QMdiSubWindow *page = new QMdiSubWindow;                                // Create a new subwindow in the QMdiArea
         objName = QString("SubWindow_%1").arg(pg.pageID);                       // Create a name for the object
         page->setObjectName(objName);                                           // Set the name
+        page->setContentsMargins(0, 0, 0, 0);                                   // We remove the margins
         page->setWidget(widget);                                                // Add the previous created widget to the subwindow
+        page->resize(page->minimumSizeHint());                                  // This is necessary to get the correct size of the window
         page->setAttribute(Qt::WA_DeleteOnClose);                               // Request that it should be deleted automatically on close of subwindow
         page->installEventFilter(mCloseEater);                                  // Set an event filter to cache the click on the close button
         page->setWindowIcon(QIcon(":images/tsurface_512.png"));                 // Give the window an icon
@@ -1631,7 +1635,6 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg.pageID)); // Show or hide the grid
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg.pageID));    // Activate or deactivate snap to grid. This independable from the visibility of the grid.
         // TODO: Add code to draw all objects
-        pg.baseObject.widget = widget;                                          // Add the widget to our local copy of the page structure
         onRedrawRequest(&pg);                                                   // Draw the components of the page
     }
 }

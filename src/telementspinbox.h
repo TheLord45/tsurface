@@ -32,6 +32,10 @@ class TElementSpinBox : public QWidget
         ~TElementSpinBox();
 
         int getValue() { return mValue; }
+        void setValue(int value);
+        void setMinValue(int value);
+        void setMaxValue(int value);
+        void setMinMaxValue(int min, int max);
         QString& getName() { return mName; }
 
     signals:
@@ -44,6 +48,8 @@ class TElementSpinBox : public QWidget
     private:
         QString mName;
         int mValue{0};
+        int mMinValue{0};
+        int mMaxValue{100};
 
         QSpinBox *mSpinBox{nullptr};
 };

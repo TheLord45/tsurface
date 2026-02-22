@@ -218,6 +218,10 @@ void TPropertiesStates::createPage()
 
         QTableWidget *table = createTableWidget(STATE_PAGE);
         mTreeWidget->setItemWidget(item, 0, table);
+        int totalHeight = table->height() + mTreeWidget->height();
+        MSG_DEBUG("Page total height: " << totalHeight);
+        mTreeWidget->setMinimumHeight(totalHeight);
+
         addGradientLines(mPage.srPage.ft, "PgFillType", true);
     }
     else if (mPage.popupType == PT_POPUP)
@@ -231,6 +235,10 @@ void TPropertiesStates::createPage()
 
         QTableWidget *table = createTableWidget(STATE_POPUP, mTreeWidget);
         mTreeWidget->setItemWidget(item, 0, table);
+        int totalHeight = table->height() + mTreeWidget->height();
+        MSG_DEBUG("Popup total height: " << totalHeight);
+        mTreeWidget->setMinimumHeight(totalHeight);
+
         addGradientLines(mPage.srPage.ft, "PopupFillType", true);
     }
 
@@ -283,6 +291,7 @@ void TPropertiesStates::createTablePage(QTableWidget *table)
     // The row count must be defined before rows are added to the table! Otherwise
     // an empty table with only the grid will be visible.
     table->setRowCount(rows);
+    int totalHeight = 0;
 
     for (int row = 0; row < rows; ++row)
     {
@@ -295,6 +304,7 @@ void TPropertiesStates::createTablePage(QTableWidget *table)
             case 0:
                 col0->setText(getLeftColText(TTEXT_FILL_TYPE));
                 table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PgFillType"));
+                totalHeight = table->cellWidget(row, 1)->height();
             break;
 
             case 1:
@@ -422,6 +432,8 @@ void TPropertiesStates::createTablePage(QTableWidget *table)
 
         table->setItem(row, 0, col0);
     }
+
+    table->setMinimumHeight(totalHeight);
 }
 
 void TPropertiesStates::adjustTablePage(QTableWidget *table, QString gradient)
@@ -490,6 +502,7 @@ void TPropertiesStates::createTablePopup(QTableWidget *table)
     // The row count must be defined before rows are added to the table! Otherwise
     // an empty table with only the grid will be visible.
     table->setRowCount(rows);
+    int totalHeight = 0;
 
     for (int row = 0; row < rows; ++row)
     {
@@ -502,6 +515,7 @@ void TPropertiesStates::createTablePopup(QTableWidget *table)
             case 0:
                 col0->setText(getLeftColText(TTEXT_BORDER_NAME));
                 table->setCellWidget(row, 1, makeBorderName(mPage.srPage.bs, "PopupBorderName"));
+                totalHeight = table->cellWidget(row, 1)->size().height();
             break;
 
             case 1:
@@ -641,6 +655,8 @@ void TPropertiesStates::createTablePopup(QTableWidget *table)
 
         table->setItem(row, 0, col0);
     }
+
+    table->setMinimumHeight(totalHeight * rows);
 }
 
 void TPropertiesStates::adjustTablePopup(QTableWidget *table, QString gradient)

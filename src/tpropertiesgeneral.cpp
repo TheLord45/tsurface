@@ -762,6 +762,8 @@ TElementSpinBox *TPropertiesGeneral::makeSpinGeometry(const QString& name)
             value = mPage.width;
         else if (name.endsWith("Height"))
             value = mPage.height;
+
+        MSG_DEBUG("Value: " << value);
     }
     else
     {
@@ -777,6 +779,10 @@ TElementSpinBox *TPropertiesGeneral::makeSpinGeometry(const QString& name)
                 value = mActObject.wt;
             else if (name.endsWith("Height"))
                 value = mActObject.ht;
+        }
+        else
+        {
+            MSG_WARNING("No object with index " << mActObjectID << " found!");
         }
     }
 
