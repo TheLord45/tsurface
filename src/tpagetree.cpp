@@ -56,59 +56,7 @@ void TPageTree::createNewTree(const QString& job, const QString& pname, const QS
         return;
     }
 
-    mPageNum = 0;
-    mPopupNum = 500;
-    mGroupNum = 2000;
-
-    if (!mItemModel)
-        mItemModel = new QStandardItemModel;
-    else
-        mItemModel->clear();
-
-    QString head = job + " [" + panel + "]";
-    QStandardItem *header = new QStandardItem(head);
-    mItemModel->setHorizontalHeaderItem(0, header);
-
-    QStandardItem *parentItem = mItemModel->invisibleRootItem();
-    // Folder Pages
-    mPages = new QStandardItem(tr("Pages"));
-    mPages->setEditable(false);
-    mPages->setData(MENU_PAGE);
-    // Page
-    mPageNum++;
-    QStandardItem *pageMain = new QStandardItem(pname);
-    pageMain->setEditable(false);
-    pageMain->setData(mPageNum);
-    mPages->appendRow(pageMain);
-    // Add page to folder Pages
-    parentItem->appendRow(mPages);
-    // Folder Popup Pages
-    mPopup = new QStandardItem(tr("Popup pages"));
-    mPopup->setEditable(false);
-    mPopup->setData(MENU_POPUP);
-    parentItem->appendRow(mPopup);
-    // Folder Sup-pages
-    mSubPages = new QStandardItem(tr("Sub-pages"));
-    mSubPages->setEditable(false);
-    mSubPages->setData(MENU_SUBPAGES);
-    parentItem->appendRow(mSubPages);
-    // Folder Apps
-    mApps = new QStandardItem(tr("Application windows"));
-    mApps->setEditable(false);
-    mApps->setData(MENU_APPS);
-    parentItem->appendRow(mApps);
-
-    if (!mHaveModel)
-        mTreeView->setModel(mItemModel);
-    else
-    {
-        mHaveModel = true;
-        mTreeView->show();
-    }
-
-    mTreeView->expandAll();
-    connect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
-    connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
+    makeTree(job, panel, pname);
 }
 
 void TPageTree::createTree(const QString& job, const QString& panel)
@@ -121,6 +69,13 @@ void TPageTree::createTree(const QString& job, const QString& panel)
         return;
     }
 
+    makeTree(job, panel, QString());
+}
+
+void TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname)
+{
+    DECL_TRACER("TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname)");
+
     mPageNum = 0;
     mPopupNum = 500;
     mGroupNum = 2000;
@@ -139,6 +94,17 @@ void TPageTree::createTree(const QString& job, const QString& panel)
     mPages = new QStandardItem(tr("Pages"));
     mPages->setEditable(false);
     mPages->setData(MENU_PAGE);
+
+    if (!pname.isEmpty())
+    {
+        // Page
+        mPageNum++;
+        QStandardItem *pageMain = new QStandardItem(pname);
+        pageMain->setEditable(false);
+        pageMain->setData(mPageNum);
+        mPages->appendRow(pageMain);
+    }
+
     parentItem->appendRow(mPages);
     // Folder Popup Pages
     mPopup = new QStandardItem(tr("Popup pages"));

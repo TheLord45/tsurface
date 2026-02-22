@@ -98,6 +98,7 @@ class TPageTree : public QObject
 
         void menuPopup();
         TPageTree *getPointer() { return this; }
+        void makeTree(const QString& job, const QString& panel, const QString& pname);
 
     private:
         QTreeView *mTreeView{nullptr};

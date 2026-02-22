@@ -1321,15 +1321,21 @@ void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString&
 {
     DECL_TRACER("TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)");
 
-    Q_UNUSED(name);
+    if (name.startsWith("Page"))
+    {
+        mPage.name = text;
+        pageNameChanged(mPage.pageID, text);
+    }
+    else
+    {
+        if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+            return;
 
-    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
-        return;
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject.na = text;
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
 
-    mActObject = mPage.objects[mActObjectID]->getObject();
-    mActObject.na = text;
-    mPage.objects[mActObjectID]->setObject(mActObject);
-    pageNameChanged(mPage.pageID, text);
     mChanged = true;
     markChanged();
 }
