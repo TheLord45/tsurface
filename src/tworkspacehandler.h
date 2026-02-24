@@ -58,9 +58,9 @@ class TWorkSpaceHandler
         void clear();
 
         void setPage(const QString& name);
-        void setPage(int id);
+        void setPage(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
         void setPopup(const QString& name);
-        void setPopup(int id);
+        void setPopup(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
         void setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID=-1);
 
         // Callbacks
@@ -77,6 +77,7 @@ class TWorkSpaceHandler
         void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
         void markChanged() override;
         ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) override;
+        Page::PAGE_t getCurrentPage() override;
         void requestRedraw(Page::PAGE_t *page) override;
 
     private:

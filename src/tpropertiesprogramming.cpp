@@ -51,6 +51,22 @@ TPropertiesProgramming::~TPropertiesProgramming()
     delete mIntValidator;
 }
 
+void TPropertiesProgramming::setPage(const Page::PAGE_t& page)
+{
+    DECL_TRACER("TPropertiesProgramming::setPage(const Page::PAGE_t& page)");
+
+    if (page.pageID == mPage.pageID)
+        return;
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_PROGRAM);
+
+    mChanged = false;
+    mPage = Page::PAGE_t();
+    mPage = page;
+    createPage();
+}
+
 void TPropertiesProgramming::setProgrammingPage(const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::setProgrammingPage(const QString& name)");

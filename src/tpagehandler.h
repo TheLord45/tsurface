@@ -245,6 +245,7 @@ class TPageHandler : public QObject
 
     private:
         static TPageHandler *mCurrent;
+        QMdiArea *mMdiArea{nullptr};
         QString mPathTemporary;
         QList<Page::PAGE_t> mPages;
         int mMaxPageNumber{0};

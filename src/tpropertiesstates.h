@@ -46,16 +46,19 @@ class TPropertiesStates : public QObject
         TPropertiesStates(QTreeWidget *widget);
         ~TPropertiesStates();
 
+        void setPage(const Page::PAGE_t& page);
         void setStatesPage(const QString& name);
         void setStatesPage(int id, bool loaded);
         void setActualButton(int bi);
         void update();
+        bool isChanged() { return mChanged; }
 
     protected:
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
+        virtual Page::PAGE_t getCurrentPage() = 0;
 
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }

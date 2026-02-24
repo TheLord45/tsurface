@@ -37,6 +37,7 @@ class TPropertiesProgramming : public QObject
         TPropertiesProgramming(QTableWidget *table);
         ~TPropertiesProgramming();
 
+        void setPage(const Page::PAGE_t& page);
         void setProgrammingPage(const QString& name);
         void setProgrammingPage(int id, bool loaded=false);
         void setProgrammingPopup(const QString& name);
@@ -60,6 +61,8 @@ class TPropertiesProgramming : public QObject
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
+        virtual Page::PAGE_t getCurrentPage() = 0;
+
 
     private:
         QTableWidget *mTable{nullptr};

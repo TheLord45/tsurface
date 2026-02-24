@@ -237,7 +237,13 @@ PAGE_t TPageHandler::getCurrentPage(QMdiArea *area)
 {
     DECL_TRACER("TPageHandler::getCurrentPage(QMdiArea *area)");
 
-    QMdiSubWindow *subWin = area->currentSubWindow();
+    if (area && (!mMdiArea || mMdiArea != area))
+        mMdiArea = area;
+
+    if (!mMdiArea)
+        return PAGE_t();
+
+    QMdiSubWindow *subWin = mMdiArea->currentSubWindow();
 
     if (!subWin)
     {

@@ -74,6 +74,8 @@ void TWorkSpaceHandler::setParent(QWidget *widget)
     mParent = widget;
     TPageTree::setParent(widget);
     TPropertiesGeneral::setParent(widget);
+    TPropertiesProgramming::setParent(widget);
+    TPropertiesStates::setParent(widget);
 }
 
 void TWorkSpaceHandler::setWorkspacePagesWidget(QTreeView *tree)
@@ -94,7 +96,7 @@ bool TWorkSpaceHandler::isChanged()
 {
     DECL_TRACER("TWorkSpaceHandler::isChanged()");
 
-    if (TPropertiesGeneral::isChanged())
+    if (TPropertiesGeneral::isChanged() || TPropertiesProgramming::isChanged() || TPropertiesStates::isChanged())
         return true;
 
     return false;
@@ -103,6 +105,8 @@ bool TWorkSpaceHandler::isChanged()
 void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
 {
     DECL_TRACER("TWorkSpaceHandler::setObjectGeometry(int bi, const QRect& geom)");
+
+    Q_UNUSED(pageID);
 
     TPropertiesStates::setGeometry(bi, geom);
     TPropertiesGeneral::update();
@@ -134,19 +138,21 @@ void TWorkSpaceHandler::setPage(const QString& name)
     DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");
 
     Page::PAGE_t page = TPageHandler::Current().getPage(name);
-    setGeneralPage(page, STATE_PAGE);
-    setProgrammingPage(name);
-    setStatesPage(name);
+    setPage(page.pageID, false, page);
 }
 
-void TWorkSpaceHandler::setPage(int id)
+void TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)
 {
-    DECL_TRACER("TWorkSpaceHandler::setPage(int id)");
+    DECL_TRACER("TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    Page::PAGE_t page = rpage;
+
+    if (load)
+        page = TPageHandler::Current().getPage(id);
+
     setGeneralPage(page, STATE_PAGE);
-    setProgrammingPage(id);
-    setStatesPage(id, false);
+    TPropertiesProgramming::setPage(page);
+    TPropertiesStates::setPage(page);
 }
 
 void TWorkSpaceHandler::setPopup(const QString& name)
@@ -154,19 +160,21 @@ void TWorkSpaceHandler::setPopup(const QString& name)
     DECL_TRACER("TWorkSpaceHandler::setPopup(const QString& name)");
 
     Page::PAGE_t page = TPageHandler::Current().getPage(name);
-    setGeneralPage(page, STATE_POPUP);
-    setProgrammingPopup(name);
-    setStatesPage(name);
+    setPopup(page.pageID, false, page);
 }
 
-void TWorkSpaceHandler::setPopup(int id)
+void TWorkSpaceHandler::setPopup(int id, bool load, const Page::PAGE_t& rpage)
 {
-    DECL_TRACER("TWorkSpaceHandler::setPopup(int id)");
+    DECL_TRACER("TWorkSpaceHandler::setPopup(int id, bool load, const Page::PAGE_t& rpage)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    Page::PAGE_t page = rpage;
+
+    if (load)
+        page = TPageHandler::Current().getPage(id);
+
     setGeneralPage(page, STATE_POPUP);
-    setProgrammingPopup(id);
-    setStatesPage(id, false);
+    TPropertiesProgramming::setPage(page);
+    TPropertiesStates::setPage(page);
 }
 
 void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID)
@@ -274,6 +282,13 @@ ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject(const Page::PAGE_t& pag
     }
 
     return ObjHandler::TOBJECT_t();
+}
+
+Page::PAGE_t TWorkSpaceHandler::getCurrentPage()
+{
+    DECL_TRACER("TWorkSpaceHandler::getCurrentPage()");
+
+    return TPageHandler::Current().getCurrentPage(nullptr);
 }
 
 void TWorkSpaceHandler::requestRedraw(Page::PAGE_t *page)

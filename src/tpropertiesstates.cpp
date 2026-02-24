@@ -95,6 +95,21 @@ void TPropertiesStates::setGeometry(int bi, const QRect& geom)
     }
 }
 
+void TPropertiesStates::setPage(const Page::PAGE_t& page)
+{
+    DECL_TRACER("TPropertiesStates::setPage(const Page::PAGE_t& page)");
+
+    if (page.pageID == mPage.pageID)
+        return;
+
+    if (mPage.pageID > 0 && mChanged)
+        saveChangedData(&mPage, TBL_STATES);
+
+    mChanged = false;
+    mPage = page;
+    createPage();
+}
+
 void TPropertiesStates::setStatesPage(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::setStatesPage(const QString& name)");
