@@ -367,40 +367,41 @@ void TSurface::addObject(int id, QPoint pt)
 {
     DECL_TRACER("TSurface::addObject(int id, QPoint pt)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(id);
 
-    if (page.pageID <= 0 || !page.baseObject.widget || !page.visible)
+    if (!page || page->pageID <= 0 || !page->baseObject.widget || !page->visible)
         return;
 
-    QList<ObjHandler::TOBJECT_t> olist = TPageHandler::Current().getObjectList(page);
+    QList<ObjHandler::TOBJECT_t> olist = TPageHandler::Current().getObjectList(*page);
     int btNumber = getNextObjectNumber(olist);
     ObjHandler::TOBJECT_t object = TPageHandler::Current().initNewObject(btNumber, QString("Button %1").arg(btNumber));
-    QWidget* content = new QWidget(page.baseObject.widget);
+    QWidget* content = new QWidget(page->baseObject.widget);
     QString objName = QString("Object_%1").arg(btNumber);
     MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
-    content->setStyleSheet(QString("background: %1")
-                               .arg(object.sr[0].cf.name()));
+    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name()));
+    page->baseObject.widget->clearSelection();
 
-    TResizableWidget* wrap = new TResizableWidget(content, page.baseObject.widget);
+    TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
     wrap->setMinimumSize(40, 40);
-    wrap->setGridSize(page.baseObject.widget->gridSize());
-    wrap->setSnapToGrid(page.baseObject.widget->snapEnabled());
+    wrap->setGridSize(page->baseObject.widget->gridSize());
+    wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
     wrap->setGeometry(pt.x(), pt.y(), 40, 40);
     wrap->show();
     wrap->setId(btNumber);
-    wrap->setPageId(page.pageID);
+    wrap->setPageId(page->pageID);
+    wrap->setSelected(true);
     connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
     connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
     // Add to list
     TObjectHandler *o = new TObjectHandler(ObjHandler::GENERAL, btNumber, objName);
-    o->setObject(page.baseObject.widget);
+    o->setObject(page->baseObject.widget);
     o->setObject(object);
     o->setSize(wrap->geometry());
-    int index = TPageHandler::Current().appendObject(page.pageID, o);
-    TWorkSpaceHandler::Current().setAllProperties(page, STATE_BUTTON, index);
-    TWorkSpaceHandler::Current().setStatesPage(page.pageID, false);
+    int index = TPageHandler::Current().appendObject(page->pageID, o);
+    TWorkSpaceHandler::Current().setObject(o);
+    TWorkSpaceHandler::Current().setAllProperties(*page, STATE_BUTTON, index);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -472,20 +473,20 @@ void TSurface::on_actionOpen_triggered()
 
         for (iter = pageNumbers.begin(); iter != pageNumbers.end(); ++iter) // Iterate through the page numbers
         {
-            Page::PAGE_t pg = TPageHandler::Current().getPage(*iter);       // Get the page
+            Page::PAGE_t *pg = TPageHandler::Current().getPage(*iter);      // Get the page
 
-            if (pg.pageID <= 0)                                             // Should never be true, but who knows ...
+            if (!pg || pg->pageID <= 0)                                     // Should never be true, but who knows ...
             {
                 MSG_ERROR("Can't find page number " << *iter);
                 continue;
             }
 
-            MSG_DEBUG("Popuptype: " << pg.popupType);
+            MSG_DEBUG("Popuptype: " << pg->popupType);
 
-            if (pg.popupType == Page::PT_PAGE)                              // Is it a page?
-                TWorkSpaceHandler::Current().addTreePage(pg.name, pg.pageID);   // Yes, then add it to page part of tree
-            else if (pg.popupType == Page::PT_POPUP)                        // Is it a popup?
-                TWorkSpaceHandler::Current().addTreePopup(pg.name, pg.pageID);  // Yes, then add it to popup part of tree
+            if (pg->popupType == Page::PT_PAGE)                              // Is it a page?
+                TWorkSpaceHandler::Current().addTreePage(pg->name, pg->pageID);   // Yes, then add it to page part of tree
+            else if (pg->popupType == Page::PT_POPUP)                        // Is it a popup?
+                TWorkSpaceHandler::Current().addTreePopup(pg->name, pg->pageID);  // Yes, then add it to popup part of tree
         }
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
@@ -624,9 +625,13 @@ void TSurface::on_actionNew_triggered()
     // Enable Menus
     enableBaseMenus();
     // Draw the window with all known data
-    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
-    pg.baseObject.widget = widget;
-    onRedrawRequest(&pg);                                                   // Draw the components of the page
+    Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
+
+    if (pg)
+    {
+        pg->baseObject.widget = widget;
+        onRedrawRequest(pg);                                                   // Draw the components of the page
+    }
 }
 
 void TSurface::on_actionProject_properties_triggered()
@@ -1599,22 +1604,25 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
     else if (!visible)          // If the window is invisible (not created yet), create it.
     {
         MSG_DEBUG("Window is not visible. Generating it ...")
-        Page::PAGE_t pg = TPageHandler::Current().getPage(num);                 // Get the whole page (structure)
+        Page::PAGE_t *pg = TPageHandler::Current().getPage(num);                // Get the whole page (structure)
+
+        if (!pg)
+            return;
+
         widget = new TCanvasWidget(this);                                       // Create a new canvas widget --> subwindow in Mdi
         widget->setWindowTitle(name);                                           // Set the title of the window
-        widget->setFixedSize(QSize(pg.width, pg.height));                       // Set the size
-        MSG_DEBUG("Window was set to size: " << pg.width << " x " << pg.height);
+        widget->setFixedSize(QSize(pg->width, pg->height));                     // Set the size
+        MSG_DEBUG("Window was set to size: " << pg->width << " x " << pg->height);
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);    // Frame decorations
-        widget->setStyleSheet("background-color: " + pg.srPage.cf.name() + ";color: " + pg.srPage.ct.name()+ ";");  // Set the background color
-        QString objName(QString("Canvas_%1").arg(pg.pageID));                   // Create a name for the object
+        widget->setStyleSheet("background-color: " + pg->srPage.cf.name() + ";color: " + pg->srPage.ct.name()+ ";");  // Set the background color
+        QString objName(QString("Canvas_%1").arg(pg->pageID));                  // Create a name for the object
         widget->setObjectName(objName);                                         // set the object name
         widget->installEventFilter(mCloseEater);                                // Set an event filter to cache the click on the close button
         MSG_DEBUG("Object name: " << objName.toStdString());
-        pg.baseObject.widget = widget;                                          // Add the widget to our local copy of the page structure
-        TPageHandler::Current().setWidget(widget, num);                         // Set the widget to the page data for internal use
+        pg->baseObject.widget = widget;                                         // Add the widget to our local copy of the page structure
 
         QMdiSubWindow *page = new QMdiSubWindow;                                // Create a new subwindow in the QMdiArea
-        objName = QString("SubWindow_%1").arg(pg.pageID);                       // Create a name for the object
+        objName = QString("SubWindow_%1").arg(pg->pageID);                      // Create a name for the object
         page->setObjectName(objName);                                           // Set the name
         page->setContentsMargins(0, 0, 0, 0);                                   // We remove the margins
         page->setWidget(widget);                                                // Add the previous created widget to the subwindow
@@ -1626,16 +1634,16 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         widget->activateWindow();                                               // Activate it
         widget->show();                                                         // Make it visible
         updateGridFromUI(widget);                                               // Set the grid
-        int id = pg.pageID;                                                     // Necessary to be able to give the page id to the lamda function
+        int id = pg->pageID;                                                    // Necessary to be able to give the page id to the lamda function
         connect(widget, &TCanvasWidget::gridChanged, [this, id](const QSize&) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::snapChanged, [this, id](bool) { applyGridToChildren(TPageHandler::Current().getWidget(id)); });
         connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
 
         TPageHandler::Current().setVisible(num, true);                          // Mark the page as visible
-        onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg.pageID)); // Show or hide the grid
-        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg.pageID));    // Activate or deactivate snap to grid. This independable from the visibility of the grid.
+        onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg->pageID));// Show or hide the grid
+        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This independable from the visibility of the grid.
         // TODO: Add code to draw all objects
-        onRedrawRequest(&pg);                                                   // Draw the components of the page
+        onRedrawRequest(pg);                                                    // Draw the components of the page
     }
 }
 
@@ -1659,7 +1667,20 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
     DECL_TRACER("TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)");
 
     if (selected)
+    {
         TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
+        Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
+
+        if (!page)
+            return;
+
+        TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+
+        if (!object)
+            return;
+
+        TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    }
 }
 
 void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
@@ -1669,9 +1690,18 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
     QRect geom = w->geometry();
     geom.setLeft(pt.x());
     geom.setTop(pt.y());
+    Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
+
+    if (!page)
+        return;
+
     TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+
+    if (!object)
+        return;
+
     object->setSize(geom);
-    TWorkSpaceHandler::Current().setActualObject(object);
+    TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
 }
 
 void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
@@ -1681,9 +1711,18 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
     QRect geom = w->geometry();
     geom.setWidth(size.width());
     geom.setHeight(size.height());
+    Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
+
+    if (!page)
+        return;
+
     TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+
+    if (!object)
+        return;
+
     object->setSize(geom);
-    TWorkSpaceHandler::Current().setActualObject(object);
+    TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
 }
 
 void TSurface::onAddNewPage()
@@ -1707,7 +1746,8 @@ void TSurface::onAddNewPage()
     widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + pageDialog.getColorBackground().name() + ";color: " + pageDialog.getColorText().name()+ ";");
-    int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, pageDialog.getPageName(), pgSize.width(), pgSize.height());
+    Page::PAGE_t pg;
+    int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, pageDialog.getPageName(), pgSize.width(), pgSize.height(), 0, 0, &pg);
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
@@ -1724,9 +1764,10 @@ void TSurface::onAddNewPage()
     widget->show();
     TPageHandler::Current().setVisible(id, true);
     TWorkSpaceHandler::Current().addTreePage(pageDialog.getPageName(), id);
+    TWorkSpaceHandler::Current().invalidateObject();
     TConfMain::Current().addPage(pageDialog.getPageName(), id);
     // Here we set everyting of the page we currently know
-    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
+//    Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
 
     if (pg.pageID <= 0)
     {
@@ -1766,7 +1807,8 @@ void TSurface::onAddNewPopup()
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + popupDialog.getColorPageBackground().name() + ";color: " + popupDialog.getColorText().name()+ ";");
     QRect geom(popupDialog.getPositionLeft(), popupDialog.getPositionTop(), popupDialog.getSizeWidth(), popupDialog.getSizeHeight());
-    int id = TPageHandler::Current().createPage(widget, Page::PT_POPUP, popupDialog.getPopupName(), geom);
+    Page::PAGE_t pg;
+    int id = TPageHandler::Current().createPage(widget, Page::PT_POPUP, popupDialog.getPopupName(), geom, &pg);
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
@@ -1783,9 +1825,10 @@ void TSurface::onAddNewPopup()
     widget->show();
     TPageHandler::Current().setVisible(id, true);
     TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), id);
+    TWorkSpaceHandler::Current().invalidateObject();
     TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
     // Here we set everyting of the page we currently know
-    Page::PAGE_t pg = TPageHandler::Current().getPage(id);
+//    Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
 
     if (pg.pageID <= 0)
     {
@@ -1816,20 +1859,34 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
     if (id <= 0)
         return;
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(id);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(id);
 
-    if (page.pageID <= 0)
+    if (!page || page->pageID <= 0)
         return;
 
-    if (page.popupType == Page::PT_PAGE)
-        TWorkSpaceHandler::Current().setPage(id);
-    else
-        TWorkSpaceHandler::Current().setPopup(id);
+    MSG_DEBUG("Requested page ID: " << id << ", received page ID: " << page->pageID);
+    TPageHandler::Current().setVisible(id, true);
 
+    if (page->popupType == Page::PT_PAGE)
+        TWorkSpaceHandler::Current().setPage(id, false, *page);
+    else
+        TWorkSpaceHandler::Current().setPopup(id, false, *page);
+
+    TWorkSpaceHandler::Current().setFocus(page->pageID);
     // TODO: Add code to check for a selected object. If there is
     // one and only one, it is the actual one.
-    // If there are more than one selected, all should be deselected
-    // and the page data should be shown.
+    // If there are more than one selected the page data should
+    // be shown.
+    if (page->baseObject.widget && page->baseObject.widget->selectedCount() == 1)
+    {
+        TResizableWidget *rw = page->baseObject.widget->currentSelectedWidget();
+
+        if (rw && rw->getPageId() == page->pageID)
+        {
+            TObjectHandler *obj = TPageHandler::Current().getObjectHandler(page->pageID, rw->getId());
+            TWorkSpaceHandler::Current().setActualObject(obj);
+        }
+    }
 }
 
 void TSurface::onRedrawRequest(Page::PAGE_t *page)

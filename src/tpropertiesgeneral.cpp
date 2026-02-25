@@ -223,7 +223,7 @@ void TPropertiesGeneral::loadPage(int pageID)
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_GENERAL);
 
-    mPage = TPageHandler::Current().getPage(pageID);
+    mPage = *TPageHandler::Current().getPage(pageID);
     mChanged = false;
     mInitialized = false;
 }
@@ -235,11 +235,11 @@ void TPropertiesGeneral::setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, in
     if (page.pageID <= 0)
         return;
 
-    if (page.pageID != mPage.pageID)
-        mInitialized = false;
+    mInitialized = false;   // This ensures that the changes are visible
 
     mPage = page;
     mActObjectID = objid;
+    MSG_DEBUG("Object index: " << objid);
     setTable(stype);
 }
 
@@ -506,7 +506,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case 16:
                 cell1->setText(getLabelText(TTEXT_ZORDER));
-                mTable->setCellWidget(i, 1, makePopupResetOnPos("ObjectZOrder"));
+                mTable->setCellWidget(i, 1, makeObjectZOrder("ObjectZOrder"));
             break;
 
             case 17:

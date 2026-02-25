@@ -65,11 +65,11 @@ TPageHandler& TPageHandler::Current()
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)
+int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom, Page::PAGE_t *rpage)
 {
-    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom)");
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom, Page::PAGE_t *rpage)");
 
-    return createPage(w, pt, name, geom.width(), geom.height(), geom.left(), geom.top());
+    return createPage(w, pt, name, geom.width(), geom.height(), geom.left(), geom.top(), rpage);
 }
 
 /**
@@ -90,9 +90,9 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)
+int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, Page::PAGE_t *rpage)
 {
-    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top)");
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, Page::PAGE_t *rpage=nullptr)");
 
     PAGE_t page;
 
@@ -141,6 +141,10 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
     }
 
     mPages.append(page);
+
+    if (rpage)
+        *rpage = page;
+
     return page.pageID;
 }
 
@@ -331,27 +335,22 @@ QList<int> TPageHandler::getPageNumbers()
     return list;
 }
 
-PAGE_t TPageHandler::getPage(int number)
+PAGE_t *TPageHandler::getPage(int number)
 {
     DECL_TRACER("TPageHandler::getPage(int number)");
 
     if (number <= 0)
     {
         MSG_ERROR("Invalid page number " << number);
-        return PAGE_t();
+        return nullptr;
     }
 
     MSG_DEBUG("Having " << mPages.size() << " pages.");
 
     if (mPages.empty())
-        return PAGE_t();
+        return nullptr;
 
-    Page::PAGE_t *page = getPagePointer(number);
-
-    if (!page)
-        return PAGE_t();
-
-    return *page;
+    return getPagePointer(number);
 }
 
 PAGE_t TPageHandler::getPage(const QString& name)
@@ -554,6 +553,7 @@ void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)
 
     TObjectHandler *o = new TObjectHandler;
     o->setObject(object);
+    o->setZOrder(page->objects.size());
     page->objects.append(o);
 }
 
@@ -561,12 +561,12 @@ ObjHandler::TOBJECT_t TPageHandler::getObject(int page, int bi)
 {
     DECL_TRACER("TPageHandler::getObject(int page, int bi)");
 
-    PAGE_t pg = getPage(page);
+    PAGE_t *pg = getPage(page);
 
-    if (pg.pageID <= 0)
+    if (!pg || pg->pageID <= 0)
         return ObjHandler::TOBJECT_t();
 
-    for (TObjectHandler *obj : pg.objects)
+    for (TObjectHandler *obj : pg->objects)
     {
         if (obj->getObject().bi == bi)
             return obj->getObject();
@@ -579,18 +579,38 @@ TObjectHandler *TPageHandler::getObjectHandler(int page, int bi)
 {
     DECL_TRACER("TPageHandler::getObjectHandler(int page, int bi)");
 
-    PAGE_t pg = getPage(page);
+    PAGE_t *pg = getPage(page);
 
-    if (pg.pageID <= 0)
+    if (!pg || pg->pageID <= 0)
         return nullptr;
 
-    for (TObjectHandler *obj : pg.objects)
+    for (TObjectHandler *obj : pg->objects)
     {
         if (obj->getObject().bi == bi)
             return obj;
     }
 
     return nullptr;
+}
+
+int TPageHandler::getObjectIndex(const PAGE_t& page, int bi)
+{
+    DECL_TRACER("TPageHandler::getObjectIndex(const PAGE_t& page, int bi)");
+
+    if (page.pageID <= 0)
+        return -1;
+
+    int idx = 0;
+
+    for (TObjectHandler *obj : page.objects)
+    {
+        if (obj->getObject().bi == bi)
+            return idx;
+
+        idx++;
+    }
+
+    return idx;
 }
 
 void TPageHandler::setSelectedToolToAllPages(TOOL t)
@@ -807,6 +827,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         bt.insert("type", e.type);
         bt.insert("bi", e.bi);
         bt.insert("na", e.na);
+        INSERTJ(bt, "li", e.li, false);
         INSERTJ(bt, "bd", e.bd, "");
         INSERTJ(bt, "lt", e.lt, 0);
         INSERTJ(bt, "tp", e.tp, 0);
@@ -835,6 +856,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "dr", e.dr, "");
         INSERTJ(bt, "va", e.va, 0);
         INSERTJ(bt, "stateCount", e.stateCount, 0);
+        INSERTJ(bt, "ddt", e.ddt, "");
         INSERTJ(bt, "rm", e.rm, 0);
         INSERTJ(bt, "nu", e.nu, 2);
         INSERTJ(bt, "nd", e.nd, 2);
@@ -1236,6 +1258,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.bi = jo.value("bi").toInt(0);
         object.na = jo.value("na").toString();
         object.bd = jo.value("bd").toString();
+        object.li = jo.value("li").toBool(false);
         object.lt = jo.value("lt").toInt(0);
         object.tp = jo.value("tp").toInt(0);
         object.wt = jo.value("wt").toInt(0);
@@ -1260,6 +1283,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.tg = jo.value("tg").toInt(0);
         object.so = jo.value("so").toInt(1);
         object.co = jo.value("co").toInt(1);
+        object.ddt = jo.value("ddt").toString();
 
         QJsonArray cm = jo.value("cm").toArray();
 

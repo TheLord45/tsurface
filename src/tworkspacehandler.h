@@ -54,14 +54,16 @@ class TWorkSpaceHandler
         Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
         void setStateType(STATE_TYPE st) { mStateType = st; }
         void setObjectGeometry(int pageID, int bi, const QRect& geom);
-        void setActualObject(TObjectHandler *object);
+        void setActualObject(TObjectHandler *object, int index=-1);
         void clear();
+        void invalidateObject() { mObject = nullptr; }
 
         void setPage(const QString& name);
         void setPage(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
         void setPopup(const QString& name);
         void setPopup(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
         void setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID=-1);
+        void setObject(TObjectHandler *obj) { mObject = obj; }
 
         // Callbacks
         // In this case we can't use the mechanism of Qt with "signals",
@@ -89,6 +91,7 @@ class TWorkSpaceHandler
         QWidget *mParent{nullptr};
         STATE_TYPE mStateType{STATE_UNKNOWN};
         TObjectHandler *mObject{nullptr};
+        int mObjectIndex{-1};
 };
 
 #endif // TWORKSPACEHANDLER_H

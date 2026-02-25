@@ -112,11 +112,12 @@ void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
     TPropertiesGeneral::update();
 }
 
-void TWorkSpaceHandler::setActualObject(TObjectHandler *object)
+void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
 {
-    DECL_TRACER("TWorkSpaceHandler::setActualObject(TObjectHandler *object)");
+    DECL_TRACER("TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)");
 
     mObject = object;
+    mObjectIndex = index;
 
     if (!mObject)
         return;
@@ -148,7 +149,7 @@ void TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)
     Page::PAGE_t page = rpage;
 
     if (load)
-        page = TPageHandler::Current().getPage(id);
+        page = *TPageHandler::Current().getPage(id);
 
     setGeneralPage(page, STATE_PAGE);
     TPropertiesProgramming::setPage(page);
@@ -170,7 +171,7 @@ void TWorkSpaceHandler::setPopup(int id, bool load, const Page::PAGE_t& rpage)
     Page::PAGE_t page = rpage;
 
     if (load)
-        page = TPageHandler::Current().getPage(id);
+        page = *TPageHandler::Current().getPage(id);
 
     setGeneralPage(page, STATE_POPUP);
     TPropertiesProgramming::setPage(page);
@@ -213,44 +214,45 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
     if (!_dataChanged)
         return;
 
-    Page::PAGE_t pg = TPageHandler::Current().getPage(page->pageID);
+    Page::PAGE_t *pg = TPageHandler::Current().getPage(page->pageID);
 
     switch(prop)
     {
         case TBL_GENERAL:
-            pg.popupType = page->popupType;
-            pg.name = page->name;
-            pg.description = page->description;
-            pg.left = page->left;
-            pg.top = page->top;
-            pg.width = page->width;
-            pg.height = page->height;
-            pg.resetPos = page->resetPos;
-            pg.group = page->group;
-            pg.timeout = page->timeout;
-            pg.modal = page->modal;
-            pg.showEffect = page->showEffect;
-            pg.hideEffect = page->hideEffect;
-            pg.collapseDirection = page->collapseDirection;
+            pg->popupType = page->popupType;
+            pg->name = page->name;
+            pg->description = page->description;
+            pg->left = page->left;
+            pg->top = page->top;
+            pg->width = page->width;
+            pg->height = page->height;
+            pg->resetPos = page->resetPos;
+            pg->group = page->group;
+            pg->timeout = page->timeout;
+            pg->modal = page->modal;
+            pg->showEffect = page->showEffect;
+            pg->hideEffect = page->hideEffect;
+            pg->collapseDirection = page->collapseDirection;
         break;
 
         case TBL_PROGRAM:
-            pg.ap = page->ap;
-            pg.ad = page->ap;
-            pg.cp = page->cp;
-            pg.ch = page->ch;
+            pg->ap = page->ap;
+            pg->ad = page->ap;
+            pg->cp = page->cp;
+            pg->ch = page->ch;
         break;
 
         case TBL_STATES:
-            pg.srPage = page->srPage;
-            pg.objects = page->objects;
+            pg->srPage = page->srPage;
+            pg->objects = page->objects;
         break;
 
         default:
             return;
     }
 
-    _dataChanged(&pg);
+    _markDirty();
+//    _dataChanged(pg);
 }
 
 void TWorkSpaceHandler::markChanged()
@@ -264,6 +266,9 @@ void TWorkSpaceHandler::markChanged()
 ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject(const Page::PAGE_t& page)
 {
     DECL_TRACER("TWorkSpaceHandler::getActualObject(const Page::PAGE_t& page)");
+
+    if (mObject && mObject->getObjectWidget() == page.baseObject.widget)
+        return mObject->getObject();
 
     if (!page.baseObject.widget)
         return ObjHandler::TOBJECT_t();

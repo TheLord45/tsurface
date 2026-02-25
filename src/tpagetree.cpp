@@ -225,6 +225,71 @@ void TPageTree::updatePopupName(int id, const QString& name)
     }
 }
 
+void TPageTree::setFocus(int id)
+{
+    DECL_TRACER("TPageTree::setFocus(int id)");
+
+    QItemSelectionModel *selModel = mTreeView->selectionModel();
+
+    if (!selModel)
+    {
+        MSG_DEBUG("No selection model found!");
+        return;
+    }
+
+    int rows = mPages->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mPages->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            return;
+        }
+    }
+
+    rows = mPopup->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mPopup->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            return;
+        }
+    }
+
+    rows = mSubPages->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mSubPages->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            return;
+        }
+    }
+
+    rows = mApps->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mApps->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            return;
+        }
+    }
+}
+
 void TPageTree::onDoubleClicked(const QModelIndex& index)
 {
     DECL_TRACER("TPageTree::onDoubleClicked(const QModelIndex& index)");

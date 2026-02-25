@@ -451,8 +451,9 @@ class TObjectHandler
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
 
         int getButtonIndex() { return mObject.bi; }
-        int getIndex();
         QString getButtonName() { return mObject.na; }
+        int getZOrder() { return mObject.zo; }
+        void setZOrder(int zo) { mObject.zo = zo; }
         void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
         ObjHandler::TOBJECT_t& getObject() { return mObject; }

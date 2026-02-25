@@ -62,9 +62,9 @@ void TMaps::addButton(Maps::MAP_TYPE type, int port, int channel, int bt, const 
     if (buttonExist(type, port, channel, pgnum, &bt))
         return;
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(pgnum);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(pgnum);
 
-    if (page.pageID <= 0)
+    if (!page || page->pageID <= 0)
     {
         MSG_ERROR("Couln't find page " << pgnum << "!");
         return;
@@ -76,7 +76,7 @@ void TMaps::addButton(Maps::MAP_TYPE type, int port, int channel, int bt, const 
     map.p = port;
     map.pg = pgnum;
     map.bn = btName;
-    map.pn = page.name;
+    map.pn = page->name;
 
     switch(type)
     {
@@ -164,9 +164,9 @@ void TMaps::addBitmap(const QString& file, int id, int page, int bt, int st)
         return;
     }
 
-    Page::PAGE_t pg = TPageHandler::Current().getPage(page);
+    Page::PAGE_t *pg = TPageHandler::Current().getPage(page);
 
-    if (pg.pageID <= 0)
+    if (!pg || pg->pageID <= 0)
     {
         MSG_ERROR("Couln't find page " << page << "!");
         return;
@@ -185,7 +185,7 @@ void TMaps::addBitmap(const QString& file, int id, int page, int bt, int st)
     bm.pg = page;
     bm.bt = bt;
     bm.st = st;
-    bm.pn = pg.name;
+    bm.pn = pg->name;
     bm.bn = button.bn;
     mMap.map_bm.push_back(bm);
 }

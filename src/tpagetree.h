@@ -72,6 +72,7 @@ class TPageTree : public QObject
 //        void addApp(const QString& name, int num);
         void updatePageName(int id, const QString& name);
         void updatePopupName(int id, const QString& name);
+        void setFocus(int id);
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);

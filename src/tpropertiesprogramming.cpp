@@ -105,7 +105,7 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
 
     if (!loaded)
     {
-        page = TPageHandler::Current().getPage(id);
+        page = *TPageHandler::Current().getPage(id);
 
         if (page.pageID == mPage.pageID)
             return;
@@ -165,7 +165,7 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
 
     if (!loaded)
     {
-        page = TPageHandler::Current().getPage(id);
+        page = *TPageHandler::Current().getPage(id);
 
         if (page.pageID == mPage.pageID)
             return;

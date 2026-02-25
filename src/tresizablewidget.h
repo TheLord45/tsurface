@@ -71,6 +71,7 @@ class TResizableWidget : public QWidget
             BottomLeft, Left,
             HandleCount
         };
+
         class Grip;
 
         void layoutGrips();

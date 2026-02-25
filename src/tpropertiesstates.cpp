@@ -143,13 +143,13 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
         return;
     }
 
-    Page::PAGE_t page;
+    Page::PAGE_t *page = nullptr;
 
     if (!loaded)
     {
         page = TPageHandler::Current().getPage(id);
 
-        if (page.pageID == mPage.pageID)
+        if (!page || page->pageID == mPage.pageID)
             return;
     }
 
@@ -162,7 +162,7 @@ void TPropertiesStates::setStatesPage(int id, bool loaded)
     mChanged = false;
 
     if (!loaded)
-        mPage = page;
+        mPage = *page;
 
     if (mPage.pageID <= 0)
         return;

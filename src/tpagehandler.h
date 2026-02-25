@@ -195,8 +195,8 @@ class TPageHandler : public QObject
         explicit TPageHandler();
         static TPageHandler& Current();
 
-        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0);
-        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom);
+        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left=0, int top=0, Page::PAGE_t *rpage=nullptr);
+        int createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, const QRect& geom, Page::PAGE_t *rpage=nullptr);
         void reset();
         void setVisible(int number, bool visible);
         Page::PAGE_t getCurrentPage(QMdiArea *area);
@@ -213,7 +213,7 @@ class TPageHandler : public QObject
         ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
         int appendObject(int pageID, TObjectHandler *object);
         // Getter/Setter
-        Page::PAGE_t getPage(int number);
+        Page::PAGE_t *getPage(int number);
         Page::PAGE_t getPage(const QString& name);
         Page::PAGE_t getPopup(const QString& name);
         QList<int> getPageNumbers();
@@ -226,6 +226,7 @@ class TPageHandler : public QObject
         void setGridVisible(int number, bool state);
         void setSnapToGrid(int number, bool state);
         void setObject(int num, ObjHandler::TOBJECT_t& object);
+        int getObjectIndex(const Page::PAGE_t& page, int bi);
         ObjHandler::TOBJECT_t getObject(int page, int bi);
         TObjectHandler *getObjectHandler(int page, int bi);
         void setCurrentState(STATE_TYPE s) { mCurrentState = s; }
