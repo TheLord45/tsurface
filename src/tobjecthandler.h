@@ -365,7 +365,7 @@ namespace ObjHandler
     typedef struct TOBJECT_t
     {
         TBASEOBJ_t baseObject;  // Internal use: Pointer to object.
-        BUTTONTYPE type;        // The type of the button
+        BUTTONTYPE type{ObjHandler::GENERAL}; // The type of the button
         int bi{0};              // button ID
         QString na;             // name
         bool li{false};         // TRUE = Lock button name
@@ -385,18 +385,28 @@ namespace ObjHandler
         int cp{1};              // Channel port (default: 1)
         int lp{1};              // Level port (default: 1)
         int lv{0};              // Level code
-        int ta{0};              // Listbox table channel
-        int ti{0};              // Listbox table index number of rows (all rows have this number in "cp")
-        int tr{0};              // Listbox number of rows
-        int tc{0};              // Listbox number of columns
-        int tj{0};              // Listbox row height
-        int tk{0};              // Listbox preferred row height
-        int of{0};              // Listbox list offset: 0=disabled/1=enabled
-        int tg{0};              // Listbox managed: 0=no/1=yes
+        int ta{0};              // G4 Listbox table channel
+        int ti{0};              // G4 Listbox table index number of rows (all rows have this number in "cp")
+        int tr{0};              // G4 Listbox number of rows
+        int tc{0};              // G4 Listbox number of columns
+        int tj{0};              // G4 Listbox row height
+        int tk{0};              // G4 Listbox preferred row height
+        int of{0};              // G4 Listbox list offset: 0=disabled/1=enabled
+        int tg{0};              // G4 Listbox managed: 0=no/1=yes
+        int lvc{0};             // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+        int lvh{48};            // G5 Listbox: Item height
+        int lvl{1};             // G5 Listbox: Listview columns
+        int lhp{5};             // G5 Listbox: Primary Partition (%)
+        int lvp{95};            // G5 Listbox: Secondary Partition (%)
+        int lvs{0};             // G5 Listbox: Filter enabled; 1 = TRUE --> Search input line with magnifying glass on top
+        int lsh{24};            // G5 Listbox: Filter height
+        int lva{0};             // G5 Listbox: Alphabet scrollbar; 1 = TRUE
+        QString lds;            // G5 Listbox: Dynamic data source
+        QString ldm;            // G5 Listbox: Internal distinct name?
         int so{1};              // String output port
         int co{1};              // Command port
         QList<QString> cm;      // Commands to send on each button hit
-        QString dr;             // Level "horizontal" or "vertical"
+        QString dr{"vertical"}; // Level "horizontal" or "vertical"
         int va{0};              // Level control value
         int stateCount{0};      // State count with multistate buttons (number of states)
         int rm{0};              // State count with multistate buttons?
@@ -421,8 +431,8 @@ namespace ObjHandler
         QString sd;             // Name/Type of slider for a bargraph
         QString vt;             // Level control type (rel = relative, abs = absolute)
         QString cd;             // Name of cursor for a joystick
-        QString sc;             // Color of slider (for bargraph)
-        QString cc;             // Color of cursor (for joystick)
+        QColor sc;              // Color of slider (for bargraph)
+        QColor cc;              // Color of cursor (for joystick)
         int mt{0};              // Length of text area (0 = 2000)
         QString dt;             // "multiple" textarea has multiple lines, else single line
         QString im;             // Input mask of a text area
@@ -458,6 +468,7 @@ class TObjectHandler
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
         ObjHandler::TOBJECT_t& getObject() { return mObject; }
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
+        static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
 
         inline void setSize(const QRect& rect)
         {

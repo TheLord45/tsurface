@@ -42,9 +42,10 @@ enum STATE_TYPE
     STATE_UNKNOWN,
     STATE_PAGE,
     STATE_POPUP,
-    STAPE_SUBPAGE,
+    STATE_SUBPAGE,
     STATE_BUTTON,
     STATE_BARGRAPH,
+    STATE_INPUT,
     STATE_APP
 };
 
@@ -55,6 +56,8 @@ QString pathname(const QString& path);
 int getObjectID(const QString& name, const QString& hint="");
 QString wcharToUnicodeString(const QChar& ch);
 QPixmap makePixmapFromString(const QString& str, int width);
+STATE_TYPE getStateFromButtonType(int bt);
+STATE_TYPE getStateFromPageType(int pt);
 
 #define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
 

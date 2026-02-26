@@ -273,6 +273,7 @@ class TGraphics
         int getEffectStyleNumber(const QString& name);
         QString getEffectStyleName(int number);
         Graphics::EFFECT_STYLE_t getEffectDetails(int number);
+        QStringList getSliderNames();
         bool writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath);
 
     protected:

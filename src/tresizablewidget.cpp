@@ -247,7 +247,7 @@ void TResizableWidget::resizeEvent(QResizeEvent*)
         int h = std::max(0, height() - 2 * m);
         mContent->setGeometry(m, m, w, h);
         emit objectSizeChanged(this, QSize(w, h));
-        emit objectMoved(this, QPoint(mContent->geometry().left(), mContent->geometry().top()));
+//        emit objectMoved(this, QPoint(mContent->geometry().left(), mContent->geometry().top()));
     }
 
     layoutGrips();

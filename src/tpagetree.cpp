@@ -183,6 +183,22 @@ void TPageTree::addTreePopup(const QString& name, int num)
     mPopup->appendRow(pg);
 }
 
+void TPageTree::addTreeSubPage(const QString& name, int num)
+{
+    DECL_TRACER("TPageTree::addTreeSubPage(const QString& name, int num)");
+
+    if (!mSubPages)
+    {
+        MSG_ERROR("Can't add a subpage to the tree because the tree was not initialized!");
+        return;
+    }
+
+    QStandardItem *pg = new QStandardItem(name);
+    pg->setEditable(false);
+    pg->setData(num);
+    mSubPages->appendRow(pg);
+}
+
 void TPageTree::updatePageName(int id, const QString& name)
 {
     DECL_TRACER("TPageTree::updatePageName(int id, const QString& name)");
@@ -216,6 +232,27 @@ void TPageTree::updatePopupName(int id, const QString& name)
     for (int i = 0; i < rows; ++i)
     {
         QStandardItem *item = mPopup->child(i, 0);
+
+        if (item && item->data().toInt() == id)
+        {
+            item->setText(name);
+            break;
+        }
+    }
+}
+
+void TPageTree::updateSubPageName(int id, const QString& name)
+{
+    DECL_TRACER("TPageTree::updateSubPageName(int id, const QString& name)");
+
+    if (!mSubPages || !mSubPages->hasChildren())
+        return;
+
+    int rows = mSubPages->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mSubPages->child(i, 0);
 
         if (item && item->data().toInt() == id)
         {
@@ -318,7 +355,7 @@ void TPageTree::onClicked(const QModelIndex& index)
     MSG_DEBUG("Menu " << menu << " was clicked.");
 
     if (QGuiApplication::mouseButtons() == Qt::LeftButton && menu < MENU_PAGE)
-        windowToFront(item->data().toInt());
+        emit windowToFront(item->data().toInt());
 
     if (QGuiApplication::mouseButtons() != Qt::RightButton)
         return;
@@ -388,7 +425,7 @@ void TPageTree::onMenuTriggeredAddPage(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPage(bool checked)");
 
     Q_UNUSED(checked);
-    addNewTreePage();
+    emit addNewTreePage();
 }
 
 void TPageTree::onMenuTriggeredAddPopup(bool checked)
@@ -396,7 +433,7 @@ void TPageTree::onMenuTriggeredAddPopup(bool checked)
     DECL_TRACER("TPageTree::onMenuTriggeredAddPopup(bool checked)");
 
     Q_UNUSED(checked);
-    addNewTreePopup();
+    emit addNewTreePopup();
 }
 
 void TPageTree::onMenuTriggeredAddApp(bool checked)

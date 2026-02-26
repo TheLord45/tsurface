@@ -22,11 +22,14 @@
 
 #include "tmisc.h"
 #include "terror.h"
+#include "tobjecthandler.h"
+#include "tpagehandler.h"
 
 using std::stringstream;
 using std::hex;
 using std::setw;
 using std::setfill;
+using namespace ObjHandler;
 
 QString basename(const QString& path)
 {
@@ -102,4 +105,39 @@ QPixmap makePixmapFromString(const QString& str, int width)
 
     px = QPixmap::fromImage(img);
     return px;
+}
+
+STATE_TYPE getStateFromButtonType(int bt)
+{
+    BUTTONTYPE t = static_cast<BUTTONTYPE>(bt);
+    MSG_DEBUG("Got button type: " << bt);
+
+    switch(t)
+    {
+        case GENERAL:
+        case MULTISTATE_GENERAL:    return STATE_BUTTON;
+
+        case BARGRAPH:
+        case MULTISTATE_BARGRAPH:   return STATE_BARGRAPH;
+
+        case TEXT_INPUT:            return STATE_INPUT;
+        case SUBPAGE_VIEW:          return STATE_SUBPAGE;
+
+        default:
+            return STATE_UNKNOWN;
+    }
+
+    return STATE_UNKNOWN;
+}
+
+STATE_TYPE getStateFromPageType(int pt)
+{
+    switch(pt)
+    {
+        case Page::PT_PAGE:     return STATE_PAGE;
+        case Page::PT_POPUP:    return STATE_POPUP;
+        case Page::PT_SUBPAGE:  return STATE_SUBPAGE;
+    }
+
+    return STATE_UNKNOWN;
 }

@@ -855,6 +855,21 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "co", e.co, 1);
         INSERTJ(bt, "dr", e.dr, "");
         INSERTJ(bt, "va", e.va, 0);
+
+        if (e.type == ObjHandler::LISTVIEW)
+        {
+            INSERTJ(bt, "lvc", e.lvc, 0);   // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+            INSERTJ(bt, "lvh", e.lvh, 0);   // G5 Listbox: Item height
+            INSERTJ(bt, "lvl", e.lvl, 0);   // G5 Listbox: Listview columns
+            INSERTJ(bt, "lhp", e.lhp, 0);   // G5 Listbox: Primary Partition (%)
+            INSERTJ(bt, "lvp", e.lvp, 0);   // G5 Listbox: Secondary Partition (%)
+            INSERTJ(bt, "lvs", e.lvs, 0);   // G5 Listbox: Filter enabled; 1 = TRUE
+            INSERTJ(bt, "lsh", e.lsh, 0);   // G5 Listbox: Filter height
+            INSERTJ(bt, "lva", e.lva, 0);   // G5 Listbox: Alphabet scrollbar; 1 = TRUE
+            INSERTJ(bt, "lds", e.lds, "");  // G5 Listbox: Dynamic data source
+            bt.insert("ldm", e.ldm);        // G5 Listbox: Internal distinct name?
+        }
+
         INSERTJ(bt, "stateCount", e.stateCount, 0);
         INSERTJ(bt, "ddt", e.ddt, "");
         INSERTJ(bt, "rm", e.rm, 0);
@@ -879,8 +894,8 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "sd", e.sd, "");
         INSERTJ(bt, "vt", e.vt, "");
         INSERTJ(bt, "cd", e.cd, "");
-        INSERTJ(bt, "sc", e.sc, "");
-        INSERTJ(bt, "cc", e.cc, "");
+        INSERTJ(bt, "sc", e.sc.name(), "");
+        INSERTJ(bt, "cc", e.cc.name(), "");
         INSERTJ(bt, "mt", e.mt, 0);
         INSERTJ(bt, "dt", e.dt, "");
         INSERTJ(bt, "im", e.im, "");
@@ -896,7 +911,6 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "we", e.we, "");
         INSERTJ(bt, "pc", e.pc, "");
         INSERTJ(bt, "op", e.op, "");
-//        INSERTJ(bt, "visible", e.visible, true);
 
         QJsonArray cm;
 
@@ -1248,7 +1262,6 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
     DECL_TRACER("TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)");
 
     int setupPort = TConfMain::Current().getSetupPort();
-    QList<ObjHandler::TOBJECT_t> objects;
 
     for (int i = 0; i < obj.count(); ++i)
     {
@@ -1283,6 +1296,16 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.tg = jo.value("tg").toInt(0);
         object.so = jo.value("so").toInt(1);
         object.co = jo.value("co").toInt(1);
+        object.lvc = jo.value("lvc").toInt(0);      // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+        object.lvh = jo.value("lvh").toInt(48);     // G5 Listbox: Item height
+        object.lvl = jo.value("lvl").toInt(1);      // G5 Listbox: Listview columns
+        object.lhp = jo.value("lhp").toInt(5);      // G5 Listbox: Primary Partition (%)
+        object.lvp = jo.value("lvp").toInt(95);     // G5 Listbox: Secondary Partition (%)
+        object.lvs = jo.value("lvs").toInt(0);      // G5 Listbox: Filter enabled; 1 = TRUE
+        object.lsh = jo.value("lsh").toInt(24);     // G5 Listbox: Filter height
+        object.lva = jo.value("lva").toInt(0);      // G5 Listbox: Alphabet scrollbar; 1 = TRUE
+        object.lds = jo.value("lds").toString();    // G5 Listbox: Dynamic data source
+        object.ldm = jo.value("ldm").toString();    // G5 Listbox: Internal distinct name?
         object.ddt = jo.value("ddt").toString();
 
         QJsonArray cm = jo.value("cm").toArray();
@@ -1411,5 +1434,9 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s.vf = jsr.value("vf").toString();
             object.sr.push_back(s);
         }
+
+        TObjectHandler *o = new TObjectHandler(object.type, object.bi, object.na);
+        o->setObject(object);
+        page->objects.append(o);
     }
 }

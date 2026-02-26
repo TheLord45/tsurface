@@ -390,7 +390,7 @@ void TSurface::addObject(int id, QPoint pt)
     wrap->show();
     wrap->setId(btNumber);
     wrap->setPageId(page->pageID);
-    wrap->setSelected(true);
+    wrap->setSelected(false);
     connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
     connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
@@ -402,6 +402,56 @@ void TSurface::addObject(int id, QPoint pt)
     int index = TPageHandler::Current().appendObject(page->pageID, o);
     TWorkSpaceHandler::Current().setObject(o);
     TWorkSpaceHandler::Current().setAllProperties(*page, STATE_BUTTON, index);
+}
+
+/**
+ * @brief TSurface::drawObject
+ * This method is called whenever ab object on a page or popup should be redrawn.
+ * It takes a pointer to a page or popup and the index of the object to draw.
+ * Mainly the method is called from the callback onRedrawRequest().
+ *
+ * @param page      A pointer to a page or popup
+ * @param objIndex  The index to the object to draw
+ */
+void TSurface::drawObject(Page::PAGE_t *page, int objIndex)
+{
+    DECL_TRACER("TSurface::drawObject(Page::PAGE_t *page, int objIndex)");
+
+    if (!page || page->pageID <= 0 || objIndex < 0 || objIndex >= page->objects.size() || !page->baseObject.widget)
+        return;
+
+    TObjectHandler *pobject = page->objects[objIndex];
+    ObjHandler::TOBJECT_t object = pobject->getObject();
+
+    if (object.sr.empty())
+    {
+        MSG_ERROR("The object " << object.bi << " on page " << page->pageID << " has no SR section!");
+        return;
+    }
+
+    QWidget* content = new QWidget(page->baseObject.widget);
+    QString objName = QString("Object_%1").arg(object.bi);
+    QPoint pt(object.lt, object.tp);
+    MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
+    content->setObjectName(objName);
+    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name(QColor::HexArgb)));
+    page->baseObject.widget->clearSelection();
+
+    TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
+    wrap->setGridSize(page->baseObject.widget->gridSize());
+    wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
+    wrap->setGeometry(pt.x(), pt.y(), object.wt, object.ht);
+    wrap->show();
+    wrap->setId(object.bi);
+    wrap->setPageId(page->pageID);
+    wrap->setSelected(false);
+    connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
+    connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
+    connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
+
+    TWorkSpaceHandler::Current().setObject(pobject);
+    STATE_TYPE stype = getStateFromPageType(page->popupType);
+    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -487,6 +537,8 @@ void TSurface::on_actionOpen_triggered()
                 TWorkSpaceHandler::Current().addTreePage(pg->name, pg->pageID);   // Yes, then add it to page part of tree
             else if (pg->popupType == Page::PT_POPUP)                        // Is it a popup?
                 TWorkSpaceHandler::Current().addTreePopup(pg->name, pg->pageID);  // Yes, then add it to popup part of tree
+            else if (pg->popupType == Page::PT_SUBPAGE)
+                TWorkSpaceHandler::Current().addTreeSubPage(pg->name, pg->pageID);
         }
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
@@ -1666,14 +1718,15 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 {
     DECL_TRACER("TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)");
 
+    MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId());
+    Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
+
+    if (!page)
+        return;
+
     if (selected)
     {
         TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
-        Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
-
-        if (!page)
-            return;
-
         TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
 
         if (!object)
@@ -1681,12 +1734,33 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 
         TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
     }
+    else
+    {
+        // Find actual selected object
+        if (page->visible && page->baseObject.widget)
+        {
+            TResizableWidget *widget = page->baseObject.widget->currentSelectedWidget();
+
+            if (!widget)
+                TWorkSpaceHandler::Current().setStateType(page->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
+            else
+            {
+                TObjectHandler *object = TPageHandler::Current().getObjectHandler(widget->getPageId(), widget->getId());
+
+                if (!object)
+                    return;
+
+                TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+            }
+        }
+    }
 }
 
 void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
 {
     DECL_TRACER("TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)");
 
+    MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId() << ", point: " << pt.x() << ", " << pt.y());
     QRect geom = w->geometry();
     geom.setLeft(pt.x());
     geom.setTop(pt.y());
@@ -1708,6 +1782,7 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 {
     DECL_TRACER("TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)");
 
+    MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId());
     QRect geom = w->geometry();
     geom.setWidth(size.width());
     geom.setHeight(size.height());
@@ -1922,6 +1997,8 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
     }
 
     // Draw the objects
+    for (int idx = 0; idx < page->objects.size(); ++idx)
+        drawObject(page, idx);
     // TODO: Add code to draw objects
 }
 

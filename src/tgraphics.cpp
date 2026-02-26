@@ -8137,6 +8137,21 @@ EFFECT_STYLE_t TGraphics::getEffectDetails(int number)
     return EFFECT_STYLE_t();
 }
 
+QStringList TGraphics::getSliderNames()
+{
+    DECL_TRACER("TGraphics::getSliderNames()");
+
+    QStringList sliders;
+
+    for (FAMILY_t family : mDraw.sliders)
+    {
+        for (QString s : family.member)
+            sliders.append(s);
+    }
+
+    return sliders;
+}
+
 bool TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)
 {
     DECL_TRACER("TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)");

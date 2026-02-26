@@ -46,3 +46,25 @@ ObjHandler::SR_T TObjectHandler::getSr(int number)
 
     return SR_T();
 }
+
+int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
+{
+    DECL_TRACER("TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)");
+
+    // This is the index for G5 type panels!
+    switch(bt)
+    {
+        case GENERAL:               return 0;
+        case MULTISTATE_GENERAL:    return 1;
+        case BARGRAPH:              return 2;
+        case MULTISTATE_BARGRAPH:   return 3;
+        case TEXT_INPUT:            return 4;
+        case SUBPAGE_VIEW:          return 5;
+        case LISTVIEW:              return 6;
+
+        default:
+            return 0;
+    }
+
+    return 0;
+}

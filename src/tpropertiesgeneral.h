@@ -32,6 +32,7 @@ class TElementLineEdit;
 class TElementWidgetText;
 class TElementSpinBox;
 class TElementBorderName;
+class TElementColorSelector;
 
 class TPropertiesGeneral : public QObject
 {
@@ -46,6 +47,8 @@ class TPropertiesGeneral : public QObject
         void setGeneralObjectID(int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
+        int getActObjectIndex() { return mActObjectID; }
+        ObjHandler::TOBJECT_t& getActObject() { return mActObject; }
         void setGeometryPopup(const QRect& geom);
         void setGeometryButton(int bi, const QRect& geom);
         void update();
@@ -92,6 +95,9 @@ class TPropertiesGeneral : public QObject
         void onObjectPasswordProtection(const QString& text, const QVariant& data, const QString& name);
         void onObjectStateCount(int value, const QString& name);
         void onObjectAnimateTime(int value, const QString& name);
+        void onObjectValueDirection(const QString& text, const QVariant& data, const QString& name);
+        void onObjectSliderName(const QString& text, const QVariant& data, const QString& name);
+        void onObjectSliderColor(const QColor& col, const QString& name);
 
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
@@ -99,7 +105,7 @@ class TPropertiesGeneral : public QObject
         void clear();
         QString getLabelText(int line);
         void createTable(STATE_TYPE stype);
-        void setTable(STATE_TYPE stype);
+        void setTable(STATE_TYPE stype, bool force=false);
 
         TElementWidgetCombo *makePopupType(const QString& name);
         TElementWidgetCombo *makeButtonType(const QString& name);
@@ -127,6 +133,10 @@ class TPropertiesGeneral : public QObject
         TElementWidgetCombo *makeObjectPasswordProtected(const QString& name);
         TElementSpinBox *makeObjectStateCount(const QString& name);
         TElementSpinBox *makeObjectAnimateTime(const QString& name);
+        TElementWidgetCombo *makeObjectAutoRepeat(const QString& name);
+        TElementWidgetCombo *makeObjectValueDirection(const QString& name);
+        TElementWidgetCombo *makeObjectSliderName(const QString& name);
+        TElementColorSelector *makeObjectSliderColor(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

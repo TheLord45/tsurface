@@ -219,6 +219,7 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
     switch(prop)
     {
         case TBL_GENERAL:
+        {
             pg->popupType = page->popupType;
             pg->name = page->name;
             pg->description = page->description;
@@ -233,6 +234,13 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
             pg->showEffect = page->showEffect;
             pg->hideEffect = page->hideEffect;
             pg->collapseDirection = page->collapseDirection;
+
+            int index = TPropertiesGeneral::getActObjectIndex();
+            ObjHandler::TOBJECT_t obj = TPropertiesGeneral::getActObject();
+
+            if (index >= 0 && index < pg->objects.size())
+                pg->objects[index]->setObject(obj);
+        }
         break;
 
         case TBL_PROGRAM:

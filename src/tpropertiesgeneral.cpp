@@ -30,6 +30,8 @@
 #include "telementwidgettext.h"
 #include "telementlineedit.h"
 #include "telementspinbox.h"
+#include "telementcolorselector.h"
+#include "tgraphics.h"
 #include "terror.h"
 
 #define TTEXT_POPUPTYPE             1   // Popup only
@@ -71,6 +73,8 @@
 #define TTEXT_VALUE_DIRECTION       37
 #define TTEXT_SLIDER_NAME           38
 #define TTEXT_SLIDER_COLOR          39
+
+using namespace ObjHandler;
 
 TPropertiesGeneral::TPropertiesGeneral()
 {
@@ -135,7 +139,7 @@ void TPropertiesGeneral::update()
     DECL_TRACER("TPropertiesGeneral::update()");
 
     ObjHandler::TOBJECT_t object = getActualObject(mPage);
-
+    MSG_DEBUG("Updating object " << object.bi << " on page " << mPage.pageID);
     // If the object ID (bi) is less or equal 0, then we must show the
     // data for a page or a popup.
     if (object.bi <= 0)
@@ -146,7 +150,10 @@ void TPropertiesGeneral::update()
             setTable(STATE_POPUP);
     }
     else
+    {
         mActObjectID = object.bi - 1;
+        setTable(getStateFromButtonType(object.type), true);
+    }
 }
 
 void TPropertiesGeneral::clear()
@@ -257,11 +264,13 @@ void TPropertiesGeneral::setGeneralObjectID(int index)
     mActObjectID = index;
 }
 
-void TPropertiesGeneral::setTable(STATE_TYPE stype)
+void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 {
-    DECL_TRACER("TPropertiesGeneral::setTable(STATE_TYPE stype)");
+    DECL_TRACER("TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)");
 
-    if (!mInitialized || !mTable)
+    MSG_DEBUG("Setting table for type: " << stype << " (Forced: " << (force ? "YES" : "NO") << ")");
+
+    if (!mInitialized || !mTable || force)
         createTable(stype);
 
     // First hide all rows
@@ -355,13 +364,22 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype)
             mTable->setRowHidden(12, false);            // ObjectTop
             mTable->setRowHidden(14, false);            // ObjectHeight
             mTable->setRowHidden(16, false);            // ObjectZOrder
-            mTable->setRowHidden(31, false);            // ObjectDragDropType
 
-            if (mActObject.ddt == "dr")
-                mTable->setRowHidden(32, false);        // ObjectDropGroup
+            if (mActObject.type != ObjHandler::BARGRAPH &&
+                mActObject.type != ObjHandler::MULTISTATE_BARGRAPH)
+            {
+                mTable->setRowHidden(31, false);        // ObjectDragDropType
 
-            mTable->setRowHidden(33, false);            // ObjectTouchStyle
-            mTable->setRowHidden(34, false);            // ObjectBorderStyle
+                if (mActObject.ddt == "dr")
+                    mTable->setRowHidden(32, false);    // ObjectDropGroup
+
+                mTable->setRowHidden(33, false);        // ObjectTouchStyle
+            }
+            else if (mActObject.type == ObjHandler::TEXT_INPUT)
+                mTable->setRowHidden(33, false);        // ObjectTouchStyle
+
+            if (mActObject.type != ObjHandler::LISTVIEW)
+                mTable->setRowHidden(34, false);        // ObjectBorderStyle
 
             if (mActObject.type == ObjHandler::MULTISTATE_GENERAL ||
                 mActObject.type == ObjHandler::MULTISTATE_BARGRAPH)
@@ -375,19 +393,70 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype)
                 }
             }
 
-            mTable->setRowHidden(38, false);            // ObjectDisabled
-            mTable->setRowHidden(39, false);            // ObjectHidden
+            mTable->setRowHidden(39, false);            // ObjectDisabled
+            mTable->setRowHidden(40, false);            // ObjectHidden
 
-            if (mActObject.type == ObjHandler::BARGRAPH)
+            if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
             {
-                mTable->setRowHidden(40, false);        // ObjectValueDirection
-                mTable->setRowHidden(41, false);        // ObjectSliderName
-                mTable->setRowHidden(42, false);        // ObjectSliderColor
+                // TODO: Sub-Page Set
+                // TODO: Orientation
+                // TODO: Spacing (%)
+                // TODO: Anchor Position
+                // TODO: Show Sub-Pages
+                // TODO: Allow Dynamic Reordering
+                // TODO: Reset View On Show
+                // TODO: Scrollbar
+                // TODO: Disable Touch Scrolling
+                // TODO: Enable Anchoring
+            }
+            else if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+            {
+                // TODO: Listview Components (Primary Text, Secondary Text, Image)
+                // TODO: Item Hight
+                // TODO: Listview Columns
+                // TODO: Listview Item Layout
+                // TODO: Primary Partition (%)
+
+//                if ((mActObject.lvc & 0x004) > 0)
+                    // TODO: Secondary Partition (%)
+
+                // TODO: Filter Enabled
+
+//                if (mActObject.lvs != 0)    // Filter enabled?
+                    // TODO: Filter Height
+
+                // TODO: Alphabet Scrollbar
+                // TODO: Dynamic Data Source
             }
             else
-                mTable->setRowHidden(43, false);    // ObjectPasswordProtection
+            {
+                if (mActObject.type == ObjHandler::TEXT_INPUT)
+                {
+                    // TODO: Input type
+                }
 
-            // TODO: To be continued
+                if (mActObject.type == ObjHandler::BARGRAPH ||
+                    mActObject.type == ObjHandler::MULTISTATE_BARGRAPH)
+                {
+                    mTable->setRowHidden(41, false);        // ObjectValueDirection
+
+                    if (mActObject.type == ObjHandler::BARGRAPH)
+                    {
+                        mTable->setRowHidden(42, false);    // ObjectSliderName
+                        mTable->setRowHidden(43, false);    // ObjectSliderColor
+                    }
+                }
+                else if (mActObject.type != ObjHandler::TEXT_INPUT)
+                    mTable->setRowHidden(44, false);        // ObjectPasswordProtection
+
+                if (mActObject.type == ObjHandler::TEXT_INPUT)
+                {
+                    // TODO: Password Character
+                    // TODO: Display Type
+                    // TODO: Max Text Length
+                    // TODO: Input Mask
+                }
+            }
         break;
 
         default:
@@ -615,31 +684,36 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             break;
 
             case 38:
+                cell1->setText(getLabelText(TTEXT_AUTO_REPEAT));
+                mTable->setCellWidget(i, 1, makeObjectAutoRepeat("ObjectAutoRepeat"));
+            break;
+
+            case 39:
                 cell1->setText(getLabelText(TTEXT_DISABLED));
                 mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisabled"));
             break;
 
-            case 39:
+            case 40:
                 cell1->setText(getLabelText(TTEXT_HIDDEN));
                 mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectHidden"));
             break;
-/*
-            case 40:
-                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
-                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectValueDirection"));
-                break;
 
             case 41:
-                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
-                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectSliderName"));
+                cell1->setText(getLabelText(TTEXT_VALUE_DIRECTION));
+                mTable->setCellWidget(i, 1, makeObjectValueDirection("ObjectValueDirection"));
                 break;
 
             case 42:
                 cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
-                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectSliderColor"));
+                mTable->setCellWidget(i, 1, makeObjectSliderName("ObjectSliderName"));
                 break;
-*/
+
             case 43:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                mTable->setCellWidget(i, 1, makeObjectSliderColor("ObjectSliderColor"));
+                break;
+
+            case 44:
                 cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
                 mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectPasswordProtection"));
             break;
@@ -681,14 +755,17 @@ TElementWidgetCombo *TPropertiesGeneral::makeButtonType(const QString& name)
     QStringList items = { "general", "multi-state general", "bargraph",
                           "multi-state bargraph", "text input",
                           "sub-page view", "listview" };
-    QList<QVariant> data = { 1, 2, 3, 4, 5, 6, 7 };
+    QList<QVariant> data = { GENERAL, MULTISTATE_GENERAL, BARGRAPH,
+                             MULTISTATE_BARGRAPH, TEXT_INPUT, SUBPAGE_VIEW, LISTVIEW };
 
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
 
     if (mActObjectID >= 0 && mActObjectID < mPage.objects.size() && mActObject.bi > 0)
-        combo->setCurrentIndex(mActObject.type - 1);
+        combo->setCurrentIndex(TObjectHandler::getButtonTypeIndex(mActObject.type));
+    else
+        combo->setCurrentIndex(0);
 
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboButtonTypeChanged);
     return combo;
@@ -1171,6 +1248,83 @@ TElementSpinBox *TPropertiesGeneral::makeObjectAnimateTime(const QString& name)
     return sbox;
 }
 
+TElementWidgetCombo *TPropertiesGeneral::makeObjectAutoRepeat(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectAutoRepeat(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        combo->setCurrentIndex(mActObject.ar);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectYesNoSelection);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectValueDirection(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectValueDirection(const QString& name)");
+
+    QStringList items = { tr("vertical"), tr("horizontal") };
+    QList<QVariant> data = { "vertical", "horizontal" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        int index = mActObject.dr == "vertical" || mActObject.dr.isEmpty() ? 0 : 1;
+        combo->setCurrentIndex(index);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectValueDirection);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectSliderName(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectSliderName(const QString& name)");
+
+    QStringList items = TGraphics::Current().getSliderNames();
+    items.insert(0, "none");
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+
+        if (!mActObject.sd.isEmpty() && mActObject.sd != "none")
+            combo->setCurrentText(mActObject.sd);
+    }
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectYesNoSelection);
+    return combo;
+}
+
+TElementColorSelector *TPropertiesGeneral::makeObjectSliderColor(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectSliderColor(const QString& name)");
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        mActObject = mPage.objects[mActObjectID]->getObject();
+
+    TElementColorSelector *colsel = new TElementColorSelector(mActObject.sc, name, mTable);
+    connect(colsel, &TElementColorSelector::colorChanged, this, &TPropertiesGeneral::onObjectSliderColor);
+    return colsel;
+}
+
 void TPropertiesGeneral::setWidget(QTableWidget *view)
 {
     DECL_TRACER("TPropertiesGeneral::setWidget(QTableWidget *view)");
@@ -1616,6 +1770,8 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
         mActObject.da = data.toBool() ? 1 : 0;
     else if (name == "ObjectHidden")
         mActObject.hd = data.toBool() ? 1 : 0;
+    else if (name == "ObjectAutoRepeat")
+        mActObject.ar = data.toBool() ? 1 : 0;
 
     saveChangedData(&mPage, TBL_GENERAL);
     mChanged = true;
@@ -1660,6 +1816,45 @@ void TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)
         mActObject.nd = value;
         mActObject.rd = value;
     }
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectValueDirection(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectValueDirection(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.dr = data.toString();
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(data);
+    Q_UNUSED(name);
+
+    if (text == "none")
+        mActObject.sd.clear();
+    else
+        mActObject.sd = text;
+
+    saveChangedData(&mPage, TBL_GENERAL);
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& name)");
+
+    Q_UNUSED(name);
+    mActObject.sc = col;
 
     saveChangedData(&mPage, TBL_GENERAL);
     mChanged = true;

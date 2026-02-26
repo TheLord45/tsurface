@@ -68,10 +68,11 @@ class TPageTree : public QObject
         void resetTree();
         void addTreePage(const QString& name, int num);
         void addTreePopup(const QString& name, int num);
-//        void addSubPage(const QString& name, int num);
+        void addTreeSubPage(const QString& name, int num);
 //        void addApp(const QString& name, int num);
         void updatePageName(int id, const QString& name);
         void updatePopupName(int id, const QString& name);
+        void updateSubPageName(int id, const QString& name);
         void setFocus(int id);
 
     signals:
@@ -79,7 +80,7 @@ class TPageTree : public QObject
         void windowToFront(int number);
         void addNewTreePage();
         void addNewTreePopup();
-//        void addNewSubPage();
+        void addNewTreeSubPage();
 //        void addNewApp();
 
     protected:
