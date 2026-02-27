@@ -294,40 +294,45 @@ void TSurface::drawBackgroundColor(const Page::PAGE_t& page)
     QLinearGradient linear;
     linear.setStops(gstops);
 
-    if (page.srPage.ft == "left to right")
+    if (page.srPage.ft == "linearCLCR")
     {
         linear.setStart(0.0, static_cast<qreal>(page.height / 2));
         linear.setFinalStop(static_cast<qreal>(page.width), static_cast<qreal>(page.height / 2));
     }
-    else if (page.srPage.ft == "top-left to bottom-right")
+    else if (page.srPage.ft == "linearTLBR")
     {
         linear.setStart(0.0, 0.0);
         linear.setFinalStop(static_cast<qreal>(page.width), static_cast<qreal>(page.height));
     }
-    else if (page.srPage.ft == "top to bottom")
+    else if (page.srPage.ft == "linearCTCB")
     {
         linear.setStart(static_cast<qreal>(page.width / 2), 0.0);
         linear.setFinalStop(static_cast<qreal>(page.width / 2), static_cast<qreal>(page.height));
     }
-    else if (page.srPage.ft == "top-right to bottom-left")
+    else if (page.srPage.ft == "linearTRBL")
     {
         linear.setStart(static_cast<qreal>(page.width), 0.0);
         linear.setFinalStop(0.0, static_cast<qreal>(page.height));
     }
-    else if (page.srPage.ft == "right to left")
+    else if (page.srPage.ft == "linearCRCL")
     {
         linear.setStart(static_cast<qreal>(page.width), static_cast<qreal>(page.height / 2));
         linear.setFinalStop(0.0, static_cast<qreal>(page.height / 2));
     }
-    else if (page.srPage.ft == "bottom-right to top-left")
+    else if (page.srPage.ft == "linearBRTL")
     {
         linear.setStart(static_cast<qreal>(page.width), static_cast<qreal>(page.height));
         linear.setFinalStop(0.0, 0.0);
     }
-    else if (page.srPage.ft == "bottom to top")
+    else if (page.srPage.ft == "linearCBCT")
     {
         linear.setStart(static_cast<qreal>(page.width / 2), static_cast<qreal>(page.height));
         linear.setFinalStop(static_cast<qreal>(page.width / 2), 0.0);
+    }
+    else if (page.srPage.ft == "linearBLTR")
+    {
+        linear.setStart(0.0, static_cast<qreal>(page.height));
+        linear.setFinalStop(static_cast<qreal>(page.width), 0.0);
     }
 
     page.baseObject.widget->setLinearGradient(linear);
@@ -432,7 +437,7 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex)
     QWidget* content = new QWidget(page->baseObject.widget);
     QString objName = QString("Object_%1").arg(object.bi);
     QPoint pt(object.lt, object.tp);
-    MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
+    MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
     content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name(QColor::HexArgb)));
     page->baseObject.widget->clearSelection();

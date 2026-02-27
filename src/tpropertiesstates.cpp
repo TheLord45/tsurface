@@ -773,7 +773,22 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
         "solid", "radial", "sweep", "left to right",
         "top-left to bottom-right", "top to bottom",
         "top-right to bottom-left", "right to left",
-        "bottom-right to top-left", "bottom to top"
+        "bottom-right to top-left", "bottom to top",
+        "bottom-left to top-right"
+    };
+
+    QList<QVariant> data = {
+        "solid",
+        "radial",               // 01: Radial
+        "sweep",                // 00: Sweep
+        "linearCLCR",           // 02: Left to right
+        "linearTLBR",           // 03: Top-left to Bottom-right
+        "linearCTCB",           // 04: Top to bottom
+        "linearTRBL",           // 05: Top-right to Bottom-left
+        "linearCRCL",           // 06: Right to left
+        "linearBRTL",           // 07: Bottom-right to top-left
+        "linearCBCT",           // 08: Bottom to top
+        "linearBLTR"            // 09: Bottom-left to top-right
     };
 
     QComboBox *cbox = new QComboBox;
@@ -783,6 +798,7 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
     for (QString txt : list)
     {
         cbox->addItem(txt);
+        cbox->setItemData(idx, data[idx]);
 
         if (txt == ftype)
             cbox->setCurrentIndex(idx);
@@ -793,7 +809,7 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
     connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
         mBlocked = true;
         QString objName = cbox->objectName();
-        QString item = cbox->itemText(index);
+        QString item = cbox->itemData(index).toString();
         addGradientLines(item, objName);
         setValue(objName, item);
         mBlocked = false;
@@ -1071,7 +1087,6 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
 {
     DECL_TRACER("TPropertiesStates::addGradientLines(const QString& gradient, const QString& name, bool init)");
 
-    Q_UNUSED(gradient);
     Q_UNUSED(init);
 
     QTreeWidgetItem *root = mTreeWidget->invisibleRootItem();

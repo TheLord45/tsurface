@@ -1338,8 +1338,8 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.sd = jo.value("sd").toString();
         object.vt = jo.value("vt").toString();
         object.cd = jo.value("cd").toString();
-        object.sc = jo.value("sc").toString();
-        object.cc = jo.value("cc").toString();
+        object.sc = QColor(jo.value("sc").toString());
+        object.cc = QColor(jo.value("cc").toString());
         object.mt = jo.value("mt").toInt(0);
         object.dt = jo.value("dt").toString();
         object.im = jo.value("im").toString();
@@ -1355,7 +1355,6 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.we = jo.value("we").toString();
         object.pc = jo.value("pc").toString();
         object.op = jo.value("op").toString();
-        object.visible = jo.value("visible").toBool(true);
 
         QJsonArray pushFunc = jo.value("pushFunc").toArray();
 
@@ -1383,11 +1382,11 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s._do = jsr.value("do").toString();
             s.bs = jsr.value("bs").toString();
             s.mi = jsr.value("mi").toString();
-            s.cb = jsr.value("cb").toString();
+            s.cb = QColor(jsr.value("cb").toString());      // Border color
             s.ft = jsr.value("ft").toString();
-            s.cf = jsr.value("cf").isString();
-            s.ct = jsr.value("ct").isString();
-            s.ec = jsr.value("ec").isString();
+            s.cf = QColor(jsr.value("cf").toString());      // Fill color
+            s.ct = QColor(jsr.value("ct").toString());      // Text color
+            s.ec = QColor(jsr.value("ec").toString());      // Text effect color
             s.bm = jsr.value("bm").toString();
             QJsonArray bitmaps = jsr.value("bitmaps").toArray();
 
