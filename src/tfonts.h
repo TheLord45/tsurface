@@ -38,6 +38,7 @@ class TFonts
         static void addFontFile(const QString& file);
         static void freePrivateFonts();
         static void releaseFontConfig();
+        static QFont getFont(const QString& ff);
 
         static bool readFontFile(const QString& path, const QString& file);
         static bool writeFontFile(const QString& path, const QString& file);

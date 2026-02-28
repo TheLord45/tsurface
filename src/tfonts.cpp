@@ -29,6 +29,7 @@
 #include <QDir>
 
 #include "tfonts.h"
+#include "tconfmain.h"
 #include "terror.h"
 #include "tmisc.h"
 
@@ -110,6 +111,37 @@ void TFonts::releaseFontConfig()
         gFontConfig = nullptr;
         mInitialized = false;
     }
+}
+
+QFont TFonts::getFont(const QString& ff)
+{
+    DECL_TRACER("TFonts::getFont(const QString& ff)");
+
+    QFont font;
+
+    if (ff.isEmpty())
+    {
+        font = TConfMain::Current().getFontBase();
+        font.setPointSize(TConfMain::Current().getFontBaseSize());
+        return font;
+    }
+
+    // Look in the table if the string is not already in the list.
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        if (iter->file == ff)
+        {
+            font.setFamilies(iter->family);
+            font.setPointSize(TConfMain::Current().getFontBaseSize());
+            return font;
+        }
+    }
+
+    font.setFamily(ff);
+    font.setPointSize(TConfMain::Current().getFontBaseSize());
+    return font;
 }
 
 /**

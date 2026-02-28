@@ -103,6 +103,17 @@ void TDrawObject::draw()
                     di.draw();
                 }
                 break;
+
+                case ORD_ELEM_TEXT:
+                    if (object.sr[instance].md > 0 && object.sr[instance].mr > 0)
+                    {
+                        // TODO: Draw marquee line
+                    }
+                    else
+                    {
+                        // TODO: Draw Text
+                    }
+                break;
             }
         }
     }

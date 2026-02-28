@@ -823,6 +823,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
     for (TObjectHandler *o : objects)
     {
         ObjHandler::TOBJECT_t e = o->getObject();
+        MSG_DEBUG("Adding object " << e.bi << ", " << e.na.toStdString());
         QJsonObject bt;
         bt.insert("type", e.type);
         bt.insert("bi", e.bi);

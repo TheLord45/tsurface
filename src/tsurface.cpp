@@ -407,6 +407,7 @@ void TSurface::addObject(int id, QPoint pt)
     int index = TPageHandler::Current().appendObject(page->pageID, o);
     TWorkSpaceHandler::Current().setObject(o);
     TWorkSpaceHandler::Current().setAllProperties(*page, STATE_BUTTON, index);
+    mProjectChanged = true;
 }
 
 /**
@@ -1781,6 +1782,7 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
 
     object->setSize(geom);
     TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    mProjectChanged = true;
 }
 
 void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
@@ -1803,6 +1805,7 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 
     object->setSize(geom);
     TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    mProjectChanged = true;
 }
 
 void TSurface::onAddNewPage()

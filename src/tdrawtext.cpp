@@ -23,6 +23,7 @@
 #include "tdrawtext.h"
 #include "tgraphics.h"
 #include "tcanvaswidget.h"
+#include "tfonts.h"
 #include "terror.h"
 
 #define LABEL_NAME  "LabelText"
@@ -216,6 +217,12 @@ TDrawText::TDrawText(TBASEOBJ_t *object, const QString& text, const QFont& font,
     DECL_TRACER("TDrawText::TDrawText(TBASEOBJ_t *object, const QString& text, const QFont& font, ORIENTATION ori, int x, int y)");
 }
 
+TDrawText::TDrawText(const ObjHandler::TOBJECT_t& object)
+    : mBtObject(object)
+{
+    DECL_TRACER("TDrawText::TDrawText(const ObjHandler::TOBJECT_t& object)");
+}
+
 void TDrawText::setAbolutePosition(int x, int y)
 {
     DECL_TRACER("TDrawText::setAbolutePosition(int x, int y)");
@@ -295,4 +302,20 @@ bool TDrawText::draw()
 
     mLabel->show();
     return true;
+}
+
+bool TDrawText::drawObject(QPixmap *bm, int instance)
+{
+    DECL_TRACER("TDrawText::drawObject(QPixmap *bm, int instance)");
+
+    if (instance < 0 || instance >= mBtObject.sr.size())
+        return false;
+
+    if (mBtObject.bi <= 0 || mBtObject.sr[instance].te.isEmpty())
+        return false;
+
+    QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
+    font.setPixelSize(mBtObject.sr[instance].fs);
+    // TODO: Continue
+    return false;
 }

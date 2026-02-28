@@ -53,6 +53,7 @@ class TDrawText
     public:
         TDrawText(ObjHandler::TBASEOBJ_t *object);
         TDrawText(ObjHandler::TBASEOBJ_t *object, const QString& text, const QFont& font, ObjHandler::ORIENTATION ori=ObjHandler::ORI_CENTER_MIDDLE, int x=0, int y=0);
+        TDrawText(const ObjHandler::TOBJECT_t& object);
 
         void setText(const QString& text) { mText = text; }
         void setFont(const QFont& font) { mFont = font; }
@@ -62,9 +63,11 @@ class TDrawText
         void setTextColor(const QColor& color) { mColor = color; };
         void setTextEffect(int effect, const QColor& color) { mTextEffect = effect; mTextEffectColor = color; };
         bool draw();
+        bool drawObject(QPixmap *bm, int instance);
 
     private:
         ObjHandler::TBASEOBJ_t *mObject{nullptr};
+        ObjHandler::TOBJECT_t mBtObject;
         QFont mFont;
         QString mText;
         ObjHandler::ORIENTATION mOrientation{ObjHandler::ORI_CENTER_MIDDLE};
