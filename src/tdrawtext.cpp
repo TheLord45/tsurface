@@ -308,14 +308,54 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
 {
     DECL_TRACER("TDrawText::drawObject(QPixmap *bm, int instance)");
 
-    if (instance < 0 || instance >= mBtObject.sr.size())
+    if (!bm || bm->isNull() || instance < 0 || instance >= mBtObject.sr.size())
         return false;
 
     if (mBtObject.bi <= 0 || mBtObject.sr[instance].te.isEmpty())
         return false;
 
+    QPainter painter(bm);
+
     QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
     font.setPixelSize(mBtObject.sr[instance].fs);
+    painter.setFont(font);
+    painter.setPen(mBtObject.sr[instance].ct);
+    QRect rect(0, 0, mBtObject.wt, mBtObject.ht);
+    QFlags<Qt::AlignmentFlag> aFlag = Qt::AlignCenter;
+
+    switch(mBtObject.sr[instance].jt)
+    {
+        case ORI_ABSOLUT:       aFlag = Qt::AlignTop | Qt::AlignLeft; break;
+        case ORI_TOP_LEFT:      aFlag = Qt::AlignTop |Qt::AlignHCenter; break;
+        case ORI_TOP_MIDDLE:    aFlag = Qt::AlignTop | Qt::AlignHCenter; break;
+        case ORI_TOP_RIGHT:     aFlag = Qt::AlignTop | Qt::AlignRight; break;
+        case ORI_CENTER_LEFT:   aFlag = Qt::AlignVCenter | Qt::AlignLeft; break;
+        case ORI_CENTER_MIDDLE: aFlag = Qt::AlignCenter; break;
+        case ORI_CENTER_RIGHT:  aFlag = Qt::AlignVCenter | Qt::AlignRight; break;
+        case ORI_BOTTOM_LEFT:   aFlag = Qt::AlignBottom | Qt::AlignLeft; break;
+        case ORI_BOTTOM_MIDDLE: aFlag = Qt::AlignBottom | Qt::AlignHCenter; break;
+        case ORI_BOTTOM_RIGHT:  aFlag = Qt::AlignBottom | Qt::AlignRight; break;
+
+        default:
+            mLabel->setAlignment(Qt::AlignCenter);
+    }
+
+    if (mBtObject.sr[instance].et > 0)
+    {
+        ShadowLabel label;
+        label.setGeometry(rect);
+        label.setFont(font);
+        label.setAlignment(aFlag);
+        label.setText(mBtObject.sr[instance].te);
+        label.setTextColor(mBtObject.sr[instance].ct);
+        label.setShadowType(mBtObject.sr[instance].et);
+        label.setTextEffectolor(mBtObject.sr[instance].ec);
+        QPixmap px = label.grab();
+        painter.drawPixmap(0, 0, px);
+    }
+    else
+        painter.drawText(rect, aFlag, mBtObject.sr[instance].te);
+
     // TODO: Continue
     return false;
 }
