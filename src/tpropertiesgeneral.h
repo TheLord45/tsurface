@@ -67,6 +67,7 @@ class TPropertiesGeneral : public QObject
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
         virtual ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
+        virtual void setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype) = 0;
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);

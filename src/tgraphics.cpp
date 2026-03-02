@@ -8065,6 +8065,247 @@ QList<FAMILY_t> TGraphics::getBorders()
     return borders;
 }
 
+FAMILY_t TGraphics::getBorder(const QString& name)
+{
+    DECL_TRACER("TGraphics::getBorder(const QString& name)");
+
+    for (FAMILY_t family : mDraw.borders)
+    {
+        if (family.name == name)
+            return family;
+    }
+
+    return FAMILY_t();
+}
+
+bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *border, const QString& family2, bool info)
+{
+    DECL_TRACER("TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *border, const QString& family2, bool info)");
+
+    if (!border || family.isEmpty() || mDraw.borders.size() == 0)
+        return false;
+
+    // Find the border details
+    vector<FAMILY_t>::iterator iter;
+    bool found = false;
+    QString fullName;
+
+    for (iter = mDraw.borders.begin(); iter != mDraw.borders.end(); ++iter)
+    {
+        vector<QString>::iterator strIter;
+
+        for (strIter = iter->member.begin(); strIter != iter->member.end(); ++strIter)
+        {
+            /*
+             * In the table we've the "family" name in the first place while in
+             * the configuration file for a page/subpage we have the whole name.
+             * Because of this we must look if the whole name starts with the
+             * family name. If so, we've found what we're looking for.
+             * Example:
+             * Whole name in the XML configuration: AMX Elite Raised -M
+             * Family name: AMX Elite
+             * Organization:
+             * The entity "borderFamily" defines the family name (AMX Elite). A
+             * family has members: "AMX Elite -S", "AMX Elite -M" and "AMX Elite -L"
+             * in our example.
+             * The entity "borderStyle" is named like the member. With this
+             * information we'll find the correct border style and with it the
+             * file names containing the border graphics.
+             */
+            QStringList parts = strIter->split(" ");
+
+            if (evaluateName(parts, family))   // Here we find the wanted member
+            {
+                // Find the detailed name
+                vector<BORDER_STYLE_t>::iterator styIter;
+                // Here we search in the style table for an element with the
+                // found member name
+                for (styIter = mDraw.borderStyles.begin(); styIter != mDraw.borderStyles.end(); ++styIter)
+                {
+                    if (styIter->name.compare(*strIter) == 0)
+                    {
+                        found = true;
+                        border->bdStyle = *styIter;
+
+                        switch(lt)
+                        {
+                            case LT_OFF:    fullName = styIter->off; break;
+                            case LT_ON:     fullName = styIter->on; break;
+                            case LT_DRAG:   fullName = styIter->drag; break;
+                            case LT_DROP:   fullName = styIter->drop; break;
+                        }
+
+
+                        break;
+                    }
+                }
+            }
+
+            if (found)
+                break;
+        }
+
+        if (found)
+            break;
+    }
+
+    if (!found || fullName.isEmpty())
+    {
+        MSG_WARNING("Border " << family.toStdString() << " not found!");
+        return false;
+    }
+
+    MSG_DEBUG("External system border " << family.toStdString() << " found.");
+    vector<BORDER_DATA_t>::iterator brdIter;
+    QString dataName = (family2.length() > 0 ? family2 : fullName);
+
+    for (brdIter = mDraw.borderData.begin(); brdIter != mDraw.borderData.end(); brdIter++)
+    {
+        if (brdIter->name.compare(dataName) == 0)
+        {
+            if (!info)
+            {
+                QString baseFile = brdIter->baseFile + "_";
+                int num = scanBorderFiles(baseFile);
+
+                if (num < 8)
+                    continue;
+
+                border->b = getBorderFile(baseFile + "_b");
+                border->bl = getBorderFile(baseFile + "_bl");
+                border->br = getBorderFile(baseFile + "_br");
+                border->l = getBorderFile(baseFile + "_l");
+                border->r = getBorderFile(baseFile + "_r");
+                border->t = getBorderFile(baseFile + "_t");
+                border->tl = getBorderFile(baseFile + "_tl");
+                border->tr = getBorderFile(baseFile + "_tr");
+                border->b_alpha = getBorderFile(baseFile + "_b_");
+                border->bl_alpha = getBorderFile(baseFile + "_bl_");
+                border->br_alpha = getBorderFile(baseFile + "_br_");
+                border->l_alpha = getBorderFile(baseFile + "_l_");
+                border->r_alpha = getBorderFile(baseFile + "_r_");
+                border->t_alpha = getBorderFile(baseFile + "_t_");
+                border->tl_alpha = getBorderFile(baseFile + "_tl_");
+                border->tr_alpha = getBorderFile(baseFile + "_tr_");
+                border->border = *brdIter;
+
+                MSG_DEBUG("Bottom        : " << border->b.toStdString());
+                MSG_DEBUG("Top           : " << border->t.toStdString());
+                MSG_DEBUG("Left          : " << border->l.toStdString());
+                MSG_DEBUG("Right         : " << border->r.toStdString());
+                MSG_DEBUG("Top left      : " << border->tl.toStdString());
+                MSG_DEBUG("Top right     : " << border->tr.toStdString());
+                MSG_DEBUG("Bottom left   : " << border->bl.toStdString());
+                MSG_DEBUG("Bottom right  : " << border->br.toStdString());
+                MSG_DEBUG("Bottom A      : " << border->b_alpha.toStdString());
+                MSG_DEBUG("Top A         : " << border->t_alpha.toStdString());
+                MSG_DEBUG("Left A        : " << border->l_alpha.toStdString());
+                MSG_DEBUG("Right A       : " << border->r_alpha.toStdString());
+                MSG_DEBUG("Top left A    : " << border->tl_alpha.toStdString());
+                MSG_DEBUG("Top right A   : " << border->tr_alpha.toStdString());
+                MSG_DEBUG("Bottom left A : " << border->bl_alpha.toStdString());
+                MSG_DEBUG("Bottom right A: " << border->br_alpha.toStdString());
+            }
+            else
+                border->border = *brdIter;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief TSystemDraw::evaluateName - Tests for all parts of \b parts in \b name
+ * The method tests if all strings in \b parts are contained in \b name.
+ *
+ * @param parts     A vector array containing one or more strings.
+ * @param name      A string which may contain all strings from \b parts.
+ *
+ * @return In case all strings from \b parts were found in \b name it returns
+ * TRUE. Otherwise FALSE.
+ */
+bool TGraphics::evaluateName(const QStringList& parts, const QString& name)
+{
+//    DECL_TRACER("TGraphics::evaluateName(const QStringList& parts, const QString& name)");
+
+    if (parts.empty())
+        return false;
+
+    size_t found = 0;
+    QStringList nameParts = name.split(" ");
+    QStringList::ConstIterator iter;
+
+    // First find the minimum number of parts who must match
+    size_t minParts = 0;
+
+    for (size_t i = 0; i < nameParts.size(); ++i)
+    {
+        if (nameParts[i].compare("raised", Qt::CaseInsensitive) == 0 ||
+            nameParts[i].compare("inset", Qt::CaseInsensitive) == 0 ||
+            nameParts[i].compare("active", Qt::CaseInsensitive) == 0 ||
+            nameParts[i].compare("inactive", Qt::CaseInsensitive) == 0)
+            continue;
+
+        minParts++;
+    }
+
+    // Compare the parts and count the matching parts
+    for (iter = parts.begin(); iter != parts.end(); ++iter)
+    {
+        if (name.contains(*iter))
+            found++;
+    }
+
+    if (found == nameParts.size() || found >= minParts)
+        return true;
+
+    return false;
+}
+
+int TGraphics::scanBorderFiles(const QString& name)
+{
+    int num = 0;
+
+    for (int i = 0; i < borderResources.size(); ++i)
+    {
+        if (borderResources[i].contains(name))
+            num++;
+    }
+
+    return num;
+}
+
+QString TGraphics::getBorderFile(const QString& name, bool precise)
+{
+    for (int i = 0; i < borderResources.size(); ++i)
+    {
+        if (borderResources[i].contains(name))
+        {
+            int pos = borderResources[i].lastIndexOf('/');
+            QString file;
+
+            if (pos >= 0)
+                file = borderResources[i].right(borderResources[i].length() - pos + 1);
+            else
+                file = borderResources[i];
+
+            if (precise)
+            {
+                QString rest = file.right(file.length() - name.length());
+
+                if (rest.startsWith("_") || rest.startsWith("."))
+                    return file;
+            }
+            else
+                return file;
+        }
+    }
+
+    return QString();
+}
+
 QList<FAMILY_t> TGraphics::getEfects()
 {
     DECL_TRACER("TGraphics::getEfects()");

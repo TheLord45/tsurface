@@ -19,7 +19,8 @@
 
 #include "tdrawobject.h"
 #include "tdrawimage.h"
-//#include "tdrawtext.h"
+#include "tdrawtext.h"
+#include "tdrawborder.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -112,8 +113,21 @@ void TDrawObject::draw()
                     else
                     {
                         // TODO: Draw Text
+                        TDrawText drText(object);
+                        drText.drawObject(&button, instance);
                     }
                 break;
+
+                case ORD_ELEM_BORDER:
+                    if (!object.sr[instance].bs.isEmpty())
+                    {
+                        TDrawBorder border(&button);
+                        border.draw(object, instance);
+                    }
+                break;
+
+                default:
+                    break;
             }
         }
     }

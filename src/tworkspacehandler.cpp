@@ -192,6 +192,9 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
     else if (stype == STATE_POPUP)
         setProgrammingPopup(page.pageID, false);
 
+    if (objectID >= 0 && objectID < page.objects.size())
+        TPropertiesProgramming::setObjectID(objectID);
+
     setStatesPage(page.pageID, false);
 }
 
@@ -205,6 +208,31 @@ void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)
         TPageTree::updatePopupName(id, name);
 
     TPageHandler::Current().changePageName(id, name);
+}
+
+void TWorkSpaceHandler::setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype)
+{
+    DECL_TRACER("TWorkSpaceHandler::setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype)");
+
+    if (stype == STATE_BUTTON)
+    {
+        if (!page.baseObject.widget)
+            return;
+
+        TResizableWidget *w = page.baseObject.widget->getWidget(idx);
+
+        if (!w)
+            return;
+
+        MSG_DEBUG("Position: " << rect.x() << ", " << rect.y() << ", Size: " << rect.width() << " x " << rect.height());
+        QSignalBlocker sigBlock(w);
+        w->setGeometry(rect);
+    }
+    else if (stype == STATE_POPUP && page.popupType == Page::PT_POPUP)
+    {
+        // TODO: Find out if the popup is visible as part of the page.
+        //       If so set it's position accordingly
+    }
 }
 
 void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)

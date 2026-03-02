@@ -115,7 +115,7 @@ namespace ObjHandler
         ORD_ELEM_BORDER
     }DRAW_ORDER;
 
-    typedef enum FEEDBACK
+    typedef enum FEEDBACK_t
     {
         FB_NONE,
         FB_CHANNEL,
@@ -123,7 +123,7 @@ namespace ObjHandler
         FB_ALWAYS_ON,
         FB_MOMENTARY,
         FB_BLINK
-    } FEEDBACK;
+    } FEEDBACK_t;
 
     typedef enum SUBVIEW_POSITION_t
     {
@@ -278,7 +278,7 @@ namespace ObjHandler
         int zo{0};              // Z-Order
         QString hs;         // bounding, ...
         QString bs;         // Border style (circle, ...)
-        FEEDBACK fb{FB_NONE};   // Feedback type (momentary, ...)
+        FEEDBACK_t fb{FB_NONE};   // Feedback type (momentary, ...)
         int ap{1};              // Address port (default: 1)
         int ad{0};              // Address channel
         int lp{1};              // Level port (default: 1)
@@ -378,7 +378,7 @@ namespace ObjHandler
         QString ddt;            // G5: Drag/Drop type (dr = draggable, dt = drop target)
         QString hs;             // bounding, ...
         QString bs;             // Border style (circle, ...)
-        FEEDBACK fb{FB_NONE};   // Feedback type (momentary, ...)
+        FEEDBACK_t fb{FB_NONE}; // Feedback type (momentary, ...)
         int ap{1};              // Address port (default: 1)
         int ad{0};              // Address channel
         int ch{0};              // Channel number

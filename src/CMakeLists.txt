@@ -158,18 +158,21 @@ qt_add_executable(tsurface
     telementspinbox.h
     telementcolorselector.cpp
     telementcolorselector.h
+    tcheckerboardwidget.h
+    tcheckerboardwidget.cpp
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h
     tdrawtext.cpp
     tdrawimage.h
     tdrawimage.cpp
+    tdrawborder.cpp
+    tdrawborder.h
     tsurface.qrc
     borders.qrc
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    tcheckerboardwidget.h tcheckerboardwidget.cpp
 )
 
 # Use the Widgets module from Qt 6.

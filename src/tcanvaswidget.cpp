@@ -280,6 +280,19 @@ TResizableWidget *TCanvasWidget::currentSelectedWidget()
     return nullptr;
 }
 
+TResizableWidget *TCanvasWidget::getWidget(int bi)
+{
+    DECL_TRACER("TCanvasWidget::getWidget(int bi)");
+
+    for (TResizableWidget *w : mResizableChildren())
+    {
+        if (w->getId() == bi)
+            return w;
+    }
+
+    return nullptr;
+}
+
 static inline int clampInt(int v, int lo, int hi)
 {
     return std::min(std::max(v, lo), hi);

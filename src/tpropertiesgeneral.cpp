@@ -839,8 +839,6 @@ TElementSpinBox *TPropertiesGeneral::makeSpinGeometry(const QString& name)
             value = mPage.width;
         else if (name.endsWith("Height"))
             value = mPage.height;
-
-        MSG_DEBUG("Value: " << value);
     }
     else
     {
@@ -1507,6 +1505,7 @@ void TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString
 
         mActObject = mPage.objects[mActObjectID]->getObject();
         mActObject.bd = text;
+        mPage.objects[mActObjectID]->setObject(mActObject);
     }
 
     mChanged = true;
@@ -1527,13 +1526,13 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
             mPage.width = value;
         else if (name.endsWith("Height"))
             mPage.height = value;
+
+        setPosition(QRect(mPage.left, mPage.top, mPage.width, mPage.height), mPage, 0, STATE_POPUP);
     }
     else
     {
         if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         {
-            mActObject = mPage.objects[mActObjectID]->getObject();
-
             if (name.endsWith("Left"))
                 mActObject.lt = value;
             else if (name.endsWith("Top"))
@@ -1542,12 +1541,14 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
                 mActObject.wt = value;
             else if (name.endsWith("Height"))
                 mActObject.ht = value;
+
+            mPage.objects[mActObjectID]->setObject(mActObject);
+            setPosition(QRect(mActObject.lt, mActObject.tp, mActObject.wt, mActObject.ht), mPage, mActObject.bi, STATE_BUTTON);
         }
     }
 
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
-    requestRedraw(&mPage);
+    markChanged();
 }
 
 void TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name)
@@ -1711,7 +1712,8 @@ void TPropertiesGeneral::onComboObjectDragDropType(const QString& text, const QV
     else
         mActObject.ddt = data.toString();
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
     setTable(STATE_BUTTON);
 }
@@ -1740,7 +1742,8 @@ void TPropertiesGeneral::onComboObjectTouchStyle(const QString& text, const QVar
     else
         mActObject.hs = val;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1755,7 +1758,8 @@ void TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QStrin
     else
         mActObject.bs = border;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
     requestRedraw(&mPage);
 }
@@ -1773,7 +1777,8 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
     else if (name == "ObjectAutoRepeat")
         mActObject.ar = data.toBool() ? 1 : 0;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1786,7 +1791,8 @@ void TPropertiesGeneral::onObjectPasswordProtection(const QString& text, const Q
     Q_UNUSED(name);
 
     mActObject.pp = data.toInt();
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1798,7 +1804,8 @@ void TPropertiesGeneral::onObjectStateCount(int value, const QString& name)
 
     mActObject.stateCount = value;
     mActObject.rm = value;          // Yes, this exists twice!
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1817,7 +1824,8 @@ void TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)
         mActObject.rd = value;
     }
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1829,7 +1837,8 @@ void TPropertiesGeneral::onObjectValueDirection(const QString& text, const QVari
     Q_UNUSED(name);
 
     mActObject.dr = data.toString();
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1845,7 +1854,8 @@ void TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant&
     else
         mActObject.sd = text;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
 }
 
@@ -1856,8 +1866,10 @@ void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& n
     Q_UNUSED(name);
     mActObject.sc = col;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)

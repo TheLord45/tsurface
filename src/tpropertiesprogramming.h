@@ -27,6 +27,8 @@ class QComboBox;
 class QSpinBox;
 class QIntValidator;
 class TValidatePort;
+class TElementWidgetCombo;
+class TElementSpinBox;
 
 class TPropertiesProgramming : public QObject
 {
@@ -42,12 +44,14 @@ class TPropertiesProgramming : public QObject
         void setProgrammingPage(int id, bool loaded=false);
         void setProgrammingPopup(const QString& name);
         void setProgrammingPopup(int id, bool loaded=false);
+        void setObjectID(int id);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
         void setParent(QWidget *parent) { mParent = parent; };
 
     protected:
         void createPage();
+        void setTable();
         void clear();
         // Callbacks
         void onComboAddrPort(int index);
@@ -58,6 +62,12 @@ class TPropertiesProgramming : public QObject
         void onComboChanPortText(const QString& text);
         void onComboChanCode(int index);
         void onComboChanCodeText(const QString& text);
+
+        void onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name);
+        void onSpinAddressPort(int value, const QString& name);
+        void onSpinAddressCode(int value, const QString& name);
+        void onSpinChannelPort(int value, const QString& name);
+        void onSpinChannelCode(int value, const QString& name);
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
@@ -65,6 +75,14 @@ class TPropertiesProgramming : public QObject
 
 
     private:
+        TElementWidgetCombo *makeObjectFeedback(const QString& name);
+        TElementSpinBox *makeAddressPort(const QString& name);
+        TElementSpinBox *makeAddressCode(const QString& name);
+        TElementSpinBox *makeChannelPort(const QString& name);
+        TElementSpinBox *makeChannelCode(const QString& name);
+
+        bool isAnyPage();
+
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};
         bool mChanged{false};
@@ -72,19 +90,14 @@ class TPropertiesProgramming : public QObject
         bool mInitialized{false};
         TValidatePort *mValidatePort{nullptr};
         QIntValidator *mIntValidator{nullptr};
+        ObjHandler::TOBJECT_t mActObject;
+        int mActObjectID{-1};
+        STATE_TYPE mStype{STATE_UNKNOWN};
         // Widgets
-        QComboBox *mFeedback{nullptr};      // Buttons. Defines the type of feedback
         QComboBox *mAddrPort{nullptr};      // All: Address port
         QComboBox *mAddrCode{nullptr};      // All: Address code
         QComboBox *mChanPort{nullptr};      // All: Channel port
         QComboBox *mChanCode{nullptr};      // All: Channel code
-        QComboBox *mLevelCtrl{nullptr};     // Buttons: Level control
-        QComboBox *mLevelPort{nullptr};     // Bargraph: Level port
-        QComboBox *mLevelCode{nullptr};     // Bargraph: Level code
-        QComboBox *mLevelFunc{nullptr};     // Bargraph: Level function
-        QSpinBox *mRangeLow{nullptr};       // Bargraph: Range low
-        QSpinBox *mRangeHigh{nullptr};      // Bargraph: Range high
-        QComboBox *mRangeInverted{nullptr}; // Bargraph: Range inverted
 };
 
 #endif // TPROPERTIESPROGRAMMING_H

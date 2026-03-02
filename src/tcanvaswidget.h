@@ -60,6 +60,7 @@ class TCanvasWidget : public QWidget
         int selectedCount() const { return mSelection.size(); }
         int totalWidgetCount() const;
         TResizableWidget *currentSelectedWidget();
+        TResizableWidget *getWidget(int bi);
 
         // Group move (called by TResizableWidget)
         void beginGroupMove(TResizableWidget* lead, const QPoint& globalPos);

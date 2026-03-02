@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 to 2024 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2020 to 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,6 @@ class TStreamError
         static void setLogLevel(const std::string& slv);
         static void setLogLevel(unsigned int ll) { mLogLevel = ll; }
         static unsigned int getLogLevel() { return mLogLevel; }
-//        static void logMsg(std::ostream& str);
         static bool checkFilter(terrtype_t err);
         static bool checkFilter(unsigned int lv);
         friend std::ostream& indent(std::ostream& os);
@@ -132,18 +131,20 @@ class TTracer
         TTracer(const std::string& msg, int line, const char *file, threadID_t tid);
         ~TTracer();
 
+        static std::string getLastFunction() { return mFunction; }
     private:
         std::string mHeadMsg;
         int mLine{0};
         std::string mFile;
+        static std::string mFunction;
         std::chrono::steady_clock::time_point mTimePoint;
 #ifdef __ANDROID__
         threadID_t mThreadID;
 #else
         threadID_t mThreadID{0};
-#endif
+#endif  // __ANDROID__
 };
-#endif
+#endif  // NDEBUG
 
 class TError : public std::ostream
 {

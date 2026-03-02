@@ -24,7 +24,47 @@
 #include "tpropertiesprogramming.h"
 #include "tconfmain.h"
 #include "tvalidateport.h"
+#include "telementwidgetcombo.h"
+#include "telementspinbox.h"
 #include "terror.h"
+
+#define TTEXT_FEEDBACK                  0
+#define TTEXT_ADDRESS_PORT              1
+#define TTEXT_ADDRESS_CODE              2
+#define TTEXT_CHANNEL_PORT              3
+#define TTEXT_CHANNEL_CODE              4
+#define TTEXT_LEVEL_CONTROL_TYPE        5
+#define TTEXT_LEVEL_PORT                6
+#define TTEXT_LEVEL_CODE                7
+#define TTEXT_LEVEL_CONTROL_VALUE       8
+#define TTEXT_LEVEL_CONTROL_REPEAT_TIME 9
+#define TTEXT_LEVEL_FUNCTION            10
+#define TTEXT_RANGE_LOW                 11
+#define TTEXT_RANGE_HIGH                12
+#define TTEXT_RANGE_DRAG_INCREMENT      13
+#define TTEXT_RANGE_INVERTED            14
+#define TTEXT_RANGE_TIME_UP             15
+#define TTEXT_RANGE_TIME_DOWN           16
+
+const QStringList gMessages = {
+    "Feedback",                         //  0
+    "Address Port",                     //  1
+    "Address Code",                     //  2
+    "Channel Port",                     //  3
+    "Channel Code",                     //  4
+    "Level Control Type",               //  5
+    "Level Port",                       //  6
+    "Level Code",                       //  7
+    "Level Control Value",              //  8
+    "Level Control Repeat Time",        //  9
+    "Level Function",                   // 10
+    "Range Low",                        // 11
+    "Range High",                       // 12
+    "Range Drag Increment",             // 13
+    "Range Inverted",                   // 14
+    "Range Time Up",                    // 15
+    "Range Time Down"                   // 16
+};
 
 TPropertiesProgramming::TPropertiesProgramming()
 {
@@ -64,7 +104,7 @@ void TPropertiesProgramming::setPage(const Page::PAGE_t& page)
     mChanged = false;
     mPage = Page::PAGE_t();
     mPage = page;
-    createPage();
+    setTable();
 }
 
 void TPropertiesProgramming::setProgrammingPage(const QString& name)
@@ -125,7 +165,8 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
     if (mPage.pageID <= 0)
         return;
 
-    createPage();
+    mStype = STATE_PAGE;
+    setTable();
 }
 
 void TPropertiesProgramming::setProgrammingPopup(const QString& name)
@@ -182,7 +223,44 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
     if (mPage.pageID <= 0)
         return;
 
-    createPage();
+    mStype = STATE_POPUP;
+    setTable();
+}
+
+void TPropertiesProgramming::setObjectID(int id)
+{
+    DECL_TRACER("TPropertiesProgramming::setObjectID(int id)");
+
+    if (id < 0 || id >= mPage.objects.size())
+        return;
+
+    mActObjectID = id;
+    mActObject = mPage.objects[id]->getObject();
+
+    switch(mActObject.type)
+    {
+        case ObjHandler::GENERAL:
+        case ObjHandler::MULTISTATE_GENERAL:
+            mStype = STATE_BUTTON;
+        break;
+
+        case ObjHandler::BARGRAPH:
+        case ObjHandler::MULTISTATE_BARGRAPH:
+            mStype = STATE_BARGRAPH;
+        break;
+
+        case ObjHandler::TEXT_INPUT:
+            mStype = STATE_INPUT;
+        break;
+
+        case ObjHandler::LISTVIEW:
+        case ObjHandler::SUBPAGE_VIEW:
+            mStype = STATE_SUBPAGE;
+        break;
+
+        default:
+            mStype = STATE_UNKNOWN;
+    }
 }
 
 void TPropertiesProgramming::clear()
@@ -199,86 +277,176 @@ void TPropertiesProgramming::clear()
     mTable->setColumnCount(0);
 }
 
+void TPropertiesProgramming::setTable()
+{
+    DECL_TRACER("TPropertiesProgramming::setTable()");
+
+    if (!mInitialized)
+        createPage();
+
+    for (int i = 0; i < mTable->rowCount(); ++i)
+        mTable->setRowHidden(i, true);
+
+    if (mStype == STATE_PAGE || mStype == STATE_POPUP || mStype == STATE_INPUT)
+    {
+        mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
+    }
+    else if (mStype == STATE_SUBPAGE)
+    {
+        mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+    }
+    else if (mStype == STATE_BUTTON)
+    {
+        mTable->setRowHidden(TTEXT_FEEDBACK, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
+        mTable->setRowHidden(TTEXT_LEVEL_CONTROL_TYPE, false);
+
+        if (mActObject.vt == "abs")
+        {
+            mTable->setRowHidden(TTEXT_LEVEL_PORT, false);
+            mTable->setRowHidden(TTEXT_LEVEL_CODE, false);
+            mTable->setRowHidden(TTEXT_LEVEL_CONTROL_VALUE, false);
+            mTable->setRowHidden(TTEXT_RANGE_LOW, false);
+            mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
+            mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
+            mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+        }
+        else if (mActObject.vt == "rel")
+        {
+            mTable->setRowHidden(TTEXT_LEVEL_PORT, false);
+            mTable->setRowHidden(TTEXT_LEVEL_CODE, false);
+            mTable->setRowHidden(TTEXT_LEVEL_CONTROL_VALUE, false);
+            mTable->setRowHidden(TTEXT_LEVEL_CONTROL_REPEAT_TIME, false);
+            mTable->setRowHidden(TTEXT_RANGE_LOW, false);
+            mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
+            mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
+            mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+        }
+    }
+    else if (mStype == STATE_BARGRAPH)
+    {
+        mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
+        mTable->setRowHidden(TTEXT_LEVEL_PORT, false);
+        mTable->setRowHidden(TTEXT_LEVEL_CODE, false);
+        mTable->setRowHidden(TTEXT_LEVEL_FUNCTION, false);
+        mTable->setRowHidden(TTEXT_RANGE_LOW, false);
+        mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
+
+        if (mActObject.lf.startsWith("drag"))
+            mTable->setRowHidden(TTEXT_RANGE_DRAG_INCREMENT, false);
+
+        mTable->setRowHidden(TTEXT_RANGE_INVERTED, false);
+
+        if (mActObject.lf.startsWith("active"))
+        {
+            mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
+            mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+        }
+    }
+}
+
 void TPropertiesProgramming::createPage()
 {
     DECL_TRACER("TPropertiesProgramming::createPage()");
 
     int setupPort = TConfMain::Current().getSetupPort();
     mInitialized = false;
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
     mTable->clear();
     mTable->setColumnCount(2);
-    mTable->setRowCount(4);
+    mTable->setRowCount(gMessages.size());
 
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < gMessages.size(); ++i)
     {
         QTableWidgetItem *cell1 = new QTableWidgetItem;
-
-        cell1->setBackground(brush);
+        cell1->setBackground(Qt::lightGray);
+        cell1->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
 
         switch(i)
         {
-            case 0:
-                cell1->setText(tr("Address Port"));
-                mAddrPort = new QComboBox;
-                mAddrPort->setEditable(true);
-                mAddrPort->addItem(tr("%1 - setup port").arg(setupPort), setupPort);
-                mAddrPort->addItem(tr("1"), 1);
-                mAddrPort->setCurrentIndex(1);
-                mAddrPort->setDuplicatesEnabled(false);
-                mAddrPort->setValidator(mValidatePort);
-                mAddrPort->setObjectName(QString("ComboBox_%1").arg(i));
-                connect(mAddrPort, &QComboBox::currentIndexChanged, this, &TPropertiesProgramming::onComboAddrPort);
-                connect(mAddrPort, &QComboBox::currentTextChanged, this, &TPropertiesProgramming::onComboAddrPortText);
-                mTable->setCellWidget(i, 1, mAddrPort);
+            case TTEXT_FEEDBACK:
+                cell1->setText(gMessages[TTEXT_FEEDBACK]);
+                mTable->setCellWidget(i, 1, makeObjectFeedback("ObjectFeedback"));
             break;
 
-            case 1:
-                cell1->setText(tr("Address Code"));
-                mAddrCode = new QComboBox;
-                mAddrCode->setEditable(true);
-                mAddrCode->addItem("none", 0);
-                mAddrCode->addItem("1", 1);
-                mAddrCode->setDuplicatesEnabled(false);
-                mAddrCode->setValidator(mIntValidator);
-                mAddrCode->setObjectName(QString("ComboBox_%1").arg(i));
-                connect(mAddrCode, &QComboBox::currentIndexChanged, this, &TPropertiesProgramming::onComboAddrCode);
-                connect(mAddrCode, &QComboBox::currentTextChanged, this, &TPropertiesProgramming::onComboAddrCodeText);
-                mTable->setCellWidget(i, 1, mAddrCode);
+            case TTEXT_ADDRESS_PORT:
+                cell1->setText(gMessages[TTEXT_ADDRESS_PORT]);
+                mTable->setCellWidget(i, 1, makeAddressPort(isAnyPage() ? "PageAddressPort" : "ObjectAddressPort"));
             break;
 
-            case 2:
-                cell1->setText(tr("Channel Port"));
-                mChanPort = new QComboBox;
-                mChanPort->setEditable(true);
-                mChanPort->addItem(QString("%1 - setup port").arg(setupPort), setupPort);
-                mChanPort->addItem("1", 1);
-                mChanPort->setCurrentIndex(1);
-                mChanPort->setDuplicatesEnabled(false);
-                mChanPort->setValidator(mValidatePort);
-                mChanPort->setObjectName(QString("ComboBox_%1").arg(i));
-                connect(mChanPort, &QComboBox::currentIndexChanged, this, &TPropertiesProgramming::onComboChanPort);
-                connect(mChanPort, &QComboBox::currentTextChanged, this, &TPropertiesProgramming::onComboChanPortText);
-                mTable->setCellWidget(i, 1, mChanPort);
+            case TTEXT_ADDRESS_CODE:
+                cell1->setText(gMessages[TTEXT_ADDRESS_CODE]);
+                mTable->setCellWidget(i, 1, makeAddressCode(isAnyPage() ? "PageAddressCode" : "ObjectAddressCode"));
             break;
 
-            case 3:
-                cell1->setText(tr("Channel Code"));
-                mChanCode = new QComboBox;
-                mChanCode->setEditable(true);
-                mChanCode->addItem("none", 0);
-                mChanCode->addItem("1", 1);
-                mChanCode->setDuplicatesEnabled(false);
-                mChanCode->setValidator(mIntValidator);
-                mChanCode->setObjectName(QString("ComboBox_%1").arg(i));
-                connect(mChanCode, &QComboBox::currentIndexChanged, this, &TPropertiesProgramming::onComboChanCode);
-                connect(mChanCode, &QComboBox::currentTextChanged, this, &TPropertiesProgramming::onComboChanCodeText);
-                mTable->setCellWidget(i, 1, mChanCode);
+            case TTEXT_CHANNEL_PORT:
+                cell1->setText(gMessages[TTEXT_CHANNEL_PORT]);
+                mTable->setCellWidget(i, 1, makeChannelPort(isAnyPage() ? "PageChannelPort" : "ObjectChannelPort"));
+            break;
+
+            case TTEXT_CHANNEL_CODE:
+                cell1->setText(gMessages[TTEXT_CHANNEL_CODE]);
+                mTable->setCellWidget(i, 1, makeChannelCode(isAnyPage() ? "PageChannelCode" : "ObjectChannelCode"));
+            break;
+
+            case TTEXT_LEVEL_CONTROL_TYPE:
+                cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_TYPE]);
+            break;
+
+            case TTEXT_LEVEL_PORT:
+                cell1->setText(gMessages[TTEXT_LEVEL_PORT]);
+            break;
+
+            case TTEXT_LEVEL_CODE:
+                cell1->setText(gMessages[TTEXT_LEVEL_CODE]);
+            break;
+
+            case TTEXT_LEVEL_CONTROL_VALUE:
+                cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_VALUE]);
+            break;
+
+            case TTEXT_LEVEL_CONTROL_REPEAT_TIME:
+                cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_REPEAT_TIME]);
+            break;
+
+            case TTEXT_LEVEL_FUNCTION:
+                cell1->setText(gMessages[TTEXT_LEVEL_FUNCTION]);
+            break;
+
+            case TTEXT_RANGE_LOW:
+                cell1->setText(gMessages[TTEXT_RANGE_LOW]);
+            break;
+
+            case TTEXT_RANGE_HIGH:
+                cell1->setText(gMessages[TTEXT_RANGE_HIGH]);
+            break;
+
+            case TTEXT_RANGE_DRAG_INCREMENT:
+                cell1->setText(gMessages[TTEXT_RANGE_DRAG_INCREMENT]);
+            break;
+
+            case TTEXT_RANGE_INVERTED:
+                cell1->setText(gMessages[TTEXT_RANGE_INVERTED]);
+            break;
+
+            case TTEXT_RANGE_TIME_UP:
+                cell1->setText(gMessages[TTEXT_RANGE_TIME_UP]);
+            break;
+
+            case TTEXT_RANGE_TIME_DOWN:
+                cell1->setText(gMessages[TTEXT_RANGE_TIME_DOWN]);
             break;
         }
 
-        cell1->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
         mTable->setItem(i, 0, cell1);
     }
 
@@ -372,3 +540,166 @@ void TPropertiesProgramming::onComboChanCodeText(const QString& text)
     mChanged = true;
     saveChangedData(&mPage, TBL_PROGRAM);
 }
+
+void TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject.fb = static_cast<ObjHandler::FEEDBACK_t>(data.toInt());
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
+
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)");
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        mPage.ap = value;
+    else
+    {
+        mActObject.ap = value;
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
+}
+
+void TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)");
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        mPage.ad = value;
+    else
+    {
+        mActObject.ad = value;
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
+}
+
+void TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)");
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        mPage.cp = value;
+    else
+    {
+        mActObject.cp = value;
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
+}
+
+void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)");
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        mPage.ch = value;
+    else
+    {
+        mActObject.ch = value;
+        mPage.objects[mActObjectID]->setObject(mActObject);
+    }
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeObjectFeedback(const QString& name)");
+
+    QStringList items = { "none", "channel", "inverted channel", "always on", "momentary" };
+    QList<QVariant> data = { ObjHandler::FB_NONE, ObjHandler::FB_CHANNEL, ObjHandler::FB_INV_CHANNEL,
+                           ObjHandler::FB_ALWAYS_ON, ObjHandler::FB_MOMENTARY};
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        combo->setCurrentIndex(mActObject.fb);
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onComboObjectFeedback);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeAddressPort(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeAddressPort(const QString& name)");
+
+    int value = 0;
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        value = mPage.ap;
+    else
+        value = mActObject.ap;
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 100, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinAddressPort);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeAddressCode(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeAddressCode(const QString& name)");
+
+    int value = 0;
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        value = mPage.ad;
+    else
+        value = mActObject.ad;
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 4000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinAddressCode);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeChannelPort(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeChannelPort(const QString& name)");
+
+    int value = 0;
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        value = mPage.cp;
+    else
+        value = mActObject.cp;
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 100, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinChannelPort);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeChannelCode(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeChannelCode(const QString& name)");
+
+    int value = 0;
+
+    if (name.startsWith("Page") || name.startsWith("Popup"))
+        value = mPage.ch;
+    else
+        value = mActObject.ch;
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 4000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinChannelCode);
+    return spin;
+}
+
+bool TPropertiesProgramming::isAnyPage()
+{
+    DECL_TRACER("TPropertiesProgramming::isAnyPage()");
+
+    if (mStype == STATE_PAGE || mStype == STATE_POPUP || mStype == STATE_SUBPAGE)
+        return true;
+
+    return false;
+}
+

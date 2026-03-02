@@ -81,6 +81,7 @@ class TWorkSpaceHandler
         ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) override;
         Page::PAGE_t getCurrentPage() override;
         void requestRedraw(Page::PAGE_t *page) override;
+        void setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype) override;
 
     private:
         std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};

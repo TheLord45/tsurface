@@ -269,6 +269,8 @@ class TGraphics
         static TGraphics& Current();
         QStringList getBorderNames();
         QList<Graphics::FAMILY_t> getBorders();
+        Graphics::FAMILY_t getBorder(const QString& name);
+        bool getBorder(const QString& family, Graphics::LINE_TYPE_t lt, Graphics::BORDER_t *border, const QString& family2="", bool info=false);
         QList<Graphics::FAMILY_t> getEfects();
         int getEffectStyleNumber(const QString& name);
         QString getEffectStyleName(int number);
@@ -297,6 +299,9 @@ class TGraphics
         bool writeSliderResources(const QString& path);
         bool writeFontResources(const QString& path);
         bool writeSoundResources(const QString& path);
+        bool evaluateName(const QStringList& parts, const QString& name);
+        int scanBorderFiles(const QString& name);
+        QString getBorderFile(const QString& name, bool precise=true);
 
     private:
         static TGraphics *mCurrent;

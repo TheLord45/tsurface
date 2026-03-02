@@ -1280,7 +1280,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.zo = jo.value("zo").toInt(0);
         object.hs = jo.value("hs").toString();
         object.bs = jo.value("bs").toString();
-        object.fb = static_cast<ObjHandler::FEEDBACK>(jo.value("fb").toInt(ObjHandler::FEEDBACK::FB_NONE));
+        object.fb = static_cast<ObjHandler::FEEDBACK_t>(jo.value("fb").toInt(ObjHandler::FEEDBACK_t::FB_NONE));
         object.ap = jo.value("ap").toInt(1);
         object.ad = jo.value("ad").toInt(setupPort);
         object.ch = jo.value("ch").toInt(setupPort);

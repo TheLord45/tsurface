@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 to 2025 by Andreas Theofilu <andreas@theosys.at>
+ * Copyright (C) 2020 to 2026 by Andreas Theofilu <andreas@theosys.at>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -693,17 +693,29 @@ void TStreamError::endTemporaryLogLevel()
 /********************************************************************/
 #ifndef NDEBUG
 std::mutex tracer_mutex;
+std::string TTracer::mFunction;
 
-TTracer::TTracer(const std::string& msg, int line, const char *file, threadID_t tid)
+TTracer::TTracer(const string& msg, int line, const char *file, threadID_t tid)
     : mThreadID(tid)
 {
-    if (!TConfig::Current().isInitialized() || !TStreamError::checkFilter(HLOG_TRACE))
+    if (!TConfig::Current().isInitialized())
+        return;
+
+    // Filter function
+    size_t pos;
+
+    if ((pos = msg.find('(')) != string::npos)
+        mFunction = msg.substr(0, pos);
+    else
+        mFunction.clear();
+
+    if (!TStreamError::checkFilter(HLOG_TRACE))
         return;
 
     std::lock_guard<mutex> guard(tracer_mutex);
 
     mFile = file;
-    size_t pos = mFile.find_last_of("/");
+    pos = mFile.find_last_of("/");
 
     if (pos != string::npos)
         mFile = mFile.substr(pos + 1);
@@ -952,7 +964,23 @@ std::string TError::append(int lv, int line, const std::string& file)
         f = f.substr(pos + 1);
 
     if (!TConfig::Current().isLongFormat())
-        s << prefix << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", ";
+    {
+        string pre;
+
+        if (!TStreamError::checkFilter(HLOG_TRACE))
+        {
+#ifndef NDEBUG
+            string func = TTracer::getLastFunction();
+
+            if (!func.empty())
+                pre = "[" + func + "(" + std::to_string(line) + ")] ";
+            else
+#endif
+            pre = "[" + file + "(" + std::to_string(line) + ")] ";
+        }
+
+        s << prefix << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", " << pre;
+    }
     else
         s << TStreamError::getTime() << ", " << prefix << std::setw(5) << std::right << line << ", " << std::setw(20) << std::left << f << ", " << _threadIDtoStr(mThreadID) << ", ";
 

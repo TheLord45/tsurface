@@ -388,7 +388,7 @@ void TSurface::addObject(int id, QPoint pt)
     page->baseObject.widget->clearSelection();
 
     TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
-    wrap->setMinimumSize(40, 40);
+//    wrap->setMinimumSize(40, 40);
     wrap->setGridSize(page->baseObject.widget->gridSize());
     wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
     wrap->setGeometry(pt.x(), pt.y(), 40, 40);
