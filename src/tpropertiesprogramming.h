@@ -44,6 +44,7 @@ class TPropertiesProgramming : public QObject
         void setProgrammingPage(int id, bool loaded=false);
         void setProgrammingPopup(const QString& name);
         void setProgrammingPopup(int id, bool loaded=false);
+        void setObject(ObjHandler::TOBJECT_t& object, int id);
         void setObjectID(int id);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
@@ -82,6 +83,7 @@ class TPropertiesProgramming : public QObject
         TElementSpinBox *makeChannelCode(const QString& name);
 
         bool isAnyPage();
+        void setSType();
 
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};

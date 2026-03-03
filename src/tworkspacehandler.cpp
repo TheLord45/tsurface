@@ -123,6 +123,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
         return;
 
     TPropertiesGeneral::update();
+    TPropertiesProgramming::setObject(mObject->getObject(), index);
 }
 
 void TWorkSpaceHandler::clear()

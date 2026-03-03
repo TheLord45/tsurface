@@ -1701,6 +1701,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg->pageID));// Show or hide the grid
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This independable from the visibility of the grid.
         // TODO: Add code to draw all objects
+        TWorkSpaceHandler::Current().setAllProperties(*pg, pg->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
         onRedrawRequest(pg);                                                    // Draw the components of the page
     }
 }

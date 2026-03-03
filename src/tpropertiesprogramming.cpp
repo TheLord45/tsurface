@@ -104,6 +104,7 @@ void TPropertiesProgramming::setPage(const Page::PAGE_t& page)
     mChanged = false;
     mPage = Page::PAGE_t();
     mPage = page;
+    mStype = page.popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP;
     setTable();
 }
 
@@ -232,10 +233,31 @@ void TPropertiesProgramming::setObjectID(int id)
     DECL_TRACER("TPropertiesProgramming::setObjectID(int id)");
 
     if (id < 0 || id >= mPage.objects.size())
+    {
+        MSG_WARNING("Invalid object ID: " << id << ", Number objects: " << mPage.objects.size());
         return;
+    }
 
     mActObjectID = id;
     mActObject = mPage.objects[id]->getObject();
+    setSType();
+}
+
+void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
+{
+    DECL_TRACER("TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)");
+
+    mActObject = object;
+    mActObjectID = id;
+    setSType();
+}
+
+void TPropertiesProgramming::setSType()
+{
+    DECL_TRACER("TPropertiesProgramming::setSType()");
+
+    if (mActObject.bi <= 0 || mActObjectID < 0 || mActObjectID >= mPage.objects.size())
+        return;
 
     switch(mActObject.type)
     {
@@ -261,6 +283,8 @@ void TPropertiesProgramming::setObjectID(int id)
         default:
             mStype = STATE_UNKNOWN;
     }
+
+    setTable();
 }
 
 void TPropertiesProgramming::clear()
@@ -286,6 +310,8 @@ void TPropertiesProgramming::setTable()
 
     for (int i = 0; i < mTable->rowCount(); ++i)
         mTable->setRowHidden(i, true);
+
+    MSG_DEBUG("Rows: " << mTable->rowCount() << ", SType: " << mStype);
 
     if (mStype == STATE_PAGE || mStype == STATE_POPUP || mStype == STATE_INPUT)
     {
