@@ -238,8 +238,18 @@ void TPropertiesProgramming::setObjectID(int id)
         return;
     }
 
-    mActObjectID = id;
-    mActObject = mPage.objects[id]->getObject();
+    MSG_DEBUG("Old ID: " << mActObjectID << ", new ID: " << id);
+
+    if (mActObjectID != id)
+    {
+        if (mChanged)
+            mPage.objects[mActObjectID]->setObject(mActObject);
+
+        mActObjectID = id;
+        mActObject = mPage.objects[id]->getObject();
+        mChanged = false;
+    }
+
     setSType();
 }
 
@@ -247,8 +257,21 @@ void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
 {
     DECL_TRACER("TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)");
 
-    mActObject = object;
-    mActObjectID = id;
+    MSG_DEBUG("Changed: " << (mChanged ? "YES" : "NO") << ", BI: " << object.bi << ", new ID: " << id << ", old ID: " << mActObjectID);
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size() && mActObjectID != id)
+    {
+        if (mChanged)
+        {
+            mPage.objects[mActObjectID]->setObject(mActObject);
+            saveChangedData(&mPage, TBL_PROGRAM);
+        }
+
+        mActObject = object;
+        mActObjectID = id;
+        mChanged = false;
+    }
+
     setSType();
 }
 
@@ -287,6 +310,39 @@ void TPropertiesProgramming::setSType()
     setTable();
 }
 
+ void TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
+{
+    DECL_TRACER("TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)");
+
+    if (!mTable)
+        return;
+
+    QWidget *w = mTable->cellWidget(row, col);
+
+    if (!w)
+        return;
+
+    switch(etype)
+    {
+        case W_COMBO:
+        {
+            TElementWidgetCombo *p = static_cast<TElementWidgetCombo *>(w);
+            p->selectItem(data);
+        }
+        break;
+
+        case W_SPINBOX:
+        {
+            TElementSpinBox *p = static_cast<TElementSpinBox *>(w);
+            p->setValue(data.toInt());
+        }
+        break;
+
+        default:
+            return;
+    }
+}
+
 void TPropertiesProgramming::clear()
 {
     DECL_TRACER("TPropertiesProgramming::clear()");
@@ -301,9 +357,12 @@ void TPropertiesProgramming::clear()
     mTable->setColumnCount(0);
 }
 
-void TPropertiesProgramming::setTable()
+void TPropertiesProgramming::setTable(STATE_TYPE stype)
 {
     DECL_TRACER("TPropertiesProgramming::setTable()");
+
+    if (stype != STATE_UNKNOWN)
+        mStype = stype;
 
     if (!mInitialized)
         createPage();
@@ -319,11 +378,19 @@ void TPropertiesProgramming::setTable()
         mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
         mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
         mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
+
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage.ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage.ad, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_PORT, 1, mPage.cp, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_CODE, 1, mPage.ch, W_SPINBOX);
     }
     else if (mStype == STATE_SUBPAGE)
     {
         mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
         mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage.ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage.ad, W_SPINBOX);
     }
     else if (mStype == STATE_BUTTON)
     {
@@ -334,6 +401,13 @@ void TPropertiesProgramming::setTable()
         mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
         mTable->setRowHidden(TTEXT_LEVEL_CONTROL_TYPE, false);
 
+        setTableWidget(TTEXT_FEEDBACK, 1, mActObject.fb, W_COMBO);
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mActObject.ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mActObject.ad, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_PORT, 1, mActObject.cp, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_CODE, 1, mActObject.ch, W_SPINBOX);
+        setTableWidget(TTEXT_LEVEL_CONTROL_TYPE, 1, mActObject.vt, W_COMBO);
+
         if (mActObject.vt == "abs")
         {
             mTable->setRowHidden(TTEXT_LEVEL_PORT, false);
@@ -343,6 +417,14 @@ void TPropertiesProgramming::setTable()
             mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
             mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
             mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+
+            setTableWidget(TTEXT_LEVEL_PORT, 1, mActObject.lp, W_SPINBOX);
+            setTableWidget(TTEXT_LEVEL_CODE, 1, mActObject.lv, W_SPINBOX);
+            setTableWidget(TTEXT_LEVEL_CONTROL_VALUE, 1, mActObject.va, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_LOW, 1, mActObject.rl, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_HIGH, 1, mActObject.rh, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_TIME_UP, 1, mActObject.ru, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_TIME_DOWN, 1, mActObject.rd, W_SPINBOX);
         }
         else if (mActObject.vt == "rel")
         {
@@ -354,6 +436,15 @@ void TPropertiesProgramming::setTable()
             mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
             mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
             mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+
+            setTableWidget(TTEXT_LEVEL_PORT, 1, mActObject.lp, W_SPINBOX);
+            setTableWidget(TTEXT_LEVEL_CODE, 1, mActObject.lv, W_SPINBOX);
+            setTableWidget(TTEXT_LEVEL_CONTROL_VALUE, 1, mActObject.va, W_SPINBOX);
+            setTableWidget(TTEXT_LEVEL_CONTROL_REPEAT_TIME, 1, mActObject.rv, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_LOW, 1, mActObject.rl, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_HIGH, 1, mActObject.rh, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_TIME_UP, 1, mActObject.ru, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_TIME_DOWN, 1, mActObject.rd, W_SPINBOX);
         }
     }
     else if (mStype == STATE_BARGRAPH)
@@ -368,15 +459,32 @@ void TPropertiesProgramming::setTable()
         mTable->setRowHidden(TTEXT_RANGE_LOW, false);
         mTable->setRowHidden(TTEXT_RANGE_HIGH, false);
 
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mActObject.ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mActObject.ad, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_PORT, 1, mActObject.cp, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_CODE, 1, mActObject.ch, W_SPINBOX);
+        setTableWidget(TTEXT_LEVEL_PORT, 1, mActObject.lp, W_SPINBOX);
+        setTableWidget(TTEXT_LEVEL_CODE, 1, mActObject.lv, W_SPINBOX);
+        setTableWidget(TTEXT_LEVEL_FUNCTION, 1, mActObject.lf, W_COMBO);
+        setTableWidget(TTEXT_RANGE_LOW, 1, mActObject.rl, W_SPINBOX);
+        setTableWidget(TTEXT_RANGE_HIGH, 1, mActObject.rh, W_SPINBOX);
+
         if (mActObject.lf.startsWith("drag"))
+        {
             mTable->setRowHidden(TTEXT_RANGE_DRAG_INCREMENT, false);
+            setTableWidget(TTEXT_RANGE_DRAG_INCREMENT, 1, mActObject.rn, W_SPINBOX);
+        }
 
         mTable->setRowHidden(TTEXT_RANGE_INVERTED, false);
+        setTableWidget(TTEXT_RANGE_INVERTED, 1, mActObject.ri, W_COMBO);
 
         if (mActObject.lf.startsWith("active"))
         {
             mTable->setRowHidden(TTEXT_RANGE_TIME_UP, false);
             mTable->setRowHidden(TTEXT_RANGE_TIME_DOWN, false);
+
+            setTableWidget(TTEXT_RANGE_LOW, 1, mActObject.lu, W_SPINBOX);
+            setTableWidget(TTEXT_RANGE_HIGH, 1, mActObject.ld, W_SPINBOX);
         }
     }
 }
@@ -385,8 +493,9 @@ void TPropertiesProgramming::createPage()
 {
     DECL_TRACER("TPropertiesProgramming::createPage()");
 
-    int setupPort = TConfMain::Current().getSetupPort();
-    mInitialized = false;
+    if (mInitialized)
+        return;
+
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(gMessages.size());
@@ -406,70 +515,82 @@ void TPropertiesProgramming::createPage()
 
             case TTEXT_ADDRESS_PORT:
                 cell1->setText(gMessages[TTEXT_ADDRESS_PORT]);
-                mTable->setCellWidget(i, 1, makeAddressPort(isAnyPage() ? "PageAddressPort" : "ObjectAddressPort"));
+                mTable->setCellWidget(i, 1, makeAddressPort("AddressPort"));
             break;
 
             case TTEXT_ADDRESS_CODE:
                 cell1->setText(gMessages[TTEXT_ADDRESS_CODE]);
-                mTable->setCellWidget(i, 1, makeAddressCode(isAnyPage() ? "PageAddressCode" : "ObjectAddressCode"));
+                mTable->setCellWidget(i, 1, makeAddressCode("AddressCode"));
             break;
 
             case TTEXT_CHANNEL_PORT:
                 cell1->setText(gMessages[TTEXT_CHANNEL_PORT]);
-                mTable->setCellWidget(i, 1, makeChannelPort(isAnyPage() ? "PageChannelPort" : "ObjectChannelPort"));
+                mTable->setCellWidget(i, 1, makeChannelPort("ChannelPort"));
             break;
 
             case TTEXT_CHANNEL_CODE:
                 cell1->setText(gMessages[TTEXT_CHANNEL_CODE]);
-                mTable->setCellWidget(i, 1, makeChannelCode(isAnyPage() ? "PageChannelCode" : "ObjectChannelCode"));
+                mTable->setCellWidget(i, 1, makeChannelCode("ChannelCode"));
             break;
 
             case TTEXT_LEVEL_CONTROL_TYPE:
                 cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_TYPE]);
+                mTable->setCellWidget(i, 1, makeLevelControlType("ObjectLevelControlType"));
             break;
 
             case TTEXT_LEVEL_PORT:
                 cell1->setText(gMessages[TTEXT_LEVEL_PORT]);
+                mTable->setCellWidget(i, 1, makeLevelPort("ObjectLevelPort"));
             break;
 
             case TTEXT_LEVEL_CODE:
                 cell1->setText(gMessages[TTEXT_LEVEL_CODE]);
+                mTable->setCellWidget(i, 1, makeLevelCode("ObjectLevelCode"));
             break;
 
             case TTEXT_LEVEL_CONTROL_VALUE:
                 cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_VALUE]);
+                mTable->setCellWidget(i, 1, makeLevelControlValue("ObjectLevelControlValue"));
             break;
 
             case TTEXT_LEVEL_CONTROL_REPEAT_TIME:
                 cell1->setText(gMessages[TTEXT_LEVEL_CONTROL_REPEAT_TIME]);
+                mTable->setCellWidget(i, 1, makeControlRepeatTime("ObjectLevelControlRepeatTime"));
             break;
 
             case TTEXT_LEVEL_FUNCTION:
                 cell1->setText(gMessages[TTEXT_LEVEL_FUNCTION]);
+                mTable->setCellWidget(i, 1, makeLevelFunction("ObjectLevelFunction"));
             break;
 
             case TTEXT_RANGE_LOW:
                 cell1->setText(gMessages[TTEXT_RANGE_LOW]);
+                mTable->setCellWidget(i, 1, makeRangeLowHigh("ObjectRangeLow"));
             break;
 
             case TTEXT_RANGE_HIGH:
                 cell1->setText(gMessages[TTEXT_RANGE_HIGH]);
+                mTable->setCellWidget(i, 1, makeRangeLowHigh("ObjectRangeHigh"));
             break;
 
             case TTEXT_RANGE_DRAG_INCREMENT:
                 cell1->setText(gMessages[TTEXT_RANGE_DRAG_INCREMENT]);
+                mTable->setCellWidget(i, 1, makeRangeDragIncrement("ObjectRangeDragIncrement"));
             break;
 
             case TTEXT_RANGE_INVERTED:
                 cell1->setText(gMessages[TTEXT_RANGE_INVERTED]);
+                mTable->setCellWidget(i, 1, makeRangeInverted("ObjectRangeInverted"));
             break;
 
             case TTEXT_RANGE_TIME_UP:
                 cell1->setText(gMessages[TTEXT_RANGE_TIME_UP]);
+                mTable->setCellWidget(i, 1, makeRangeTimeUpDown("ObjectRangeTimeUp"));
             break;
 
             case TTEXT_RANGE_TIME_DOWN:
                 cell1->setText(gMessages[TTEXT_RANGE_TIME_DOWN]);
+                mTable->setCellWidget(i, 1, makeRangeTimeUpDown("ObjectRangeTimeDown"));
             break;
         }
 
@@ -479,94 +600,6 @@ void TPropertiesProgramming::createPage()
     mInitialized = true;
 }
 
-void TPropertiesProgramming::onComboAddrPort(int index)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboAddrPort(int index)");
-
-    mPage.ap = mAddrPort->itemText(index).toInt();
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboAddrPortText(const QString& text)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboAddrPortText(const QString& text)")
-
-    if (text.endsWith("setup port"))
-        mPage.ap = TConfMain::Current().getSetupPort();
-    else
-        mPage.ap = text.toInt();
-
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboAddrCode(int index)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboAddrCode(int index)");
-
-    mPage.ad = mAddrCode->itemText(index).toInt();
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboAddrCodeText(const QString& text)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboAddrCodeText(const QString& text)");
-
-    if (text == "none")
-        mPage.ad = 0;
-    else
-        mPage.ad = text.toInt();
-
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboChanPort(int index)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboChanPort(int index)");
-
-    mPage.cp = mChanPort->itemText(index).toInt();
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboChanPortText(const QString& text)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboChanPortText(const QString& text)");
-
-    if (text.endsWith("setup port"))
-        mPage.cp = TConfMain::Current().getSetupPort();
-    else
-        mPage.cp = text.toInt();
-
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboChanCode(int index)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboChanCode(int index)");
-
-    mPage.ch = mChanCode->itemText(index).toInt();
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
-void TPropertiesProgramming::onComboChanCodeText(const QString& text)
-{
-    DECL_TRACER("TPropertiesProgramming::onComboChanCodeText(const QString& text)");
-
-    if (text == "none")
-        mPage.ch = 0;
-    else
-        mPage.ch = text.toInt();
-
-    mChanged = true;
-    saveChangedData(&mPage, TBL_PROGRAM);
-}
-
 void TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name)");
@@ -574,11 +607,7 @@ void TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QV
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
-    {
-        mActObject.fb = static_cast<ObjHandler::FEEDBACK_t>(data.toInt());
-        mPage.objects[mActObjectID]->setObject(mActObject);
-    }
+    mActObject.fb = static_cast<ObjHandler::FEEDBACK_t>(data.toInt());
 
     mChanged = true;
     markChanged();
@@ -588,52 +617,189 @@ void TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)");
 
-    if (name.startsWith("Page") || name.startsWith("Popup"))
+    Q_UNUSED(name);
+
+    if (isAnyPage())
         mPage.ap = value;
     else
-    {
         mActObject.ap = value;
-        mPage.objects[mActObjectID]->setObject(mActObject);
-    }
+
+    mChanged = true;
+    markChanged();
 }
 
 void TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)");
 
-    if (name.startsWith("Page") || name.startsWith("Popup"))
+    Q_UNUSED(name);
+
+    if (isAnyPage())
         mPage.ad = value;
     else
-    {
         mActObject.ad = value;
-        mPage.objects[mActObjectID]->setObject(mActObject);
-    }
+
+    mChanged = true;
+    markChanged();
 }
 
 void TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)");
 
-    if (name.startsWith("Page") || name.startsWith("Popup"))
+    Q_UNUSED(name);
+
+    if (isAnyPage())
         mPage.cp = value;
     else
-    {
         mActObject.cp = value;
-        mPage.objects[mActObjectID]->setObject(mActObject);
-    }
+
+    mChanged = true;
+    markChanged();
 }
 
 void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)");
 
-    if (name.startsWith("Page") || name.startsWith("Popup"))
+    Q_UNUSED(name);
+
+    if (isAnyPage())
         mPage.ch = value;
     else
-    {
         mActObject.ch = value;
-        mPage.objects[mActObjectID]->setObject(mActObject);
+
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onComboLevelControlType(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onComboLevelControlType(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.vt = data.toString();
+    setTable();
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinLevelPort(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinLevelPort(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lp = value;
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinLevelCode(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinLevelCode(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lv = value;
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinLevelControlValue(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinLevelControlValue(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.va = value;
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinControlRepeatTime(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinControlRepeatTime(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.rv = value;
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onComboLevelFunction(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onComboLevelFunction(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.lf = data.toString();
+    setTable();
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinRangeLowHigh(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinRangeLowHigh(int value, const QString& name)");
+
+    if (name.endsWith("Low"))
+        mActObject.rl = value;
+    else
+        mActObject.rh = value;
+
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinRangeDragIncrement(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinRangeDragIncrement(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.rn = value;
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onComboRangeInverted(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onComboRangeInverted(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.ri = data.toInt();
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& name)");
+
+    if (mStype == STATE_BARGRAPH)
+    {
+        if (name.endsWith("Up"))
+            mActObject.lu = value;
+        else
+            mActObject.ld = value;
     }
+    else
+    {
+        if (name.endsWith("Up"))
+            mActObject.ru = value;
+        else
+            mActObject.rd = value;
+    }
+
+    mChanged = true;
+    markChanged();
 }
 
 TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& name)
@@ -716,6 +882,136 @@ TElementSpinBox *TPropertiesProgramming::makeChannelCode(const QString& name)
 
     TElementSpinBox *spin = new TElementSpinBox(value, 0, 4000, name, mTable);
     connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinChannelCode);
+    return spin;
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeLevelControlType(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeLevelControlType(const QString& name)");
+
+    QStringList items = { "none", "absolute", "relativ" };
+    QList<QVariant> data = { "", "abs", "rel" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onComboLevelControlType);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeLevelPort(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeLevelPort(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.lp, 0, 100, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinLevelPort);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeLevelCode(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeLevelCode(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.lv, 0, 4000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinLevelCode);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeLevelControlValue(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeLevelControlValue(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.va, 0, 1000000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinLevelControlValue);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeControlRepeatTime(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeControlRepeatTime(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.rv, 0, 10000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinControlRepeatTime);
+    return spin;
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeLevelFunction(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeLevelFunction(const QString& name)");
+
+    QStringList items = { tr("display only"), tr("active"), tr("active centering"), tr("drag"), tr("drag centering") };
+    QList<QVariant> data = { "", "active", "active centering", "drag", "drag centering" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onComboLevelFunction);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeRangeLowHigh(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeRangeLowHigh(const QString& name)");
+
+    int value = 0;
+
+    if (name.endsWith("Low"))
+        value = mActObject.rl;
+    else
+        value = mActObject.rh;
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 1000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinRangeLowHigh);
+    return spin;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeRangeDragIncrement(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeRangeDragIncrement(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.rn, 0, 100, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinRangeDragIncrement);
+    return spin;
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeRangeInverted(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeRangeInverted(const QString& name)");
+
+    QStringList items = { tr("no"), tr("yes") };
+    QList<QVariant> data = { 0, 1 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    combo->setCurrentIndex(mActObject.ri);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onComboRangeInverted);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeRangeTimeUpDown(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeRangeTimeUpDown(const QString& name)");
+
+    int value = 0;
+
+    if (mStype == STATE_BARGRAPH)
+    {
+        if (name.endsWith("Up"))
+            value = mActObject.lu;
+        else
+            value = mActObject.ld;
+    }
+    else
+    {
+        if (name.endsWith("Up"))
+            value = mActObject.ru;
+        else
+            value = mActObject.rd;
+    }
+
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, 10000, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinRangeTimeUpDown);
     return spin;
 }
 

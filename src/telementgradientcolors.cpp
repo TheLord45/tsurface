@@ -44,6 +44,14 @@ TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, cons
     createLine();
 }
 
+void TElementGradientColors::setGradientColors(const QList<QColor>& colors)
+{
+    DECL_TRACER("TElementGradientColors::setGradientColors(const QList<QColor>& colors)");
+
+    mGradients = colors;
+    createLine();
+}
+
 void TElementGradientColors::onPushButtonClicked()
 {
     DECL_TRACER("TElementGradientColors::onPushButtonClicked()");
@@ -63,8 +71,11 @@ void TElementGradientColors::createLine()
 {
     DECL_TRACER("TElementGradientColors::createLine()");
 
+    bool haveLayout = false;
+
     if (mLayout)
     {
+        haveLayout = true;
         // Delete all widget contained by the layout
         QList<QWidget*> childs = findChildren<QWidget*>();
         MSG_DEBUG("Found " << childs.size() << " childs");
@@ -80,8 +91,12 @@ void TElementGradientColors::createLine()
     else
         mLayout = new QHBoxLayout(this);
 
-    mLayout->setObjectName("Layout");
-    mLayout->setContentsMargins(0, 0, 0, 0);
+    if (!haveLayout)
+    {
+        mLayout->setObjectName("Layout");
+        mLayout->setContentsMargins(0, 0, 0, 0);
+    }
+
     int itemNumber = 0;
 
     for (QColor color : mGradients)
@@ -96,10 +111,17 @@ void TElementGradientColors::createLine()
         itemNumber++;
     }
 
-    mLayout->addStretch();
-    QPushButton *button = new QPushButton("...");
-    button->setFixedWidth(30);
-    mLayout->addWidget(button);
+    if (!haveLayout)
+    {
+        mLayout->addStretch();
+        mButton = new QPushButton("...");
+        mButton->setFixedWidth(30);
+        mLayout->addWidget(mButton);
+    }
 
-    connect(button, &QPushButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
+    if (!mConnected)
+    {
+        connect(mButton, &QPushButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
+        mConnected = true;
+    }
 }

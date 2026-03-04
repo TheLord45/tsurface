@@ -54,6 +54,15 @@ TElementWidgetFont::~TElementWidgetFont()
     DECL_TRACER("TElementWidgetFont::~TElementWidgetFont()");
 }
 
+void TElementWidgetFont::setFont(const QFont& font)
+{
+    DECL_TRACER("TElementWidgetFont::setFont(const QFont& font)");
+
+    mFont = font;
+    QSignalBlocker block(this);
+    mLine->setText(font.family());
+}
+
 void TElementWidgetFont::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementWidgetFont::onLineEditTextChanged(const QString& text)");

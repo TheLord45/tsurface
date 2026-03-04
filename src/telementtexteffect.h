@@ -34,6 +34,7 @@ class TElementTextEffect : public QWidget
         ~TElementTextEffect();
 
         QString& getEffect() { return mEffect; }
+        void setEffect(int effect);
 
     signals:
         void effectChanged(int number, const QString& effect, const QString& name);
@@ -44,6 +45,8 @@ class TElementTextEffect : public QWidget
     private:
         const int SEL_NONE{-1};
         const int SEL_TOP{0};
+
+        void setSelection(const QString& text);
 
         QComboBox *mCombo{nullptr};
         QTreeView *mTreeView{nullptr};

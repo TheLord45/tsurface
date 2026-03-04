@@ -32,6 +32,7 @@ class TElementWidgetFont : public QWidget
         ~TElementWidgetFont();
 
         QFont &getFont() { return mFont; }
+        void setFont(const QFont& font);
         QString& getName() { return mName; }
 
     signals:

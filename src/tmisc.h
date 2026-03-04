@@ -49,6 +49,21 @@ enum STATE_TYPE
     STATE_APP
 };
 
+typedef enum
+{
+    W_NONE,
+    W_BITMAPSELECTOR,
+    W_BORDERNAME,
+    W_COLORSELECTOR,
+    W_GRADIENTCOLORS,
+    W_LINEEDIT,
+    W_SPINBOX,
+    W_TEXTEFFECT,
+    W_COMBO,
+    W_FONT,
+    W_TEXT
+}ELEMENT_TYPE_t;
+
 class QPixmap;
 
 QString basename(const QString& path);

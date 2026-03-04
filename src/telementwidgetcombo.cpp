@@ -102,6 +102,26 @@ void TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& da
     setCurrentIndex(0);
 }
 
+void TElementWidgetCombo::selectItem(const QString& text)
+{
+    DECL_TRACER("TElementWidgetCombo::selectItem(const QString& text)");
+
+    int idx = findText(text);
+
+    if (idx >= 0)
+        setCurrentIndex(idx);
+}
+
+void TElementWidgetCombo::selectItem(const QVariant& data)
+{
+    DECL_TRACER("TElementWidgetCombo::selectItem(const QVariant& data)");
+
+    int idx = findData(data);
+
+    if (idx >= 0)
+        setCurrentIndex(idx);
+}
+
 void TElementWidgetCombo::onCurrentTextChanged(const QString &text)
 {
     DECL_TRACER("TElementWidgetCombo::onCurrentTextChanged(const QString &text)");

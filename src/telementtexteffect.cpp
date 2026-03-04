@@ -74,19 +74,7 @@ TElementTextEffect::TElementTextEffect(int eff, const QString& name, QWidget *pa
     mCombo->setModelColumn(0);
 
     if (eff > 0 && !text.isEmpty())
-    {
-        const QModelIndexList matches = mModel->match(mModel->index(0, 0), Qt::DisplayRole, text, 1, Qt::MatchExactly | Qt::MatchRecursive);
-
-        if (!matches.isEmpty())
-        {
-            const QModelIndex modelIdx = matches.first();
-            // Temporarily set the root to the parent to allow row-based selection
-            mCombo->setRootModelIndex(modelIdx.parent());
-            mCombo->setCurrentIndex(modelIdx.row());
-            // Restore the original root to show the full tree
-            mCombo->setRootModelIndex(QModelIndex());
-        }
-    }
+        setSelection(text);
 
     connect(mCombo, &QComboBox::currentTextChanged, this, &TElementTextEffect::onComboTextChanged);
 }
@@ -94,6 +82,38 @@ TElementTextEffect::TElementTextEffect(int eff, const QString& name, QWidget *pa
 TElementTextEffect::~TElementTextEffect()
 {
     DECL_TRACER("TElementTextEffect::~TElementTextEffect()");
+}
+
+void TElementTextEffect::setEffect(int effect)
+{
+    DECL_TRACER("TElementTextEffect::setEffect(int effect)");
+
+    QString text;
+
+    if (effect > 0)
+    {
+        text = TGraphics::Current().getEffectStyleName(effect);
+
+        if (!text.isEmpty())
+            setSelection(text);
+    }
+}
+
+void TElementTextEffect::setSelection(const QString& text)
+{
+    DECL_TRACER("TElementTextEffect::setSelection(const QString& text)");
+
+    const QModelIndexList matches = mModel->match(mModel->index(0, 0), Qt::DisplayRole, text, 1, Qt::MatchExactly | Qt::MatchRecursive);
+
+    if (!matches.isEmpty())
+    {
+        const QModelIndex modelIdx = matches.first();
+        // Temporarily set the root to the parent to allow row-based selection
+        mCombo->setRootModelIndex(modelIdx.parent());
+        mCombo->setCurrentIndex(modelIdx.row());
+        // Restore the original root to show the full tree
+        mCombo->setRootModelIndex(QModelIndex());
+    }
 }
 
 void TElementTextEffect::onComboTextChanged(const QString& text)

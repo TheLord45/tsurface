@@ -80,6 +80,16 @@ TElementBorderName::~TElementBorderName()
     DECL_TRACER("TElementBorderName::~TElementBorderName()");
 }
 
+void TElementBorderName::setBorder(const QString& border)
+{
+    DECL_TRACER("TElementBorderName::setBorder(const QString& border)");
+
+    mBorder = border;
+
+    if (!border.isEmpty())
+        mCombo->setCurrentText(border);
+}
+
 void TElementBorderName::onComboTextChanged(const QString& text)
 {
     DECL_TRACER("TElementBorderName::onComboTextChanged(const QString& text)");

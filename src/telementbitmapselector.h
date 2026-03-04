@@ -53,7 +53,7 @@ class TElementBitmapSelector : public QWidget
         QList<ObjHandler::BITMAPS_t>& getBitmaps() { return mBitmaps; }
         QString& getName() { return mName; }
         void setBitmap(const ObjHandler::BITMAPS_t& bm) { mBitmaps.insert(0, bm); }
-        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bm) { mBitmaps = bm; }
+        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bm);
         void setName(const QString& name) { mName = name; }
         void setSingleBitmap(bool state) { mSingleBitmap = state; }
 

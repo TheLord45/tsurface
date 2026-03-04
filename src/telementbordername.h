@@ -34,6 +34,7 @@ class TElementBorderName : public QWidget
         ~TElementBorderName();
 
         QString& getBorder() { return mBorder; }
+        void setBorder(const QString& mBorder);
 
     signals:
         void borderChanged(const QString& border, const QString& name);

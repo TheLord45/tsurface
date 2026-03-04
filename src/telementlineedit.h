@@ -20,6 +20,8 @@
 
 #include <QWidget>
 
+class QLineEdit;
+
 class TElementLineEdit : public QWidget
 {
     Q_OBJECT
@@ -29,6 +31,7 @@ class TElementLineEdit : public QWidget
         ~TElementLineEdit();
 
         QString& getText() { return mText; };
+        void setText(const QString& text);
 
     signals:
         void inputTextChanged(const QString& text, const QString& name);
@@ -39,6 +42,7 @@ class TElementLineEdit : public QWidget
     private:
         QString mName;
         QString mText;
+        QLineEdit *mLine{nullptr};
 };
 
 #endif // TELEMENTLINEEDIT_H

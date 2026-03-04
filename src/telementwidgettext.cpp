@@ -64,6 +64,14 @@ void TElementWidgetText::setName(const QString& name)
         setObjectName(name);
 }
 
+void TElementWidgetText::setText(const QString& text)
+{
+    DECL_TRACER("TElementWidgetText::setText(const QString& text)");
+
+    mText = text;
+    mLine->setText(text);
+}
+
 void TElementWidgetText::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementWidgetText::onLineEditTextChanged(const QString& text)");

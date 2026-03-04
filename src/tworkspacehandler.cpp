@@ -102,6 +102,15 @@ bool TWorkSpaceHandler::isChanged()
     return false;
 }
 
+void TWorkSpaceHandler::setStateType(STATE_TYPE state)
+{
+    DECL_TRACER("TWorkSpaceHandler::setStateType(STATE_TYPE state)");
+
+    mStateType = state;
+    TPropertiesGeneral::setTable(state);
+    TPropertiesProgramming::setTable(state);
+}
+
 void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
 {
     DECL_TRACER("TWorkSpaceHandler::setObjectGeometry(int bi, const QRect& geom)");
@@ -123,7 +132,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
         return;
 
     TPropertiesGeneral::update();
-    TPropertiesProgramming::setObject(mObject->getObject(), index);
+    TPropertiesProgramming::setObject(object->getObject(), index);
 }
 
 void TWorkSpaceHandler::clear()
@@ -277,6 +286,7 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
             pg->ad = page->ap;
             pg->cp = page->cp;
             pg->ch = page->ch;
+            pg->objects = page->objects;
         break;
 
         case TBL_STATES:

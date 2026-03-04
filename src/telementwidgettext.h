@@ -32,6 +32,7 @@ class TElementWidgetText : public QWidget
         ~TElementWidgetText();
 
         QString& getText() { return mText; }
+        void setText(const QString& text);
         QString& getName() { return mName; }
         void setName(const QString& name);
 

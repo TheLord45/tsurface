@@ -51,24 +51,24 @@ class TPropertiesProgramming : public QObject
         void setParent(QWidget *parent) { mParent = parent; };
 
     protected:
-        void createPage();
-        void setTable();
+        void setTable(STATE_TYPE stype=STATE_UNKNOWN);
         void clear();
         // Callbacks
-        void onComboAddrPort(int index);
-        void onComboAddrPortText(const QString& text);
-        void onComboAddrCode(int index);
-        void onComboAddrCodeText(const QString& text);
-        void onComboChanPort(int index);
-        void onComboChanPortText(const QString& text);
-        void onComboChanCode(int index);
-        void onComboChanCodeText(const QString& text);
-
         void onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name);
         void onSpinAddressPort(int value, const QString& name);
         void onSpinAddressCode(int value, const QString& name);
         void onSpinChannelPort(int value, const QString& name);
         void onSpinChannelCode(int value, const QString& name);
+        void onComboLevelControlType(const QString& text, const QVariant& data, const QString& name);
+        void onSpinLevelPort(int value, const QString& name);
+        void onSpinLevelCode(int value, const QString& name);
+        void onSpinLevelControlValue(int value, const QString& name);
+        void onSpinControlRepeatTime(int value, const QString& name);
+        void onComboLevelFunction(const QString& text, const QVariant& data, const QString& name);
+        void onSpinRangeLowHigh(int value, const QString& name);
+        void onSpinRangeDragIncrement(int value, const QString& name);
+        void onComboRangeInverted(const QString& text, const QVariant& data, const QString& name);
+        void onSpinRangeTimeUpDown(int value, const QString& name);
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
@@ -81,9 +81,21 @@ class TPropertiesProgramming : public QObject
         TElementSpinBox *makeAddressCode(const QString& name);
         TElementSpinBox *makeChannelPort(const QString& name);
         TElementSpinBox *makeChannelCode(const QString& name);
+        TElementWidgetCombo *makeLevelControlType(const QString& name);
+        TElementSpinBox *makeLevelPort(const QString& name);
+        TElementSpinBox *makeLevelCode(const QString& name);
+        TElementSpinBox *makeLevelControlValue(const QString& name);
+        TElementSpinBox *makeControlRepeatTime(const QString& name);
+        TElementWidgetCombo *makeLevelFunction(const QString& name);
+        TElementSpinBox *makeRangeLowHigh(const QString& name);
+        TElementSpinBox *makeRangeDragIncrement(const QString& name);
+        TElementWidgetCombo *makeRangeInverted(const QString& name);
+        TElementSpinBox *makeRangeTimeUpDown(const QString& name);
 
+        void createPage();
         bool isAnyPage();
         void setSType();
+        void setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
 
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};

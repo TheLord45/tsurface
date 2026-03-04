@@ -62,6 +62,7 @@ void TElementSpinBox::setValue(int value)
     DECL_TRACER("TElementSpinBox::setValue(int value)");
 
     mValue = value;
+    QSignalBlocker block(this);
 
     if (mSpinBox)
         mSpinBox->setValue(value);

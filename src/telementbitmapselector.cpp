@@ -94,6 +94,18 @@ void TElementBitmapSelector::init()
     connect(mButton, &QPushButton::clicked, this, &TElementBitmapSelector::onPushButtonClicked);
 }
 
+void TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps)
+{
+    DECL_TRACER("TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps)");
+
+    mBitmaps = bitmaps;
+
+    if (mLine && !bitmaps.empty())
+        mLine->setText(bitmaps[0].fileName);
+    else
+        mLine->setText("");
+}
+
 void TElementBitmapSelector::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementBitmapSelector::onLineEditTextChanged(const QString& text)");

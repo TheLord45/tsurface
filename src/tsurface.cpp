@@ -1725,15 +1725,21 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 {
     DECL_TRACER("TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)");
 
+    if (!w)
+        return;
+
     MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId());
     Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
 
     if (!page)
+    {
+        MSG_DEBUG("Page " << w->getPageId() << " not found!");
         return;
+    }
 
     if (selected)
     {
-        TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
+//        TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
         TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
 
         if (!object)
@@ -1755,7 +1761,10 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
                 TObjectHandler *object = TPageHandler::Current().getObjectHandler(widget->getPageId(), widget->getId());
 
                 if (!object)
+                {
+                    TWorkSpaceHandler::Current().setStateType(page->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
                     return;
+                }
 
                 TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
             }

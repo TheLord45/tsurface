@@ -52,7 +52,7 @@ class TWorkSpaceHandler
         void setPropertiesGeneralWidget(QTableWidget *widget);
         bool isChanged();
         Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
-        void setStateType(STATE_TYPE st) { mStateType = st; }
+        void setStateType(STATE_TYPE st);
         void setObjectGeometry(int pageID, int bi, const QRect& geom);
         void setActualObject(TObjectHandler *object, int index=-1);
         void clear();

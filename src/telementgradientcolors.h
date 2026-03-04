@@ -22,6 +22,7 @@
 
 class QTableWidget;
 class QHBoxLayout;
+class QPushButton;
 
 class TElementGradientColors : public QWidget
 {
@@ -29,6 +30,8 @@ class TElementGradientColors : public QWidget
 
     public:
         TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent=nullptr);
+
+        void setGradientColors(const QList<QColor>& colors);
 
     signals:
         void gradientColorChanged(QList<QColor>& colors, const QString& name);
@@ -44,6 +47,8 @@ class TElementGradientColors : public QWidget
         QWidget *mParent{nullptr};
         QTableWidget *mTable{nullptr};
         QHBoxLayout *mLayout{nullptr};
+        QPushButton *mButton{nullptr};
+        bool mConnected{false};
 };
 
 #endif // TELEMENTGRADIENTCOLORS_H

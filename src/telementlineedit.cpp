@@ -27,14 +27,23 @@ TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWi
 {
     DECL_TRACER("TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWidget *parent)");
 
-    QLineEdit *le = new QLineEdit(this);
-    le->setText(text);
-    connect(le, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
+    mLine = new QLineEdit(this);
+    mLine->setText(text);
+    connect(mLine, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
 }
 
 TElementLineEdit::~TElementLineEdit()
 {
     DECL_TRACER("TElementLineEdit::~TElementLineEdit()");
+}
+
+void TElementLineEdit::setText(const QString& text)
+{
+    DECL_TRACER("TElementLineEdit::setText(const QString& text)");
+
+    mText = text;
+    QSignalBlocker block(this);
+    mLine->setText(text);
 }
 
 void TElementLineEdit::onTextChanged(const QString& text)
