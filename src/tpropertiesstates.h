@@ -37,6 +37,7 @@ class TElementWidgetFont;
 class TElementTextEffect;
 class TElementBorderName;
 class TElementGradientColors;
+class TElementSound;
 
 class TPropertiesStates : public QObject
 {
@@ -47,10 +48,8 @@ class TPropertiesStates : public QObject
         ~TPropertiesStates();
 
         void setPage(const Page::PAGE_t& page);
-        void setStatesPage(const QString& name);
-        void setStatesPage(int id, bool loaded);
-        void setActualButton(int bi);
-        void update();
+        void setActualButton(int index, STATE_TYPE stype);
+        void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         bool isChanged() { return mChanged; }
 
     protected:
@@ -65,18 +64,19 @@ class TPropertiesStates : public QObject
         void createPage();
         QTableWidget *createTableWidget(STATE_TYPE stype, QWidget *parent=nullptr);
         QString getLeftColText(int line);
-        TElementBorderName *makeBorderName(const QString& border, const QString& name);
-        QComboBox *makeFillType(const QString& ftype, const QString& name);
-        QWidget *makeColorSelector(const QColor& col, const QString& name);
-        QWidget *makeVideoFill(const QString& vf, const QString& name);
-        TElementBitmapSelector *makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
-        TElementWidgetFont *makeFontSelector(const QString& fname, const QString& name);
-        QSpinBox *makeValueSelector(int value, const QString& name, int start=0, int max=0);
-        QWidget *makeTextValue(const QString& txt, const QFont& font, const QString& name);
-        TElementWidgetCombo *makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name);
-        TElementTextEffect *makeTextEffect(int ef, const QString& name);
-        TElementWidgetCombo *makeWordWrap(bool ww, const QString& name);
-        TElementGradientColors *makeGradientColors(const QList<QColor>& color, const QString& name);
+        TElementBorderName *makeBorderName(const QString& name);
+        QComboBox *makeFillType(const QString& name);
+        QWidget *makeColorSelector(const QString& name);
+        QWidget *makeVideoFill(const QString& name);
+        TElementBitmapSelector *makeBitmapSelector(const QString& name);
+        TElementWidgetFont *makeFontSelector(const QString& name);
+        QSpinBox *makeValueSelector(const QString& name);
+        QWidget *makeTextValue(const QString& name);
+        TElementWidgetCombo *makeTextJustification(const QString& name);
+        TElementTextEffect *makeTextEffect(const QString& name);
+        TElementWidgetCombo *makeWordWrap(const QString& name);
+        TElementGradientColors *makeGradientColors(const QString& name);
+        TElementSound *makeSoundSelector(const QString& name);
         void setGeometry(int bi, const QRect& geom);
         void clear();
 
@@ -88,21 +88,26 @@ class TPropertiesStates : public QObject
         void onBorderNameChanged(const QString& border, const QString& name);
         void onWordWrapChanged(const QString& text, const QVariant&data, const QString& name);
         void onGradientColorChanged(const QList<QColor>& colors, const QString& name);
+        void onSoundChanged(const QString& file, const QString& name);
 
     private:
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
         void addGradientLines(const QString& gradient, const QString& name, bool init=false);
-        void createTablePage(QTableWidget *table);
-        void createTablePopup(QTableWidget *table);
-        void adjustTablePage(QTableWidget *table, QString gradient="");
-        void adjustTablePopup(QTableWidget *table, QString gradient="");
+        void setTable(QTableWidget *table, int instance=-1);
+        void createPage(QTableWidget *table, int instance=-1);
+        void setSType();
+        bool isAnyPage();
+        bool isValidObjectIndex();
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
         Page::PAGE_t mPage;
-        int mActualObjectID{0};
+        ObjHandler::TOBJECT_t mActObject;
+        STATE_TYPE mSType{STATE_UNKNOWN};
+        int mActObjectID{0};
+        int mActInstance{0};
         bool mChanged{false};
         bool mInitialized{false};
         bool mBlocked{false};       // TRUE = A dialog box is open. Recreating is blocked!

@@ -68,6 +68,8 @@ class TPropertiesGeneral : public QObject
         virtual ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
         virtual void setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype) = 0;
+        virtual void pageTypeChanged(Page::PAGE_TYPE ptype, int pageID) = 0;
+        virtual void objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index) = 0;
         // Callbacks
         void onCellChanged(int row, int column);
         void onCellActivated(int row, int column);

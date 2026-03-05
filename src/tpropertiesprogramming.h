@@ -39,6 +39,7 @@ class TPropertiesProgramming : public QObject
         TPropertiesProgramming(QTableWidget *table);
         ~TPropertiesProgramming();
 
+        void setParent(QWidget *parent) { mParent = parent; };
         void setPage(const Page::PAGE_t& page);
         void setProgrammingPage(const QString& name);
         void setProgrammingPage(int id, bool loaded=false);
@@ -46,9 +47,9 @@ class TPropertiesProgramming : public QObject
         void setProgrammingPopup(int id, bool loaded=false);
         void setObject(ObjHandler::TOBJECT_t& object, int id);
         void setObjectID(int id);
+        void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t& getActualPage() { return mPage; }
-        void setParent(QWidget *parent) { mParent = parent; };
 
     protected:
         void setTable(STATE_TYPE stype=STATE_UNKNOWN);
@@ -72,8 +73,8 @@ class TPropertiesProgramming : public QObject
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
+        virtual void requestRedraw(Page::PAGE_t *page) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
-
 
     private:
         TElementWidgetCombo *makeObjectFeedback(const QString& name);

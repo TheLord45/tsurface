@@ -22,6 +22,8 @@
 #include <QString>
 #include <QObject>
 
+#include "tpagehandler.h"
+
 class QWidget;
 class QTreeView;
 class QStandardItemModel;
@@ -73,6 +75,7 @@ class TPageTree : public QObject
         void updatePageName(int id, const QString& name);
         void updatePopupName(int id, const QString& name);
         void updateSubPageName(int id, const QString& name);
+        void setPageType(Page::PAGE_TYPE ptype, int pageID);
         void setFocus(int id);
 
     signals:

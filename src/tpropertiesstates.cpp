@@ -38,37 +38,37 @@
 #include "telementtexteffect.h"
 #include "telementbordername.h"
 #include "telementgradientcolors.h"
+#include "telementsound.h"
 #include "terror.h"
 
 using namespace Page;
 
-#define TTEXT_FILL_TYPE             1
-#define TTEXT_FILL_COLOR            2
-#define TTEXT_TEXT_COLOR            3
-#define TTEXT_TEXT_EFFECT_COLOR     4
-#define TTEXT_VIDEO_FILL            5
-#define TTEXT_BITMAPS               6
-#define TTEXT_FONT                  7
-#define TTEXT_FONT_SIZE             8
-#define TTEXT_TEXT                  9
-#define TTEXT_TEXT_JUSTIFICATION    10
-#define TTEXT_TEXT_EFFECT           11
-#define TTEXT_WORD_WRAP             12
+#define TTEXT_BORDER_NAME           0
+#define TTEXT_CHAMELEON_IMAGE       1
+#define TTEXT_BORDER_COLOR          2
+#define TTEXT_FILL_TYPE             3
+#define TTEXT_FILL_GRADIENT_COLORS  4
+#define TTEXT_GRADIENT_RADIUS       5
+#define TTEXT_GRADIENT_CENTER_X     6
+#define TTEXT_GRADIENT_CENTER_Y     7
+#define TTEXT_FILL_COLOR            8
+#define TTEXT_TEXT_COLOR            9
+#define TTEXT_TEXT_EFFECT_COLOR     10
+#define TTEXT_OVERALL_OPACITY       11
+#define TTEXT_VIDEO_FILL            12
+#define TTEXT_STREAMING_SOURCE      13
+#define TTEXT_BITMAPS               14
+#define TTEXT_FONT                  15
+#define TTEXT_FONT_SIZE             16
+#define TTEXT_TEXT                  17
+#define TTEXT_TEXT_JUSTIFICATION    18
+#define TTEXT_TEXT_POSITION_X       19
+#define TTEXT_TEXT_POSITION_Y       20
+#define TTEXT_TEXT_EFFECT           21
+#define TTEXT_WORD_WRAP             22
+#define TTEXT_SOUND                 23
 
-#define TTEXT_BORDER_NAME           13
-#define TTEXT_BORDER_COLOR          14
-#define TTEXT_OVERALL_OPACITY       15
-
-#define TTEXT_CHAMELEON_IMAGE       16
-#define TTEXT_SOUND                 17
-
-#define TTEXT_FILL_GRADIENT_COLORS  18
-#define TTEXT_GRADIENT_RADIUS       19
-#define TTEXT_GRADIENT_CENTER_X     20
-#define TTEXT_GRADIENT_CENTER_Y     21
-
-#define TTEXT_TEXT_POSITION_X       22
-#define TTEXT_TEXT_POSITION_Y       23
+#define TTEXT_MAX                   24
 
 TPropertiesStates::TPropertiesStates(QTreeWidget *widget)
     : mTreeWidget(widget)
@@ -95,95 +95,57 @@ void TPropertiesStates::setGeometry(int bi, const QRect& geom)
     }
 }
 
+/**
+ * @brief TPropertiesStates::setPage
+ * This method sets the @bold page. If the page is a new page then the old
+ * page is saved in case there were changes. Then the new page is assigned
+ * and created.
+ * The method doesn't distinguish between a page or popup. The underlying
+ * structure is the same for all kind of pages.
+ *
+ * @param page  The new page
+ */
 void TPropertiesStates::setPage(const Page::PAGE_t& page)
 {
     DECL_TRACER("TPropertiesStates::setPage(const Page::PAGE_t& page)");
 
-    if (page.pageID == mPage.pageID)
-        return;
-
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_STATES);
 
     mChanged = false;
     mPage = page;
+    mActInstance = -1;
+    mActObjectID = -1;
+    setSType();
     createPage();
 }
 
-void TPropertiesStates::setStatesPage(const QString& name)
+void TPropertiesStates::setActualButton(int index, STATE_TYPE stype)
 {
-    DECL_TRACER("TPropertiesStates::setStatesPage(const QString& name)");
+    DECL_TRACER("TPropertiesStates::setActualButton(int index, STATE_TYPE stype)");
 
-    if (!mTreeWidget)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTreeWidget\"!");
-        return;
-    }
-
-    Page::PAGE_t page = TPageHandler::Current().getPage(name);
-
-    if (page.pageID == mPage.pageID)
+    if (index <= 0 || index >= mPage.objects.size() || mActObjectID == index)
         return;
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_STATES);
-
-    mChanged = false;
-    mPage = page;
-    setStatesPage(mPage.pageID, true);
-}
-
-void TPropertiesStates::setStatesPage(int id, bool loaded)
-{
-    DECL_TRACER("TPropertiesStates::setStatesPage(int id, bool loaded)");
-
-    if (!mTreeWidget)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTreeWidget\"!")
-        return;
-    }
-
-    Page::PAGE_t *page = nullptr;
-
-    if (!loaded)
-    {
-        page = TPageHandler::Current().getPage(id);
-
-        if (!page || page->pageID == mPage.pageID)
-            return;
-    }
-
-    if (!loaded && mPage.pageID > 0 && mChanged)
-    {
-        saveChangedData(&mPage, TBL_STATES);
-        mPage = Page::PAGE_t();
-    }
-
-    mChanged = false;
-
-    if (!loaded)
-        mPage = *page;
-
-    if (mPage.pageID <= 0)
-        return;
-
+    mActObjectID = index;
+    mSType = stype;
     createPage();
-}
-
-void TPropertiesStates::setActualButton(int bi)
-{
-    DECL_TRACER("TPropertiesStates::setActualButton(int bi)");
-
-    if (bi <= 0 || bi >= mPage.objects.size() || mActualObjectID == bi)
-        return;
-
-    mActualObjectID = bi;
     // TODO: Add code to show the states for an object
 }
 
-void TPropertiesStates::update()
+void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 {
+    DECL_TRACER("TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");
 
+    if (index < 0 || index >= mPage.objects.size())
+        return;
+
+    if (mActObjectID != index)
+    {
+        MSG_WARNING("The new object id is different! Actual ID: " << mActObjectID << ", new ID: " << index);
+    }
+
+    mPage.objects[index]->setObjectType(btype);
 }
 
 void TPropertiesStates::clear()
@@ -202,6 +164,161 @@ void TPropertiesStates::clear()
     mTreeWidget->setColumnCount(0);
 }
 
+void TPropertiesStates::setTable(QTableWidget *table, int instance)
+{
+    DECL_TRACER("TPropertiesStates::setTable(QTableWidget *table, int instance)");
+
+    for (int i = 0; i < table->rowCount(); ++i)
+        table->setRowHidden(i, true);
+
+    if (mActObjectID < 0 || mActObjectID > mPage.objects.size() || instance < 0)
+    {
+        if (mPage.popupType == Page::PT_PAGE)
+        {
+            table->setRowHidden(TTEXT_FILL_TYPE, false);
+
+            if (mPage.srPage.ft != "solid")
+            {
+                table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
+
+                if (mPage.srPage.ft == "radial")
+                {
+                    table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
+                    table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
+                    table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
+                }
+            }
+            else
+                table->setRowHidden(TTEXT_FILL_COLOR, false);
+
+            table->setRowHidden(TTEXT_TEXT_COLOR, false);
+            table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
+            table->setRowHidden(TTEXT_VIDEO_FILL, false);
+
+            if (mPage.srPage.vf == "100")
+                table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
+
+            table->setRowHidden(TTEXT_BITMAPS, false);
+            table->setRowHidden(TTEXT_FONT, false);
+            table->setRowHidden(TTEXT_FONT_SIZE, false);
+            table->setRowHidden(TTEXT_TEXT, false);
+            table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+
+            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            {
+                table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
+                table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+            }
+
+            table->setRowHidden(TTEXT_TEXT_EFFECT, false);
+            table->setRowHidden(TTEXT_WORD_WRAP, false);
+        }
+        else if (mPage.popupType == Page::PT_POPUP || mPage.popupType == Page::PT_SUBPAGE)
+        {
+            table->setRowHidden(TTEXT_BORDER_NAME, false);
+
+            if (mPage.srPage.bs.isEmpty())
+                table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
+
+            table->setRowHidden(TTEXT_BORDER_COLOR, false);
+            table->setRowHidden(TTEXT_FILL_TYPE, false);
+
+            if (mPage.srPage.ft != "solid")
+            {
+                table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
+
+                if (mPage.srPage.ft == "radial")
+                {
+                    table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
+                    table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
+                    table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
+                }
+            }
+            else
+                table->setRowHidden(TTEXT_FILL_COLOR, false);
+
+            table->setRowHidden(TTEXT_TEXT_COLOR, false);
+            table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
+            table->setRowHidden(TTEXT_VIDEO_FILL, false);
+
+            if (mPage.srPage.vf == "100")
+                table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
+
+            table->setRowHidden(TTEXT_BITMAPS, false);
+            table->setRowHidden(TTEXT_FONT, false);
+            table->setRowHidden(TTEXT_FONT_SIZE, false);
+            table->setRowHidden(TTEXT_TEXT, false);
+            table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+
+            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            {
+                table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
+                table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+            }
+
+            table->setRowHidden(TTEXT_TEXT_EFFECT, false);
+            table->setRowHidden(TTEXT_WORD_WRAP, false);
+        }
+    }
+    else
+    {
+        ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
+        mActInstance = instance;
+
+        if (instance >= obj.sr.size())
+        {
+            MSG_ERROR("Instance " << instance << " is out of range! Have " << obj.sr.size() << " states.");
+            return;
+        }
+
+        table->setRowHidden(TTEXT_BORDER_NAME, false);
+
+        if (mPage.srPage.bs.isEmpty())
+            table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
+
+        table->setRowHidden(TTEXT_BORDER_COLOR, false);
+        table->setRowHidden(TTEXT_FILL_TYPE, false);
+
+        if (mPage.srPage.ft != "solid")
+        {
+            table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
+
+            if (mPage.srPage.ft == "radial")
+            {
+                table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
+                table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
+                table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
+            }
+        }
+        else
+            table->setRowHidden(TTEXT_FILL_COLOR, false);
+
+        table->setRowHidden(TTEXT_TEXT_COLOR, false);
+        table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
+        table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
+        table->setRowHidden(TTEXT_VIDEO_FILL, false);
+
+        if (mPage.srPage.vf == "100")
+            table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
+
+        table->setRowHidden(TTEXT_BITMAPS, false);
+        table->setRowHidden(TTEXT_FONT, false);
+        table->setRowHidden(TTEXT_FONT_SIZE, false);
+        table->setRowHidden(TTEXT_TEXT, false);
+        table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+
+        if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+        {
+            table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
+            table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+        }
+
+        table->setRowHidden(TTEXT_TEXT_EFFECT, false);
+        table->setRowHidden(TTEXT_WORD_WRAP, false);
+        table->setRowHidden(TTEXT_SOUND, false);
+    }
+}
+
 void TPropertiesStates::createPage()
 {
     DECL_TRACER("TPropertiesStates::createPage()");
@@ -216,46 +333,25 @@ void TPropertiesStates::createPage()
     }
 
     mInitialized = false;
-    QBrush brush;
-    brush.setColor(Qt::GlobalColor::lightGray);
     mTreeWidget->clear();
     mTreeWidget->setColumnCount(1);
     mTreeWidget->setHeaderHidden(true);
 
-    if (mPage.popupType == PT_PAGE)
-    {
-        QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
-        top->setText(0, tr("Off"));
+    QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
+    top->setText(0, tr("Off"));
 
-        QTreeWidgetItem *item = new QTreeWidgetItem(top);
-        item->setFirstColumnSpanned(true);
-        item->setFlags(Qt::ItemIsEnabled);      // Not selectable
+    QTreeWidgetItem *item = new QTreeWidgetItem(top);
+    item->setFirstColumnSpanned(true);
+    item->setFlags(Qt::ItemIsEnabled);      // Not selectable
 
-        QTableWidget *table = createTableWidget(STATE_PAGE);
-        mTreeWidget->setItemWidget(item, 0, table);
-        int totalHeight = table->height() + mTreeWidget->height();
-        MSG_DEBUG("Page total height: " << totalHeight);
-        mTreeWidget->setMinimumHeight(totalHeight);
+    QTableWidget *table = createTableWidget(STATE_PAGE, mTreeWidget);
+    mTreeWidget->setItemWidget(item, 0, table);
+    int totalHeight = table->height() + mTreeWidget->height();
+    MSG_DEBUG("Page total height: " << totalHeight);
+    mTreeWidget->setMinimumHeight(totalHeight);
 
-        addGradientLines(mPage.srPage.ft, "PgFillType", true);
-    }
-    else if (mPage.popupType == PT_POPUP)
-    {
-        QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
-        top->setText(0, tr("Off"));
-
-        QTreeWidgetItem *item = new QTreeWidgetItem(top);
-        item->setFirstColumnSpanned(true);
-        item->setFlags(Qt::ItemIsEnabled);      // Not selectable
-
-        QTableWidget *table = createTableWidget(STATE_POPUP, mTreeWidget);
-        mTreeWidget->setItemWidget(item, 0, table);
-        int totalHeight = table->height() + mTreeWidget->height();
-        MSG_DEBUG("Popup total height: " << totalHeight);
-        mTreeWidget->setMinimumHeight(totalHeight);
-
-        addGradientLines(mPage.srPage.ft, "PopupFillType", true);
-    }
+    setTable(table);
+//    addGradientLines(mPage.srPage.ft, "FillType", true);
 
     mInitialized = true;
 }
@@ -273,36 +369,46 @@ QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *pa
     table->setShowGrid(true);
     table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     table->setColumnCount(2);
-//    int rows = 0;
 
-    if (stype == STATE_PAGE)
-        createTablePage(table);
-    else if (stype == STATE_POPUP)
-        createTablePopup(table);
-//    else if (stype == STATE_BUTTON)
-//        rows = 17;
-//    else if (stype == STATE_BARGRAPH)
-//        rows = 16;
+    createPage(table);
 
     table->resizeRowsToContents();
     table->resizeColumnsToContents();
     return table;
 }
 
-void TPropertiesStates::createTablePage(QTableWidget *table)
+void TPropertiesStates::createPage(QTableWidget *table, int instance)
 {
-    DECL_TRACER("TPropertiesStates::createTablePage(QTableWidget *table)");
+    DECL_TRACER("TPropertiesStates::createTablePage(QTableWidget *table, int instance)");
 
-    if (mPage.srPage.ff.isEmpty())
+    if (mSType == STATE_PAGE || mSType == STATE_POPUP || mSType == STATE_SUBPAGE)
     {
-        QFont font = mParent->font();
-        mPage.srPage.ff = font.family();
+        if (mPage.srPage.ff.isEmpty())
+        {
+            QFont font = mParent->font();
+            mPage.srPage.ff = font.family();
+        }
+
+        if (mPage.srPage.fs <= 0)
+            mPage.srPage.fs = 10;
     }
+    else if (instance >= 0 && mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
 
-    if (mPage.srPage.fs <= 0)
-        mPage.srPage.fs = 10;
+        if (obj.sr[instance].ff.isEmpty())
+        {
+            QFont font = mParent->font();
+            obj.sr[instance].ff = font.family();
+        }
 
-    int rows = 18;
+        if (obj.sr[instance].fs <= 0)
+            obj.sr[instance].fs = 10;
+    }
+    else
+        return;
+
+    int rows = TTEXT_MAX;
     // The row count must be defined before rows are added to the table! Otherwise
     // an empty table with only the grid will be visible.
     table->setRowCount(rows);
@@ -316,410 +422,132 @@ void TPropertiesStates::createTablePage(QTableWidget *table)
 
         switch(row)
         {
-            case 0:
+            case TTEXT_BORDER_NAME:
+                col0->setText(getLeftColText(TTEXT_BORDER_NAME));
+                table->setCellWidget(row, 1, makeBorderName("PopupBorderName"));
+            break;
+
+            case TTEXT_CHAMELEON_IMAGE:
+                col0->setText(getLeftColText(TTEXT_CHAMELEON_IMAGE));
+                table->setCellWidget(row, 1, makeBitmapSelector("ChameleonImage"));
+            break;
+
+            case TTEXT_BORDER_COLOR:
+                col0->setText(getLeftColText(TTEXT_BORDER_COLOR));
+                table->setCellWidget(row, 1, makeColorSelector("BorderColor"));
+            break;
+
+            case TTEXT_FILL_TYPE:
                 col0->setText(getLeftColText(TTEXT_FILL_TYPE));
-                table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PgFillType"));
-                totalHeight = table->cellWidget(row, 1)->height();
+                table->setCellWidget(row, 1, makeFillType("FillType"));
             break;
 
-            case 1:
+            case TTEXT_FILL_COLOR:
                 col0->setText(getLeftColText(TTEXT_FILL_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "PgFillColor"));
-
-                if (mPage.srPage.ft != "solid")
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeColorSelector("FillColor"));
             break;
 
-            case 2:
+            case TTEXT_FILL_GRADIENT_COLORS:
                 col0->setText(getLeftColText(TTEXT_FILL_GRADIENT_COLORS));
-                table->setCellWidget(row, 1, makeGradientColors(mPage.srPage.gradientColors, "PgFillGradientColors"));
-
-                if (mPage.srPage.ft == "solid")
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeGradientColors("FillGradientColors"));
             break;
 
-            case 3:
+            case TTEXT_GRADIENT_RADIUS:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_RADIUS));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gr, "PgGradientRadius", 0, 5000));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeValueSelector("GradientRadius"));
             break;
 
-            case 4:
+            case TTEXT_GRADIENT_CENTER_X:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_X));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gx, "PgGradientCenterX"));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX"));
             break;
 
-            case 5:
+            case TTEXT_GRADIENT_CENTER_Y:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_Y));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gy, "PgGradientCenterX"));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX"));
             break;
 
-            case 6:
+            case TTEXT_TEXT_COLOR:
                 col0->setText(getLeftColText(TTEXT_TEXT_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ct, "PgTextColor"));
+                table->setCellWidget(row, 1, makeColorSelector("TextColor"));
             break;
 
-            case 7:
+            case TTEXT_TEXT_EFFECT_COLOR:
                 col0->setText(getLeftColText(TTEXT_TEXT_EFFECT_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PgTextEffectColor"));
+                table->setCellWidget(row, 1, makeColorSelector("TextEffectColor"));
             break;
 
-            case 8:
+            case TTEXT_OVERALL_OPACITY:
+                col0->setText(getLeftColText(TTEXT_OVERALL_OPACITY));
+                table->setCellWidget(row, 1, makeValueSelector("OverallOpacity"));
+            break;
+
+            case TTEXT_VIDEO_FILL:
                 col0->setText(getLeftColText(TTEXT_VIDEO_FILL));
-                table->setCellWidget(row, 1, makeVideoFill(mPage.srPage.vf, "PgVideoFill"));
+                table->setCellWidget(row, 1, makeVideoFill("VideoFill"));
             break;
 
-            case 9:
+            case TTEXT_STREAMING_SOURCE:
+                col0->setText(getLeftColText(TTEXT_STREAMING_SOURCE));
+                table->setCellWidget(row, 1, makeTextValue("StreamingSource"));
+            break;
+
+            case TTEXT_BITMAPS:
                 col0->setText(getLeftColText(TTEXT_BITMAPS));
-                table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps, "PgBitmapSelector"));
+                table->setCellWidget(row, 1, makeBitmapSelector("BitmapSelector"));
             break;
 
-            case 10:
+            case TTEXT_FONT:
                 col0->setText(getLeftColText(TTEXT_FONT));
-                table->setCellWidget(row, 1, makeFontSelector(mPage.srPage.ff, "PgFontSelector"));
+                table->setCellWidget(row, 1, makeFontSelector("FontSelector"));
             break;
 
-            case 11:
+            case TTEXT_FONT_SIZE:
                 col0->setText(getLeftColText(TTEXT_FONT_SIZE));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.fs, "PgFontSize"));
+                table->setCellWidget(row, 1, makeValueSelector("FontSize"));
             break;
 
-            case 12:
-            {
+            case TTEXT_TEXT:
                 col0->setText(getLeftColText(TTEXT_TEXT));
-                QFont font;
-
-                if (mPage.srPage.ff.isEmpty())
-                {
-                    font = mParent->font();
-                    mPage.srPage.ff = font.family();
-                }
-
-                if (mPage.srPage.fs <= 0)
-                    font.setPointSize(10);
-                else
-                    font.setPointSize(mPage.srPage.fs);
-
-                table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, font, "PgText"));
-                table->resizeRowToContents(row);
-            }
+                table->setCellWidget(row, 1, makeTextValue("Text"));
             break;
 
-            case 13:
+            case TTEXT_TEXT_JUSTIFICATION:
                 col0->setText(getLeftColText(TTEXT_TEXT_JUSTIFICATION));
-                table->setCellWidget(row, 1, makeTextJustification(mPage.srPage.jt, "PgTextOrientation"));
+                table->setCellWidget(row, 1, makeTextJustification("TextOrientation"));
             break;
 
-            case 14:
+            case TTEXT_TEXT_POSITION_X:
                 col0->setText(getLeftColText(TTEXT_TEXT_POSITION_X));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.tx, "PgTextPositionX", 0, mPage.width));
-
-                if (mPage.srPage.jt != ObjHandler::ORI_ABSOLUT)
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeValueSelector("TextPositionX"));
             break;
 
-            case 15:
+            case TTEXT_TEXT_POSITION_Y:
                 col0->setText(getLeftColText(TTEXT_TEXT_POSITION_Y));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.ty, "PgTextPositionY", 0, mPage.height));
-
-                if (mPage.srPage.jt != ObjHandler::ORI_ABSOLUT)
-                    table->hideRow(row);
+                table->setCellWidget(row, 1, makeValueSelector("TextPositionY"));
             break;
 
-            case 16:
+            case TTEXT_TEXT_EFFECT:
                 col0->setText(getLeftColText(TTEXT_TEXT_EFFECT));
-                table->setCellWidget(row, 1, makeTextEffect(mPage.srPage.et, "PgTextEffect"));
+                table->setCellWidget(row, 1, makeTextEffect("TextEffect"));
             break;
 
-            case 17:
+            case TTEXT_WORD_WRAP:
                 col0->setText(getLeftColText(TTEXT_WORD_WRAP));
-                table->setCellWidget(row, 1, makeWordWrap(mPage.srPage.ww, "PgWordWrap"));
+                table->setCellWidget(row, 1, makeWordWrap("WordWrap"));
+            break;
+
+            case TTEXT_SOUND:
+                col0->setText(getLeftColText(TTEXT_SOUND));
+                table->setCellWidget(row, 1, makeSoundSelector("Sound"));
             break;
         }
 
+        totalHeight += table->cellWidget(row, 1)->size().height();
         table->setItem(row, 0, col0);
     }
 
     table->setMinimumHeight(totalHeight);
-}
-
-void TPropertiesStates::adjustTablePage(QTableWidget *table, QString gradient)
-{
-    DECL_TRACER("TPropertiesStates::adjustTablePage(QTableWidget *table, QString gradient)");
-
-    QString grad;
-
-    if (!gradient.isEmpty())
-        grad = gradient;
-    else
-        grad = mPage.srPage.ft;
-
-    if (grad == "solid")
-    {
-        table->hideRow(2);
-        table->hideRow(3);
-        table->hideRow(4);
-        table->hideRow(5);
-        table->showRow(1);
-    }
-    else if (grad == "radial")
-    {
-        table->showRow(2);
-        table->showRow(3);
-        table->showRow(4);
-        table->showRow(5);
-        table->hideRow(1);
-    }
-    else
-    {
-        table->hideRow(1);
-        table->showRow(2);
-        table->hideRow(3);
-        table->hideRow(4);
-        table->hideRow(5);
-    }
-
-    if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
-    {
-        table->showRow(14);
-        table->showRow(15);
-    }
-    else
-    {
-        table->hideRow(14);
-        table->hideRow(15);
-    }
-}
-
-void TPropertiesStates::createTablePopup(QTableWidget *table)
-{
-    DECL_TRACER("TPropertiesStates::createTablePopup(QTableWidget *table)");
-
-    int rows = 21;
-
-    if (mPage.srPage.ff.isEmpty())
-    {
-        QFont font = mParent->font();
-        mPage.srPage.ff = font.family();
-    }
-
-    if (mPage.srPage.fs <= 0)
-        mPage.srPage.fs = 10;
-
-    // The row count must be defined before rows are added to the table! Otherwise
-    // an empty table with only the grid will be visible.
-    table->setRowCount(rows);
-    int totalHeight = 0;
-
-    for (int row = 0; row < rows; ++row)
-    {
-        QTableWidgetItem *col0 = new QTableWidgetItem;
-        col0->setBackground(Qt::lightGray);
-        col0->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
-
-        switch(row)
-        {
-            case 0:
-                col0->setText(getLeftColText(TTEXT_BORDER_NAME));
-                table->setCellWidget(row, 1, makeBorderName(mPage.srPage.bs, "PopupBorderName"));
-                totalHeight = table->cellWidget(row, 1)->size().height();
-            break;
-
-            case 1:
-                col0->setText(getLeftColText(TTEXT_BORDER_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cb, "PopupBorderColor"));
-            break;
-
-            case 2:
-                col0->setText(getLeftColText(TTEXT_FILL_TYPE));
-                table->setCellWidget(row, 1, makeFillType(mPage.srPage.ft, "PopupFillType"));
-            break;
-
-            case 3:
-                col0->setText(getLeftColText(TTEXT_FILL_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.cf, "PopupFillColor"));
-            break;
-
-            case 4:
-                col0->setText(getLeftColText(TTEXT_FILL_GRADIENT_COLORS));
-                table->setCellWidget(row, 1, makeGradientColors(mPage.srPage.gradientColors, "PopupFillGradientColors"));
-
-                if (mPage.srPage.ft == "solid")
-                    table->hideRow(row);
-                break;
-
-            case 5:
-                col0->setText(getLeftColText(TTEXT_GRADIENT_RADIUS));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gr, "PopupGradientRadius", 0, 5000));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
-                break;
-
-            case 6:
-                col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_X));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gx, "PopupGradientCenterX"));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
-                break;
-
-            case 7:
-                col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_Y));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.gy, "PopupGradientCenterX"));
-
-                if (mPage.srPage.ft != "radial")
-                    table->hideRow(row);
-                break;
-
-            case 8:
-                col0->setText(getLeftColText(TTEXT_TEXT_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ct, "PopupTextColor"));
-            break;
-
-            case 9:
-                col0->setText(getLeftColText(TTEXT_TEXT_EFFECT_COLOR));
-                table->setCellWidget(row, 1, makeColorSelector(mPage.srPage.ec, "PopupTextEffectColor"));
-            break;
-
-            case 10:
-                col0->setText(getLeftColText(TTEXT_OVERALL_OPACITY));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.oo, "PopupOverallOpacity", 0, 255));
-            break;
-
-            case 11:
-                col0->setText(getLeftColText(TTEXT_VIDEO_FILL));
-                table->setCellWidget(row, 1, makeVideoFill(mPage.srPage.vf, "PopupVideoFill"));
-            break;
-
-            case 12:
-                col0->setText(getLeftColText(TTEXT_BITMAPS));
-                table->setCellWidget(row, 1, makeBitmapSelector(mPage.srPage.bitmaps, "PopupBitmapSelector"));
-            break;
-
-            case 13:
-                col0->setText(getLeftColText(TTEXT_FONT));
-                table->setCellWidget(row, 1, makeFontSelector(mPage.srPage.ff, "PopupFontSelector"));
-            break;
-
-            case 14:
-                col0->setText(getLeftColText(TTEXT_FONT_SIZE));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.fs, "PopupFontSize"));
-            break;
-
-            case 15:
-            {
-                col0->setText(getLeftColText(TTEXT_TEXT));
-                QFont font;
-
-                if (mPage.srPage.ff.isEmpty())
-                {
-                    font = mParent->font();
-                    mPage.srPage.ff = font.family();
-                }
-
-                if (mPage.srPage.fs <= 0)
-                    font.setPointSize(10);
-                else
-                    font.setPointSize(mPage.srPage.fs);
-
-                table->setCellWidget(row, 1, makeTextValue(mPage.srPage.te, font, "PopupText"));
-                table->resizeRowToContents(row);
-            }
-            break;
-
-            case 16:
-                col0->setText(getLeftColText(TTEXT_TEXT_JUSTIFICATION));
-                table->setCellWidget(row, 1, makeTextJustification(mPage.srPage.jt, "PopupTextOrientation"));
-            break;
-
-            case 17:
-                col0->setText(getLeftColText(TTEXT_TEXT_POSITION_X));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.tx, "PopupTextPositionX", 0, mPage.width));
-
-                if (mPage.srPage.jt != ObjHandler::ORI_ABSOLUT)
-                    table->hideRow(row);
-                break;
-
-            case 18:
-                col0->setText(getLeftColText(TTEXT_TEXT_POSITION_Y));
-                table->setCellWidget(row, 1, makeValueSelector(mPage.srPage.ty, "PopupTextPositionY", 0, mPage.height));
-
-                if (mPage.srPage.jt != ObjHandler::ORI_ABSOLUT)
-                    table->hideRow(row);
-                break;
-
-            case 19:
-                col0->setText(getLeftColText(TTEXT_TEXT_EFFECT));
-                table->setCellWidget(row, 1, makeTextEffect(mPage.srPage.et, "PopupTextEffect"));
-            break;
-
-            case 20:
-                col0->setText(getLeftColText(TTEXT_WORD_WRAP));
-                table->setCellWidget(row, 1, makeWordWrap(mPage.srPage.ww, "PopupWordWrap"));
-            break;
-        }
-
-        table->setItem(row, 0, col0);
-    }
-
-    table->setMinimumHeight(totalHeight * rows);
-}
-
-void TPropertiesStates::adjustTablePopup(QTableWidget *table, QString gradient)
-{
-    DECL_TRACER("TPropertiesStates::adjustTablePopup(QTableWidget *table, QString gradient)");
-
-    QString grad;
-
-    if (!gradient.isEmpty())
-        grad = gradient;
-    else
-        grad = mPage.srPage.ft;
-
-    if (grad == "solid")
-    {
-        table->hideRow(4);
-        table->hideRow(5);
-        table->hideRow(6);
-        table->hideRow(7);
-        table->showRow(3);
-    }
-    else if (grad == "radial")
-    {
-        table->showRow(4);
-        table->showRow(5);
-        table->showRow(6);
-        table->showRow(7);
-        table->hideRow(3);
-    }
-    else
-    {
-        table->hideRow(3);
-        table->showRow(4);
-        table->hideRow(5);
-        table->hideRow(6);
-        table->hideRow(7);
-    }
-
-    if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
-    {
-        table->showRow(17);
-        table->showRow(18);
-    }
-    else
-    {
-        table->hideRow(17);
-        table->hideRow(18);
-    }
 }
 
 QString TPropertiesStates::getLeftColText(int line)
@@ -728,46 +556,120 @@ QString TPropertiesStates::getLeftColText(int line)
 
     switch (line)
     {
+        case TTEXT_BORDER_NAME:         return tr("Border Name"); break;
+        case TTEXT_CHAMELEON_IMAGE:     return tr("Chameleon Image"); break;   // Only if there is no border
+        case TTEXT_BORDER_COLOR:        return tr("Border Color"); break;
         case TTEXT_FILL_TYPE:           return tr("Fill Type"); break;
+        case TTEXT_FILL_GRADIENT_COLORS: return tr("Gradient Colors"); break;
+        case TTEXT_GRADIENT_RADIUS:     return tr("Gradient Radius"); break;
+        case TTEXT_GRADIENT_CENTER_X:   return tr("Gradient Center X%"); break;
+        case TTEXT_GRADIENT_CENTER_Y:   return tr("Gradient Center Y%"); break;
         case TTEXT_FILL_COLOR:          return tr("Fill Color"); break;
         case TTEXT_TEXT_COLOR:          return tr("Text Color"); break;
         case TTEXT_TEXT_EFFECT_COLOR:   return tr("Text Effect Color"); break;
+        case TTEXT_OVERALL_OPACITY:     return tr("Overall Opacity"); break;
         case TTEXT_VIDEO_FILL:          return tr("Video Fill"); break;
+        case TTEXT_STREAMING_SOURCE:    return tr("Streaming Source"); break;
         case TTEXT_BITMAPS:             return tr("Bitmaps"); break;
         case TTEXT_FONT:                return tr("Font"); break;
         case TTEXT_FONT_SIZE:           return tr("Font Size"); break;
         case TTEXT_TEXT:                return tr("Text"); break;
         case TTEXT_TEXT_JUSTIFICATION:  return tr("Text Justification"); break;
-        case TTEXT_TEXT_EFFECT:         return tr("Text Effect"); break;
-        case TTEXT_WORD_WRAP:           return tr("Word Wrap"); break;
-        case TTEXT_BORDER_NAME:         return tr("Border Name"); break;
-        case TTEXT_BORDER_COLOR:        return tr("Border Color"); break;
-        case TTEXT_OVERALL_OPACITY:     return tr("Overall Opacity"); break;
-        case TTEXT_CHAMELEON_IMAGE:     return tr("Chameleon Image"); break;   // Only if there is no border
-        case TTEXT_SOUND:               return tr("Sound"); break;
-        case TTEXT_FILL_GRADIENT_COLORS: return tr("Gradient Colors"); break;
-        case TTEXT_GRADIENT_RADIUS:     return tr("Gradient Radius"); break;
-        case TTEXT_GRADIENT_CENTER_X:   return tr("Gradient Center X%"); break;
-        case TTEXT_GRADIENT_CENTER_Y:   return tr("Gradient Center Y%"); break;
         case TTEXT_TEXT_POSITION_X:     return tr("Absolut Position X"); break;
         case TTEXT_TEXT_POSITION_Y:     return tr("Absolut Position Y"); break;
+        case TTEXT_TEXT_EFFECT:         return tr("Text Effect"); break;
+        case TTEXT_WORD_WRAP:           return tr("Word Wrap"); break;
+        case TTEXT_SOUND:               return tr("Sound"); break;
     }
 
     return "???";
 }
 
-TElementBorderName *TPropertiesStates::makeBorderName(const QString& border, const QString& name)
+void TPropertiesStates::setSType()
 {
-    DECL_TRACER("TPropertiesStates::makeBorderName(const QString& border, const QString& name)");
+    DECL_TRACER("TPropertiesStates::setSType()");
+
+    if (mActObjectID < 0 || mActObjectID >= mPage.objects.size())
+    {
+        if (mPage.popupType == Page::PT_PAGE)
+            mSType = STATE_PAGE;
+        else if (mPage.popupType == Page::PT_POPUP)
+            mSType = STATE_POPUP;
+        else if (mPage.popupType == Page::PT_SUBPAGE)
+            mSType = STATE_SUBPAGE;
+        else
+            mSType = STATE_UNKNOWN;
+
+        return;
+    }
+
+    ObjHandler::BUTTONTYPE btype = mPage.objects[mActObjectID]->getType();
+
+    switch(btype)
+    {
+        case ObjHandler::GENERAL:
+        case ObjHandler::MULTISTATE_GENERAL:
+            mSType = STATE_BUTTON;
+        break;
+
+        case ObjHandler::BARGRAPH:
+        case ObjHandler::MULTISTATE_BARGRAPH:
+            mSType = STATE_BARGRAPH;
+        break;
+
+        case ObjHandler::TEXT_INPUT:
+            mSType = STATE_INPUT;
+        break;
+
+        case ObjHandler::LISTVIEW:
+        case ObjHandler::SUBPAGE_VIEW:
+            mSType = STATE_SUBPAGE;
+        break;
+
+        default:
+            mSType = STATE_UNKNOWN;
+    }
+}
+
+bool TPropertiesStates::isAnyPage()
+{
+    DECL_TRACER("TPropertiesStates::isAnyPage()");
+
+    if (mSType == STATE_PAGE || mSType == STATE_POPUP || mSType == STATE_SUBPAGE)
+        return true;
+
+    return false;
+}
+
+bool TPropertiesStates::isValidObjectIndex()
+{
+    DECL_TRACER("TPropertiesStates::isValidObjectIndex()");
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        return true;
+
+    return false;
+}
+
+TElementBorderName *TPropertiesStates::makeBorderName(const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeBorderName(const QString& name)");
+
+    QString border;
+
+    if (isAnyPage())
+        border = mPage.srPage.bs;
+    else if (isValidObjectIndex())
+        border = mPage.objects[0]->getObject().sr[0].bs;
 
     TElementBorderName *brd = new TElementBorderName(border, name, mParent);
     connect(brd, &TElementBorderName::borderChanged, this, &TPropertiesStates::onBorderNameChanged);
     return brd;
 }
 
-QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& name)
+QComboBox *TPropertiesStates::makeFillType(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeFillType(int ftype, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeFillType(const QString& name)");
 
     QList<QString> list = {
         "solid", "radial", "sweep", "left to right",
@@ -790,6 +692,13 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
         "linearCBCT",           // 08: Bottom to top
         "linearBLTR"            // 09: Bottom-left to top-right
     };
+
+    QString ftype;
+
+    if (isAnyPage())
+        ftype = mPage.srPage.ft;
+    else if (isValidObjectIndex())
+        ftype = mPage.objects[0]->getObject().sr[0].ft;
 
     QComboBox *cbox = new QComboBox;
     cbox->setObjectName(name);
@@ -818,9 +727,30 @@ QComboBox *TPropertiesStates::makeFillType(const QString& ftype, const QString& 
     return cbox;
 }
 
-QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& name)
+QWidget *TPropertiesStates::makeColorSelector(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeColorSelector(const QColor& col, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeColorSelector(const QString& name)");
+
+    QColor col;
+
+    if (isAnyPage())
+    {
+        if (name == "BorderColor")
+            col = mPage.srPage.cb;
+        else if (name == "TextColor")
+            col = mPage.srPage.ct;
+        else if (name == "TextEffectColor")
+            col = mPage.srPage.ec;
+    }
+    else if (isValidObjectIndex())
+    {
+        if (name == "BorderColor")
+            col = mPage.objects[mActObjectID]->getObject().sr[0].cb;
+        else if (name == "TextColor")
+            col = mPage.objects[mActObjectID]->getObject().sr[0].ct;
+        else if (name == "TextEffectColor")
+            col = mPage.objects[mActObjectID]->getObject().sr[0].ec;
+    }
 
     QWidget *widget = new QWidget;
     widget->setAccessibleIdentifier(col.name(QColor::HexArgb));
@@ -850,11 +780,18 @@ QWidget *TPropertiesStates::makeColorSelector(const QColor& col, const QString& 
     return widget;
 }
 
-QWidget *TPropertiesStates::makeVideoFill(const QString& vf, const QString& name)
+QWidget *TPropertiesStates::makeVideoFill(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeVideoFill(const QString& vf, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeVideoFill(const QString& name)");
 
     QList<QString> items = { "none", "streaming video", "MXA-MPL" };
+    QList<QVariant> data = { "", "100", "200" };
+    QString vf;
+
+    if (isAnyPage())
+        vf = mPage.srPage.vf;
+    else if (isValidObjectIndex())
+        vf = mPage.objects[mActObjectID]->getObject().sr[0].vf;
 
     QComboBox *cbox = new QComboBox;
     cbox->setObjectName(name);
@@ -863,9 +800,12 @@ QWidget *TPropertiesStates::makeVideoFill(const QString& vf, const QString& name
     for (QString txt : items)
     {
         cbox->addItem(txt);
+        cbox->setItemData(idx, data[idx]);
 
         if (txt == vf)
             cbox->setCurrentIndex(idx);
+
+        idx++;
     }
 
     connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
@@ -878,33 +818,50 @@ QWidget *TPropertiesStates::makeVideoFill(const QString& vf, const QString& name
     return cbox;
 }
 
-TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
+TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QString& name)");
+
+    QList<ObjHandler::BITMAPS_t> bitmaps;
+
+    if (isAnyPage())
+        bitmaps = mPage.srPage.bitmaps;
+    else if (isValidObjectIndex())
+        bitmaps = mPage.objects[mActObjectID]->getObject().sr[0].bitmaps;
 
     TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mParent);
     connect(bs, &TElementBitmapSelector::bitmapsChanged, this, &TPropertiesStates::onBitmapsChanged);
     return bs;
 }
 
-TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)
+TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
+
+    QString fname;
+
+    if (isAnyPage())
+        fname = mPage.srPage.ff;
+    else if (isValidObjectIndex())
+        fname = mPage.objects[mActObjectID]->getObject().sr[0].ff;
 
     TElementWidgetFont *widget = new TElementWidgetFont(QFont(fname), name, mParent);
     connect(widget, &TElementWidgetFont::fontChanged, this, &TPropertiesStates::onFontChanged);
     return widget;
 }
 
-QSpinBox *TPropertiesStates::makeValueSelector(int value, const QString& name, int start, int max)
+QSpinBox *TPropertiesStates::makeValueSelector(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeValueSelector(int value, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeValueSelector(const QString& name)");
+
+    int value = 0;
+    // TODO: Get default value
 
     QSpinBox *spin = new QSpinBox;
     spin->setObjectName(name);
 
-    if (start < max)
-        spin->setRange(start, max);
+//    if (start < max)
+//        spin->setRange(start, max);
 
     spin->setValue(value);
 
@@ -912,10 +869,11 @@ QSpinBox *TPropertiesStates::makeValueSelector(int value, const QString& name, i
     return spin;
 }
 
-QWidget *TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font, const QString& name)
+QWidget *TPropertiesStates::makeTextValue(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeTextValue(const QString& name)");
 
+    QString txt, font;
     QWidget *widget = new QWidget;
 
     QHBoxLayout *layout = new QHBoxLayout(widget);
@@ -953,14 +911,16 @@ QWidget *TPropertiesStates::makeTextValue(const QString& txt,  const QFont& font
     return widget;
 }
 
-TElementWidgetCombo *TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)
+TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeTextJustification(ObjHandler::ORIENTATION ori, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeTextJustification(const QString& name)");
 
     QList<QString> items = { "absolute", "top-left", "top-middle", "top-right",
                             "center-left", "center-middle", "center-right",
                             "bottom-left", "bottom-middle", "bottom-right" };
     QList<QVariant> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    ObjHandler::ORIENTATION ori;    // TODO
 
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mParent);
     combo->addItems(items);
@@ -970,18 +930,22 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(ObjHandler::ORIENT
     return combo;
 }
 
-TElementTextEffect *TPropertiesStates::makeTextEffect(int ef, const QString& name)
+TElementTextEffect *TPropertiesStates::makeTextEffect(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeTextEffect(int ef, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeTextEffect(const QString& name)");
+
+    int ef = 0;     // TODO
 
     TElementTextEffect *eff = new TElementTextEffect(ef, name, mParent);
     connect(eff, &TElementTextEffect::effectChanged, this, &TPropertiesStates::onTextEffectChanged);
     return eff;
 }
 
-TElementWidgetCombo *TPropertiesStates::makeWordWrap(bool ww, const QString& name)
+TElementWidgetCombo *TPropertiesStates::makeWordWrap(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeWordWrap(bool ww, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeWordWrap(const QString& name)");
+
+    bool ww = false;    // TODO
 
     QList<QString> items = { tr("no"), tr("yes") };
     QList<QVariant> data = { false, true };
@@ -997,13 +961,35 @@ TElementWidgetCombo *TPropertiesStates::makeWordWrap(bool ww, const QString& nam
     return cbox;
 }
 
-TElementGradientColors *TPropertiesStates::makeGradientColors(const QList<QColor>& color, const QString& name)
+TElementGradientColors *TPropertiesStates::makeGradientColors(const QString& name)
 {
-    DECL_TRACER("TPropertiesStates::makeGradientColors(const QList<QColor>& color, const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeGradientColors(const QString& name)");
+
+    QList<QColor> color;    // TODO
 
     TElementGradientColors *grad = new TElementGradientColors(color, name, mParent);
     connect(grad, &TElementGradientColors::gradientColorChanged, this, &TPropertiesStates::onGradientColorChanged);
     return grad;
+}
+
+TElementSound *TPropertiesStates::makeSoundSelector(const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeSoundSelector(const QString& name)");
+
+    QString sfile;
+    int instance = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        if (mActInstance >= 0  && mActInstance < mPage.objects[mActObjectID]->getObject().sr.size())
+            instance = mActInstance;
+
+        sfile = mPage.objects[mActObjectID]->getSound(instance);
+    }
+
+    TElementSound *sound = new TElementSound(sfile, name, mParent);
+    connect(sound, &TElementSound::soundFileChanged, this, &TPropertiesStates::onSoundChanged);
+    return sound;
 }
 
 QFont TPropertiesStates::chooseFont(const QFont& font)
@@ -1098,11 +1084,12 @@ void TPropertiesStates::addGradientLines(const QString& gradient, const QString&
         MSG_WARNING("Couldn't get the table widget!");
         return;
     }
-
+/*
     if (name == "PgFillType")
         adjustTablePage(widget, gradient);
     else if (name == "PopupFillType")
         adjustTablePopup(widget, gradient);
+*/
 }
 
 // Callbacks
@@ -1137,12 +1124,12 @@ void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant
         MSG_WARNING("Couldn't get the table widget!");
         return;
     }
-
+/*
     if (name == "PgTextOrientation")
         adjustTablePage(widget);
     else if (name == "PopupTextOrientation")
         adjustTablePopup(widget);
-
+*/
     setValue(name, data);
 }
 
@@ -1191,4 +1178,11 @@ void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, cons
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
     requestRedraw(&mPage);
+}
+
+void TPropertiesStates::onSoundChanged(const QString& file, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onSoundChanged(const QString& file, const QString& name)");
+
+    // TODO: Add code
 }

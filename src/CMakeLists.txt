@@ -173,6 +173,8 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
+    telementsound.h telementsound.cpp
+    tsoundselectdialog.h tsoundselectdialog.cpp tsoundselectdialog.ui
 )
 
 # Use the Widgets module from Qt 6.

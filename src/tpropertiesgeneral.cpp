@@ -1419,6 +1419,7 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
     mChanged = true;
     setTable(STATE_POPUP);
     // TODO: Add code to move popup to subpages, if this was selected and vice versa.
+    emit pageTypeChanged(mPage.popupType, mPage.pageID);
 }
 
 void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)
@@ -1450,6 +1451,7 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
     mChanged = true;
     markChanged();
     // TODO: Add code to change the view of the object accordingly
+    emit objectTypeChanged(mActObject.type, mActObjectID);
 }
 
 void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVariant& data, const QString& name)

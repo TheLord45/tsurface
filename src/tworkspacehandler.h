@@ -82,6 +82,12 @@ class TWorkSpaceHandler
         Page::PAGE_t getCurrentPage() override;
         void requestRedraw(Page::PAGE_t *page) override;
         void setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype) override;
+        void pageTypeChanged(Page::PAGE_TYPE ptype, int pageID) override;               // For TPropertiesGeneral only
+        void objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index) override;       // For TPropertiesGeneral only
+
+    private slots:
+        void on_pagetype_changed(Page::PAGE_TYPE ptype, int pageID);
+        void on_objecttype_changed(ObjHandler::BUTTONTYPE btype, int index);
 
     private:
         std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};

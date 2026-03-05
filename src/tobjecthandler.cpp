@@ -47,6 +47,36 @@ ObjHandler::SR_T TObjectHandler::getSr(int number)
     return SR_T();
 }
 
+/**
+ * @brief TObjectHandler::getObjectCommon
+ * The method takes the first element in the @bold sr array and compares
+ * every value with the other entries in the array. Every value contained
+ * in the other instances too is copied into a virtual object.
+ * Values which are different are left blank or on default value.
+ *
+ * @return A virtual object containing only the common values of all entries
+ * in the array @bold sr.
+ */
+ObjHandler::TOBJECT_t TObjectHandler::getObjectCommon()
+{
+    DECL_TRACER("TObjectHandler::getObjectCommon()");
+
+    TOBJECT_t obj = mObject;
+
+    for (int i = 1; i < mObject.sr.size(); ++i)
+    {
+        if (obj.sr[0]._do != mObject.sr[i]._do)
+            obj.sr[0]._do.clear();
+
+        if (obj.sr[0].bs != mObject.sr[i].bs)
+            obj.sr[0].bs.clear();
+
+        // TODO: Add code for all other values
+    }
+
+    return obj;
+}
+
 int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
 {
     DECL_TRACER("TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)");

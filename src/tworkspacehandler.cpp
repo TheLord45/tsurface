@@ -198,14 +198,36 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
     setGeneralPage(page, stype, objectID);
 
     if (stype == STATE_PAGE)
+    {
         setProgrammingPage(page.pageID, false);
+        TPropertiesStates::setPage(page);
+    }
     else if (stype == STATE_POPUP)
+    {
         setProgrammingPopup(page.pageID, false);
+        TPropertiesStates::setPage(page);
+    }
 
     if (objectID >= 0 && objectID < page.objects.size())
+    {
         TPropertiesProgramming::setObjectID(objectID);
+        TPropertiesStates::setActualButton(objectID, stype);
+    }
+}
 
-    setStatesPage(page.pageID, false);
+void TWorkSpaceHandler::pageTypeChanged(Page::PAGE_TYPE ptype, int pageID)
+{
+    DECL_TRACER("TWorkSpaceHandler::pageTypeChanged(Page::PAGE_TYPE ptype, int pageID)");
+
+    TPageTree::setPageType(ptype, pageID);
+    TPropertiesProgramming::setTable(ptype == Page::PT_SUBPAGE ? STATE_SUBPAGE : STATE_POPUP);
+}
+
+void TWorkSpaceHandler::objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index)
+{
+    DECL_TRACER("TWorkSpaceHandler::objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index)");
+
+    TPropertiesProgramming::setObjectType(btype, index);
 }
 
 void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)

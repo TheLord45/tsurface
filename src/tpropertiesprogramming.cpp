@@ -22,7 +22,6 @@
 #include <QIntValidator>
 
 #include "tpropertiesprogramming.h"
-#include "tconfmain.h"
 #include "tvalidateport.h"
 #include "telementwidgetcombo.h"
 #include "telementspinbox.h"
@@ -251,6 +250,26 @@ void TPropertiesProgramming::setObjectID(int id)
     }
 
     setSType();
+}
+
+void TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
+{
+    DECL_TRACER("TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");
+
+    if (index < 0 || index >= mPage.objects.size())
+        return;
+
+    if (index != mActObjectID)
+    {
+        MSG_WARNING("Type of a not loaded object changed! Loaded ID: " << mActObjectID << ". Object type to change: " << index);
+        mPage.objects[index]->setObjectType(btype);
+        return;
+    }
+
+    mActObject.type = btype;
+    setSType();
+    requestRedraw(&mPage);
+    mChanged = true;
 }
 
 void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)

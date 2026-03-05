@@ -262,6 +262,50 @@ void TPageTree::updateSubPageName(int id, const QString& name)
     }
 }
 
+void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)
+{
+    DECL_TRACER("TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)");
+
+    if (ptype == Page::PT_SUBPAGE)
+    {
+        if (!mPopup || !mPopup->hasChildren())
+            return;
+
+        int rows = mPopup->rowCount();
+
+        for (int i = 0; i < rows; ++i)
+        {
+            QStandardItem *item = mPopup->child(i, 0);
+
+            if (item && item->data().toInt() == pageID)
+            {
+                addTreeSubPage(item->text(), pageID);
+                mPopup->removeRow(i);
+                return;
+            }
+        }
+    }
+    else
+    {
+        if (!mSubPages || !mSubPages->hasChildren())
+            return;
+
+        int rows = mSubPages->rowCount();
+
+        for (int i = 0; i < rows; ++i)
+        {
+            QStandardItem *item = mSubPages->child(i, 0);
+
+            if (item && item->data().toInt() == pageID)
+            {
+                addTreePopup(item->text(), pageID);
+                mSubPages->removeRow(i);
+                return;
+            }
+        }
+    }
+}
+
 void TPageTree::setFocus(int id)
 {
     DECL_TRACER("TPageTree::setFocus(int id)");

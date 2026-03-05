@@ -464,11 +464,16 @@ class TObjectHandler
         QString getButtonName() { return mObject.na; }
         int getZOrder() { return mObject.zo; }
         void setZOrder(int zo) { mObject.zo = zo; }
+        void setObjectType(ObjHandler::BUTTONTYPE btype) { mObject.type = btype; }
+        QString getSound(int instance) { return mObject.sr[instance].sd; }
+        void setSound(const QString& file, int instance) { mObject.sr[instance].sd = file; }
+        ObjHandler::BUTTONTYPE getType() { return mObject.type; }
         void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
         ObjHandler::TOBJECT_t& getObject() { return mObject; }
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
+        ObjHandler::TOBJECT_t getObjectCommon();
 
         inline void setSize(const QRect& rect)
         {
