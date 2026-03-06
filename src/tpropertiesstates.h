@@ -62,7 +62,7 @@ class TPropertiesStates : public QObject
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }
         void createPage();
-        QTableWidget *createTableWidget(STATE_TYPE stype, QWidget *parent=nullptr);
+        QTableWidget *createTableWidget(QWidget *parent=nullptr);
         QString getLeftColText(int line);
         TElementBorderName *makeBorderName(const QString& name);
         QComboBox *makeFillType(const QString& name);
@@ -70,7 +70,7 @@ class TPropertiesStates : public QObject
         QWidget *makeVideoFill(const QString& name);
         TElementBitmapSelector *makeBitmapSelector(const QString& name);
         TElementWidgetFont *makeFontSelector(const QString& name);
-        QSpinBox *makeValueSelector(const QString& name);
+        QSpinBox *makeValueSelector(const QString& name, int max);
         QWidget *makeTextValue(const QString& name);
         TElementWidgetCombo *makeTextJustification(const QString& name);
         TElementTextEffect *makeTextEffect(const QString& name);
@@ -86,9 +86,13 @@ class TPropertiesStates : public QObject
         void onFontChanged(const QFont& font, const QString& name);
         void onTextEffectChanged(int eff, const QString& effect, const QString& name);
         void onBorderNameChanged(const QString& border, const QString& name);
-        void onWordWrapChanged(const QString& text, const QVariant&data, const QString& name);
+        void onWordWrapChanged(const QString& text, const QVariant& data, const QString& name);
         void onGradientColorChanged(const QList<QColor>& colors, const QString& name);
         void onSoundChanged(const QString& file, const QString& name);
+        void onVideoFillChanged(const QString& text, const QVariant& data, const QString& name);
+        void onColorChanged(const QColor& color, const QString& name);
+        void onTextValueChanged(const QString& text, const QString& name);
+        void onFillTypeChanged(const QString& text, const QVariant& data, const QString& name);
 
     private:
         QFont chooseFont(const QFont& font);
@@ -100,17 +104,22 @@ class TPropertiesStates : public QObject
         void setSType();
         bool isAnyPage();
         bool isValidObjectIndex();
+        QTableWidget *getTableWidget(int state=0);
+        void setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
+        void setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype);
+        void setTableWidget(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
         Page::PAGE_t mPage;
         ObjHandler::TOBJECT_t mActObject;
         STATE_TYPE mSType{STATE_UNKNOWN};
-        int mActObjectID{0};
-        int mActInstance{0};
+        QList<QTableWidget *> mStates;
+        int mActState {0};              // The index ob the actual selected state
+        int mActObjectID{0};            // The index of the actual selected object
+        int mActInstance{0};            // The index number for the SR structure inside an object
         bool mChanged{false};
         bool mInitialized{false};
-        bool mBlocked{false};       // TRUE = A dialog box is open. Recreating is blocked!
 };
 
 #endif // TPROPERTIESSTATES_H

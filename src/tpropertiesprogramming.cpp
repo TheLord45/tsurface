@@ -329,7 +329,7 @@ void TPropertiesProgramming::setSType()
     setTable();
 }
 
- void TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
+void TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
 {
     DECL_TRACER("TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)");
 

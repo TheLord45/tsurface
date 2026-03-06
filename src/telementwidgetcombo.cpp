@@ -69,6 +69,16 @@ void TElementWidgetCombo::addData(const QList<QVariant>& data)
     mHaveData = true;
 }
 
+void TElementWidgetCombo::setDefaultData(const QVariant& data)
+{
+    DECL_TRACER("TElementWidgetCombo::setDefaultData(const QVariant& data)");
+
+    int idx = findData(data);
+
+    if (idx >= 0)
+        setCurrentIndex(idx);
+}
+
 void TElementWidgetCombo::setDefaultText(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text)");

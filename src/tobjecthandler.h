@@ -233,7 +233,7 @@ namespace ObjHandler
         QColor ec;              // Text effect color
         QString bm;             // bitmap file name
         QList<BITMAPS_t> bitmaps;   // G5 table of bitmaps. Limited to 5 max.
-        QList<QString> gradientColors;  // G5 optional gradient colors
+        QList<QColor> gradientColors;  // G5 optional gradient colors
         int gr{15};             // G5 Gradient radius
         int gx{50};             // G5 Gradient center X in percent
         int gy{50};             // G5 Gradient center Y in percent
@@ -465,11 +465,10 @@ class TObjectHandler
         int getZOrder() { return mObject.zo; }
         void setZOrder(int zo) { mObject.zo = zo; }
         void setObjectType(ObjHandler::BUTTONTYPE btype) { mObject.type = btype; }
-        QString getSound(int instance) { return mObject.sr[instance].sd; }
-        void setSound(const QString& file, int instance) { mObject.sr[instance].sd = file; }
         ObjHandler::BUTTONTYPE getType() { return mObject.type; }
         void setObject(TCanvasWidget *w) { mObject.baseObject.widget = w; }
         void setObject(const ObjHandler::TOBJECT_t& object) { mObject = object; }
+        void setSrToAllInstances(const ObjHandler::SR_T& sr);
         ObjHandler::TOBJECT_t& getObject() { return mObject; }
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
@@ -484,9 +483,101 @@ class TObjectHandler
         }
 
         ObjHandler::SR_T getSr(int number);
+        ObjHandler::SR_T getSrFromIndex(int index);
         QList<ObjHandler::SR_T>& getSrList() { return mObject.sr; }
+        // Get/Set each value of an instance
+        void setDrawOrder(const QString& _do, int instance=-1);
+        QString getDrawOrder(int instance=-1);
+
+        void setBorder(const QString& bs, int instance=-1);
+        QString getBorder(int instance=-1);
+
+        void setChameleonImage(const QString& mi, int instance=-1);
+        QString getChameleonImage(int instance=-1);
+
+        void setBorderColor(const QColor& cb, int instance=-1);
+        QColor getBorderColor(int instance=-1);
+
+        void setGradientFillType(const QString& ft, int instance=-1);
+        QString getGradientFillType(int instance=-1);
+
+        void setFillColor(const QColor& cf, int instance=-1);
+        QColor getFillColor(int instance=-1);
+
+        void setTextColor(const QColor& ct, int instance=-1);
+        QColor getTextColor(int instance=-1);
+
+        void setTextEffectColor(const QColor& ec, int instance=-1);
+        QColor getTextEffectColor(int instance=-1);
+
+        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps, int instance=-1);
+        QList<ObjHandler::BITMAPS_t> getBitmaps(int instance=-1);
+
+        void setGradientColors(const QList<QColor>& colors, int instance=-1);
+        QList<QColor> getGradientColors(int instance=-1);
+
+        void setGradientRadius(int gr, int instance=-1);
+        int getGradientRadius(int instance=-1);
+
+        void setGradientCenterX(int gx, int instance=-1);
+        int getGradientCenterX(int instance=-1);
+
+        void setGradientCenterY(int gy, int instance=-1);
+        int getGradientCenterY(int instance=-1);
+
+        void setSound(const QString& file, int instance=-1);
+        QString getSound(int instance=-1);
+
+        void setDynamic(bool dynamic, int instance=-1);
+        bool getDynamic(int instance=-1);
+
+        void setExtGraphicIndex(int sb, int instance=-1);
+        int getExtGraphicIndex(int instance=-1);
+
+        void setText(const QString& te, int instance=-1);
+        QString getText(int instance=-1);
+
+        void setTextOrientation(ObjHandler::ORIENTATION jt, int instance=-1);
+        ObjHandler::ORIENTATION getTextOrientation(int instance=-1);
+
+        void setTextAbsoluteX(int tx, int instance=-1);
+        int getTextAbsoluteX(int instance=-1);
+
+        void setTextAbsoluteY(int ty, int instance=-1);
+        int getTextAbsoluteY(int instance=-1);
+
+        void setFontFile(const QString& ff, int instance=-1);
+        QString getFontFile(int instane=-1);
+
+        void setFontSize(int fs, int instance=-1);
+        int getFontSize(int instance=-1);
+
+        void setWordWrap(int ww, int instance=-1);
+        int getWordWrap(int instance=-1);
+
+        void setTextEffect(int et, int instance=-1);
+        int getTextEffect(int instance=-1);
+
+        void setOverallOpacity(int oo, int instance=-1);
+        int getOverallOpacity(int instance=-1);
+
+        void setMarqueeType(int md, int instance=-1);
+        int getMarqueeType(int instrance=-1);
+
+        void setMarqueeEnabled(int mr, int instance=-1);
+        int getMarqueeEnabled(int instance=-1);
+
+        void setMarqueeSpeed(int ms, int instance=-1);
+        int getMarqueeSpeed(int instance=-1);
+
+        void setVideoFill(const QString& vf, int instance=-1);
+        QString getVideoFill(int instance=-1);
+
+        void setStreamingSource(const QString& dv, int instance=-1);
+        QString getStreamingSource(int instance=-1);
 
     private:
+        bool compareBitmaps(const QList<ObjHandler::BITMAPS_t>& bm1, const QList<ObjHandler::BITMAPS_t>& bm2);
         ObjHandler::TOBJECT_t mObject;
 };
 

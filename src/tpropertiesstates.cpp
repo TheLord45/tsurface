@@ -31,7 +31,6 @@
 #include <QSpinBox>
 
 #include "tpropertiesstates.h"
-#include "ttextboxdialog.h"
 #include "telementbitmapselector.h"
 #include "telementwidgetcombo.h"
 #include "telementwidgetfont.h"
@@ -39,6 +38,8 @@
 #include "telementbordername.h"
 #include "telementgradientcolors.h"
 #include "telementsound.h"
+#include "telementcolorselector.h"
+#include "telementwidgettext.h"
 #include "terror.h"
 
 using namespace Page;
@@ -151,9 +152,6 @@ void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 void TPropertiesStates::clear()
 {
     DECL_TRACER("TPropertiesStates::clear()");
-
-    if (mBlocked)
-        return;
 
     if (mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_STATES);
@@ -323,9 +321,6 @@ void TPropertiesStates::createPage()
 {
     DECL_TRACER("TPropertiesStates::createPage()");
 
-    if (mBlocked)
-        return;
-
     if (!mTreeWidget)
     {
         MSG_WARNING("Tree widget is not initialized!")
@@ -333,35 +328,63 @@ void TPropertiesStates::createPage()
     }
 
     mInitialized = false;
+    mStates.clear();
     mTreeWidget->clear();
     mTreeWidget->setColumnCount(1);
     mTreeWidget->setHeaderHidden(true);
 
     QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
-    top->setText(0, tr("Off"));
+
+    if (isAnyPage())
+        top->setText(0, tr("Off"));
+    else
+        top->setText(0, tr("All"));
 
     QTreeWidgetItem *item = new QTreeWidgetItem(top);
     item->setFirstColumnSpanned(true);
     item->setFlags(Qt::ItemIsEnabled);      // Not selectable
 
-    QTableWidget *table = createTableWidget(STATE_PAGE, mTreeWidget);
+    QTableWidget *table = createTableWidget(mTreeWidget);
+    mStates.append(table);
     mTreeWidget->setItemWidget(item, 0, table);
     int totalHeight = table->height() + mTreeWidget->height();
+
+    if (!isAnyPage() && isValidObjectIndex())
+    {
+        ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
+
+        for (int i = 0; i < obj.sr.size(); ++i)
+        {
+            QTreeWidgetItem *entry = new QTreeWidgetItem(mTreeWidget);
+
+            entry->setText(0, tr("State %1").arg(obj.sr[i].number));
+
+            item = new QTreeWidgetItem(entry);
+            item->setFirstColumnSpanned(true);
+            item->setFlags(Qt::ItemIsEnabled);      // Not selectable
+
+            table = createTableWidget(mTreeWidget);
+            mStates.append(table);
+            mTreeWidget->setItemWidget(item, 0, table);
+            totalHeight += table->height();
+        }
+    }
+
     MSG_DEBUG("Page total height: " << totalHeight);
     mTreeWidget->setMinimumHeight(totalHeight);
 
-    setTable(table);
-//    addGradientLines(mPage.srPage.ft, "FillType", true);
+    for (int i = 0; i < mStates.size(); ++i)
+    {
+        mActState = i;
+        setTable(mStates[i]);
+    }
 
     mInitialized = true;
 }
 
-QTableWidget *TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)
+QTableWidget *TPropertiesStates::createTableWidget(QWidget *parent)
 {
     DECL_TRACER("TPropertiesStates::createTableWidget(STATE_TYPE stype, QWidget *parent)");
-
-    if (mBlocked)
-        return nullptr;
 
     QTableWidget *table = new QTableWidget(parent);
     table->verticalHeader()->setVisible(false);
@@ -454,17 +477,17 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 
             case TTEXT_GRADIENT_RADIUS:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_RADIUS));
-                table->setCellWidget(row, 1, makeValueSelector("GradientRadius"));
+                table->setCellWidget(row, 1, makeValueSelector("GradientRadius", 100000));
             break;
 
             case TTEXT_GRADIENT_CENTER_X:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_X));
-                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX"));
+                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX", 100000));
             break;
 
             case TTEXT_GRADIENT_CENTER_Y:
                 col0->setText(getLeftColText(TTEXT_GRADIENT_CENTER_Y));
-                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX"));
+                table->setCellWidget(row, 1, makeValueSelector("GradientCenterX", 100000));
             break;
 
             case TTEXT_TEXT_COLOR:
@@ -479,7 +502,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 
             case TTEXT_OVERALL_OPACITY:
                 col0->setText(getLeftColText(TTEXT_OVERALL_OPACITY));
-                table->setCellWidget(row, 1, makeValueSelector("OverallOpacity"));
+                table->setCellWidget(row, 1, makeValueSelector("OverallOpacity", 255));
             break;
 
             case TTEXT_VIDEO_FILL:
@@ -504,7 +527,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 
             case TTEXT_FONT_SIZE:
                 col0->setText(getLeftColText(TTEXT_FONT_SIZE));
-                table->setCellWidget(row, 1, makeValueSelector("FontSize"));
+                table->setCellWidget(row, 1, makeValueSelector("FontSize", 500));
             break;
 
             case TTEXT_TEXT:
@@ -519,12 +542,12 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 
             case TTEXT_TEXT_POSITION_X:
                 col0->setText(getLeftColText(TTEXT_TEXT_POSITION_X));
-                table->setCellWidget(row, 1, makeValueSelector("TextPositionX"));
+                table->setCellWidget(row, 1, makeValueSelector("TextPositionX", 100000));
             break;
 
             case TTEXT_TEXT_POSITION_Y:
                 col0->setText(getLeftColText(TTEXT_TEXT_POSITION_Y));
-                table->setCellWidget(row, 1, makeValueSelector("TextPositionY"));
+                table->setCellWidget(row, 1, makeValueSelector("TextPositionY", 100000));
             break;
 
             case TTEXT_TEXT_EFFECT:
@@ -651,6 +674,123 @@ bool TPropertiesStates::isValidObjectIndex()
     return false;
 }
 
+void TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
+{
+    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)");
+
+    if (!table)
+    {
+        table = getTableWidget(mActState);
+
+        if (!table)
+            return;
+    }
+
+    QWidget *w = table->cellWidget(row, col);
+
+    if (!w)
+        return;
+
+    switch(etype)
+    {
+        case W_COMBO:
+        {
+            TElementWidgetCombo *p = static_cast<TElementWidgetCombo *>(w);
+            p->selectItem(data);
+        }
+        break;
+
+        case W_BORDERNAME:
+        {
+            TElementBorderName *p = static_cast<TElementBorderName *>(w);
+            p->setBorder(data.toString());
+        }
+        break;
+
+        case W_TEXTEFFECT:
+        {
+            TElementTextEffect *p = static_cast<TElementTextEffect *>(w);
+            p->setEffect(data.toInt());
+        }
+        break;
+
+        case W_SOUND:
+        {
+            TElementSound *p = static_cast<TElementSound *>(w);
+            p->setSound(data.toString());
+        }
+        break;
+
+        case W_TEXT:
+        {
+            TElementWidgetText *p = static_cast<TElementWidgetText *>(w);
+            p->setText(data.toString());
+        }
+        break;
+
+        default:
+            return;
+    }
+}
+
+void TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype)
+{
+    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype)");
+
+    if (!table)
+    {
+        table = getTableWidget(mActState);
+
+        if (!table)
+            return;
+    }
+
+    QWidget *w = table->cellWidget(row, col);
+
+    if (!w)
+        return;
+
+    if (etype == W_BITMAPSELECTOR)
+    {
+        TElementBitmapSelector *p = static_cast<TElementBitmapSelector *>(w);
+        p->setBitmaps(bm);
+    }
+}
+
+void TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype)
+{
+    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype)");
+
+    if (!table)
+    {
+        table = getTableWidget(mActState);
+
+        if (!table)
+            return;
+    }
+
+    QWidget *w = table->cellWidget(row, col);
+
+    if (!w)
+        return;
+
+    if (etype == W_FONT)
+    {
+        TElementWidgetFont *p = static_cast<TElementWidgetFont *>(w);
+        p->setFont(font);
+    }
+}
+
+QTableWidget *TPropertiesStates::getTableWidget(int state)
+{
+    DECL_TRACER("TPropertiesStates::getTableWidget(int state)");
+
+    if (state < 0 || state >= mStates.size())
+        return nullptr;
+
+    return mStates[state];
+}
+
 TElementBorderName *TPropertiesStates::makeBorderName(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeBorderName(const QString& name)");
@@ -700,31 +840,12 @@ QComboBox *TPropertiesStates::makeFillType(const QString& name)
     else if (isValidObjectIndex())
         ftype = mPage.objects[0]->getObject().sr[0].ft;
 
-    QComboBox *cbox = new QComboBox;
-    cbox->setObjectName(name);
-    int idx = 0;
-
-    for (QString txt : list)
-    {
-        cbox->addItem(txt);
-        cbox->setItemData(idx, data[idx]);
-
-        if (txt == ftype)
-            cbox->setCurrentIndex(idx);
-
-        idx++;
-    }
-
-    connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
-        mBlocked = true;
-        QString objName = cbox->objectName();
-        QString item = cbox->itemData(index).toString();
-        addGradientLines(item, objName);
-        setValue(objName, item);
-        mBlocked = false;
-    });
-
-    return cbox;
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTreeWidget);
+    combo->addItems(list);
+    combo->addData(data);
+    combo->setDefaultData(ftype);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesStates::onFillTypeChanged);
+    return combo;
 }
 
 QWidget *TPropertiesStates::makeColorSelector(const QString& name)
@@ -745,39 +866,18 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
     else if (isValidObjectIndex())
     {
         if (name == "BorderColor")
-            col = mPage.objects[mActObjectID]->getObject().sr[0].cb;
+            col = mPage.objects[mActObjectID]->getBorderColor(mActInstance);
         else if (name == "TextColor")
-            col = mPage.objects[mActObjectID]->getObject().sr[0].ct;
+            col = mPage.objects[mActObjectID]->getTextColor(mActInstance);
         else if (name == "TextEffectColor")
-            col = mPage.objects[mActObjectID]->getObject().sr[0].ec;
+            col = mPage.objects[mActObjectID]->getTextEffectColor(mActInstance);
     }
 
-    QWidget *widget = new QWidget;
-    widget->setAccessibleIdentifier(col.name(QColor::HexArgb));
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
+    TElementColorSelector *colsel = new TElementColorSelector(name, mTreeWidget);
+    colsel->setColor(col);
 
-    QLabel *label = new QLabel;
-    label->setObjectName(name);
-    label->setStyleSheet(QString("background-color: %1").arg(col.name()));
-    layout->addWidget(label, 1);
-
-    QPushButton *button = new QPushButton;
-    button->setObjectName("PushButtonColorSelector");
-    button->setText("...");
-    button->setMaximumWidth(30);
-    layout->addWidget(button);
-
-    connect(button, &QPushButton::clicked, [this, label, col](bool) {
-        mBlocked = true;
-        QColor color = col;
-        setColor(label, color);
-        setValue(label->objectName(), color);
-        mBlocked = false;
-    });
-
-    return widget;
+    connect(colsel, &TElementColorSelector::colorChanged, this, &TPropertiesStates::onColorChanged);
+    return colsel;
 }
 
 QWidget *TPropertiesStates::makeVideoFill(const QString& name)
@@ -785,37 +885,25 @@ QWidget *TPropertiesStates::makeVideoFill(const QString& name)
     DECL_TRACER("TPropertiesStates::makeVideoFill(const QString& name)");
 
     QList<QString> items = { "none", "streaming video", "MXA-MPL" };
-    QList<QVariant> data = { "", "100", "200" };
+    QList<QVariant> data = { "", "100", "101" };
     QString vf;
 
     if (isAnyPage())
         vf = mPage.srPage.vf;
     else if (isValidObjectIndex())
-        vf = mPage.objects[mActObjectID]->getObject().sr[0].vf;
+        vf = mPage.objects[mActObjectID]->getVideoFill(mActInstance);
 
-    QComboBox *cbox = new QComboBox;
-    cbox->setObjectName(name);
-    int idx = 0;
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTreeWidget);
+    combo->addItems(items);
+    combo->addData(data);
 
-    for (QString txt : items)
-    {
-        cbox->addItem(txt);
-        cbox->setItemData(idx, data[idx]);
+    if (vf == "100")
+        combo->setCurrentIndex(1);
+    else if (vf == "101")
+        combo->setCurrentIndex(2);
 
-        if (txt == vf)
-            cbox->setCurrentIndex(idx);
-
-        idx++;
-    }
-
-    connect(cbox, &QComboBox::currentIndexChanged, [this, cbox](int index) {
-        mBlocked = true;
-        QString vf = cbox->itemText(index);
-        setValue(cbox->objectName(), vf);
-        mBlocked = false;
-    });
-
-    return cbox;
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesStates::onVideoFillChanged);
+    return combo;
 }
 
 TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& name)
@@ -827,7 +915,7 @@ TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& nam
     if (isAnyPage())
         bitmaps = mPage.srPage.bitmaps;
     else if (isValidObjectIndex())
-        bitmaps = mPage.objects[mActObjectID]->getObject().sr[0].bitmaps;
+        bitmaps = mPage.objects[mActObjectID]->getBitmaps(mActInstance);
 
     TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mParent);
     connect(bs, &TElementBitmapSelector::bitmapsChanged, this, &TPropertiesStates::onBitmapsChanged);
@@ -838,31 +926,28 @@ TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
 
-    QString fname;
+    QString ff;
 
     if (isAnyPage())
-        fname = mPage.srPage.ff;
+        ff = mPage.srPage.ff;
     else if (isValidObjectIndex())
-        fname = mPage.objects[mActObjectID]->getObject().sr[0].ff;
+        ff = mPage.objects[mActObjectID]->getFontFile(mActInstance);
 
-    TElementWidgetFont *widget = new TElementWidgetFont(QFont(fname), name, mParent);
+    TElementWidgetFont *widget = new TElementWidgetFont(QFont(ff), name, mParent);
     connect(widget, &TElementWidgetFont::fontChanged, this, &TPropertiesStates::onFontChanged);
     return widget;
 }
 
-QSpinBox *TPropertiesStates::makeValueSelector(const QString& name)
+QSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
 {
-    DECL_TRACER("TPropertiesStates::makeValueSelector(const QString& name)");
+    DECL_TRACER("TPropertiesStates::makeValueSelector(const QString& name, int max)");
 
     int value = 0;
-    // TODO: Get default value
 
     QSpinBox *spin = new QSpinBox;
     spin->setObjectName(name);
 
-//    if (start < max)
-//        spin->setRange(start, max);
-
+    spin->setRange(0, max);
     spin->setValue(value);
 
     connect(spin, &QSpinBox::valueChanged, [this, name](int value) { setValue(name, value); });
@@ -873,42 +958,16 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextValue(const QString& name)");
 
-    QString txt, font;
-    QWidget *widget = new QWidget;
+    QString text;
 
-    QHBoxLayout *layout = new QHBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(2);
+    if (isAnyPage())
+        text = mPage.srPage.te;
+    else
+        text = mPage.objects[mActObjectID]->getText(mActInstance);
 
-    QLineEdit *line = new QLineEdit;
-    line->setObjectName(name);
-    line->setText(txt);
-
-    QPushButton *button = new QPushButton;
-    button->setText("...");
-    button->setMaximumWidth(30);
-
-    layout->addWidget(line);
-    layout->addWidget(button);
-
-    connect(line, &QLineEdit::textChanged, [this, line](const QString& text) {
-        setValue(line->objectName(), text);
-    });
-
-    connect(button, &QPushButton::clicked, [this, line, font]() {
-        mBlocked = true;
-        TTextBoxDialog dialog(mParent);
-        dialog.setTextFont(line->text(), font);
-
-        if (dialog.exec() == QDialog::Rejected)
-            return;
-
-        line->setText(dialog.getText());
-        setValue(line->objectName(), dialog.getText());
-        mBlocked = false;
-    });
-
-    return widget;
+    TElementWidgetText *wtext = new TElementWidgetText(text, name, mTreeWidget);
+    connect(wtext, &TElementWidgetText::textChanged, this, &TPropertiesStates::onTextValueChanged);
+    return wtext;
 }
 
 TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& name)
@@ -920,7 +979,12 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& nam
                             "bottom-left", "bottom-middle", "bottom-right" };
     QList<QVariant> data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    ObjHandler::ORIENTATION ori;    // TODO
+    ObjHandler::ORIENTATION ori;
+
+    if (isAnyPage())
+        ori = mPage.srPage.jt;
+    else
+        ori = mPage.objects[mActObjectID]->getTextOrientation(mActInstance);
 
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mParent);
     combo->addItems(items);
@@ -934,9 +998,14 @@ TElementTextEffect *TPropertiesStates::makeTextEffect(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextEffect(const QString& name)");
 
-    int ef = 0;     // TODO
+    int et = 0;
 
-    TElementTextEffect *eff = new TElementTextEffect(ef, name, mParent);
+    if (isAnyPage())
+        et = mPage.srPage.et;
+    else
+        et = mPage.objects[mActObjectID]->getTextEffect(mActInstance);
+
+    TElementTextEffect *eff = new TElementTextEffect(et, name, mParent);
     connect(eff, &TElementTextEffect::effectChanged, this, &TPropertiesStates::onTextEffectChanged);
     return eff;
 }
@@ -945,7 +1014,12 @@ TElementWidgetCombo *TPropertiesStates::makeWordWrap(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeWordWrap(const QString& name)");
 
-    bool ww = false;    // TODO
+    bool ww = false;
+
+    if (isAnyPage())
+        ww = mPage.srPage.ww;
+    else
+        ww = mPage.objects[mActObjectID]->getWordWrap(mActInstance);
 
     QList<QString> items = { tr("no"), tr("yes") };
     QList<QVariant> data = { false, true };
@@ -965,7 +1039,12 @@ TElementGradientColors *TPropertiesStates::makeGradientColors(const QString& nam
 {
     DECL_TRACER("TPropertiesStates::makeGradientColors(const QString& name)");
 
-    QList<QColor> color;    // TODO
+    QList<QColor> color;
+
+    if (isAnyPage())
+        color = mPage.srPage.gradientColors;
+    else
+        color = mPage.objects[mActObjectID]->getGradientColors(mActInstance);
 
     TElementGradientColors *grad = new TElementGradientColors(color, name, mParent);
     connect(grad, &TElementGradientColors::gradientColorChanged, this, &TPropertiesStates::onGradientColorChanged);
@@ -1009,45 +1088,86 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 {
     DECL_TRACER("TPropertiesStates::setValue(const QString& name, const QVariant& value)");
 
-    if (name == "PgFillType" || name == "PopupFillType")
-        mPage.srPage.ft = value.toString();
-    else if (name == "PgFillColor" || name == "PopupFillColor")
-        mPage.srPage.cf = value.toString();
-    else if (name == "PgTextColor" || name == "PopupTextColor")
-        mPage.srPage.ct = value.toString();
-    else if (name == "PgTextEffectColor" || name == "PopupTextEffectColor")
-        mPage.srPage.ec = value.toString();
-    else if (name == "PgVideoFill" || name == "PopupVideoFill")
-        mPage.srPage.vf = value.toString();
-    else if (name == "PgFontSelector" || name == "PopupFontSelector")
-        mPage.srPage.ff = value.toString();
-    else if (name == "PgFontSize" || name == "PopupFontSize")
-        mPage.srPage.fs = value.toInt();
-    else if (name == "PgText" || name == "PopupText")
-        mPage.srPage.te = value.toString();
-    else if (name == "PgTextOrientation" || name == "PopupTextOrientation")
-        mPage.srPage.jt = static_cast<ObjHandler::ORIENTATION>(value.toInt());
-    else if (name == "PgTextEffect" || name == "PopupTextEffect")
-        mPage.srPage.et = value.toInt();
-    else if (name == "PgWordWrap" || name == "PopupWordWrap")
-        mPage.srPage.ww = (value.toBool() ? 1 : 0);
-    else if (name.startsWith("PgGradientRadius") || name.startsWith("PopupGradientRadius"))
-        mPage.srPage.gr = value.toInt();
-    else if (name.startsWith("PgGradientCenterX") || name.startsWith("PopupGradientCenterX"))
-        mPage.srPage.gx = value.toInt();
-    else if (name.startsWith("PgGradientCenterY") || name.startsWith("PopupGradientCenterY"))
-        mPage.srPage.gy = value.toInt();
-    else if (name == "PgTextPositionX" || name == "PopupTextPositionX")
-        mPage.srPage.tx = value.toInt();
-    else if (name == "PgTextPositionY" || name == "PopupTextPositionY")
-        mPage.srPage.ty = value.toInt();
-
-    if (name == "PopupBorderName")
-        mPage.srPage.bs = value.toString();
-    else if (name == "PopupBorderColor")
-        mPage.srPage.cb = value.toString();
-    else if (name == "PopupOverallOpacity")
-        mPage.srPage.oo = value.toInt();
+    if (isAnyPage())
+    {
+        if (name == "FillType")
+            mPage.srPage.ft = value.toString();
+        else if (name == "FillColor")
+            mPage.srPage.cf = value.toString();
+        else if (name == "TextColor")
+            mPage.srPage.ct = value.toString();
+        else if (name == "TextEffectColor")
+            mPage.srPage.ec = value.toString();
+        else if (name == "VideoFill")
+            mPage.srPage.vf = value.toString();
+        else if (name == "FontSelector")
+            mPage.srPage.ff = value.toString();
+        else if (name == "FontSize")
+            mPage.srPage.fs = value.toInt();
+        else if (name == "Text")
+            mPage.srPage.te = value.toString();
+        else if (name == "TextOrientation")
+            mPage.srPage.jt = static_cast<ObjHandler::ORIENTATION>(value.toInt());
+        else if (name == "TextEffect")
+            mPage.srPage.et = value.toInt();
+        else if (name == "WordWrap")
+            mPage.srPage.ww = (value.toBool() ? 1 : 0);
+        else if (name == "GradientRadius")
+            mPage.srPage.gr = value.toInt();
+        else if (name == "GradientCenterX")
+            mPage.srPage.gx = value.toInt();
+        else if (name == "GradientCenterY")
+            mPage.srPage.gy = value.toInt();
+        else if (name == "TextPositionX")
+            mPage.srPage.tx = value.toInt();
+        else if (name == "TextPositionY")
+            mPage.srPage.ty = value.toInt();
+        else if (name == "BorderName")
+            mPage.srPage.bs = value.toString();
+        else if (name == "BorderColor")
+            mPage.srPage.cb = value.toString();
+        else if (name == "OverallOpacity")
+            mPage.srPage.oo = value.toInt();
+    }
+    else
+    {
+        if (name == "BorderName")
+            mPage.objects[mActObjectID]->setBorder(value.toString(), mActInstance);
+        else if (name == "FillType")
+            mPage.objects[mActObjectID]->setGradientFillType(value.toString(), mActInstance);
+        else if (name == "FillColor")
+            mPage.objects[mActObjectID]->setFillColor(value.toString(), mActInstance);
+        else if (name == "TextColor")
+            mPage.objects[mActObjectID]->setTextColor(value.toString(), mActInstance);
+        else if (name == "TextEffectColor")
+            mPage.objects[mActObjectID]->setTextEffectColor(value.toString(), mActInstance);
+        else if (name == "GradientRadius")
+            mPage.objects[mActObjectID]->setGradientRadius(value.toInt(), mActInstance);
+        else if (name == "GradientCenterX")
+            mPage.objects[mActObjectID]->setGradientCenterX(value.toInt(), mActInstance);
+        else if (name == "GradientCenterY")
+            mPage.objects[mActObjectID]->setGradientCenterY(value.toInt(), mActInstance);
+        else if (name == "Text")
+            mPage.objects[mActObjectID]->setText(value.toString(), mActInstance);
+        else if (name == "TextOrientation")
+            mPage.objects[mActObjectID]->setTextOrientation(static_cast<ObjHandler::ORIENTATION>(value.toInt()), mActInstance);
+        else if (name == "TextPositionX")
+            mPage.objects[mActObjectID]->setTextAbsoluteX(value.toInt(), mActInstance);
+        else if (name == "TextPositionY")
+            mPage.objects[mActObjectID]->setTextAbsoluteY(value.toInt(), mActInstance);
+        else if (name == "FontSelector")
+            mPage.objects[mActObjectID]->setFontFile(value.toString(), mActInstance);
+        else if (name == "FontSize")
+            mPage.objects[mActObjectID]->setFontSize(value.toInt(), mActInstance);
+        else if (name == "WordWrap")
+            mPage.objects[mActObjectID]->setWordWrap(value.toInt(), mActInstance);
+        else if (name == "TextEffect")
+            mPage.objects[mActObjectID]->setTextEffect(value.toInt(), mActInstance);
+        else if (name == "OverallOpacity")
+            mPage.objects[mActObjectID]->setOverallOpacity(value.toInt(), mActInstance);
+        else if (name == "VideoFill")
+            mPage.objects[mActObjectID]->setVideoFill(value.toString(), mActInstance);
+    }
 
     mChanged = true;
     saveChangedData(&mPage, TBL_STATES);
@@ -1170,10 +1290,10 @@ void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, cons
 
     MSG_DEBUG("Name: " << name.toStdString());
 
-    if (name.startsWith("PgFillGradientColors") || name.startsWith("PopupFillGradientColors"))
+    if (isAnyPage())
         mPage.srPage.gradientColors = colors;
-
-    // TODO: Add code to save it to stages
+    else
+        mPage.objects[mActObjectID]->setGradientColors(colors, mActInstance);
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
@@ -1184,5 +1304,38 @@ void TPropertiesStates::onSoundChanged(const QString& file, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onSoundChanged(const QString& file, const QString& name)");
 
-    // TODO: Add code
+    if (isAnyPage())
+        return;         // Pages can't play sounds
+
+    mPage.objects[mActObjectID]->setSound(file, mActInstance);
+    mChanged = true;
+    markChanged();
+}
+
+void TPropertiesStates::onVideoFillChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onVideoFillChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    setValue(name, data);
+}
+
+void TPropertiesStates::onColorChanged(const QColor& color, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onColorChanged(const QColor& color, const QString& name)");
+
+    setValue(name, color);
+}
+
+void TPropertiesStates::onTextValueChanged(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onTextValueChanged(const QString& text, const QString& name)");
+
+    setValue(name, text);
+}
+
+void TPropertiesStates::onFillTypeChanged(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::onFillTypeChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    setValue(name, data);
 }

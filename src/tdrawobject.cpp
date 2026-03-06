@@ -237,15 +237,15 @@ bool TDrawObject::buttonFill(QPixmap* bm, SR_T sr)
     return true;
 }
 
-bool TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QString>& grads)
+bool TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QColor>& grads)
 {
-    DECL_TRACER("TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QString>& grads)");
+    DECL_TRACER("TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QColor>& grads)");
 
     QList<QColor> gradients;
     GRAD_TYPE_t grad = getGradientType(sr.ft);
 
-    for (QString s : grads)
-        gradients.append(QColor(s));
+    for (QColor col : grads)
+        gradients.append(col);
 
     if (gradients.empty() || gradients.size() < 2)
     {

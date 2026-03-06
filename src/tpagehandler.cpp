@@ -975,10 +975,10 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             if (!s.gradientColors.empty())
             {
                 QJsonArray gradientColors;
-                QList<QString>::const_iterator iter;
+                QList<QColor>::const_iterator iter;
 
                 for (iter = s.gradientColors.cbegin(); iter != s.gradientColors.cend(); ++iter)
-                    gradientColors.append(*iter);
+                    gradientColors.append(iter->name(QColor::HexArgb));
 
                 jsr.insert("gradientColors", gradientColors);
             }

@@ -31,6 +31,7 @@ class TElementWidgetCombo : public QComboBox
 
         void addData(const QList<QVariant>& data);
         void setName(const QString& name);
+        void setDefaultData(const QVariant& data);
         void setDefaultText(const QString& text);
         void setDefaultText(const QString& text, const QVariant& data);
         void selectItem(const QString& text);

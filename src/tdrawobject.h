@@ -59,7 +59,7 @@ class TDrawObject
         void getDrawOrder(const QString& sdo, DRAW_ORDER_t *order);
         void getDefaultDrawOrder(DRAW_ORDER_t *order);
         bool buttonFill(QPixmap* bm, ObjHandler::SR_T sr);
-        bool drawBackgroundColor(QPixmap* bm, ObjHandler::SR_T& sr, QList<QString>& gradients);
+        bool drawBackgroundColor(QPixmap* bm, ObjHandler::SR_T& sr, QList<QColor>& gradients);
 
         TObjectHandler *mObject{nullptr};       // A pointer to the object
         QWidget *mWidget{nullptr};              // The widget to place the pixmap representing the object

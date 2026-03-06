@@ -34,6 +34,16 @@ TObjectHandler::TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString
     mObject.na = name;
 }
 
+/**
+ * @brief TObjectHandler::getSr
+ * The method takes the instance number and searches in the array for the
+ * instance. If the number is found, the instance is returned.
+ *
+ * @param number    The number of the instance. This number starts by 1!
+ *
+ * @return If the instance was found the structure containing the instance
+ * data is returned. Otherwise an empty structure is returned.
+ */
 ObjHandler::SR_T TObjectHandler::getSr(int number)
 {
     DECL_TRACER("TObjectHandler::getSr(int number)");
@@ -45,6 +55,26 @@ ObjHandler::SR_T TObjectHandler::getSr(int number)
     }
 
     return SR_T();
+}
+
+/**
+ * @brief TObjectHandler::getSrFromIndex
+ * This method returns an instance from the given index. If the index is
+ * out of range, an empty structure is returned.
+ *
+ * @param index     A valid index number.
+ *
+ * @return The structure containing all data of the wanted instance. If
+ * the index number was out of range an empty structure is returned.
+ */
+ObjHandler::SR_T TObjectHandler::getSrFromIndex(int index)
+{
+    DECL_TRACER("TObjectHandler::getSrFromIndex(int index)");
+
+    if (index < 0 || index >= mObject.sr.size())
+        return SR_T();
+
+    return mObject.sr[index];
 }
 
 /**
@@ -71,10 +101,1015 @@ ObjHandler::TOBJECT_t TObjectHandler::getObjectCommon()
         if (obj.sr[0].bs != mObject.sr[i].bs)
             obj.sr[0].bs.clear();
 
-        // TODO: Add code for all other values
+        if (obj.sr[0].mi != mObject.sr[i].mi)
+            obj.sr[0].mi.clear();
+
+        if (obj.sr[0].cb != mObject.sr[i].cb)
+            obj.sr[0].cb = Qt::transparent;
+
+        if (obj.sr[0].ft != mObject.sr[i].ft)
+            obj.sr[0].ft.clear();
+
+        if (obj.sr[0].cf != mObject.sr[i].cf)
+            obj.sr[0].cf = Qt::transparent;
+
+        if (obj.sr[0].ct != mObject.sr[i].ct)
+            obj.sr[0].ct = Qt::transparent;
+
+        if (obj.sr[0].ec != mObject.sr[i].ec)
+            obj.sr[0].ec = Qt::transparent;
+
+        if (!compareBitmaps(obj.sr[0].bitmaps, mObject.sr[i].bitmaps))
+            obj.sr[0].bitmaps.clear();
+
+        if (obj.sr[0].gradientColors != mObject.sr[i].gradientColors)
+            obj.sr[0].gradientColors.clear();
+
+        if (obj.sr[0].gr != mObject.sr[i].gr)
+            obj.sr[0].gr = 0;
+
+        if (obj.sr[0].gx != mObject.sr[i].gx)
+            obj.sr[0].gx = 0;
+
+        if (obj.sr[0].gy != mObject.sr[i].gy)
+            obj.sr[0].gy = 0;
+
+        if (obj.sr[0].sd != mObject.sr[i].sd)
+            obj.sr[0].sd.clear();
+
+        if (obj.sr[0].dynamic != mObject.sr[i].dynamic)
+            obj.sr[0].dynamic = false;
+
+        if (obj.sr[0].sb != mObject.sr[i].sb)
+            obj.sr[0].sb = 0;
+
+        if (obj.sr[0].te != mObject.sr[i].te)
+            obj.sr[0].te.clear();
+
+        if (obj.sr[0].jt != mObject.sr[i].jt)
+            obj.sr[0].jt = ObjHandler::ORI_CENTER_MIDDLE;
+
+        if (obj.sr[0].tx != mObject.sr[i].tx)
+            obj.sr[0].tx = 0;
+
+        if (obj.sr[0].ty != mObject.sr[i].ty)
+            obj.sr[0].ty = 0;
+
+        if (obj.sr[0].ff != mObject.sr[i].ff)
+            obj.sr[0].ff.clear();
+
+        if (obj.sr[0].fs != mObject.sr[i].fs)
+            obj.sr[0].fs = 0;
+
+        if (obj.sr[0].ww != mObject.sr[i].ww)
+            obj.sr[0].ww = 0;
+
+        if (obj.sr[0].et != mObject.sr[i].et)
+            obj.sr[0].et = 0;
+
+        if (obj.sr[0].oo != mObject.sr[i].oo)
+            obj.sr[0].oo = -1;
+
+        if (obj.sr[0].md != mObject.sr[i].md)
+            obj.sr[0].md = 0;
+
+        if (obj.sr[0].mr != mObject.sr[i].mr)
+            obj.sr[0].mr = 0;
+
+        if (obj.sr[0].ms != mObject.sr[i].ms)
+            obj.sr[0].ms = 0;
+
+        if (obj.sr[0].vf != mObject.sr[i].vf)
+            obj.sr[0].vf.clear();
+
+        if (obj.sr[0].dv != mObject.sr[i].dv)
+            obj.sr[0].dv.clear();
     }
 
     return obj;
+}
+
+/**
+ * @brief TObjectHandler::setSrToAllInstances
+ * This method sets all values of the structure to all instances.
+ *
+ * @param sr    The structure of an instance.
+ */
+void TObjectHandler::setSrToAllInstances(const SR_T& sr)
+{
+    DECL_TRACER("TObjectHandler::setSrToAllInstances(const SR_T& sr)");
+
+    QList<SR_T>::Iterator iter;
+
+    for (iter = mObject.sr.begin(); iter != mObject.sr.end(); ++iter)
+    {
+        iter->_do = sr._do;             // Order on how to show a multistate bargraph (010203...)
+        iter->bs = sr.bs;               // Frame type (circle, ...)
+        iter->mi = sr.mi;               // Chameleon image
+        iter->cb = sr.cb;               // Border color
+        iter->ft = sr.ft;               // G5: Fill type for gradient colors.
+        iter->cf = sr.cf;               // Fill color
+        iter->ct = sr.ct;               // Text Color
+        iter->ec = sr.ec;               // Text effect color
+        iter->bitmaps = sr.bitmaps;     // G5 table of bitmaps. Limited to 5 max.
+        iter->gradientColors = sr.gradientColors;  // G5 optional gradient colors
+        iter->gr = sr.gr;               // G5 Gradient radius
+        iter->gx = sr.gx;               // G5 Gradient center X in percent
+        iter->gy = sr.gy;               // G5 Gradient center Y in percent
+        iter->sd = sr.sd;               // Sound file to play
+        iter->dynamic = sr.dynamic;     // TRUE = moving image
+        iter->sb = sr.sb;               // Index to external graphics download
+        iter->te = sr.te;               // Text
+        iter->jt = sr.jt;               // Text orientation
+        iter->tx = sr.tx;               // Text X position
+        iter->ty = sr.ty;               // Text Y position
+        iter->ff = sr.ff;               // G5 font file name
+        iter->fs = sr.fs;               // G5 font size
+        iter->ww = sr.ww;               // line break when 1
+        iter->et = sr.et;               // Text effect (^TEF)
+        iter->oo = sr.oo;               // Over all opacity
+        iter->md = sr.md;               // Marquee type: 1 = scroll left, 2 = scroll right, 3 = ping pong, 4 = scroll up, 5 = scroll down
+        iter->mr = sr.mr;               // Marquee enabled: 1 = enabled, 0 = disabled
+        iter->ms = sr.ms;               // Marquee speed: Range: 1 to 10 (look for command ^MSP to see of how to set this)
+        iter->vf = sr.vf;               // G5: Video fill; Marks the button reserved for video (100 = video stream, 101 = MXA-MPL)
+        iter->dv = sr.dv;               // G5: Streaming source; Only valid if "vf" is 100!
+    }
+}
+
+void TObjectHandler::setDrawOrder(const QString& _do, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i]._do = _do;
+    }
+    else
+        mObject.sr[instance]._do = _do;
+}
+
+QString TObjectHandler::getDrawOrder(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString _do = mObject.sr[0]._do;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (_do != mObject.sr[i]._do)
+                return QString();
+        }
+
+        return _do;
+    }
+    else
+        return mObject.sr[instance]._do;
+}
+
+void TObjectHandler::setBorder(const QString& bs, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].bs = bs;
+    }
+    else
+        mObject.sr[instance].bs = bs;
+}
+
+QString TObjectHandler::getBorder(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString bs = mObject.sr[0].bs;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (bs != mObject.sr[i].bs)
+                return QString();
+        }
+
+        return bs;
+    }
+    else
+        return mObject.sr[instance].bs;
+}
+
+void TObjectHandler::setChameleonImage(const QString& mi, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].mi = mi;
+    }
+    else
+        mObject.sr[instance].mi = mi;
+}
+
+QString TObjectHandler::getChameleonImage(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString mi = mObject.sr[0].mi;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (mi != mObject.sr[i].mi)
+                return QString();
+        }
+
+        return mi;
+    }
+    else
+        return mObject.sr[instance].mi;
+}
+
+void TObjectHandler::setBorderColor(const QColor& cb, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].cb = cb;
+    }
+    else
+        mObject.sr[instance].cb = cb;
+}
+
+QColor TObjectHandler::getBorderColor(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QColor cb = mObject.sr[0].cb;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (cb != mObject.sr[i].cb)
+                return QColor();
+        }
+
+        return cb;
+    }
+    else
+        return mObject.sr[instance].cb;
+}
+
+void TObjectHandler::setGradientFillType(const QString& ft, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ft = ft;
+    }
+    else
+        mObject.sr[instance].ft = ft;
+}
+
+QString TObjectHandler::getGradientFillType(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString ft = mObject.sr[0].ft;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ft != mObject.sr[i].ft)
+                return QString();
+        }
+
+        return ft;
+    }
+    else
+        return mObject.sr[instance].ft;
+}
+
+void TObjectHandler::setFillColor(const QColor& cf, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].cf = cf;
+    }
+    else
+        mObject.sr[instance].cf = cf;
+}
+
+QColor TObjectHandler::getFillColor(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QColor cf = mObject.sr[0].cf;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (cf != mObject.sr[i].cf)
+                return QColor();
+        }
+
+        return cf;
+    }
+    else
+        return mObject.sr[instance].cf;
+}
+
+void TObjectHandler::setTextColor(const QColor& ct, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ct = ct;
+    }
+    else
+        mObject.sr[instance].ct = ct;
+}
+
+QColor TObjectHandler::getTextColor(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QColor ct = mObject.sr[0].ct;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ct != mObject.sr[i].ct)
+                return QColor();
+        }
+
+        return ct;
+    }
+    else
+        return mObject.sr[instance].ct;
+}
+
+void TObjectHandler::setTextEffectColor(const QColor& ec, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ec = ec;
+    }
+    else
+        mObject.sr[instance].ec = ec;
+}
+
+QColor TObjectHandler::getTextEffectColor(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QColor ec = mObject.sr[0].ec;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ec != mObject.sr[i].ec)
+                return QColor();
+        }
+
+        return ec;
+    }
+    else
+        return mObject.sr[instance].ec;
+}
+
+void TObjectHandler::setBitmaps(const QList<BITMAPS_t>& bitmaps, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+        {
+            mObject.sr[i].bitmaps.clear();
+            mObject.sr[i].bitmaps = bitmaps;
+        }
+    }
+    else
+        mObject.sr[instance].bitmaps = bitmaps;
+}
+
+QList<BITMAPS_t> TObjectHandler::getBitmaps(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QList<BITMAPS_t> bm = mObject.sr[0].bitmaps;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (!compareBitmaps(bm, mObject.sr[i].bitmaps))
+                return QList<BITMAPS_t>();
+        }
+
+        return bm;
+    }
+    else
+        return mObject.sr[instance].bitmaps;
+}
+
+void TObjectHandler::setGradientColors(const QList<QColor>& colors, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+        {
+            mObject.sr[i].gradientColors.clear();
+            mObject.sr[i].gradientColors = colors;
+        }
+    }
+    else
+        mObject.sr[instance].gradientColors = colors;
+}
+
+QList<QColor> TObjectHandler::getGradientColors(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QList<QColor> gc = mObject.sr[0].gradientColors;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (gc != mObject.sr[i].gradientColors)
+                return QList<QColor>();
+        }
+
+        return gc;
+    }
+    else
+        return mObject.sr[instance].gradientColors;
+}
+
+void TObjectHandler::setGradientRadius(int gr, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].gr = gr;
+    }
+    else
+        mObject.sr[instance].gr = gr;
+}
+
+int TObjectHandler::getGradientRadius(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int gr = mObject.sr[0].gr;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (gr != mObject.sr[i].gr)
+                return -1;
+        }
+
+        return gr;
+    }
+    else
+        return mObject.sr[instance].gr;
+}
+
+void TObjectHandler::setGradientCenterX(int gx, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].gx = gx;
+    }
+    else
+        mObject.sr[instance].gx = gx;
+}
+
+int TObjectHandler::getGradientCenterX(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int gx = mObject.sr[0].gx;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (gx != mObject.sr[i].gx)
+                return -1;
+        }
+
+        return gx;
+    }
+    else
+        return mObject.sr[instance].gx;
+}
+
+void TObjectHandler::setGradientCenterY(int gy, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].gy = gy;
+    }
+    else
+        mObject.sr[instance].gy = gy;
+}
+
+int TObjectHandler::getGradientCenterY(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int gy = mObject.sr[0].gy;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (gy != mObject.sr[i].gy)
+                return -1;
+        }
+
+        return gy;
+    }
+    else
+        return mObject.sr[instance].gy;
+}
+
+void TObjectHandler::setSound(const QString& sd, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].sd = sd;
+    }
+    else
+        mObject.sr[instance].sd = sd;
+}
+
+QString TObjectHandler::getSound(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString sd = mObject.sr[0].sd;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (sd != mObject.sr[i].sd)
+                return QString();
+        }
+
+        return sd;
+    }
+    else
+        return mObject.sr[instance].sd;
+}
+
+void TObjectHandler::setDynamic(bool dynamic, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].dynamic = dynamic;
+    }
+    else
+        mObject.sr[instance].dynamic = dynamic;
+}
+
+bool TObjectHandler::getDynamic(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        bool dynamic = mObject.sr[0].dynamic;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (dynamic != mObject.sr[i].dynamic)
+                return false;
+        }
+
+        return dynamic;
+    }
+    else
+        return mObject.sr[instance].dynamic;
+}
+
+void TObjectHandler::setExtGraphicIndex(int sb, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].sb = sb;
+    }
+    else
+        mObject.sr[instance].sb = sb;
+}
+
+int TObjectHandler::getExtGraphicIndex(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int sb = mObject.sr[0].sb;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (sb != mObject.sr[i].sb)
+                return -1;
+        }
+
+        return sb;
+    }
+    else
+        return mObject.sr[instance].sb;
+}
+
+void TObjectHandler::setText(const QString& te, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].te = te;
+    }
+    else
+        mObject.sr[instance].te = te;
+}
+
+QString TObjectHandler::getText(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString te = mObject.sr[0].te;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (te != mObject.sr[i].te)
+                return QString();
+        }
+
+        return te;
+    }
+    else
+        return mObject.sr[instance].te;
+}
+
+void TObjectHandler::setTextOrientation(ORIENTATION jt, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].jt = jt;
+    }
+    else
+        mObject.sr[instance].jt = jt;
+}
+
+ORIENTATION TObjectHandler::getTextOrientation(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        ORIENTATION jt = mObject.sr[0].jt;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (jt != mObject.sr[i].jt)
+                return ObjHandler::ORI_CENTER_MIDDLE;
+        }
+
+        return jt;
+    }
+    else
+        return mObject.sr[instance].jt;
+}
+
+void TObjectHandler::setTextAbsoluteX(int tx, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].tx = tx;
+    }
+    else
+        mObject.sr[instance].tx = tx;
+}
+
+int TObjectHandler::getTextAbsoluteX(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int tx = mObject.sr[0].tx;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (tx != mObject.sr[i].tx)
+                return -1;
+        }
+
+        return tx;
+    }
+    else
+        return mObject.sr[instance].tx;
+}
+
+void TObjectHandler::setTextAbsoluteY(int ty, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ty = ty;
+    }
+    else
+        mObject.sr[instance].ty = ty;
+}
+
+int TObjectHandler::getTextAbsoluteY(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int ty = mObject.sr[0].ty;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ty != mObject.sr[i].ty)
+                return -1;
+        }
+
+        return ty;
+    }
+    else
+        return mObject.sr[instance].ty;
+}
+
+void TObjectHandler::setFontFile(const QString& ff, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ff = ff;
+    }
+    else
+        mObject.sr[instance].ff = ff;
+}
+
+QString TObjectHandler::getFontFile(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString ff = mObject.sr[0].ff;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ff != mObject.sr[i].ff)
+                return QString();
+        }
+
+        return ff;
+    }
+    else
+        return mObject.sr[instance].ff;
+}
+
+void TObjectHandler::setFontSize(int fs, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].fs = fs;
+    }
+    else
+        mObject.sr[instance].fs = fs;
+}
+
+int TObjectHandler::getFontSize(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int fs = mObject.sr[0].fs;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (fs != mObject.sr[i].fs)
+                return -1;
+        }
+
+        return fs;
+    }
+    else
+        return mObject.sr[instance].fs;
+}
+
+void TObjectHandler::setWordWrap(int ww, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ww = ww;
+    }
+    else
+        mObject.sr[instance].ww = ww;
+}
+
+int TObjectHandler::getWordWrap(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int ww = mObject.sr[0].ww;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ww != mObject.sr[i].ww)
+                return -1;
+        }
+
+        return ww;
+    }
+    else
+        return mObject.sr[instance].ww;
+}
+
+void TObjectHandler::setTextEffect(int et, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].et = et;
+    }
+    else
+        mObject.sr[instance].et = et;
+}
+
+int TObjectHandler::getTextEffect(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int et = mObject.sr[0].et;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (et != mObject.sr[i].et)
+                return -1;
+        }
+
+        return et;
+    }
+    else
+        return mObject.sr[instance].et;
+}
+
+void TObjectHandler::setOverallOpacity(int oo, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].oo = oo;
+    }
+    else
+        mObject.sr[instance].oo = oo;
+}
+
+int TObjectHandler::getOverallOpacity(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int oo = mObject.sr[0].oo;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (oo != mObject.sr[i].oo)
+                return -1;
+        }
+
+        return oo;
+    }
+    else
+        return mObject.sr[instance].oo;
+}
+
+void TObjectHandler::setMarqueeType(int md, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].md = md;
+    }
+    else
+        mObject.sr[instance].md = md;
+}
+
+int TObjectHandler::getMarqueeType(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int md = mObject.sr[0].md;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (md != mObject.sr[i].md)
+                return -1;
+        }
+
+        return md;
+    }
+    else
+        return mObject.sr[instance].md;
+}
+
+void TObjectHandler::setMarqueeEnabled(int mr, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].mr = mr;
+    }
+    else
+        mObject.sr[instance].mr = mr;
+}
+
+int TObjectHandler::getMarqueeEnabled(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int mr = mObject.sr[0].mr;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (mr != mObject.sr[i].mr)
+                return -1;
+        }
+
+        return mr;
+    }
+    else
+        return mObject.sr[instance].mr;
+}
+
+void TObjectHandler::setMarqueeSpeed(int ms, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].ms = ms;
+    }
+    else
+        mObject.sr[instance].ms = ms;
+}
+
+int TObjectHandler::getMarqueeSpeed(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        int ms = mObject.sr[0].ms;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (ms != mObject.sr[i].ms)
+                return -1;
+        }
+
+        return ms;
+    }
+    else
+        return mObject.sr[instance].ms;
+}
+
+void TObjectHandler::setVideoFill(const QString& vf, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].vf = vf;
+    }
+    else
+        mObject.sr[instance].vf = vf;
+}
+
+QString TObjectHandler::getVideoFill(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString vf = mObject.sr[0].vf;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (vf != mObject.sr[i].vf)
+                return QString();
+        }
+
+        return vf;
+    }
+    else
+        return mObject.sr[instance].vf;
+}
+
+void TObjectHandler::setStreamingSource(const QString& dv, int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].dv = dv;
+    }
+    else
+        mObject.sr[instance].dv = dv;
+}
+
+QString TObjectHandler::getStreamingSource(int instance)
+{
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QString dv = mObject.sr[0].dv;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (dv != mObject.sr[i].dv)
+                return QString();
+        }
+
+        return dv;
+    }
+    else
+        return mObject.sr[instance].dv;
 }
 
 int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
@@ -97,4 +1132,28 @@ int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
     }
 
     return 0;
+}
+
+bool TObjectHandler::compareBitmaps(const QList<BITMAPS_t>& bm1, const QList<BITMAPS_t>& bm2)
+{
+    DECL_TRACER("TObjectHandler::compareBitmaps(const QList<BITMAPS_t>& bm1, const QList<BITMAPS_t>& bm2)");
+
+    if (bm1.size() != bm2.size())
+        return false;
+
+    for (int i = 0; i < bm1.size(); ++i)
+    {
+        if (bm1[i].fileName != bm2[i].fileName)
+            return false;
+        else if (bm1[i].dynamic != bm2[i].dynamic)
+            return false;
+        else if (bm1[i].justification != bm2[i].justification)
+            return false;
+        else if (bm1[i].offsetX != bm2[i].offsetX)
+            return false;
+        else if (bm1[i].offsetY != bm2[i].offsetY)
+            return false;
+    }
+
+    return true;
 }
