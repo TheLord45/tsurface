@@ -82,20 +82,6 @@ TPropertiesStates::~TPropertiesStates()
     DECL_TRACER("TPropertiesStates::~TPropertiesStates()");
 }
 
-void TPropertiesStates::setGeometry(int bi, const QRect& geom)
-{
-    DECL_TRACER("TPropertiesStates::setGeometry(int bi, const QRect& geom)");
-
-    for (TObjectHandler *obj : mPage.objects)
-    {
-        if (obj->getButtonIndex() == bi)
-        {
-            obj->setSize(geom);
-            break;
-        }
-    }
-}
-
 /**
  * @brief TPropertiesStates::setPage
  * This method sets the @bold page. If the page is a new page then the old
@@ -118,7 +104,7 @@ void TPropertiesStates::setPage(const Page::PAGE_t& page)
     mActInstance = -1;
     mActObjectID = -1;
     setSType();
-    createPage();
+    createPage(true);
 }
 
 void TPropertiesStates::setActualButton(int index, STATE_TYPE stype)
@@ -130,8 +116,15 @@ void TPropertiesStates::setActualButton(int index, STATE_TYPE stype)
 
     mActObjectID = index;
     mSType = stype;
-    createPage();
+    createPage(true);
     // TODO: Add code to show the states for an object
+    int inst = -1;
+
+    for (QTableWidget *w : mStates)
+    {
+        setTable(w, inst);
+        inst++;
+    }
 }
 
 void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
@@ -141,12 +134,37 @@ void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
     if (index < 0 || index >= mPage.objects.size())
         return;
 
+    bool force = false;
+
     if (mActObjectID != index)
     {
         MSG_WARNING("The new object id is different! Actual ID: " << mActObjectID << ", new ID: " << index);
+        force = true;
     }
 
-    mPage.objects[index]->setObjectType(btype);
+    mActObjectID = index;
+
+    if (mPage.objects[index]->getType() != btype)
+    {
+        MSG_WARNING("Object " << index << " changed type from " << mPage.objects[index]->getType() << " to " << btype << "!");
+        mPage.objects[index]->setObjectType(btype);
+    }
+
+    setSType();
+    createPage(force);
+}
+
+void TPropertiesStates::setState(STATE_TYPE stype)
+{
+    DECL_TRACER("TPropertiesStates::setState(STATE_TYPE stype)");
+
+    if (stype != mSType)
+    {
+        mSType = stype;
+        createPage(true);
+    }
+    else
+        createPage(false);
 }
 
 void TPropertiesStates::clear()
@@ -166,10 +184,13 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 {
     DECL_TRACER("TPropertiesStates::setTable(QTableWidget *table, int instance)");
 
-    for (int i = 0; i < table->rowCount(); ++i)
+    if (!table)
+        return;
+
+    for (int i = 0; i < table->rowCount(); ++i)     // Hide all rows
         table->setRowHidden(i, true);
 
-    if (mActObjectID < 0 || mActObjectID > mPage.objects.size() || instance < 0)
+    if (!isValidObjectIndex())
     {
         if (mPage.popupType == Page::PT_PAGE)
         {
@@ -261,6 +282,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     else
     {
         ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
+        ObjHandler::SR_T objState = mPage.objects[mActObjectID]->getSrFromIndex(instance);
         mActInstance = instance;
 
         if (instance >= obj.sr.size())
@@ -269,19 +291,22 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             return;
         }
 
-        table->setRowHidden(TTEXT_BORDER_NAME, false);
+        if (obj.type != ObjHandler::LISTVIEW)
+        {
+            table->setRowHidden(TTEXT_BORDER_NAME, false);
 
-        if (mPage.srPage.bs.isEmpty())
-            table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
+            if (mPage.srPage.bs.isEmpty())
+                table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
+        }
 
         table->setRowHidden(TTEXT_BORDER_COLOR, false);
         table->setRowHidden(TTEXT_FILL_TYPE, false);
 
-        if (mPage.srPage.ft != "solid")
+        if (objState.ft != "solid")
         {
             table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
 
-            if (mPage.srPage.ft == "radial")
+            if (objState.ft == "radial")
             {
                 table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
                 table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
@@ -294,32 +319,45 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         table->setRowHidden(TTEXT_TEXT_COLOR, false);
         table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
         table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
-        table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-        if (mPage.srPage.vf == "100")
-            table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
+        if (obj.type != ObjHandler::LISTVIEW)
+        {
+            table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-        table->setRowHidden(TTEXT_BITMAPS, false);
+            if (mPage.srPage.vf == "100")
+                table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
+
+            table->setRowHidden(TTEXT_BITMAPS, false);
+        }
+
         table->setRowHidden(TTEXT_FONT, false);
         table->setRowHidden(TTEXT_FONT_SIZE, false);
-        table->setRowHidden(TTEXT_TEXT, false);
-        table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
-        if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+        if (obj.type != ObjHandler::LISTVIEW)
         {
-            table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
-            table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+            table->setRowHidden(TTEXT_TEXT, false);
+            table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+
+            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            {
+                table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
+                table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+            }
         }
 
         table->setRowHidden(TTEXT_TEXT_EFFECT, false);
-        table->setRowHidden(TTEXT_WORD_WRAP, false);
-        table->setRowHidden(TTEXT_SOUND, false);
+
+        if (obj.type != ObjHandler::LISTVIEW)
+        {
+            table->setRowHidden(TTEXT_WORD_WRAP, false);
+            table->setRowHidden(TTEXT_SOUND, false);
+        }
     }
 }
 
-void TPropertiesStates::createPage()
+void TPropertiesStates::createPage(bool force)
 {
-    DECL_TRACER("TPropertiesStates::createPage()");
+    DECL_TRACER("TPropertiesStates::createPage(bool force)");
 
     if (!mTreeWidget)
     {
@@ -327,23 +365,32 @@ void TPropertiesStates::createPage()
         return;
     }
 
-    mInitialized = false;
+    if (mInitialized && !force)
+    {
+        rebuildTree();
+        return;
+    }
+
     mStates.clear();
     mTreeWidget->clear();
     mTreeWidget->setColumnCount(1);
     mTreeWidget->setHeaderHidden(true);
+    QSignalBlocker sigBlocker(mTreeWidget);
 
     QTreeWidgetItem *top = new QTreeWidgetItem(mTreeWidget);
+    QString name;
 
     if (isAnyPage())
-        top->setText(0, tr("Off"));
+        name = tr("Off");
     else
-        top->setText(0, tr("All"));
+        name = getStateName(mPage.objects[mActObjectID]->getType(), -1);
 
+    top->setText(0, name);
     QTreeWidgetItem *item = new QTreeWidgetItem(top);
     item->setFirstColumnSpanned(true);
     item->setFlags(Qt::ItemIsEnabled);      // Not selectable
 
+    mActInstance = -1;
     QTableWidget *table = createTableWidget(mTreeWidget);
     mStates.append(table);
     mTreeWidget->setItemWidget(item, 0, table);
@@ -357,12 +404,14 @@ void TPropertiesStates::createPage()
         {
             QTreeWidgetItem *entry = new QTreeWidgetItem(mTreeWidget);
 
-            entry->setText(0, tr("State %1").arg(obj.sr[i].number));
+            QString name = getStateName(obj.type, i);
+            entry->setText(0, name);
 
             item = new QTreeWidgetItem(entry);
             item->setFirstColumnSpanned(true);
             item->setFlags(Qt::ItemIsEnabled);      // Not selectable
 
+            mActInstance = i;
             table = createTableWidget(mTreeWidget);
             mStates.append(table);
             mTreeWidget->setItemWidget(item, 0, table);
@@ -373,12 +422,7 @@ void TPropertiesStates::createPage()
     MSG_DEBUG("Page total height: " << totalHeight);
     mTreeWidget->setMinimumHeight(totalHeight);
 
-    for (int i = 0; i < mStates.size(); ++i)
-    {
-        mActState = i;
-        setTable(mStates[i]);
-    }
-
+    rebuildTree();
     mInitialized = true;
 }
 
@@ -393,7 +437,7 @@ QTableWidget *TPropertiesStates::createTableWidget(QWidget *parent)
     table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     table->setColumnCount(2);
 
-    createPage(table);
+    createPage(table, mActInstance);
 
     table->resizeRowsToContents();
     table->resizeColumnsToContents();
@@ -612,7 +656,7 @@ void TPropertiesStates::setSType()
 {
     DECL_TRACER("TPropertiesStates::setSType()");
 
-    if (mActObjectID < 0 || mActObjectID >= mPage.objects.size())
+    if (!isValidObjectIndex())
     {
         if (mPage.popupType == Page::PT_PAGE)
             mSType = STATE_PAGE;
@@ -623,6 +667,7 @@ void TPropertiesStates::setSType()
         else
             mSType = STATE_UNKNOWN;
 
+        MSG_DEBUG("State was set to page type " << mSType);
         return;
     }
 
@@ -645,6 +690,9 @@ void TPropertiesStates::setSType()
         break;
 
         case ObjHandler::LISTVIEW:
+            mSType = STATE_LISTVIEW;
+        break;
+
         case ObjHandler::SUBPAGE_VIEW:
             mSType = STATE_SUBPAGE;
         break;
@@ -652,6 +700,8 @@ void TPropertiesStates::setSType()
         default:
             mSType = STATE_UNKNOWN;
     }
+
+    MSG_DEBUG("State for object " << mActObjectID << " is " << mSType);
 }
 
 bool TPropertiesStates::isAnyPage()
@@ -672,6 +722,63 @@ bool TPropertiesStates::isValidObjectIndex()
         return true;
 
     return false;
+}
+
+void TPropertiesStates::rebuildTree()
+{
+    DECL_TRACER("TPropertiesStates::rebuildTree()");
+
+    MSG_DEBUG("Have " << mStates.size() << " states.");
+
+    for (int i = 0; i < mStates.size(); ++i)
+    {
+        mActState = i - 1;
+        setTable(mStates[i], mActState);
+    }
+}
+
+QString TPropertiesStates::getStateName(ObjHandler::BUTTONTYPE type, int instance)
+{
+    DECL_TRACER("TPropertiesStates::getStateName(ObjHandler::BUTTONTYPE type, int instance)");
+
+    QString name;
+
+    switch(type)
+    {
+        case ObjHandler::GENERAL:
+        case ObjHandler::BARGRAPH:
+        case ObjHandler::TEXT_INPUT:
+            switch(instance)
+            {
+                case 0: name = tr("Off"); break;
+                case 1: name = tr("On"); break;
+                default:
+                    name = tr("All States");
+            }
+        break;
+
+        case ObjHandler::MULTISTATE_GENERAL:
+        case ObjHandler::MULTISTATE_BARGRAPH:
+            if (instance >= 0)
+                name = tr("State %1").arg(instance + 1);
+            else
+                name = tr("All States");
+        break;
+
+        case ObjHandler::LISTVIEW:
+            if (instance == 0)
+                name = tr("Default");
+            else if (instance == 1)
+                name = tr("Selected");
+            else
+                name = tr("All States");
+        break;
+
+        default:
+            name = tr("Off");
+    }
+
+    return name;
 }
 
 void TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
@@ -1189,29 +1296,6 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
     label->setStyleSheet(QString("background-color: %1").arg(color.name(QColor::HexArgb)));
 }
 
-void TPropertiesStates::addGradientLines(const QString& gradient, const QString& name, bool init)
-{
-    DECL_TRACER("TPropertiesStates::addGradientLines(const QString& gradient, const QString& name, bool init)");
-
-    Q_UNUSED(init);
-
-    QTreeWidgetItem *root = mTreeWidget->invisibleRootItem();
-    QTreeWidgetItem *top = root->child(0);
-    QTableWidget *widget = static_cast<QTableWidget *>(mTreeWidget->itemWidget(top->child(0), 0));
-
-    if (!widget)
-    {
-        MSG_WARNING("Couldn't get the table widget!");
-        return;
-    }
-/*
-    if (name == "PgFillType")
-        adjustTablePage(widget, gradient);
-    else if (name == "PopupFillType")
-        adjustTablePopup(widget, gradient);
-*/
-}
-
 // Callbacks
 
 void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name)
@@ -1304,6 +1388,8 @@ void TPropertiesStates::onSoundChanged(const QString& file, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onSoundChanged(const QString& file, const QString& name)");
 
+    Q_UNUSED(name);
+
     if (isAnyPage())
         return;         // Pages can't play sounds
 
@@ -1315,6 +1401,8 @@ void TPropertiesStates::onSoundChanged(const QString& file, const QString& name)
 void TPropertiesStates::onVideoFillChanged(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onVideoFillChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
 
     setValue(name, data);
 }
@@ -1336,6 +1424,8 @@ void TPropertiesStates::onTextValueChanged(const QString& text, const QString& n
 void TPropertiesStates::onFillTypeChanged(const QString& text, const QVariant& data, const QString& name)
 {
     DECL_TRACER("TPropertiesStates::onFillTypeChanged(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
 
     setValue(name, data);
 }

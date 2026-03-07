@@ -50,6 +50,7 @@ class TPropertiesStates : public QObject
         void setPage(const Page::PAGE_t& page);
         void setActualButton(int index, STATE_TYPE stype);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
+        void setState(STATE_TYPE stype);
         bool isChanged() { return mChanged; }
 
     protected:
@@ -61,7 +62,7 @@ class TPropertiesStates : public QObject
 
         // Other methods
         void setParent(QWidget *widget) { mParent = widget; }
-        void createPage();
+        void createPage(bool force=false);
         QTableWidget *createTableWidget(QWidget *parent=nullptr);
         QString getLeftColText(int line);
         TElementBorderName *makeBorderName(const QString& name);
@@ -77,7 +78,6 @@ class TPropertiesStates : public QObject
         TElementWidgetCombo *makeWordWrap(const QString& name);
         TElementGradientColors *makeGradientColors(const QString& name);
         TElementSound *makeSoundSelector(const QString& name);
-        void setGeometry(int bi, const QRect& geom);
         void clear();
 
         // Callbacks
@@ -98,12 +98,13 @@ class TPropertiesStates : public QObject
         QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
-        void addGradientLines(const QString& gradient, const QString& name, bool init=false);
         void setTable(QTableWidget *table, int instance=-1);
         void createPage(QTableWidget *table, int instance=-1);
         void setSType();
         bool isAnyPage();
         bool isValidObjectIndex();
+        void rebuildTree();
+        QString getStateName(ObjHandler::BUTTONTYPE type, int instance);
         QTableWidget *getTableWidget(int state=0);
         void setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
         void setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype);

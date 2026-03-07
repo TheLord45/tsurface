@@ -20,12 +20,15 @@
 
 #include <QString>
 #include <QColor>
-
-#include "tresizablewidget.h"
+#include <QPixmap>
 
 class TCanvasWidget;
 class QLabel;
 
+/**
+ * @brief namespace: ObjHandler
+ * This namespace contains all definitions needed to handle a single object.
+ */
 namespace ObjHandler
 {
     typedef enum ORIENTATION
@@ -454,6 +457,16 @@ namespace ObjHandler
     }TOBJECT_t;
 };
 
+/**
+ * @brief The TObjectHandler class
+ * This class controls an object. An object can be a button, bargraph, ...
+ * The object is defined with the structure @code TOBJECT_t. This structure
+ * includes the structure @code SR_T which has an entry for each state. The
+ * number of states depend on the type of object.
+ * For the structure @code SR_t exits getter and setter for each supported
+ * value. The structure contains a bit more values. This are here for historical
+ * reasons and were used to draw TP4 object. The class no longer supports TP4!
+ */
 class TObjectHandler
 {
     public:
@@ -472,7 +485,7 @@ class TObjectHandler
         ObjHandler::TOBJECT_t& getObject() { return mObject; }
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
-        ObjHandler::TOBJECT_t getObjectCommon();
+        ObjHandler::SR_T getSrCommon();
 
         inline void setSize(const QRect& rect)
         {

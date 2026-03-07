@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+
 #include "tobjecthandler.h"
 #include "terror.h"
 
@@ -60,7 +61,8 @@ ObjHandler::SR_T TObjectHandler::getSr(int number)
 /**
  * @brief TObjectHandler::getSrFromIndex
  * This method returns an instance from the given index. If the index is
- * out of range, an empty structure is returned.
+ * out of range a common object is generated. For details look at
+ * @keyword getSrFromIndex().
  *
  * @param index     A valid index number.
  *
@@ -72,13 +74,13 @@ ObjHandler::SR_T TObjectHandler::getSrFromIndex(int index)
     DECL_TRACER("TObjectHandler::getSrFromIndex(int index)");
 
     if (index < 0 || index >= mObject.sr.size())
-        return SR_T();
+        return getSrCommon();
 
     return mObject.sr[index];
 }
 
 /**
- * @brief TObjectHandler::getObjectCommon
+ * @brief TObjectHandler::getSrCommon
  * The method takes the first element in the @bold sr array and compares
  * every value with the other entries in the array. Every value contained
  * in the other instances too is copied into a virtual object.
@@ -87,106 +89,107 @@ ObjHandler::SR_T TObjectHandler::getSrFromIndex(int index)
  * @return A virtual object containing only the common values of all entries
  * in the array @bold sr.
  */
-ObjHandler::TOBJECT_t TObjectHandler::getObjectCommon()
+ObjHandler::SR_T TObjectHandler::getSrCommon()
 {
-    DECL_TRACER("TObjectHandler::getObjectCommon()");
+    DECL_TRACER("TObjectHandler::getSrCommon()");
 
     TOBJECT_t obj = mObject;
+    SR_T common = obj.sr[0];
 
     for (int i = 1; i < mObject.sr.size(); ++i)
     {
-        if (obj.sr[0]._do != mObject.sr[i]._do)
-            obj.sr[0]._do.clear();
+        if (common._do != mObject.sr[i]._do)
+            common._do.clear();
 
-        if (obj.sr[0].bs != mObject.sr[i].bs)
-            obj.sr[0].bs.clear();
+        if (common.bs != mObject.sr[i].bs)
+            common.bs.clear();
 
-        if (obj.sr[0].mi != mObject.sr[i].mi)
-            obj.sr[0].mi.clear();
+        if (common.mi != mObject.sr[i].mi)
+            common.mi.clear();
 
-        if (obj.sr[0].cb != mObject.sr[i].cb)
-            obj.sr[0].cb = Qt::transparent;
+        if (common.cb != mObject.sr[i].cb)
+            common.cb = Qt::transparent;
 
-        if (obj.sr[0].ft != mObject.sr[i].ft)
-            obj.sr[0].ft.clear();
+        if (common.ft != mObject.sr[i].ft)
+            common.ft.clear();
 
-        if (obj.sr[0].cf != mObject.sr[i].cf)
-            obj.sr[0].cf = Qt::transparent;
+        if (common.cf != mObject.sr[i].cf)
+            common.cf = Qt::transparent;
 
-        if (obj.sr[0].ct != mObject.sr[i].ct)
-            obj.sr[0].ct = Qt::transparent;
+        if (common.ct != mObject.sr[i].ct)
+            common.ct = Qt::transparent;
 
-        if (obj.sr[0].ec != mObject.sr[i].ec)
-            obj.sr[0].ec = Qt::transparent;
+        if (common.ec != mObject.sr[i].ec)
+            common.ec = Qt::transparent;
 
-        if (!compareBitmaps(obj.sr[0].bitmaps, mObject.sr[i].bitmaps))
-            obj.sr[0].bitmaps.clear();
+        if (!compareBitmaps(common.bitmaps, mObject.sr[i].bitmaps))
+            common.bitmaps.clear();
 
-        if (obj.sr[0].gradientColors != mObject.sr[i].gradientColors)
-            obj.sr[0].gradientColors.clear();
+        if (common.gradientColors != mObject.sr[i].gradientColors)
+            common.gradientColors.clear();
 
-        if (obj.sr[0].gr != mObject.sr[i].gr)
-            obj.sr[0].gr = 0;
+        if (common.gr != mObject.sr[i].gr)
+            common.gr = 0;
 
-        if (obj.sr[0].gx != mObject.sr[i].gx)
-            obj.sr[0].gx = 0;
+        if (common.gx != mObject.sr[i].gx)
+            common.gx = 0;
 
-        if (obj.sr[0].gy != mObject.sr[i].gy)
-            obj.sr[0].gy = 0;
+        if (common.gy != mObject.sr[i].gy)
+            common.gy = 0;
 
-        if (obj.sr[0].sd != mObject.sr[i].sd)
-            obj.sr[0].sd.clear();
+        if (common.sd != mObject.sr[i].sd)
+            common.sd.clear();
 
-        if (obj.sr[0].dynamic != mObject.sr[i].dynamic)
-            obj.sr[0].dynamic = false;
+        if (common.dynamic != mObject.sr[i].dynamic)
+            common.dynamic = false;
 
-        if (obj.sr[0].sb != mObject.sr[i].sb)
-            obj.sr[0].sb = 0;
+        if (common.sb != mObject.sr[i].sb)
+            common.sb = 0;
 
-        if (obj.sr[0].te != mObject.sr[i].te)
-            obj.sr[0].te.clear();
+        if (common.te != mObject.sr[i].te)
+            common.te.clear();
 
-        if (obj.sr[0].jt != mObject.sr[i].jt)
-            obj.sr[0].jt = ObjHandler::ORI_CENTER_MIDDLE;
+        if (common.jt != mObject.sr[i].jt)
+            common.jt = ObjHandler::ORI_CENTER_MIDDLE;
 
-        if (obj.sr[0].tx != mObject.sr[i].tx)
-            obj.sr[0].tx = 0;
+        if (common.tx != mObject.sr[i].tx)
+            common.tx = 0;
 
-        if (obj.sr[0].ty != mObject.sr[i].ty)
-            obj.sr[0].ty = 0;
+        if (common.ty != mObject.sr[i].ty)
+            common.ty = 0;
 
-        if (obj.sr[0].ff != mObject.sr[i].ff)
-            obj.sr[0].ff.clear();
+        if (common.ff != mObject.sr[i].ff)
+            common.ff.clear();
 
-        if (obj.sr[0].fs != mObject.sr[i].fs)
-            obj.sr[0].fs = 0;
+        if (common.fs != mObject.sr[i].fs)
+            common.fs = 0;
 
-        if (obj.sr[0].ww != mObject.sr[i].ww)
-            obj.sr[0].ww = 0;
+        if (common.ww != mObject.sr[i].ww)
+            common.ww = 0;
 
-        if (obj.sr[0].et != mObject.sr[i].et)
-            obj.sr[0].et = 0;
+        if (common.et != mObject.sr[i].et)
+            common.et = 0;
 
-        if (obj.sr[0].oo != mObject.sr[i].oo)
-            obj.sr[0].oo = -1;
+        if (common.oo != mObject.sr[i].oo)
+            common.oo = -1;
 
-        if (obj.sr[0].md != mObject.sr[i].md)
-            obj.sr[0].md = 0;
+        if (common.md != mObject.sr[i].md)
+            common.md = 0;
 
-        if (obj.sr[0].mr != mObject.sr[i].mr)
-            obj.sr[0].mr = 0;
+        if (common.mr != mObject.sr[i].mr)
+            common.mr = 0;
 
-        if (obj.sr[0].ms != mObject.sr[i].ms)
-            obj.sr[0].ms = 0;
+        if (common.ms != mObject.sr[i].ms)
+            common.ms = 0;
 
-        if (obj.sr[0].vf != mObject.sr[i].vf)
-            obj.sr[0].vf.clear();
+        if (common.vf != mObject.sr[i].vf)
+            common.vf.clear();
 
-        if (obj.sr[0].dv != mObject.sr[i].dv)
-            obj.sr[0].dv.clear();
+        if (common.dv != mObject.sr[i].dv)
+            common.dv.clear();
     }
 
-    return obj;
+    return common;
 }
 
 /**
@@ -236,6 +239,7 @@ void TObjectHandler::setSrToAllInstances(const SR_T& sr)
     }
 }
 
+// Getter / Setter
 void TObjectHandler::setDrawOrder(const QString& _do, int instance)
 {
     if (instance < 0 || instance >= mObject.sr.size())

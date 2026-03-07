@@ -106,32 +106,39 @@ TPropertiesGeneral::~TPropertiesGeneral()
     }
 }
 
-void TPropertiesGeneral::setGeometryPopup(const QRect& geom)
+void TPropertiesGeneral::setGeometryPopup(const QRect& geom, bool block)
 {
-    DECL_TRACER("TPropertiesGeneral::setGeometry(const QRect& geom)");
+    DECL_TRACER("TPropertiesGeneral::setGeometry(const QRect& geom, bool block)");
 
     if (!mTable || mPage.popupType != Page::PT_POPUP)
         return;
 
+    mSignalBlocked = block;
     onSpinGeometryChanged(geom.left(), "PopupLeft");
     onSpinGeometryChanged(geom.top(), "PopupTop");
     onSpinGeometryChanged(geom.width(), "PopupWidth");
     onSpinGeometryChanged(geom.height(), "PopupHeight");
-    update();
+
+    if (!mSignalBlocked)
+        update();
+
+    mSignalBlocked = false;
 }
 
-void TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom)
+void TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom, bool block)
 {
-    DECL_TRACER("TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom)");
+    DECL_TRACER("TPropertiesGeneral::setGeometryButton(int bi, const QRect& geom, bool block)");
 
     if (!mTable || bi <= 0)
         return;
 
     mActObjectID = bi - 1;
+    mSignalBlocked = block;
     onSpinGeometryChanged(geom.left(), "ObjectLeft");
     onSpinGeometryChanged(geom.top(), "ObjectTop");
     onSpinGeometryChanged(geom.width(), "ObjectWidth");
     onSpinGeometryChanged(geom.height(), "ObjectHeight");
+    mSignalBlocked = false;
 }
 
 void TPropertiesGeneral::update()
@@ -409,7 +416,7 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                 // TODO: Disable Touch Scrolling
                 // TODO: Enable Anchoring
             }
-            else if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+            else if (mActObject.type == ObjHandler::LISTVIEW)
             {
                 // TODO: Listview Components (Primary Text, Secondary Text, Image)
                 // TODO: Item Hight
@@ -1529,7 +1536,8 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
         else if (name.endsWith("Height"))
             mPage.height = value;
 
-        setPosition(QRect(mPage.left, mPage.top, mPage.width, mPage.height), mPage, 0, STATE_POPUP);
+        if (!mSignalBlocked)
+            setPosition(QRect(mPage.left, mPage.top, mPage.width, mPage.height), mPage, 0, STATE_POPUP);
     }
     else
     {
@@ -1545,7 +1553,9 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
                 mActObject.ht = value;
 
             mPage.objects[mActObjectID]->setObject(mActObject);
-            setPosition(QRect(mActObject.lt, mActObject.tp, mActObject.wt, mActObject.ht), mPage, mActObject.bi, STATE_BUTTON);
+
+            if (!mSignalBlocked)
+                setPosition(QRect(mActObject.lt, mActObject.tp, mActObject.wt, mActObject.ht), mPage, mActObject.bi, STATE_BUTTON);
         }
     }
 

@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
+#include "tresizablewidget.h"
 #include "tworkspacehandler.h"
 #include "tcanvaswidget.h"
 #include "terror.h"
@@ -109,6 +110,7 @@ void TWorkSpaceHandler::setStateType(STATE_TYPE state)
     mStateType = state;
     TPropertiesGeneral::setTable(state);
     TPropertiesProgramming::setTable(state);
+    TPropertiesStates::setState(state);
 }
 
 void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
@@ -117,7 +119,11 @@ void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
 
     Q_UNUSED(pageID);
 
-    TPropertiesStates::setGeometry(bi, geom);
+    if (bi > 0)
+        TPropertiesGeneral::setGeometryButton(bi, geom, true);
+    else
+        TPropertiesGeneral::setGeometryPopup(geom, true);
+
     TPropertiesGeneral::update();
 }
 
@@ -125,6 +131,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
 {
     DECL_TRACER("TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)");
 
+    MSG_DEBUG("Setting object " << index << ", Have object: " << (object != nullptr ? "YES" : "NO"));
     mObject = object;
     mObjectIndex = index;
 
@@ -133,6 +140,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
 
     TPropertiesGeneral::update();
     TPropertiesProgramming::setObject(object->getObject(), index);
+    TPropertiesStates::setObjectType(object->getType(), index);
 }
 
 void TWorkSpaceHandler::clear()

@@ -49,8 +49,8 @@ class TPropertiesGeneral : public QObject
         Page::PAGE_t& getActualPage() { return mPage; }
         int getActObjectIndex() { return mActObjectID; }
         ObjHandler::TOBJECT_t& getActObject() { return mActObject; }
-        void setGeometryPopup(const QRect& geom);
-        void setGeometryButton(int bi, const QRect& geom);
+        void setGeometryPopup(const QRect& geom, bool block=false);
+        void setGeometryButton(int bi, const QRect& geom, bool block=false);
         void update();
 
     protected:
@@ -155,6 +155,7 @@ class TPropertiesGeneral : public QObject
         bool mInitialized{false};
         void loadPage(int pageID);
         int mActObjectID{-1};
+        bool mSignalBlocked{false};
 
         QComboBox *mComboPopupType{nullptr};
         QSpinBox *mSpinLeft{nullptr};

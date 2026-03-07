@@ -388,7 +388,6 @@ void TSurface::addObject(int id, QPoint pt)
     page->baseObject.widget->clearSelection();
 
     TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
-//    wrap->setMinimumSize(40, 40);
     wrap->setGridSize(page->baseObject.widget->gridSize());
     wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
     wrap->setGeometry(pt.x(), pt.y(), 40, 40);
@@ -1699,8 +1698,8 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
 
         TPageHandler::Current().setVisible(num, true);                          // Mark the page as visible
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg->pageID));// Show or hide the grid
-        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This independable from the visibility of the grid.
-        // TODO: Add code to draw all objects
+        onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This is independable from the visibility of the grid.
+        // Draw all objects
         TWorkSpaceHandler::Current().setAllProperties(*pg, pg->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
         onRedrawRequest(pg);                                                    // Draw the components of the page
     }
@@ -1739,7 +1738,6 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 
     if (selected)
     {
-//        TWorkSpaceHandler::Current().setStateType(STATE_BUTTON);
         TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
 
         if (!object)

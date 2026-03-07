@@ -142,24 +142,22 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
     }
 
     Page::PAGE_t page;
+    bool equal = false;
 
     if (!loaded)
     {
         page = *TPageHandler::Current().getPage(id);
 
         if (page.pageID == mPage.pageID)
-            return;
+            equal = true;
     }
 
-    if (!loaded && mPage.pageID > 0 && mChanged)
-    {
+    if (!loaded && !equal && mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
-        mPage = Page::PAGE_t();
-    }
 
     mChanged = false;
 
-    if (!loaded)
+    if (page.pageID > 0)
         mPage = page;
 
     if (mPage.pageID <= 0)
@@ -179,12 +177,13 @@ void TPropertiesProgramming::setProgrammingPopup(const QString& name)
         return;
     }
 
+    bool equal = false;
     Page::PAGE_t page = TPageHandler::Current().getPage(name);
 
     if (page.pageID == mPage.pageID)
-        return;
+        equal = true;
 
-    if (mPage.pageID > 0 && mChanged)
+    if (!equal && mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
@@ -203,21 +202,22 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
     }
 
     Page::PAGE_t page;
+    bool equal = false;
 
     if (!loaded)
     {
         page = *TPageHandler::Current().getPage(id);
 
         if (page.pageID == mPage.pageID)
-            return;
+            equal = true;
     }
 
-    if (!loaded && mPage.pageID > 0 && mChanged)
+    if (!loaded && !equal && mPage.pageID > 0 && mChanged)
         saveChangedData(&mPage, TBL_PROGRAM);
 
     mChanged = false;
 
-    if (!loaded)
+    if (page.pageID > 0)
         mPage = page;
 
     if (mPage.pageID <= 0)
@@ -318,6 +318,9 @@ void TPropertiesProgramming::setSType()
         break;
 
         case ObjHandler::LISTVIEW:
+            mStype = STATE_LISTVIEW;
+        break;
+
         case ObjHandler::SUBPAGE_VIEW:
             mStype = STATE_SUBPAGE;
         break;
@@ -391,7 +394,7 @@ void TPropertiesProgramming::setTable(STATE_TYPE stype)
 
     MSG_DEBUG("Rows: " << mTable->rowCount() << ", SType: " << mStype);
 
-    if (mStype == STATE_PAGE || mStype == STATE_POPUP || mStype == STATE_INPUT)
+    if (mStype == STATE_PAGE || mStype == STATE_POPUP || mStype == STATE_INPUT || mStype == STATE_LISTVIEW)
     {
         mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
         mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
