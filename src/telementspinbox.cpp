@@ -51,6 +51,7 @@ void TElementSpinBox::init()
 {
     DECL_TRACER("TElementSpinBox::init()");
 
+    QSignalBlocker sigBlock(this);
     mSpinBox = new QSpinBox(this);
     mSpinBox->setRange(mMinValue, mMaxValue);
     mSpinBox->setValue(mValue);
@@ -72,6 +73,7 @@ void TElementSpinBox::setMinValue(int value)
 {
     DECL_TRACER("TElementSpinBox::setMinValue(int value)");
 
+    QSignalBlocker sigBlock(this);
     mMinValue = value;
 
     if (mSpinBox)
@@ -82,6 +84,7 @@ void TElementSpinBox::setMaxValue(int value)
 {
     DECL_TRACER("TElementSpinBox::setMaxValue(int value)");
 
+    QSignalBlocker sigBlock(this);
     mMaxValue = value;
 
     if (mSpinBox)
@@ -95,6 +98,8 @@ void TElementSpinBox::setMinMaxValue(int min, int max)
     mMinValue = min;
     mMaxValue = max;
 
+    QSignalBlocker sigBlock(this);
+
     if (mSpinBox)
         mSpinBox->setRange(min, max);
 }
@@ -105,4 +110,5 @@ void TElementSpinBox::onValueChanged(int value)
 
     mValue = value;
     emit valueChanged(value, mName);
+    emit valueChangedInst(value, mName, mInstance);
 }

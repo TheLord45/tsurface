@@ -33,8 +33,8 @@ TElementSound::TElementSound(QWidget *parent)
 
 TElementSound::TElementSound(const QString& sound, const QString &name, QWidget *parent)
     : QWidget(parent),
-      mSound(sound),
-      mName(name)
+      mName(name),
+      mSound(sound)
 {
     DECL_TRACER("TElementSound::TElementSound(const QString& sound, const QString &name, QWidget *parent)");
 
@@ -44,6 +44,8 @@ TElementSound::TElementSound(const QString& sound, const QString &name, QWidget 
 void TElementSound::init()
 {
     DECL_TRACER("TElementSound::init()");
+
+    QSignalBlocker sigBlock(this);
 
     if (!mName.isEmpty() && mName != objectName())
         setObjectName(mName);
@@ -73,6 +75,7 @@ void TElementSound::setSound(const QString& sound)
 {
     DECL_TRACER("TElementSound::setSound(const QString &sound)");
 
+    QSignalBlocker sigBlock(this);
     mSound = sound;
     mLine->setText(sound);
 }
@@ -90,4 +93,5 @@ void TElementSound::onPushButtonClicked()
     mSound = ss.getSound();
     mLine->setText(mSound);
     emit soundFileChanged(mSound, mName);
+    emit soundFileChangedInst(mSound, mName, mInstance);
 }

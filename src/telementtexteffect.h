@@ -35,9 +35,12 @@ class TElementTextEffect : public QWidget
 
         QString& getEffect() { return mEffect; }
         void setEffect(int effect);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void effectChanged(int number, const QString& effect, const QString& name);
+        void effectChangedInst(int number, const QString& effect, const QString& name, int instance);
 
     protected:
         void onComboTextChanged(const QString& text);
@@ -53,6 +56,7 @@ class TElementTextEffect : public QWidget
         QStandardItemModel *mModel{nullptr};
         QString mName;
         QString mEffect;
+        int mInstance{-1};
 };
 
 #endif // TELEMENTTEXTEFFECT_H

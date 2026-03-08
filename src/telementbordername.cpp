@@ -33,6 +33,7 @@ TElementBorderName::TElementBorderName(const QString& brd, const QString& name, 
 
     QList<FAMILY_t> borders = TGraphics::Current().getBorders();
 
+    QSignalBlocker sigBlock(this);
     mCombo = new QComboBox(this);
     mTreeView = new QTreeView(mCombo);
     mTreeView->setHeaderHidden(true);
@@ -84,6 +85,7 @@ void TElementBorderName::setBorder(const QString& border)
 {
     DECL_TRACER("TElementBorderName::setBorder(const QString& border)");
 
+    QSignalBlocker sigBlock(this);
     mBorder = border;
 
     if (!border.isEmpty())
@@ -96,5 +98,6 @@ void TElementBorderName::onComboTextChanged(const QString& text)
 
     mBorder = text;
     emit borderChanged(text, mName);
+    emit borderChangedInst(text, mName, mInstance);
     mTreeView->collapseAll();
 }

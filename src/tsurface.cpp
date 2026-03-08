@@ -1985,7 +1985,17 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
     DECL_TRACER("TSurface::onRedrawRequest(Page::PAGE_t *page)");
 
     if (!page || page->pageID <= 0)
+    {
+        MSG_DEBUG("Got no valid page!");
         return;
+    }
+    // Save currently selected objects, if any
+    TResizableWidget *selected = page->baseObject.widget->currentSelectedWidget();
+    int objId = 0;
+
+    if (selected)
+        objId = selected->getId();
+
     // First draw everything on the background
     //----------------------------------------
     // Background color
@@ -2015,7 +2025,14 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
     // Draw the objects
     for (int idx = 0; idx < page->objects.size(); ++idx)
         drawObject(page, idx);
-    // TODO: Add code to draw objects
+    // Resotre selection
+    if (objId > 0)
+    {
+        selected = page->baseObject.widget->getWidget(objId);
+
+        if (selected)
+            selected->setSelected(true);
+    }
 }
 
 void TSurface::resizeEvent(QResizeEvent *event)

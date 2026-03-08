@@ -27,6 +27,7 @@ TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWi
 {
     DECL_TRACER("TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWidget *parent)");
 
+    QSignalBlocker sigBlock(this);
     mLine = new QLineEdit(this);
     mLine->setText(text);
     connect(mLine, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
@@ -52,4 +53,5 @@ void TElementLineEdit::onTextChanged(const QString& text)
 
     mText = text;
     emit inputTextChanged(text, mName);
+    emit inputTextChangedInst(text, mName, mInstance);
 }

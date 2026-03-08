@@ -58,6 +58,7 @@ void TElementWidgetCombo::addData(const QList<QVariant>& data)
     if (data.size() < count())
         return;
 
+    QSignalBlocker sigBlock(this);
     int idx = 0;
 
     for (QVariant d : data)
@@ -73,6 +74,7 @@ void TElementWidgetCombo::setDefaultData(const QVariant& data)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultData(const QVariant& data)");
 
+    QSignalBlocker sigBlock(this);
     int idx = findData(data);
 
     if (idx >= 0)
@@ -83,6 +85,7 @@ void TElementWidgetCombo::setDefaultText(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text)");
 
+    QSignalBlocker sigBlock(this);
     int idx = findText(text);
 
     if (idx >= 0)
@@ -99,6 +102,7 @@ void TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& da
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& data)");
 
+    QSignalBlocker sigBlock(this);
     int idx = findText(text);
 
     if (idx >= 0)
@@ -116,6 +120,7 @@ void TElementWidgetCombo::selectItem(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::selectItem(const QString& text)");
 
+    QSignalBlocker sigBlock(this);
     int idx = findText(text);
 
     if (idx >= 0)
@@ -126,6 +131,7 @@ void TElementWidgetCombo::selectItem(const QVariant& data)
 {
     DECL_TRACER("TElementWidgetCombo::selectItem(const QVariant& data)");
 
+    QSignalBlocker sigBlock(this);
     int idx = findData(data);
 
     if (idx >= 0)
@@ -145,6 +151,7 @@ void TElementWidgetCombo::onCurrentTextChanged(const QString &text)
         mActData = itemData(0);
 
     emit selectionChanged(text, mActData, mName);
+    emit selectionChangedInst(text, mActData, mName, mInstance);
 }
 
 void TElementWidgetCombo::onCurrentIndexChanged(int index)
@@ -154,4 +161,5 @@ void TElementWidgetCombo::onCurrentIndexChanged(int index)
     mActText = itemText(index);
     mActData = itemData(index);
     emit selectionChanged(mActText, mActData, mName);
+    emit selectionChangedInst(mActText, mActData, mName, mInstance);
 }

@@ -33,9 +33,12 @@ class TElementSound : public QWidget
 
         QString getSound() const;
         void setSound(const QString& sound);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void soundFileChanged(const QString& sound, const QString& name);
+        void soundFileChangedInst(const QString& sound, const QString& name, int instance);
 
     protected:
         void onLineEditTextChanged(const QString& txt);
@@ -49,6 +52,7 @@ class TElementSound : public QWidget
 
         QString mName;
         QString mSound;
+        int mInstance{-1};
 };
 
 #endif // TELEMENTSOUND_H

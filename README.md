@@ -11,127 +11,127 @@ Some years ago I started to develop the application [TPanel](https://github.com/
 # Implementation matrix
 Currently the program is under heavy development and in an early state. At the moment it is not usable because too much is missing. The following matrix shows what is already implemented and what is still missing.
 
-|Part|Fully functional|Partly implemented|Missing|Priority|
-|----| :----: | :----: | :----: |--------|
+|Part|Fully functional|Partly implemented|Missing|Priority|Comment|
+|----| :----: | :----: | :----: |--------|--------|
 |**Menu: File**|
-|Create a new file|✅|||High|
-|Open an existing file||✔️||High|
-|Close an open file|||❌|Medium|
-|Save a loaded file|✅|||High|
-|Save a file with another name|✅|||High|
-|Save as different panel type|||❌|Low|
-|Print|||❌|Low|
-|Print preview|||❌|Low|
-|Print Setup|||❌|Low|
+|Create a new file|✅|||High||
+|Open an existing file||✔️||High|Support for TP4/TP5 is missing|
+|Close an open file|||❌|Medium||
+|Save a loaded file|✅|||High||
+|Save a file with another name|✅|||High||
+|Save as different panel type|||❌|Low||
+|Print|||❌|Low||
+|Print preview|||❌|Low||
+|Print Setup|||❌|Low||
 |**Menu: Edit**|
-|Selection Tool||✔️||High|
-|Button Draw Tool||✔️||High|
-|Show Grid|✅|||High|
-|Snap to Grid||✔️||High|
-|Quick Input|||❌|Low|
-|Undo|||❌|Medium|
-|Redo|||❌|Medium|
-|Cut|||❌|Medium|
-|Copy|||❌|Medium|
-|Paste|||❌|Medium|
-|Replace|||❌|Medium|
-|Delete|||❌|Medium|
-|Rename|||❌|Medium|
-|Find|||❌|Low|
-|Find and Replace|||❌|Low|
-|Select All||✔️||Medium|
-|Apply to All|||❌|Medium|
-|Edit Previous|||❌|Low|
-|Edit Next|||❌|Low|
-|Preferences||✔️||High|
+|Selection Tool||✔️||High|Still problems after loading a document|
+|Button Draw Tool||✔️||High|Still problems after loading a document|
+|Show Grid|✅|||High||
+|Snap to Grid||✔️||High|After creating a new document or loading one it is not correctly initialized|
+|Quick Input|||❌|Low||
+|Undo|||❌|Medium||
+|Redo|||❌|Medium||
+|Cut|||❌|Medium||
+|Copy|||❌|Medium||
+|Paste|||❌|Medium||
+|Replace|||❌|Medium||
+|Delete|||❌|Medium||
+|Rename|||❌|Medium||
+|Find|||❌|Low||
+|Find and Replace|||❌|Low||
+|Select All||✔️||Medium|Works but is not well tested|
+|Apply to All|||❌|Medium||
+|Edit Previous|||❌|Low||
+|Edit Next|||❌|Low||
+|Preferences|✅|||High||
 |**Menu: Panel**|
-|Add Page||✔️||High|
-|Add Popup Page||✔️||High|
-|Add Application Window|||❌|High|
-|Edit Sub-Page Sets|||❌|Medium|
-|Edit Drop-Target Groups|||❌|Low|
-|Resource Manager||✔️||High|
-|Refresh Dynamic Images|||❌|Low|
-|Edit Palettes|||❌|High|
-|Export Page Images|||❌|Low|
-|Verify Function Maps|||❌|Low|
-|Verify Event Actions|||❌|Low|
-|Synchronize Fonts|||❌|Low|
-|Generate Programmer's Report|||❌|Low|
-|View Conversion Log|||❌|Low|
-|Delete Conversion Log|||❌|Low|
+|Add Page||✔️||High|Works currently only from the popup menu in page tree|
+|Add Popup Page||✔️||High|Works currently only from the popup menu in page tree|
+|Add Application Window|||❌|High||
+|Edit Sub-Page Sets|||❌|Medium||
+|Edit Drop-Target Groups|||❌|Low||
+|Resource Manager||✔️||High|Undo/Redo is not implemented currently|
+|Refresh Dynamic Images|||❌|Low||
+|Edit Palettes|||❌|High||
+|Export Page Images|||❌|Low||
+|Verify Function Maps|||❌|Low||
+|Verify Event Actions|||❌|Low||
+|Synchronize Fonts|||❌|Low||
+|Generate Programmer's Report|||❌|Low||
+|View Conversion Log|||❌|Low||
+|Delete Conversion Log|||❌|Low||
 |**Menu: Page**|
-|Show Popup Page||✔️||High|
-|Hide Popup Page||✔️||High|
-|Hide all Popup Pages and Application Windows|||❌|High|
-|Show Application Window|||❌|High|
-|Hide Application Window|||❌|High|
-|Show External Controls|||❌|High|
-|Copy Image to Clipboard|||❌|Low|
+|Show Popup Page||✔️||High|Works only on double click on the name in page tree|
+|Hide Popup Page||✔️||High|Works only on double click on the name in page tree|
+|Hide all Popup Pages and Application Windows|||❌|High||
+|Show Application Window|||❌|High||
+|Hide Application Window|||❌|High||
+|Show External Controls|||❌|High||
+|Copy Image to Clipboard|||❌|Low||
 |**Menu: Button**
-|Reset Display|||❌|Low|
-|Display Previous State|||❌|Medium|
-|Display Next State|||❌|Medium|
-|Choose Display State|||❌|Medium|
-|Add States|||❌|High|
-|Insert States|||❌|High|
-|Animation Wizard|||❌|Low|
-|Power Assign|||❌|Low|
-|Paste Controls|||❌|Low|
-|Preview|||❌|Low|
+|Reset Display|||❌|Low|May be removed because I see no need for this|
+|Display Previous State|||❌|Medium||
+|Display Next State|||❌|Medium||
+|Choose Display State|||❌|Medium||
+|Add States|||❌|High||
+|Insert States|||❌|High||
+|Animation Wizard|||❌|Low||
+|Power Assign|||❌|Low||
+|Paste Controls|||❌|Low||
+|Preview|||❌|Low|Will work only together with TPanel|
 |**Menu: States**|
-|Reverse States|||❌|Medium|
-|Set As Display State|||❌|Low|
-|Tweeners|||❌|Medium|
+|Reverse States|||❌|Medium||
+|Set As Display State|||❌|Low||
+|Tweeners|||❌|Medium||
 |**Menu: Layout**|
-|Bring to Front|||❌|High|
-|Send To Back|||❌|High|
-|Shift Button Up|||❌|High|
-|Shift Button Down|||❌|High|
-|Align|||❌|High|
-|Center in Page|||❌|High|
-|Make Same Size|||❌|High|
-|Size To Image|||❌|High|
-|Size for Video|||❌|Medium|
-|Horizontal Spacing|||❌|High|
-|Vertical Spacing|||❌|High|
-|Alignment and Sizing|||❌|High|
+|Bring to Front|||❌|High||
+|Send To Back|||❌|High||
+|Shift Button Up|||❌|High||
+|Shift Button Down|||❌|High||
+|Align|||❌|High||
+|Center in Page|||❌|High||
+|Make Same Size|||❌|High||
+|Size To Image|||❌|High||
+|Size for Video|||❌|Medium||
+|Horizontal Spacing|||❌|High||
+|Vertical Spacing|||❌|High||
+|Alignment and Sizing|||❌|High||
 |**Menu: Transfer**
-|Connect|||❌|High|
-|Disconnect From Master|||❌|Low|
-|Send To Panel|||❌|High|
-|Send File To Panel|||❌|High|
-|Receive From Panel|||❌|Low|
-|Redo Last Transfer|||❌|Medium|
-|Cancel Transfer|||❌|Medium|
-|Cancel All Pending Transfers|||❌|Medium|
-|Clear Transfer|||❌|Low|
-|Clear All Completed Transfers|||❌|Low|
-|Close Status When Empty|||❌|Low|
+|Connect|||❌|High||
+|Disconnect From Master|||❌|Low|This will disconnect from TPanel only!|
+|Send To Panel|||❌|High||
+|Send File To Panel|||❌|High||
+|Receive From Panel|||❌|Low||
+|Redo Last Transfer|||❌|Medium||
+|Cancel Transfer|||❌|Medium||
+|Cancel All Pending Transfers|||❌|Medium||
+|Clear Transfer|||❌|Low||
+|Clear All Completed Transfers|||❌|Low||
+|Close Status When Empty|||❌|Low||
 |**Menu: View**|
-|Toolbars||✔️||High|
-|Workspace||✔️||High|
-|Properties||✔️||High|
-|State Manager|||❌|High|
-|Button Preview|||❌|Medium|
-|Magnifier|||❌|Low|
-|Transfer Status|||❌|Low|
-|Status Bar|||❌|Medium|
-|Dock All Floating Windows|||❌|Low|
-|Property Painter|||❌|Low|
-|Display Function And State Overlay|||❌|Medium|
-|Errors and Warnings Report|||❌|Low|
-|MDI Page Tabs|||❌|Low|
-|Customize|||❌|Low|
+|Toolbars||✔️||High|There will be only one toolbar|
+|Workspace||✔️||High||
+|Properties||✔️||High|Not all settings are working currently|
+|State Manager|||❌|High||
+|Button Preview|||❌|Medium||
+|Magnifier|||❌|Low||
+|Transfer Status|||❌|Low||
+|Status Bar|||❌|Medium||
+|Dock All Floating Windows|||❌|Low||
+|Property Painter|||❌|Low||
+|Display Function And State Overlay|||❌|Medium||
+|Errors and Warnings Report|||❌|Low||
+|MDI Page Tabs|||❌|Low|May be removed because the implemented function is different|
+|Customize|||❌|Low||
 |**Menu: Tools**|
-|View Readme|||❌|Low|
-|Paint|||❌|Low|
-|G4 Utility|||❌|Very Low|
+|View Readme|||❌|Low||
+|Paint|||❌|Low|Currently there's no decision which application to use on the different platforms.|
+|G4 Utility|||❌|Very Low|May be removed|
 |**Menu: Window**|
-|Zoom|||❌|Low|
-|Stack|||❌|Low|
-|Cascade|||❌|Low|
-|**Menu: Help**|||❌|Low|
+|Zoom|||❌|Low||
+|Stack|||❌|Low||
+|Cascade|||❌|Low||
+|**Menu: Help**|||❌|Low||
 
 # Technical details
 The program is developed in C++ under Linux and a Mac. It uses the Qt6 framework. If you like to help me develop it, you need a Linux machine or a Mac. You need to install the following packages:

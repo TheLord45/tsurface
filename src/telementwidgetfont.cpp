@@ -30,6 +30,7 @@ TElementWidgetFont::TElementWidgetFont(const QFont& font, const QString& name, Q
 {
     DECL_TRACER("TElementWidgetFont::TElementWidgetFont(const QFont& font, const QString& name, QWidget *parent)");
 
+    QSignalBlocker sigBlock(this);
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(2);
@@ -58,6 +59,7 @@ void TElementWidgetFont::setFont(const QFont& font)
 {
     DECL_TRACER("TElementWidgetFont::setFont(const QFont& font)");
 
+    QSignalBlocker sigBlock(this);
     mFont = font;
     QSignalBlocker block(this);
     mLine->setText(font.family());
@@ -72,6 +74,7 @@ void TElementWidgetFont::onLineEditTextChanged(const QString& text)
 
     mFont.setFamily(text);
     emit fontChanged(mFont, mName);
+    emit fontChangedInst(mFont, mName, mInstance);
 }
 
 void TElementWidgetFont::onPushButtonClicked()
@@ -87,6 +90,7 @@ void TElementWidgetFont::onPushButtonClicked()
         mBlocked = true;
         mLine->setText(mFont.family());
         emit fontChanged(mFont, mName);
+        emit fontChangedInst(mFont, mName, mInstance);
         mBlocked = false;
     }
 }

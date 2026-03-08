@@ -39,9 +39,12 @@ class TElementWidgetCombo : public QComboBox
         QString& actText() { return mActText; }
         int actIndex() { return mActIndex; }
         QVariant& actData() { return mActData; }
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void selectionChanged(const QString& text, const QVariant& data, const QString& name);
+        void selectionChangedInst(const QString& text, const QVariant& data, const QString& name, int instance);
 
     protected:
         void onCurrentTextChanged(const QString &text);
@@ -55,6 +58,7 @@ class TElementWidgetCombo : public QComboBox
         QString mName;
         int mActIndex{0};
         bool mHaveData{false};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTWIDGETCOMBO_H

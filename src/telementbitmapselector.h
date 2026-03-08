@@ -56,9 +56,12 @@ class TElementBitmapSelector : public QWidget
         void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bm);
         void setName(const QString& name) { mName = name; }
         void setSingleBitmap(bool state) { mSingleBitmap = state; }
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void bitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
+        void bitmapsChangedInst(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name, int instance);
 
     protected:
         void init();
@@ -72,6 +75,7 @@ class TElementBitmapSelector : public QWidget
         QString mName;
         QList<ObjHandler::BITMAPS_t> mBitmaps;
         bool mSingleBitmap{false};          // TRUE = Hitting the "mButton" displays the bitmap selection dialog
+        int mInstance{-1};
 };
 
 #endif // TELEMENTBITMAPSELECTOR_H

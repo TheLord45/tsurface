@@ -33,6 +33,7 @@ TElementTextEffect::TElementTextEffect(int eff, const QString& name, QWidget *pa
 
     QList<FAMILY_t> effects = TGraphics::Current().getEfects();
 
+    QSignalBlocker sigBlock(this);
     mCombo = new QComboBox(this);
     mTreeView = new QTreeView(mCombo);
     mTreeView->setHeaderHidden(true);
@@ -103,6 +104,7 @@ void TElementTextEffect::setSelection(const QString& text)
 {
     DECL_TRACER("TElementTextEffect::setSelection(const QString& text)");
 
+    QSignalBlocker sigBlock(this);
     const QModelIndexList matches = mModel->match(mModel->index(0, 0), Qt::DisplayRole, text, 1, Qt::MatchExactly | Qt::MatchRecursive);
 
     if (!matches.isEmpty())
@@ -122,5 +124,6 @@ void TElementTextEffect::onComboTextChanged(const QString& text)
 
     int eff = TGraphics::Current().getEffectStyleNumber(text);
     emit effectChanged(eff, text, mName);
+    emit effectChangedInst(eff, text, mName, mInstance);
     mTreeView->collapseAll();
 }

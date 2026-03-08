@@ -65,12 +65,14 @@ void TElementGradientColors::onPushButtonClicked()
     // Insert all labels again.
     createLine();
     emit gradientColorChanged(mGradients, mName);
+    emit gradientColorChangedInst(mGradients, mName, mInstance);
 }
 
 void TElementGradientColors::createLine()
 {
     DECL_TRACER("TElementGradientColors::createLine()");
 
+    QSignalBlocker sigBlock(this);
     bool haveLayout = false;
 
     if (mLayout)

@@ -35,9 +35,12 @@ class TElementBorderName : public QWidget
 
         QString& getBorder() { return mBorder; }
         void setBorder(const QString& mBorder);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void borderChanged(const QString& border, const QString& name);
+        void borderChangedInst(const QString& border, const QString& name, int instance);
 
     protected:
         void onComboTextChanged(const QString& text);
@@ -51,6 +54,7 @@ class TElementBorderName : public QWidget
         QStandardItemModel *mModel{nullptr};
         QString mName;
         QString mBorder;
+        int mInstance{-1};
 };
 
 #endif // TELEMENTBORDERNAME_H

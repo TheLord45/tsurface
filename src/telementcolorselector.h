@@ -35,9 +35,12 @@ class TElementColorSelector : public QWidget
         QColor& getColor() { return mColor; }
         void setColor(const QColor& col);
         void setNoLayout(bool l) { mNoLayout = l; }
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void colorChanged(const QColor& color, const QString& name);
+        void colorChangedInst(const QColor& color, const QString& name, int instance);
 
     protected:
         void onButtonClicked();
@@ -50,6 +53,7 @@ class TElementColorSelector : public QWidget
         QWidget *mParent{nullptr};
         QLabel *mLabel{nullptr};
         bool mNoLayout{false};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTCOLORSELECTOR_H

@@ -32,9 +32,12 @@ class TElementLineEdit : public QWidget
 
         QString& getText() { return mText; };
         void setText(const QString& text);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void inputTextChanged(const QString& text, const QString& name);
+        void inputTextChangedInst(const QString& text, const QString& name, int instance);
 
     protected:
         void onTextChanged(const QString& text);
@@ -43,6 +46,7 @@ class TElementLineEdit : public QWidget
         QString mName;
         QString mText;
         QLineEdit *mLine{nullptr};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTLINEEDIT_H

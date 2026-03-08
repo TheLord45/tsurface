@@ -219,7 +219,7 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
     if (objectID >= 0 && objectID < page.objects.size())
     {
         TPropertiesProgramming::setObjectID(objectID);
-        TPropertiesStates::setActualButton(objectID, stype);
+        TPropertiesStates::setActualObject(objectID, stype);
     }
 }
 

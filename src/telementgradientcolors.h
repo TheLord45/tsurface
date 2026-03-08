@@ -32,9 +32,12 @@ class TElementGradientColors : public QWidget
         TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent=nullptr);
 
         void setGradientColors(const QList<QColor>& colors);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void gradientColorChanged(QList<QColor>& colors, const QString& name);
+        void gradientColorChangedInst(QList<QColor>& colors, const QString& name, int instance);
 
     protected:
         void onPushButtonClicked();
@@ -49,6 +52,7 @@ class TElementGradientColors : public QWidget
         QHBoxLayout *mLayout{nullptr};
         QPushButton *mButton{nullptr};
         bool mConnected{false};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTGRADIENTCOLORS_H

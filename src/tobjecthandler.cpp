@@ -242,6 +242,8 @@ void TObjectHandler::setSrToAllInstances(const SR_T& sr)
 // Getter / Setter
 void TObjectHandler::setDrawOrder(const QString& _do, int instance)
 {
+    DECL_TRACER("TObjectHandler::setDrawOrder(const QString& _do, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -253,6 +255,8 @@ void TObjectHandler::setDrawOrder(const QString& _do, int instance)
 
 QString TObjectHandler::getDrawOrder(int instance)
 {
+    DECL_TRACER("TObjectHandler::getDrawOrder(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString _do = mObject.sr[0]._do;
@@ -271,6 +275,8 @@ QString TObjectHandler::getDrawOrder(int instance)
 
 void TObjectHandler::setBorder(const QString& bs, int instance)
 {
+    DECL_TRACER("TObjectHandler::setBorder(const QString& bs, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -282,6 +288,8 @@ void TObjectHandler::setBorder(const QString& bs, int instance)
 
 QString TObjectHandler::getBorder(int instance)
 {
+    DECL_TRACER("TObjectHandler::getBorder(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString bs = mObject.sr[0].bs;
@@ -300,6 +308,8 @@ QString TObjectHandler::getBorder(int instance)
 
 void TObjectHandler::setChameleonImage(const QString& mi, int instance)
 {
+    DECL_TRACER("TObjectHandler::setChameleonImage(const QString& mi, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -311,6 +321,8 @@ void TObjectHandler::setChameleonImage(const QString& mi, int instance)
 
 QString TObjectHandler::getChameleonImage(int instance)
 {
+    DECL_TRACER("TObjectHandler::getChameleonImage(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString mi = mObject.sr[0].mi;
@@ -329,6 +341,8 @@ QString TObjectHandler::getChameleonImage(int instance)
 
 void TObjectHandler::setBorderColor(const QColor& cb, int instance)
 {
+    DECL_TRACER("TObjectHandler::setBorderColor(const QColor& cb, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -340,6 +354,8 @@ void TObjectHandler::setBorderColor(const QColor& cb, int instance)
 
 QColor TObjectHandler::getBorderColor(int instance)
 {
+    DECL_TRACER("TObjectHandler::getBorderColor(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QColor cb = mObject.sr[0].cb;
@@ -358,6 +374,8 @@ QColor TObjectHandler::getBorderColor(int instance)
 
 void TObjectHandler::setGradientFillType(const QString& ft, int instance)
 {
+    DECL_TRACER("TObjectHandler::setGradientFillType(const QString& ft, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -369,6 +387,8 @@ void TObjectHandler::setGradientFillType(const QString& ft, int instance)
 
 QString TObjectHandler::getGradientFillType(int instance)
 {
+    DECL_TRACER("TObjectHandler::getGradientFillType(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString ft = mObject.sr[0].ft;
@@ -387,6 +407,10 @@ QString TObjectHandler::getGradientFillType(int instance)
 
 void TObjectHandler::setFillColor(const QColor& cf, int instance)
 {
+    DECL_TRACER("TObjectHandler::setFillColor(const QColor& cf, int instance)");
+
+    MSG_DEBUG("Setting color " << cf.name(QColor::HexArgb).toStdString() << " on instance " << instance);
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -398,6 +422,8 @@ void TObjectHandler::setFillColor(const QColor& cf, int instance)
 
 QColor TObjectHandler::getFillColor(int instance)
 {
+    DECL_TRACER("TObjectHandler::getFillColor(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QColor cf = mObject.sr[0].cf;
@@ -416,6 +442,8 @@ QColor TObjectHandler::getFillColor(int instance)
 
 void TObjectHandler::setTextColor(const QColor& ct, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextColor(const QColor& ct, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -427,6 +455,8 @@ void TObjectHandler::setTextColor(const QColor& ct, int instance)
 
 QColor TObjectHandler::getTextColor(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextColor(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QColor ct = mObject.sr[0].ct;
@@ -445,6 +475,8 @@ QColor TObjectHandler::getTextColor(int instance)
 
 void TObjectHandler::setTextEffectColor(const QColor& ec, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextEffectColor(const QColor& ec, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -456,6 +488,8 @@ void TObjectHandler::setTextEffectColor(const QColor& ec, int instance)
 
 QColor TObjectHandler::getTextEffectColor(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextEffectColor(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QColor ec = mObject.sr[0].ec;
@@ -474,6 +508,8 @@ QColor TObjectHandler::getTextEffectColor(int instance)
 
 void TObjectHandler::setBitmaps(const QList<BITMAPS_t>& bitmaps, int instance)
 {
+    DECL_TRACER("TObjectHandler::setBitmaps(const QList<BITMAPS_t>& bitmaps, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -488,6 +524,8 @@ void TObjectHandler::setBitmaps(const QList<BITMAPS_t>& bitmaps, int instance)
 
 QList<BITMAPS_t> TObjectHandler::getBitmaps(int instance)
 {
+    DECL_TRACER("TObjectHandler::getBitmaps(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QList<BITMAPS_t> bm = mObject.sr[0].bitmaps;
@@ -506,6 +544,8 @@ QList<BITMAPS_t> TObjectHandler::getBitmaps(int instance)
 
 void TObjectHandler::setGradientColors(const QList<QColor>& colors, int instance)
 {
+    DECL_TRACER("TObjectHandler::setGradientColors(const QList<QColor>& colors, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -520,6 +560,8 @@ void TObjectHandler::setGradientColors(const QList<QColor>& colors, int instance
 
 QList<QColor> TObjectHandler::getGradientColors(int instance)
 {
+    DECL_TRACER("TObjectHandler::getGradientColors(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QList<QColor> gc = mObject.sr[0].gradientColors;
@@ -538,6 +580,8 @@ QList<QColor> TObjectHandler::getGradientColors(int instance)
 
 void TObjectHandler::setGradientRadius(int gr, int instance)
 {
+    DECL_TRACER("TObjectHandler::setGradientRadius(int gr, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -549,6 +593,8 @@ void TObjectHandler::setGradientRadius(int gr, int instance)
 
 int TObjectHandler::getGradientRadius(int instance)
 {
+    DECL_TRACER("TObjectHandler::getGradientRadius(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int gr = mObject.sr[0].gr;
@@ -567,6 +613,8 @@ int TObjectHandler::getGradientRadius(int instance)
 
 void TObjectHandler::setGradientCenterX(int gx, int instance)
 {
+    DECL_TRACER("TObjectHandler::setGradientCenterX(int gx, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -578,6 +626,8 @@ void TObjectHandler::setGradientCenterX(int gx, int instance)
 
 int TObjectHandler::getGradientCenterX(int instance)
 {
+    DECL_TRACER("TObjectHandler::getGradientCenterX(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int gx = mObject.sr[0].gx;
@@ -596,6 +646,8 @@ int TObjectHandler::getGradientCenterX(int instance)
 
 void TObjectHandler::setGradientCenterY(int gy, int instance)
 {
+    DECL_TRACER("TObjectHandler::setGradientCenterY(int gy, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -607,6 +659,8 @@ void TObjectHandler::setGradientCenterY(int gy, int instance)
 
 int TObjectHandler::getGradientCenterY(int instance)
 {
+    DECL_TRACER("TObjectHandler::getGradientCenterY(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int gy = mObject.sr[0].gy;
@@ -625,6 +679,8 @@ int TObjectHandler::getGradientCenterY(int instance)
 
 void TObjectHandler::setSound(const QString& sd, int instance)
 {
+    DECL_TRACER("TObjectHandler::setSound(const QString& sd, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -636,6 +692,8 @@ void TObjectHandler::setSound(const QString& sd, int instance)
 
 QString TObjectHandler::getSound(int instance)
 {
+    DECL_TRACER("TObjectHandler::getSound(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString sd = mObject.sr[0].sd;
@@ -654,6 +712,8 @@ QString TObjectHandler::getSound(int instance)
 
 void TObjectHandler::setDynamic(bool dynamic, int instance)
 {
+    DECL_TRACER("TObjectHandler::setDynamic(bool dynamic, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -665,6 +725,8 @@ void TObjectHandler::setDynamic(bool dynamic, int instance)
 
 bool TObjectHandler::getDynamic(int instance)
 {
+    DECL_TRACER("TObjectHandler::getDynamic(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         bool dynamic = mObject.sr[0].dynamic;
@@ -683,6 +745,8 @@ bool TObjectHandler::getDynamic(int instance)
 
 void TObjectHandler::setExtGraphicIndex(int sb, int instance)
 {
+    DECL_TRACER("TObjectHandler::setExtGraphicIndex(int sb, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -694,6 +758,8 @@ void TObjectHandler::setExtGraphicIndex(int sb, int instance)
 
 int TObjectHandler::getExtGraphicIndex(int instance)
 {
+    DECL_TRACER("TObjectHandler::getExtGraphicIndex(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int sb = mObject.sr[0].sb;
@@ -712,6 +778,8 @@ int TObjectHandler::getExtGraphicIndex(int instance)
 
 void TObjectHandler::setText(const QString& te, int instance)
 {
+    DECL_TRACER("TObjectHandler::setText(const QString& te, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -723,6 +791,8 @@ void TObjectHandler::setText(const QString& te, int instance)
 
 QString TObjectHandler::getText(int instance)
 {
+    DECL_TRACER("TObjectHandler::getText(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString te = mObject.sr[0].te;
@@ -741,6 +811,8 @@ QString TObjectHandler::getText(int instance)
 
 void TObjectHandler::setTextOrientation(ORIENTATION jt, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextOrientation(ORIENTATION jt, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -752,6 +824,8 @@ void TObjectHandler::setTextOrientation(ORIENTATION jt, int instance)
 
 ORIENTATION TObjectHandler::getTextOrientation(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextOrientation(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         ORIENTATION jt = mObject.sr[0].jt;
@@ -770,6 +844,8 @@ ORIENTATION TObjectHandler::getTextOrientation(int instance)
 
 void TObjectHandler::setTextAbsoluteX(int tx, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextAbsoluteX(int tx, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -781,6 +857,8 @@ void TObjectHandler::setTextAbsoluteX(int tx, int instance)
 
 int TObjectHandler::getTextAbsoluteX(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextAbsoluteX(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int tx = mObject.sr[0].tx;
@@ -799,6 +877,8 @@ int TObjectHandler::getTextAbsoluteX(int instance)
 
 void TObjectHandler::setTextAbsoluteY(int ty, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextAbsoluteY(int ty, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -810,6 +890,8 @@ void TObjectHandler::setTextAbsoluteY(int ty, int instance)
 
 int TObjectHandler::getTextAbsoluteY(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextAbsoluteY(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int ty = mObject.sr[0].ty;
@@ -828,6 +910,8 @@ int TObjectHandler::getTextAbsoluteY(int instance)
 
 void TObjectHandler::setFontFile(const QString& ff, int instance)
 {
+    DECL_TRACER("TObjectHandler::setFontFile(const QString& ff, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -839,6 +923,8 @@ void TObjectHandler::setFontFile(const QString& ff, int instance)
 
 QString TObjectHandler::getFontFile(int instance)
 {
+    DECL_TRACER("TObjectHandler::getFontFile(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString ff = mObject.sr[0].ff;
@@ -857,6 +943,8 @@ QString TObjectHandler::getFontFile(int instance)
 
 void TObjectHandler::setFontSize(int fs, int instance)
 {
+    DECL_TRACER("TObjectHandler::setFontSize(int fs, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -868,6 +956,8 @@ void TObjectHandler::setFontSize(int fs, int instance)
 
 int TObjectHandler::getFontSize(int instance)
 {
+    DECL_TRACER("TObjectHandler::getFontSize(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int fs = mObject.sr[0].fs;
@@ -886,6 +976,8 @@ int TObjectHandler::getFontSize(int instance)
 
 void TObjectHandler::setWordWrap(int ww, int instance)
 {
+    DECL_TRACER("TObjectHandler::setWordWrap(int ww, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -897,6 +989,8 @@ void TObjectHandler::setWordWrap(int ww, int instance)
 
 int TObjectHandler::getWordWrap(int instance)
 {
+    DECL_TRACER("TObjectHandler::getWordWrap(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int ww = mObject.sr[0].ww;
@@ -915,6 +1009,8 @@ int TObjectHandler::getWordWrap(int instance)
 
 void TObjectHandler::setTextEffect(int et, int instance)
 {
+    DECL_TRACER("TObjectHandler::setTextEffect(int et, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -926,6 +1022,8 @@ void TObjectHandler::setTextEffect(int et, int instance)
 
 int TObjectHandler::getTextEffect(int instance)
 {
+    DECL_TRACER("TObjectHandler::getTextEffect(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int et = mObject.sr[0].et;
@@ -944,6 +1042,8 @@ int TObjectHandler::getTextEffect(int instance)
 
 void TObjectHandler::setOverallOpacity(int oo, int instance)
 {
+    DECL_TRACER("TObjectHandler::setOverallOpacity(int oo, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -955,6 +1055,8 @@ void TObjectHandler::setOverallOpacity(int oo, int instance)
 
 int TObjectHandler::getOverallOpacity(int instance)
 {
+    DECL_TRACER("TObjectHandler::getOverallOpacity(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int oo = mObject.sr[0].oo;
@@ -973,6 +1075,8 @@ int TObjectHandler::getOverallOpacity(int instance)
 
 void TObjectHandler::setMarqueeType(int md, int instance)
 {
+    DECL_TRACER("TObjectHandler::setMarqueeType(int md, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -984,6 +1088,8 @@ void TObjectHandler::setMarqueeType(int md, int instance)
 
 int TObjectHandler::getMarqueeType(int instance)
 {
+    DECL_TRACER("TObjectHandler::getMarqueeType(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int md = mObject.sr[0].md;
@@ -1002,6 +1108,8 @@ int TObjectHandler::getMarqueeType(int instance)
 
 void TObjectHandler::setMarqueeEnabled(int mr, int instance)
 {
+    DECL_TRACER("TObjectHandler::setMarqueeEnabled(int mr, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -1013,6 +1121,8 @@ void TObjectHandler::setMarqueeEnabled(int mr, int instance)
 
 int TObjectHandler::getMarqueeEnabled(int instance)
 {
+    DECL_TRACER("TObjectHandler::getMarqueeEnabled(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int mr = mObject.sr[0].mr;
@@ -1031,6 +1141,8 @@ int TObjectHandler::getMarqueeEnabled(int instance)
 
 void TObjectHandler::setMarqueeSpeed(int ms, int instance)
 {
+    DECL_TRACER("TObjectHandler::setMarqueeSpeed(int ms, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -1042,6 +1154,8 @@ void TObjectHandler::setMarqueeSpeed(int ms, int instance)
 
 int TObjectHandler::getMarqueeSpeed(int instance)
 {
+    DECL_TRACER("TObjectHandler::getMarqueeSpeed(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         int ms = mObject.sr[0].ms;
@@ -1060,6 +1174,8 @@ int TObjectHandler::getMarqueeSpeed(int instance)
 
 void TObjectHandler::setVideoFill(const QString& vf, int instance)
 {
+    DECL_TRACER("TObjectHandler::setVideoFill(const QString& vf, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -1071,6 +1187,8 @@ void TObjectHandler::setVideoFill(const QString& vf, int instance)
 
 QString TObjectHandler::getVideoFill(int instance)
 {
+    DECL_TRACER("TObjectHandler::getVideoFill(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString vf = mObject.sr[0].vf;
@@ -1089,6 +1207,8 @@ QString TObjectHandler::getVideoFill(int instance)
 
 void TObjectHandler::setStreamingSource(const QString& dv, int instance)
 {
+    DECL_TRACER("TObjectHandler::setStreamingSource(const QString& dv, int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         for (int i = 0; i < mObject.sr.size(); ++i)
@@ -1100,6 +1220,8 @@ void TObjectHandler::setStreamingSource(const QString& dv, int instance)
 
 QString TObjectHandler::getStreamingSource(int instance)
 {
+    DECL_TRACER("TObjectHandler::getStreamingSource(int instance)");
+
     if (instance < 0 || instance >= mObject.sr.size())
     {
         QString dv = mObject.sr[0].dv;

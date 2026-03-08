@@ -1179,10 +1179,10 @@ void TPageHandler::parsePage(const QJsonObject& page)
     QJsonObject srPage = page.value("sr").toObject();
     pg.srPage.bs = srPage.value("bs").toString();
     pg.srPage.mi = srPage.value("mi").toString();
-    pg.srPage.cb = QColor::fromString(srPage.value("cb").toString("#ffff0000"));
+    pg.srPage.cb = QColor::fromString(srPage.value("cb").toString("#ffa100"));
     pg.srPage.ft = srPage.value("ft").toString();
-    pg.srPage.cf = QColor::fromString(srPage.value("cf").toString("#ffffffff"));
-    pg.srPage.ct = QColor::fromString(srPage.value("ct").toString("#ff000000"));
+    pg.srPage.cf = QColor::fromString(srPage.value("cf").toString(TConfMain::Current().getColorBackground().name(QColor::HexArgb)));
+    pg.srPage.ct = QColor::fromString(srPage.value("ct").toString(TConfMain::Current().getColorText().name(QColor::HexArgb)));
     pg.srPage.ec = QColor::fromString(srPage.value("ec").toString("#ff808080"));
     pg.srPage.bm = srPage.value("bm").toString();
 
@@ -1383,11 +1383,11 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s._do = jsr.value("do").toString();
             s.bs = jsr.value("bs").toString();
             s.mi = jsr.value("mi").toString();
-            s.cb = QColor(jsr.value("cb").toString());      // Border color
-            s.ft = jsr.value("ft").toString();
-            s.cf = QColor(jsr.value("cf").toString());      // Fill color
-            s.ct = QColor(jsr.value("ct").toString());      // Text color
-            s.ec = QColor(jsr.value("ec").toString());      // Text effect color
+            s.cb = QColor(jsr.value("cb").toString("#ffff0000"));      // Border color
+            s.ft = jsr.value("ft").toString("solid");
+            s.cf = QColor(jsr.value("cf").toString(TConfMain::Current().getColorBackground().name(QColor::HexArgb)));      // Fill color
+            s.ct = QColor(jsr.value("ct").toString(TConfMain::Current().getColorText().name(QColor::HexArgb)));      // Text color
+            s.ec = QColor(jsr.value("ec").toString("#ff808080"));      // Text effect color
             s.bm = jsr.value("bm").toString();
             QJsonArray bitmaps = jsr.value("bitmaps").toArray();
 

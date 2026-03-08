@@ -34,9 +34,12 @@ class TElementWidgetFont : public QWidget
         QFont &getFont() { return mFont; }
         void setFont(const QFont& font);
         QString& getName() { return mName; }
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void fontChanged(const QFont& font, const QString& name);
+        void fontChangedInst(const QFont& font, const QString& name, int instance);
 
     protected:
         // Callbacks
@@ -49,6 +52,7 @@ class TElementWidgetFont : public QWidget
         QLineEdit *mLine{nullptr};
         QPushButton *mButton{nullptr};
         bool mBlocked{false};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTWIDGETFONT_H

@@ -48,7 +48,7 @@ class TPropertiesStates : public QObject
         ~TPropertiesStates();
 
         void setPage(const Page::PAGE_t& page);
-        void setActualButton(int index, STATE_TYPE stype);
+        void setActualObject(int index, STATE_TYPE stype);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         void setState(STATE_TYPE stype);
         bool isChanged() { return mChanged; }
@@ -81,21 +81,20 @@ class TPropertiesStates : public QObject
         void clear();
 
         // Callbacks
-        void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name);
-        void onOrientationChanged(const QString& text, const QVariant& data, const QString& name);
-        void onFontChanged(const QFont& font, const QString& name);
-        void onTextEffectChanged(int eff, const QString& effect, const QString& name);
-        void onBorderNameChanged(const QString& border, const QString& name);
-        void onWordWrapChanged(const QString& text, const QVariant& data, const QString& name);
-        void onGradientColorChanged(const QList<QColor>& colors, const QString& name);
-        void onSoundChanged(const QString& file, const QString& name);
-        void onVideoFillChanged(const QString& text, const QVariant& data, const QString& name);
-        void onColorChanged(const QColor& color, const QString& name);
-        void onTextValueChanged(const QString& text, const QString& name);
-        void onFillTypeChanged(const QString& text, const QVariant& data, const QString& name);
+        void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name, int instance);
+        void onOrientationChanged(const QString& text, const QVariant& data, const QString& name, int instance);
+        void onFontChanged(const QFont& font, const QString& name, int instance);
+        void onTextEffectChanged(int eff, const QString& effect, const QString& name, int instance);
+        void onBorderNameChanged(const QString& border, const QString& name, int instance);
+        void onWordWrapChanged(const QString& text, const QVariant& data, const QString& name, int instance);
+        void onGradientColorChanged(const QList<QColor>& colors, const QString& name, int instance);
+        void onSoundChanged(const QString& file, const QString& name, int instance);
+        void onVideoFillChanged(const QString& text, const QVariant& data, const QString& name, int instance);
+        void onColorChanged(const QColor& color, const QString& name, int instance);
+        void onTextValueChanged(const QString& text, const QString& name, int instance);
+        void onFillTypeChanged(const QString& text, const QVariant& data, const QString& name, int instance);
 
     private:
-        QFont chooseFont(const QFont& font);
         void setValue(const QString& name, const QVariant& value);
         void setColor(QLabel *label, QColor& color);
         void setTable(QTableWidget *table, int instance=-1);
@@ -106,14 +105,16 @@ class TPropertiesStates : public QObject
         void rebuildTree();
         QString getStateName(ObjHandler::BUTTONTYPE type, int instance);
         QTableWidget *getTableWidget(int state=0);
-        void setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
-        void setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype);
-        void setTableWidget(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype);
+        int setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
+        int setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype);
+        int setTableWidget(QTableWidget *table, int row, int col, const QList<QColor>& colors, ELEMENT_TYPE_t etype);
+        int setTableWidgetFont(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype);
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
         Page::PAGE_t mPage;
         ObjHandler::TOBJECT_t mActObject;
+        ObjHandler::SR_T mActSr;
         STATE_TYPE mSType{STATE_UNKNOWN};
         QList<QTableWidget *> mStates;
         int mActState {0};              // The index ob the actual selected state

@@ -71,6 +71,8 @@ void TElementBitmapSelector::init()
 {
     DECL_TRACER("TElementBitmapSelector::init()");
 
+    QSignalBlocker sigBlock(this);
+
     if (!mName.isEmpty() && mName != objectName())
         setObjectName(mName);
 
@@ -98,6 +100,7 @@ void TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitm
 {
     DECL_TRACER("TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps)");
 
+    QSignalBlocker sigBlock(this);
     mBitmaps = bitmaps;
 
     if (mLine && !bitmaps.empty())
@@ -132,6 +135,7 @@ void TElementBitmapSelector::onLineEditTextChanged(const QString& text)
     }
 
     emit bitmapsChanged(mBitmaps, mName);
+    emit bitmapsChangedInst(mBitmaps, mName, mInstance);
 }
 
 void TElementBitmapSelector::onPushButtonClicked()
@@ -178,4 +182,5 @@ void TElementBitmapSelector::onPushButtonClicked()
     }
 
     emit bitmapsChanged(mBitmaps, mName);
+    emit bitmapsChangedInst(mBitmaps, mName, mInstance);
 }

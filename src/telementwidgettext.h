@@ -35,9 +35,12 @@ class TElementWidgetText : public QWidget
         void setText(const QString& text);
         QString& getName() { return mName; }
         void setName(const QString& name);
+        void setInstance(int inst) { mInstance = inst; }
+        int getInstance() { return mInstance; }
 
     signals:
         void textChanged(const QString& text, const QString& name);
+        void textChangedInst(const QString& text, const QString& name, int instance);
 
     protected:
         // Callbacks
@@ -49,6 +52,7 @@ class TElementWidgetText : public QWidget
         QString mName;
         QLineEdit *mLine{nullptr};
         QPushButton *mButton{nullptr};
+        int mInstance{-1};
 };
 
 #endif // TELEMENTWIDGETTEXT_H
