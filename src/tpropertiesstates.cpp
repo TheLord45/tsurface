@@ -199,7 +199,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     for (int i = 0; i < table->rowCount(); ++i)     // Hide all rows
         table->setRowHidden(i, true);
 
-    int totalHeight = 0;
+    int totalHeight = 0;    // Calculate the total height of the table widget depending on the visible lines.
 
     if (!isValidObjectIndex())
     {
@@ -955,11 +955,17 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
         }
         break;
 
+        case W_COLORSELECTOR:
+        {
+            TElementColorSelector *p = static_cast<TElementColorSelector *>(w);
+            p->setColor(data.toString());
+        }
+
         default:
             return w->height();
     }
 
-    return w->height();
+    return w->height();     // Return the height of 1 row.
 }
 
 int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype)

@@ -368,6 +368,17 @@ void TSurface::applyGridToChildren(TCanvasWidget *widget)
     }
 }
 
+/**
+ * @brief TSurface::addObject
+ * This method adds a new object (button, bargraph, ...) to the current
+ * selected page or popup. The object is added at the current mouse pointer
+ * position. The pointer marks the upper left corner of the new object.
+ * The object will be created with a default size of 40 x 40 pixels and the
+ * default colors.
+ *
+ * @param id    The ID of the page the object belongs to.
+ * @param pt    The mouse pointer position.
+ */
 void TSurface::addObject(int id, QPoint pt)
 {
     DECL_TRACER("TSurface::addObject(int id, QPoint pt)");
@@ -410,17 +421,78 @@ void TSurface::addObject(int id, QPoint pt)
 }
 
 /**
+ * @brief TSurface::initObject
+ * The method adds an internally already existing object to the selected
+ * page or popup. The page given as a parameter must be an active MDI window.
+ * The method draws only the object with the index \b objIndex so that it will
+ * be visible.
+ *
+ * @param page      A pointer to a page structure.
+ * @param objIndex  The index to an object contained in the page structure.
+ *
+ * @return If everything went well a pointer to the new widget
+ * (TResizableWidget) is returned. Otherwise a \b nullptr will be returned.
+ */
+TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex)
+{
+    DECL_TRACER("TSurface::initObject(Page::PAGE_t *page, int objIndex)");
+
+    if (!page || page->pageID <= 0 || objIndex < 0 || objIndex >= page->objects.size() || !page->baseObject.widget)
+        return nullptr;
+
+    TObjectHandler *pobject = page->objects[objIndex];
+    ObjHandler::TOBJECT_t object = pobject->getObject();
+
+    if (object.sr.empty())
+    {
+        MSG_ERROR("The object " << object.bi << " on page " << page->pageID << " has no SR section!");
+        return nullptr;
+    }
+
+    QWidget* content = new QWidget(page->baseObject.widget);
+    QString objName = QString("Object_%1").arg(object.bi);
+    QPoint pt(object.lt, object.tp);
+    MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
+    content->setObjectName(objName);
+    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name(QColor::HexArgb)));
+    page->baseObject.widget->clearSelection();
+    page->baseObject.widget->setCurrentTool(mSelectedTool);
+
+    TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
+    wrap->setGridSize(page->baseObject.widget->gridSize());
+    wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
+    wrap->setGeometry(pt.x(), pt.y(), object.wt, object.ht);
+    wrap->show();
+    wrap->setId(object.bi);
+    wrap->setPageId(page->pageID);
+    wrap->setSelected(false);
+    drawObject(page, objIndex);
+
+    connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
+    connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
+    connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
+
+    TWorkSpaceHandler::Current().setObject(pobject);
+    STATE_TYPE stype = getStateFromPageType(page->popupType);
+    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
+    return wrap;
+}
+
+/**
  * @brief TSurface::drawObject
- * This method is called whenever ab object on a page or popup should be redrawn.
- * It takes a pointer to a page or popup and the index of the object to draw.
- * Mainly the method is called from the callback onRedrawRequest().
+ * This method is called whenever ab object on a page or popup should be
+ * redrawn. It takes a pointer to a page or popup and the index of the object
+ * to draw. Mainly the method is called from the callback onRedrawRequest().
  *
  * @param page      A pointer to a page or popup
  * @param objIndex  The index to the object to draw
+ * @param instance  The index into the array SR_T of an object. This parameter
+ * is optional. If it is omitted it is set to 0. If it is set but out of range
+ * 0 is taken.
  */
-void TSurface::drawObject(Page::PAGE_t *page, int objIndex)
+void TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)
 {
-    DECL_TRACER("TSurface::drawObject(Page::PAGE_t *page, int objIndex)");
+    DECL_TRACER("TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)");
 
     if (!page || page->pageID <= 0 || objIndex < 0 || objIndex >= page->objects.size() || !page->baseObject.widget)
         return;
@@ -434,29 +506,12 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex)
         return;
     }
 
-    QWidget* content = new QWidget(page->baseObject.widget);
-    QString objName = QString("Object_%1").arg(object.bi);
-    QPoint pt(object.lt, object.tp);
-    MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
-    content->setObjectName(objName);
-    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name(QColor::HexArgb)));
-    page->baseObject.widget->clearSelection();
+    TResizableWidget *rwidget = page->baseObject.widget->getWidget(object.bi);
 
-    TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
-    wrap->setGridSize(page->baseObject.widget->gridSize());
-    wrap->setSnapToGrid(page->baseObject.widget->snapEnabled());
-    wrap->setGeometry(pt.x(), pt.y(), object.wt, object.ht);
-    wrap->show();
-    wrap->setId(object.bi);
-    wrap->setPageId(page->pageID);
-    wrap->setSelected(false);
-    connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
-    connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
-    connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
+    if (!rwidget)
+        rwidget = initObject(page, objIndex);
 
-    TWorkSpaceHandler::Current().setObject(pobject);
-    STATE_TYPE stype = getStateFromPageType(page->popupType);
-    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
+    pobject->drawObject(rwidget, instance < 0 || instance >= object.sr.size() ? 0 : instance);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -687,7 +742,7 @@ void TSurface::on_actionNew_triggered()
     if (pg)
     {
         pg->baseObject.widget = widget;
-        onRedrawRequest(pg);                                                   // Draw the components of the page
+//        initObject(pg, 0);                                                   // Draw the components of the page
     }
 }
 
@@ -1699,6 +1754,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         TPageHandler::Current().setVisible(num, true);                          // Mark the page as visible
         onActionShowHideGrid(TPageHandler::Current().isGridVisible(pg->pageID));// Show or hide the grid
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This is independable from the visibility of the grid.
+
         // Draw all objects
         TWorkSpaceHandler::Current().setAllProperties(*pg, pg->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
         onRedrawRequest(pg);                                                    // Draw the components of the page

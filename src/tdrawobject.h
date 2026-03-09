@@ -52,7 +52,8 @@ class TDrawObject
             ORD_ELEM_BORDER
         }DRAW_ORDER_t;
 
-        void draw();
+        void draw(int instance);
+        bool haveError() { return mHaveError; }
         static ObjHandler::GRAD_TYPE_t getGradientType(const QString& grad);
 
     private:
@@ -64,6 +65,7 @@ class TDrawObject
         TObjectHandler *mObject{nullptr};       // A pointer to the object
         QWidget *mWidget{nullptr};              // The widget to place the pixmap representing the object
         QList<QPixmap> mPixButtons;             // The object as a pixmap; A pixmap for each instance
+        bool mHaveError{false};                 // In case of an error this is TRUE
 
         DRAW_ORDER_t mDOrder[ORD_ELEM_COUNT];   // The order to draw the elements of an object
 

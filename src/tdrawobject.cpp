@@ -59,78 +59,89 @@ TDrawObject::TDrawObject(TObjectHandler *object, QWidget *widget)
  * All parameters the method needs should have been set by calling the
  * constructor of the class.
  */
-void TDrawObject::draw()
+void TDrawObject::draw(int instance)
 {
-    DECL_TRACER("TDrawObject::draw()");
+    DECL_TRACER("TDrawObject::draw(int instance)");
+
+    mHaveError = false;
 
     if (!mObject || !mWidget)
     {
-        MSG_ERROR("Can't draw an object because missing the obejct or widget!");
+        MSG_ERROR("Can't draw an object because missing the object or widget!");
+        mHaveError = true;
         return;
     }
 
     ObjHandler::TOBJECT_t object = mObject->getObject();
 
-    for (int instance = 0; instance < object.sr.size(); ++instance)
+    if (instance < 0 || instance >= object.sr.size())
     {
-        getDrawOrder(object.sr[instance]._do, mDOrder);
-        QPixmap button(object.wt, object.ht);               // Creates an empty image
-        button.fill(Qt::transparent);                       // Fills the image and prepares it for QPainter
+        MSG_ERROR("Instance " << instance << " is out of range [0-" << object.sr.size() << "]");
+        mHaveError = true;
+        return;
+    }
 
-        for (int _order = 0; _order < ORD_ELEM_COUNT; ++_order)
+    getDrawOrder(object.sr[instance]._do, mDOrder);
+    QPixmap button(object.wt, object.ht);               // Creates an empty image
+    button.fill(Qt::transparent);                       // Fills the image and prepares it for QPainter
+
+    for (int _order = 0; _order < ORD_ELEM_COUNT; ++_order)
+    {
+        DRAW_ORDER_t order = mDOrder[_order];
+
+        switch(order)
         {
-            DRAW_ORDER_t order = static_cast<DRAW_ORDER_t>(_order);
+            case ORD_ELEM_FILL:
+                buttonFill(&button, object.sr[instance]);
+            break;
 
-            switch(order)
+            case ORD_ELEM_BITMAP:
             {
-                case ORD_ELEM_FILL:
-                    buttonFill(&button, object.sr[instance]);
-                break;
+                TDrawImage di;
+                di.setPixmap(&button);
+                di.setSize(object.wt, object.ht);
+                di.setBitmaps(object.sr[instance].bitmaps);
+                di.setOpacity(object.sr[instance].oo);
 
-                case ORD_ELEM_BITMAP:
+                if (object.sr[instance].bs.isEmpty())
                 {
-                    TDrawImage di;
-                    di.setPixmap(&button);
-                    di.setSize(object.wt, object.ht);
-                    di.setBitmaps(object.sr[instance].bitmaps);
-                    di.setOpacity(object.sr[instance].oo);
-
-                    if (object.sr[instance].bs.isEmpty())
-                    {
-                        di.setChameleon(object.sr[instance].mi);
-                        di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
-                    }
-
-                    di.draw();
+                    di.setChameleon(object.sr[instance].mi);
+                    di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
                 }
-                break;
 
-                case ORD_ELEM_TEXT:
-                    if (object.sr[instance].md > 0 && object.sr[instance].mr > 0)
-                    {
-                        // TODO: Draw marquee line
-                    }
-                    else
-                    {
-                        // TODO: Draw Text
-                        TDrawText drText(object);
-                        drText.drawObject(&button, instance);
-                    }
-                break;
-
-                case ORD_ELEM_BORDER:
-                    if (!object.sr[instance].bs.isEmpty())
-                    {
-                        TDrawBorder border(&button);
-                        border.draw(object, instance);
-                    }
-                break;
-
-                default:
-                    break;
+                di.draw();
             }
+            break;
+
+            case ORD_ELEM_TEXT:
+                if (object.sr[instance].md > 0 && object.sr[instance].mr > 0)
+                {
+                    // TODO: Draw marquee line
+                }
+                else
+                {
+                    // TODO: Draw Text
+                    TDrawText drText(object);
+                    drText.drawObject(&button, instance);
+                }
+            break;
+
+            case ORD_ELEM_BORDER:
+                if (!object.sr[instance].bs.isEmpty())
+                {
+                    TDrawBorder border(&button);
+                    border.draw(object, instance);
+                }
+            break;
+
+            default:
+                break;
         }
     }
+
+    QPalette palette(mWidget->palette());
+    palette.setBrush(QPalette::Window, QBrush(button));
+    mWidget->setPalette(palette);
 }
 
 /**
@@ -224,7 +235,7 @@ bool TDrawObject::buttonFill(QPixmap* bm, SR_T sr)
     else
         color = sr.vf;
 
-    MSG_DEBUG("Fill color: #" << color.name(QColor::HexArgb).toStdString() << ")");
+    MSG_DEBUG("Fill color: " << color.name(QColor::HexArgb).toStdString() << ")");
     // We create a new bitmap and fill it with the given fill color. Then
     // we put this image over the existing image "bm". In case this method is
     // not the first in the draw order, it prevents the button from completely

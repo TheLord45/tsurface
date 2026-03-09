@@ -486,6 +486,7 @@ class TObjectHandler
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
         ObjHandler::SR_T getSrCommon();
+        bool drawObject(QWidget *widget, int instance);
 
         inline void setSize(const QRect& rect)
         {

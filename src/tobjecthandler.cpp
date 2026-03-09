@@ -17,6 +17,7 @@
  */
 
 #include "tobjecthandler.h"
+#include "tdrawobject.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -237,6 +238,16 @@ void TObjectHandler::setSrToAllInstances(const SR_T& sr)
         iter->vf = sr.vf;               // G5: Video fill; Marks the button reserved for video (100 = video stream, 101 = MXA-MPL)
         iter->dv = sr.dv;               // G5: Streaming source; Only valid if "vf" is 100!
     }
+}
+
+bool TObjectHandler::drawObject(QWidget *widget, int instance)
+{
+    DECL_TRACER("TObjectHandler::drawObject(QWidget *widget, int instance)");
+
+    TDrawObject drawObject(this, widget);
+    drawObject.draw(instance);
+    return drawObject.haveError();
+    // TODO: Add code to save images so they must not be drawn new every time.
 }
 
 // Getter / Setter

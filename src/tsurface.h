@@ -59,7 +59,8 @@ class TSurface : public QMainWindow
         void updateGridFromUI(TCanvasWidget *widget);
         void applyGridToChildren(TCanvasWidget *widget);
         void addObject(int id, QPoint pt);
-        void drawObject(Page::PAGE_t *page, int objIndex);
+        void drawObject(Page::PAGE_t *page, int objIndex, int instance=0);
+        TResizableWidget *initObject(Page::PAGE_t *page, int objIndex);
         int getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects);
 
         void onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const QString& name);

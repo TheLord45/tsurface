@@ -1192,6 +1192,7 @@ void TPageHandler::parsePage(const QJsonObject& page)
     {
         QJsonObject entry = bitmaps[i].toObject();
         ObjHandler::BITMAPS_t bm;
+        bm.index = i;
         bm.fileName = entry.value("fileName").toString();
         bm.dynamic = entry.value("dynamic").toBool(false);
         bm.justification = static_cast<ObjHandler::ORIENTATION>(entry.value("justification").toInt(ObjHandler::ORI_CENTER_MIDDLE));
@@ -1396,7 +1397,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
                 QJsonObject bm = bitmaps[k].toObject();
                 ObjHandler::BITMAPS_t m;
                 m.fileName = bm.value("fileName").toString();
-                m.index = bm.value("index").toInt(-1);
+                m.index = bm.value("index").toInt(k);
                 m.dynamic = bm.value("dynamic").toBool(false);
                 m.justification = static_cast<ObjHandler::ORIENTATION>(bm.value("justification").toInt(ObjHandler::ORIENTATION::ORI_CENTER_MIDDLE));
                 m.offsetX = bm.value("offsetX").toInt(0);
