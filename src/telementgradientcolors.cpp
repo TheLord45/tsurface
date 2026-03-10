@@ -17,7 +17,7 @@
  */
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QPushButton>
+#include <QToolButton>
 
 #include "telementgradientcolors.h"
 #include "tgradientcolordialog.h"
@@ -26,8 +26,7 @@
 TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent)
     : QWidget(parent),
       mGradients(colors),
-      mName(name),
-      mParent(parent)
+      mName(name)
 {
     DECL_TRACER("TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, const QString& name, QWidget *parent)");
 
@@ -39,6 +38,13 @@ TElementGradientColors::TElementGradientColors(const QList<QColor>& colors, cons
         mGradients.append(Qt::gray);
         mGradients.append(Qt::white);
     }
+    else if (colors.size() < 2)
+    {
+        mGradients = colors;
+        mGradients.append(Qt::white);
+    }
+    else
+        mGradients = colors;
 
     setContentsMargins(0, 0, 0, 0);
     createLine();
@@ -56,7 +62,7 @@ void TElementGradientColors::onPushButtonClicked()
 {
     DECL_TRACER("TElementGradientColors::onPushButtonClicked()");
 
-    TGradientColorDialog dialog(mGradients, mParent);
+    TGradientColorDialog dialog(mGradients, this);
 
     if (dialog.exec() == QDialog::Rejected)
         return;
@@ -72,7 +78,6 @@ void TElementGradientColors::createLine()
 {
     DECL_TRACER("TElementGradientColors::createLine()");
 
-    QSignalBlocker sigBlock(this);
     bool haveLayout = false;
 
     if (mLayout)
@@ -86,8 +91,16 @@ void TElementGradientColors::createLine()
         {
             MSG_DEBUG("Try to remove object \"" << item->objectName().toStdString() << "\"");
 
-            mLayout->removeWidget(item);
-            delete item;
+            QString oName = item->objectName();
+
+            if (oName == "PushButton" || oName.startsWith("Color_"))
+            {
+                if (oName == "PushButton")
+                    mButton = nullptr;
+
+                mLayout->removeWidget(item);
+                delete item;
+            }
         }
     }
     else
@@ -113,17 +126,15 @@ void TElementGradientColors::createLine()
         itemNumber++;
     }
 
-    if (!haveLayout)
+    mLayout->addStretch();
+
+    if (!mButton)
     {
-        mLayout->addStretch();
-        mButton = new QPushButton("...");
-        mButton->setFixedWidth(30);
-        mLayout->addWidget(mButton);
+        mButton = new QToolButton;
+        mButton->setObjectName("PushButton");
+        mButton->setText("...");
+        connect(mButton, &QToolButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
     }
 
-    if (!mConnected)
-    {
-        connect(mButton, &QPushButton::clicked, this, &TElementGradientColors::onPushButtonClicked);
-        mConnected = true;
-    }
+    mLayout->addWidget(mButton);
 }

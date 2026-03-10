@@ -32,11 +32,17 @@ TDrawImage::TDrawImage()
     DECL_TRACER("TDrawImage::TDrawImage()");
 }
 
+TDrawImage::TDrawImage(TBASEOBJ_t *object)
+    : mObject(object)
+{
+    DECL_TRACER("TDrawImage::TDrawImage(TBASEOBJ_t *object)");
+}
+
 TDrawImage::TDrawImage(const QList<BITMAPS_t>& bitmaps, TBASEOBJ_t *object)
     : mBitmaps(bitmaps),
       mObject(object)
 {
-    DECL_TRACER("TDrawImage::TDrawImage(const QString& file, TBASEOBJ_t *object)");
+    DECL_TRACER("TDrawImage::TDrawImage(const QList<BITMAPS_t>& bitmaps, TBASEOBJ_t *object)");
 }
 
 void TDrawImage::setOpacity(int oo)
@@ -112,6 +118,51 @@ void TDrawImage::draw()
     // on top of chameleon image, if there is one.
     // Or draw the bitmap stack.
     drawBitmapStack();
+}
+
+void TDrawImage::drawPixmap(const QPixmap& bm)
+{
+    DECL_TRACER("TDrawImage::drawPixmap(const QPixmap& bm)");
+
+    if ((!mObject || !mObject->widget) && !mPixmap)
+    {
+        MSG_ERROR("Got no widget to draw to.");
+        return;
+    }
+
+    mHaveWidget = mObject && mObject->widget ? true : false;
+
+    if (!mHaveWidget)
+        return;
+
+    TCanvasWidget *widget = nullptr;
+    QPixmap pix = bm.scaled(mObject->widget->size());
+
+    QLabel *label = nullptr;
+    QObjectList objects = mObject->widget->children();
+
+    for (QObject *obj : objects)
+    {
+        if (obj->objectName() == LABEL_NAME)
+        {
+            label = static_cast<QLabel *>(obj);
+            break;
+        }
+    }
+
+    if (!label)
+    {
+        MSG_DEBUG("Adding a new pixmap to widget ...");
+        label = new QLabel(mObject->widget);
+        label->setObjectName(LABEL_NAME);
+        label->setGeometry(mObject->widget->rect());
+        label->setAttribute(Qt::WA_TransparentForMouseEvents);
+        label->setAttribute(Qt::WA_TranslucentBackground);
+    }
+
+    label->setPixmap(pix);
+    label->lower();
+    label->show();
 }
 
 void TDrawImage::drawBitmapStack()

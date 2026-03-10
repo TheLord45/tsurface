@@ -1756,7 +1756,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This is independable from the visibility of the grid.
 
         // Draw all objects
-        TWorkSpaceHandler::Current().setAllProperties(*pg, pg->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
+        TWorkSpaceHandler::Current().setAllProperties(*pg, STATE_UNKNOWN);
         onRedrawRequest(pg);                                                    // Draw the components of the page
     }
 }
@@ -1809,17 +1809,17 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
             TResizableWidget *widget = page->baseObject.widget->currentSelectedWidget();
 
             if (!widget)
-                TWorkSpaceHandler::Current().setStateType(page->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
+                TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
             else
             {
                 TObjectHandler *object = TPageHandler::Current().getObjectHandler(widget->getPageId(), widget->getId());
 
                 if (!object)
                 {
-                    TWorkSpaceHandler::Current().setStateType(page->popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP);
+                    TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
                     return;
                 }
-
+                // Here we have a valid object. We set the properties to reflect this.
                 TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
             }
         }
@@ -2000,6 +2000,11 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
     if (!window)
         return;
 
+    if (mActSelectedWindow == window)
+        return;
+
+    mActSelectedWindow = window;
+
     QString objName = window->objectName();
     int id = getObjectID(objName);
 
@@ -2015,12 +2020,12 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
     TPageHandler::Current().setVisible(id, true);
 
     if (page->popupType == Page::PT_PAGE)
-        TWorkSpaceHandler::Current().setPage(id, false, *page);
+        TWorkSpaceHandler::Current().setPage(id, false, *page);     // Show properties for page
     else
-        TWorkSpaceHandler::Current().setPopup(id, false, *page);
+        TWorkSpaceHandler::Current().setPopup(id, false, *page);    // Show properties for popup/subpage
 
-    TWorkSpaceHandler::Current().setFocus(page->pageID);
-    // TODO: Add code to check for a selected object. If there is
+    TWorkSpaceHandler::Current().setFocus(page->pageID);            // Set the focus on the active page/popup in the tree view
+    // Check for a selected object. If there is
     // one and only one, it is the actual one.
     // If there are more than one selected the page data should
     // be shown.
@@ -2055,7 +2060,14 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
     // First draw everything on the background
     //----------------------------------------
     // Background color
-    drawBackgroundColor(*page);
+    if (page->srPage.vf == "100" || page->srPage.vf == "101")
+    {
+        QPixmap bm(":images/videostream.png");
+        TDrawImage drawImage(&page->baseObject);
+        drawImage.drawPixmap(bm);
+    }
+    else
+        drawBackgroundColor(*page);
 
     // Draw bitmaps on background
     if (!page->srPage.bitmaps.empty())

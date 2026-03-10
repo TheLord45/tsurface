@@ -703,11 +703,11 @@ bool TPageHandler::savePage(const PAGE_t& page)
     INSERTJ(root, "cp", page.cp, setupPort);
     INSERTJ(root, "ch", page.ch, 1);
 
-    QJsonArray objects = getObjects(page.objects);
-    root.insert("objects", objects);
-
     QJsonObject sr = getSr(page.popupType, page.srPage);
     root.insert("sr", sr);
+
+    QJsonArray objects = getObjects(page.objects);
+    root.insert("objects", objects);
 
     QJsonDocument doc;
     doc.setObject(root);
@@ -1029,32 +1029,39 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
     if (pt == PT_POPUP)
         sr.insert("number", number);
 
-    INSERTJ(sr, "bs", srPage.bs, "");                         // Frame type (circle, ...)
-    INSERTJ(sr, "mi", srPage.mi, "");                         // Chameleon image
+    INSERTJ(sr, "bs", srPage.bs, "");                   // Frame type (circle, ...)
+    INSERTJ(sr, "mi", srPage.mi, "");                   // Chameleon image
     sr.insert("cb", srPage.cb.name(QColor::HexArgb));   // Border color
-    sr.insert("ft", srPage.ft);                         // G5: Fill type for gradient colors.
+    INSERTJ(sr, "ft", srPage.ft, "solid");              // G5: Fill type for gradient colors.
     sr.insert("cf", srPage.cf.name(QColor::HexArgb));   // Fill color
     sr.insert("ct", srPage.ct.name(QColor::HexArgb));   // Text Color
     sr.insert("ec", srPage.ec.name(QColor::HexArgb));   // Text effect color
-    INSERTJ(sr, "bm", srPage.bm, "");                         // bitmap file name
-    QJsonArray bitmaps;
-    int idx = 0;
-
-    for (ObjHandler::BITMAPS_t bitmap : srPage.bitmaps)
-    {
-        QJsonObject bm;
-        bm.insert("index", idx);
-        bm.insert("fileName", bitmap.fileName);
-        bm.insert("dynamic", bitmap.dynamic);
-        bm.insert("justification", bitmap.justification);
-        bm.insert("offsetX", bitmap.offsetX);
-        bm.insert("offsetY", bitmap.offsetY);
-        bitmaps.append(bm);
-        idx++;
-    }
+    INSERTJ(sr, "bm", srPage.bm, "");                   // bitmap file name
 
     if (!srPage.bitmaps.empty())
-        sr.insert("bitmaps", bitmaps);
+    {
+        QJsonArray bitmaps;
+        int idx = 0;
+
+        for (ObjHandler::BITMAPS_t bitmap : srPage.bitmaps)
+        {
+            if (bitmap.fileName.isEmpty())
+                continue;
+
+            QJsonObject bm;
+            bm.insert("index", idx);
+            bm.insert("fileName", bitmap.fileName);
+            bm.insert("dynamic", bitmap.dynamic);
+            bm.insert("justification", bitmap.justification);
+            bm.insert("offsetX", bitmap.offsetX);
+            bm.insert("offsetY", bitmap.offsetY);
+            bitmaps.append(bm);
+            idx++;
+        }
+
+        if (idx > 0)
+            sr.insert("bitmaps", bitmaps);
+    }
 
     if (!srPage.gradientColors.empty())
     {
@@ -1067,7 +1074,7 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
         sr.insert("gradientColors", gradientColors);
     }
 
-    INSERTJ(sr, "gr", srPage.gr, 0);
+    INSERTJ(sr, "gr", srPage.gr, 15);
     INSERTJ(sr, "gx", srPage.gx, 0);
     INSERTJ(sr, "gy", srPage.gy, 0);
     sr.insert("dynamic", srPage.dynamic);
@@ -1084,7 +1091,7 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
     INSERTJ(sr, "ww", srPage.ww, 0);
     INSERTJ(sr, "et", srPage.et, 0);
 
-    if (srPage.oo >= 0)
+    if (srPage.oo >= 0 && srPage.oo < 255)
         sr.insert("oo", srPage.oo);
 
     return sr;
@@ -1203,8 +1210,16 @@ void TPageHandler::parsePage(const QJsonObject& page)
 
     QJsonArray gradientColors = srPage.value("gradientColors").toArray();
 
-    for (int i = 0; i < gradientColors.count(); ++i)
-        pg.srPage.gradientColors.append(QColor::fromString(gradientColors[i].toString()));
+    if (gradientColors.count() > 0)
+    {
+        for (int i = 0; i < gradientColors.count(); ++i)
+            pg.srPage.gradientColors.append(QColor::fromString(gradientColors[i].toString()));
+    }
+    else
+    {
+        pg.srPage.gradientColors.append(Qt::gray);
+        pg.srPage.gradientColors.append(Qt::white);
+    }
 
     pg.srPage.gr = srPage.value("gr").toInt(0);
     pg.srPage.gx = srPage.value("gx").toInt(0);
@@ -1223,7 +1238,7 @@ void TPageHandler::parsePage(const QJsonObject& page)
     pg.srPage.fs = srPage.value("fs").toInt(0);
     pg.srPage.ww = srPage.value("ww").toInt(0);
     pg.srPage.et = srPage.value("et").toInt(0);
-    pg.srPage.oo = srPage.value("oo").toInt(0);
+    pg.srPage.oo = srPage.value("oo").toInt(255);
 
     QJsonArray eventShow = page.value("eventShow").toArray();
 
@@ -1407,8 +1422,16 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
 
             QJsonArray gradients = jsr.value("gradientColors").toArray();
 
-            for (int k = 0; k < gradients.count(); ++k)
-                s.gradientColors.push_back(gradients[k].toString());
+            if (gradients.count() > 0)
+            {
+                for (int k = 0; k < gradients.count(); ++k)
+                    s.gradientColors.append(gradients[k].toString());
+            }
+            else
+            {
+                s.gradientColors.append(Qt::gray);
+                s.gradientColors.append(Qt::white);
+            }
 
             s.gr = jsr.value("gr").toInt(15);
             s.gx = jsr.value("gx").toInt(50);
@@ -1428,12 +1451,12 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s.fs = jsr.value("fs").toInt(0);
             s.ww = jsr.value("ww").toInt(0);
             s.et = jsr.value("et").toInt(0);
-            s.oo = jsr.value("oo").toInt(-1);
+            s.oo = jsr.value("oo").toInt(255);
             s.md = jsr.value("md").toInt(0);
             s.mr = jsr.value("mr").toInt(0);
             s.ms = jsr.value("ms").toInt(1);
             s.vf = jsr.value("vf").toString();
-            object.sr.push_back(s);
+            object.sr.append(s);
         }
 
         TObjectHandler *o = new TObjectHandler(object.type, object.bi, object.na);

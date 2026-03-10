@@ -203,17 +203,30 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
     if (page.pageID <= 0)
         return;
 
-    setGeneralPage(page, stype, objectID);
+    STATE_TYPE st = stype;
 
-    if (stype == STATE_PAGE)
+    if (stype == STATE_UNKNOWN)
+    {
+        if (page.popupType == Page::PT_PAGE)
+            st = STATE_PAGE;
+        else if (page.popupType == Page::PT_POPUP)
+            st = STATE_POPUP;
+        else if (page.popupType == Page::PT_SUBPAGE)
+            st = STATE_SUBPAGE;
+    }
+
+    setGeneralPage(page, st, objectID);
+
+    if (st == STATE_PAGE)
     {
         setProgrammingPage(page.pageID, false);
         TPropertiesStates::setPage(page);
     }
-    else if (stype == STATE_POPUP)
+    else if (st == STATE_POPUP || st == STATE_SUBPAGE)
     {
         setProgrammingPopup(page.pageID, false);
-        TPropertiesStates::setPage(page);
+        TPropertiesStates::setState(st);
+//        TPropertiesStates::setPage(page);
     }
 
     if (objectID >= 0 && objectID < page.objects.size())

@@ -40,6 +40,7 @@
 #include "telementsound.h"
 #include "telementcolorselector.h"
 #include "telementwidgettext.h"
+#include "telementsinglebitmap.h"
 #include "tconfmain.h"
 #include "terror.h"
 
@@ -205,6 +206,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     {
         if (mPage.popupType == Page::PT_PAGE)
         {
+            MSG_DEBUG("Recreating table for page " << mPage.pageID);
             table->setRowHidden(TTEXT_FILL_TYPE, false);
             totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO);
 
@@ -273,6 +275,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         }
         else if (mPage.popupType == Page::PT_POPUP || mPage.popupType == Page::PT_SUBPAGE)
         {
+            MSG_DEBUG("Recreating table for popup " << mPage.pageID);
             table->setRowHidden(TTEXT_BORDER_NAME, false);
             totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mPage.srPage.bs, W_BORDERNAME);
 
@@ -286,7 +289,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_FILL_TYPE, false);
 
             totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mPage.srPage.cb, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ty, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO);
 
             if (!mPage.srPage.ft.isEmpty() && mPage.srPage.ft != "solid")
             {
@@ -357,6 +360,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         mActObject = mPage.objects[mActObjectID]->getObject();
         mActSr = mPage.objects[mActObjectID]->getSrFromIndex(instance);
         mActInstance = instance;
+        MSG_DEBUG("Recreating table for object " << mActObject.bi << " (" << mActObject.na.toStdString() << ") and instance " << instance);
 
         if (instance >= mActObject.sr.size())
         {
@@ -369,8 +373,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_BORDER_NAME, false);
             totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME);
 
-
-            if (mPage.srPage.bs.isEmpty())
+            if (mActSr.bs.isEmpty())
             {
                 table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
                 totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mActSr.mi, W_BITMAPSELECTOR);
@@ -381,7 +384,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         table->setRowHidden(TTEXT_FILL_TYPE, false);
 
         totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR);
-        totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mActSr.ty, W_COMBO);
+        totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mActSr.ft, W_COMBO);
 
         if (!mActSr.ft.isEmpty() && mActSr.ft != "solid")
         {
@@ -418,10 +421,10 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
             totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mActSr.vf, W_COMBO);
 
-            if (mPage.srPage.vf == "100")
+            if (mActSr.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mActSr.dv, W_TEXT);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -442,7 +445,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT);
             totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO);
 
-            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            if (mActSr.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
@@ -465,10 +468,24 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         }
     }
 
+    MSG_DEBUG("Table has minimum height " << totalHeight);
     table->setMinimumHeight(totalHeight);
     mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
 }
 
+/**
+ * @brief TPropertiesStates::createPage
+ * This method creates the visible table(s) inside the tree view. The number
+ * of tables depends on the type of page or object drawn.
+ * If the parameter \b force is set to TRUE, The tree view, if any already
+ * exist, is cleared and all tables are recreated. If this parameter is not set
+ * or set to FALSE then, if a tree view already exists, only the visible rows in
+ * each table are set. This will set the actual values to all rows also.
+ *
+ * @param force     TRUE = force the rebuild of all tables and the tree view.
+ * FALSE = If there exists already a tree view don't recreate it. Instead
+ * set the visibility of the rows depending on the actual values.
+ */
 void TPropertiesStates::createPage(bool force)
 {
     DECL_TRACER("TPropertiesStates::createPage(bool force)");
@@ -533,9 +550,13 @@ void TPropertiesStates::createPage(bool force)
         }
     }
 
-    MSG_DEBUG("Page total height: " << totalHeight);
-    mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
+    MSG_DEBUG("Page total height: " << (totalHeight + mTreeWidget->height()) << ", table height: " << totalHeight);
 
+    if (totalHeight > 0)
+        mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
+
+
+    top->setExpanded(true);
     rebuildTree();
     mInitialized = true;
 }
@@ -616,7 +637,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 
             case TTEXT_CHAMELEON_IMAGE:
                 col0->setText(getLeftColText(TTEXT_CHAMELEON_IMAGE));
-                table->setCellWidget(row, 1, makeBitmapSelector("ChameleonImage"));
+                table->setCellWidget(row, 1, makeSingleBitmapSelector("ChameleonImage"));
             break;
 
             case TTEXT_BORDER_COLOR:
@@ -960,6 +981,14 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
             TElementColorSelector *p = static_cast<TElementColorSelector *>(w);
             p->setColor(data.toString());
         }
+        break;
+
+        case W_BITMAPSELECTOR:
+        {
+            TElementSingleBitmap *p = static_cast<TElementSingleBitmap *>(w);
+            p->setPixmapName(data.toString());
+        }
+        break;
 
         default:
             return w->height();
@@ -1186,10 +1215,34 @@ TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& nam
     else if (isValidObjectIndex())
         bitmaps = mActSr.bitmaps;
 
+    MSG_DEBUG("Number bitmaps on page " << mPage.pageID << ": " << bitmaps.size() << ". First bitmap: " << (bitmaps.size() > 0 ? bitmaps[0].fileName.toStdString() : "(none)"));
     TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mParent);
     bs->setInstance(mActInstance);
     connect(bs, &TElementBitmapSelector::bitmapsChangedInst, this, &TPropertiesStates::onBitmapsChanged);
     return bs;
+}
+
+TElementSingleBitmap *TPropertiesStates::makeSingleBitmapSelector(const QString& name)
+{
+    DECL_TRACER("TPropertiesStates::makeSingleBitmapSelector(const QString& name)");
+
+    QString pixName;
+
+    if (isAnyPage())
+    {
+        if (name == "ChameleonImage")
+            pixName = mPage.srPage.mi;
+    }
+    else if (isValidObjectIndex())
+    {
+        if (name == "ChameleonImage")
+            pixName = mActSr.mi;
+    }
+
+    TElementSingleBitmap *sbm = new TElementSingleBitmap(pixName, name, mParent);
+    sbm->setInstance(mActInstance);
+    connect(sbm, &TElementSingleBitmap::bitmapChangedInst, this, &TPropertiesStates::onPixmapNameChanged);
+    return sbm;
 }
 
 TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
@@ -1224,7 +1277,7 @@ QSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
         else if (name == "GradientCenterX")
             value = mPage.srPage.gy;
         else if (name == "OverallOpacity")
-            value = mPage.srPage.oo;
+            value = mPage.srPage.oo < 0 ? 255 : mPage.srPage.oo;
         else if (name == "FontSize")
             value = mPage.srPage.fs;
         else if (name == "TextPositionX")
@@ -1241,7 +1294,7 @@ QSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
         else if (name == "GradientCenterX")
             value = mActSr.gy;
         else if (name == "OverallOpacity")
-            value = mActSr.oo;
+            value = mActSr.oo < 0 ? 255 : mActSr.oo;
         else if (name == "FontSize")
             value = mActSr.fs;
         else if (name == "TextPositionX")
@@ -1479,6 +1532,7 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 
     mChanged = true;
     saveChangedData(&mPage, TBL_STATES);
+    rebuildTree();
     // Call to draw immediately
     requestRedraw(&mPage);
 }
@@ -1509,6 +1563,26 @@ void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bit
         mPage.srPage.bitmaps = bitmaps;
     else
         mPage.objects[mActObjectID]->setBitmaps(bitmaps, instance);
+
+    saveChangedData(&mPage, TBL_STATES);
+    mChanged = false;
+    requestRedraw(&mPage);
+}
+
+void TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& name, int instance)
+{
+    DECL_TRACER("TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& name, int instance)");
+
+    if (isAnyPage())
+    {
+        if (name == "ChameleonImage")
+            mPage.srPage.mi = bm;
+    }
+    else
+    {
+        if (name == "ChameleonImage")
+            mPage.objects[mActObjectID]->setChameleonImage(bm, instance);
+    }
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;

@@ -52,5 +52,6 @@
         <file>images/document-new.svg</file>
         <file>images/view-grid.svg</file>
         <file>images/snap-bounding-box-corners.svg</file>
+        <file>images/videostream.png</file>
     </qresource>
 </RCC>

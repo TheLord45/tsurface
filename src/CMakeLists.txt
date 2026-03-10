@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(tsurface VERSION 1.0.0 LANGUAGES CXX)
 
@@ -34,56 +34,58 @@ find_package(OpenSSL REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Fontconfig REQUIRED)
 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
-
 qt_add_executable(tsurface
     main.cpp
     tsurface.cpp
     tsurface.ui
-    tsurfacereader.cpp
-    tsurfacereader.h
     terror.cpp
     terror.h
     tconfig.cpp
     tconfig.h
     tconfmain.cpp
     tconfmain.h
-    tnewprojectdialog.cpp
-    tnewprojectdialog.h
-    tnewprojectdialog.ui
     tpaneltypes.h
     tpaneltypes.cpp
     tpagetree.h
     tpagetree.cpp
     tpagehandler.cpp
     tpagehandler.h
-    tprojectproperties.cpp
-    tprojectproperties.h
-    tprojectproperties.ui
     tobjecthandler.cpp
     tobjecthandler.h
     tpopuplist.cpp
     tpopuplist.h
     tpopuplist.ui
+    tfonts.cpp
+    tfonts.h
+    tgraphics.cpp
+    tgraphics.h
+    tmisc.h
+    tmisc.cpp
+    tmaps.cpp
+    tmaps.h
+    tcrypt.cpp
+    tcrypt.h
+    base64.cpp
+    base64.h
+    tsurfacereader.cpp
+    tsurfacereader.h
+    tsurfacewriter.cpp
+    tsurfacewriter.h
+    tnewprojectdialog.cpp
+    tnewprojectdialog.h
+    tnewprojectdialog.ui
+    tprojectproperties.cpp
+    tprojectproperties.h
+    tprojectproperties.ui
     taddpagedialog.cpp
     taddpagedialog.h
     taddpagedialog.ui
-    tfonts.cpp
-    tfonts.h
     taddpopupdialog.cpp
     taddpopupdialog.h
     taddpopupdialog.ui
-    tgraphics.cpp
-    tgraphics.h
-    tsurfacewriter.cpp
-    tsurfacewriter.h
-    tmisc.h
-    tmisc.cpp
     tresourcedialog.cpp
     tresourcedialog.h
     tresourcedialog.ui
-    tmaps.cpp
-    tmaps.h
     trenamefiledialog.cpp
     trenamefiledialog.h
     trenamefiledialog.ui
@@ -116,10 +118,6 @@ qt_add_executable(tsurface
     ttexteditdialog.cpp
     ttexteditdialog.h
     ttexteditdialog.ui
-    tcrypt.cpp
-    tcrypt.h
-    base64.cpp
-    base64.h
     tvalidateport.cpp
     tvalidateport.h
     tcanvaswidget.cpp
@@ -140,6 +138,9 @@ qt_add_executable(tsurface
     tpreferencesdialog.cpp
     tpreferencesdialog.h
     tpreferencesdialog.ui
+    tsoundselectdialog.cpp
+    tsoundselectdialog.h
+    tsoundselectdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp
@@ -158,6 +159,8 @@ qt_add_executable(tsurface
     telementspinbox.h
     telementcolorselector.cpp
     telementcolorselector.h
+    telementsound.cpp
+    telementsound.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
     tdrawobject.cpp
@@ -173,8 +176,7 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    telementsound.h telementsound.cpp
-    tsoundselectdialog.h tsoundselectdialog.cpp tsoundselectdialog.ui
+    telementsinglebitmap.h telementsinglebitmap.cpp
 )
 
 # Use the Widgets module from Qt 6.

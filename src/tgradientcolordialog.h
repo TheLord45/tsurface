@@ -24,6 +24,8 @@ namespace Ui {
     class TGradientColorDialog;
 }
 
+class QTableWidgetItem;
+
 class TGradientColorDialog : public QDialog
 {
     Q_OBJECT
@@ -45,7 +47,7 @@ class TGradientColorDialog : public QDialog
         void on_pushButtonDelete_clicked();
         void on_pushButtonMoveUp_clicked();
         void on_pushButtonMoveDown_clicked();
-        void on_tableWidgetColors_cellActivated(int row, int column);
+        void on_tableWidgetColors_itemClicked(QTableWidgetItem *item);
 
     private:
         Ui::TGradientColorDialog *ui;

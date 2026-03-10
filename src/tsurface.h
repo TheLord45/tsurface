@@ -286,6 +286,7 @@ class TSurface : public QMainWindow
         // Basic information about active project
         QString mPathTemporary;         // The temporary path were all files are plain
         TOOL mSelectedTool{TOOL_NONE};
+        QMdiSubWindow *mActSelectedWindow{nullptr};
 };
 
 #endif // TSURFACE_H

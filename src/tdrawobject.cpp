@@ -228,23 +228,27 @@ bool TDrawObject::buttonFill(QPixmap* bm, SR_T sr)
     if (!sr.ft.isEmpty())
         return drawBackgroundColor(bm, sr, sr.gradientColors);
 
-    QColor color;
+    if (isValidVf(sr.vf))   // Is this a video streaming object?
+    {
+        MSG_DEBUG("Fill background with video stream image.");
+        QPixmap bitmap(":images/videostream.png");
+        bitmap = bitmap.scaled(bm->size());
+        QPainter painter(bm);
+        painter.drawPixmap(0, 0, bitmap);
+        painter.end();
+        return true;
+    }
 
-    if (sr.vf.isEmpty())
-        color = sr.cf;
-    else
-        color = sr.vf;
-
-    MSG_DEBUG("Fill color: " << color.name(QColor::HexArgb).toStdString() << ")");
+    MSG_DEBUG("Fill color: " << sr.cf.name(QColor::HexArgb).toStdString() << ")");
     // We create a new bitmap and fill it with the given fill color. Then
     // we put this image over the existing image "bm". In case this method is
     // not the first in the draw order, it prevents the button from completely
     // overwrite.
     QPixmap bitmap(bm->size());
-    bitmap.fill(color);                             // Fill the new bitmap with the fill color
+    bitmap.fill(sr.cf);                             // Fill the new bitmap with the fill color
     QPainter painter(bm);
     painter.drawPixmap(0, 0, bitmap);
-
+    painter.end();
     return true;
 }
 
@@ -366,6 +370,16 @@ bool TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QColor>& grad
     QBrush brush(linear);
     painter.fillRect(rect, brush);
     return true;
+}
+
+bool TDrawObject::isValidVf(const QString& vf)
+{
+    DECL_TRACER("TDrawObject::isValidVf(const QString& vf)");
+
+    if (vf == "100" || vf == "101")
+        return true;
+
+    return false;
 }
 
 GRAD_TYPE_t TDrawObject::getGradientType(const QString& grad)

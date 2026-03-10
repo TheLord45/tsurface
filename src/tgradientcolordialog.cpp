@@ -33,10 +33,13 @@ TGradientColorDialog::TGradientColorDialog(const QList<QColor>& colors, QWidget 
 
     ui->setupUi(this);
 
+    ui->tableWidgetColors->setSelectionBehavior(QAbstractItemView::SelectRows);
+
     ui->pushButtonDelete->setDisabled(true);
     ui->pushButtonMoveUp->setDisabled(true);
     ui->pushButtonMoveDown->setDisabled(true);
 
+    mColors = colors;
     createTable();
 }
 
@@ -181,8 +184,9 @@ void TGradientColorDialog::on_pushButtonDelete_clicked()
     }
 
     mColors.remove(row);
-    ui->tableWidgetColors->clear();
-    createTable();
+    ui->tableWidgetColors->removeRow(row);
+//    ui->tableWidgetColors->clear();
+//    createTable();
 
     deselectAll();
 }
@@ -207,11 +211,16 @@ void TGradientColorDialog::on_pushButtonMoveUp_clicked()
         return;
     }
 
-    QTableWidgetItem *col1 = ui->tableWidgetColors->takeItem(mSelectedRow, 1);
-    QTableWidgetItem *col2 = ui->tableWidgetColors->takeItem(mSelectedRow-1, 1);
+    QColor col1 = mColors[mSelectedRow];
+    QColor col2 = mColors[mSelectedRow-1];
+    mColors[mSelectedRow] = col2;
+    mColors[mSelectedRow-1] = col1;
 
-    ui->tableWidgetColors->setItem(mSelectedRow, 1, col2);
-    ui->tableWidgetColors->setItem(mSelectedRow-1, 1, col1);
+    ui->tableWidgetColors->removeCellWidget(mSelectedRow, 1);
+    ui->tableWidgetColors->removeCellWidget(mSelectedRow-1, 1);
+
+    ui->tableWidgetColors->setCellWidget(mSelectedRow, 1, makeColorSelector(col2, mSelectedRow));
+    ui->tableWidgetColors->setCellWidget(mSelectedRow-1, 1, makeColorSelector(col1, mSelectedRow-1));
 
     deselectAll();
 }
@@ -245,11 +254,11 @@ void TGradientColorDialog::on_pushButtonMoveDown_clicked()
     deselectAll();
 }
 
-void TGradientColorDialog::on_tableWidgetColors_cellActivated(int row, int column)
+void TGradientColorDialog::on_tableWidgetColors_itemClicked(QTableWidgetItem *item)
 {
-    DECL_TRACER("TGradientColorDialog::on_tableWidgetColors_cellActivated(int row, int column)");
+    DECL_TRACER("TGradientColorDialog::on_tableWidgetColors_itemClicked(QTableWidgetItem *item)");
 
-    Q_UNUSED(column);
+    int row = item->row();
     mSelectedRow = row;
     ui->tableWidgetColors->selectRow(row);
 
@@ -273,4 +282,3 @@ void TGradientColorDialog::on_tableWidgetColors_cellActivated(int row, int colum
         ui->pushButtonMoveDown->setDisabled(true);
     }
 }
-

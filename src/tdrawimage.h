@@ -25,6 +25,7 @@ class TDrawImage
 {
     public:
         TDrawImage();
+        TDrawImage(ObjHandler::TBASEOBJ_t *object);
         TDrawImage(const QList<ObjHandler::BITMAPS_t>& bitmaps, ObjHandler::TBASEOBJ_t *object);
 
         /**
@@ -120,6 +121,14 @@ class TDrawImage
          * chameleon image.
          */
         void draw();
+        /**
+         * @brief drawPixmap
+         * Draws a single pixmap on the background of a page or popup. The
+         * pixmap will be scaled to the size of the page.
+         *
+         * @param bm    The pixmap to draw.
+         */
+        void drawPixmap(const QPixmap& bm);
 
     protected:
         void drawBitmapStack();

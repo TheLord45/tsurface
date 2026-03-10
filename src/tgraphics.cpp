@@ -1866,7 +1866,7 @@ TGraphics::TGraphics()
 
 TGraphics& TGraphics::Current()
 {
-    DECL_TRACER("TBorders::Current()");
+//    DECL_TRACER("TBorders::Current()");
 
     if (!mCurrent)
         mCurrent = new TGraphics;
@@ -8308,7 +8308,7 @@ QString TGraphics::getBorderFile(const QString& name, bool precise)
 
 QList<FAMILY_t> TGraphics::getEfects()
 {
-    DECL_TRACER("TGraphics::getEfects()");
+//    DECL_TRACER("TGraphics::getEfects()");
 
     QList<FAMILY_t> eff;
     vector<FAMILY_t> effects = mDraw.effects;
@@ -8341,7 +8341,7 @@ QList<FAMILY_t> TGraphics::getEfects()
 
 int TGraphics::getEffectStyleNumber(const QString& name)
 {
-    DECL_TRACER("TGraphics::getEffectStyleNumber(const QString& name)");
+//    DECL_TRACER("TGraphics::getEffectStyleNumber(const QString& name)");
 
     for (EFFECT_STYLE_t style : mDraw.effectStyles)
     {
@@ -8354,7 +8354,7 @@ int TGraphics::getEffectStyleNumber(const QString& name)
 
 QString TGraphics::getEffectStyleName(int number)
 {
-    DECL_TRACER("TGraphics::getEffectStyleName(int number)");
+//    DECL_TRACER("TGraphics::getEffectStyleName(int number)");
 
     for (EFFECT_STYLE_t style : mDraw.effectStyles)
     {
@@ -8367,7 +8367,7 @@ QString TGraphics::getEffectStyleName(int number)
 
 EFFECT_STYLE_t TGraphics::getEffectDetails(int number)
 {
-    DECL_TRACER("TGraphics::getEffectDetails(int number)");
+//    DECL_TRACER("TGraphics::getEffectDetails(int number)");
 
     for (EFFECT_STYLE_t style : mDraw.effectStyles)
     {
@@ -8380,7 +8380,7 @@ EFFECT_STYLE_t TGraphics::getEffectDetails(int number)
 
 QStringList TGraphics::getSliderNames()
 {
-    DECL_TRACER("TGraphics::getSliderNames()");
+//    DECL_TRACER("TGraphics::getSliderNames()");
 
     QStringList sliders;
 

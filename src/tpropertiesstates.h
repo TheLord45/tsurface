@@ -38,6 +38,7 @@ class TElementTextEffect;
 class TElementBorderName;
 class TElementGradientColors;
 class TElementSound;
+class TElementSingleBitmap;
 
 class TPropertiesStates : public QObject
 {
@@ -70,6 +71,7 @@ class TPropertiesStates : public QObject
         QWidget *makeColorSelector(const QString& name);
         QWidget *makeVideoFill(const QString& name);
         TElementBitmapSelector *makeBitmapSelector(const QString& name);
+        TElementSingleBitmap *makeSingleBitmapSelector(const QString& name);
         TElementWidgetFont *makeFontSelector(const QString& name);
         QSpinBox *makeValueSelector(const QString& name, int max);
         QWidget *makeTextValue(const QString& name);
@@ -82,6 +84,7 @@ class TPropertiesStates : public QObject
 
         // Callbacks
         void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name, int instance);
+        void onPixmapNameChanged(const QString& bm, const QString& name, int instance);
         void onOrientationChanged(const QString& text, const QVariant& data, const QString& name, int instance);
         void onFontChanged(const QFont& font, const QString& name, int instance);
         void onTextEffectChanged(int eff, const QString& effect, const QString& name, int instance);
