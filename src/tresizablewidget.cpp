@@ -18,6 +18,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QEvent>
+#include <QLabel>
+
 #include <algorithm>
 
 #include "tresizablewidget.h"
@@ -214,6 +216,31 @@ void TResizableWidget::setSelected(bool on)
     update();
 }
 
+void TResizableWidget::setPixmap(const QPixmap& bm)
+{
+    DECL_TRACER("TResizableWidget::setPixmap(const QPixmap& bm)");
+
+    if (bm.isNull())
+    {
+        MSG_DEBUG("Got invalid pixmap!");
+        return;
+    }
+
+    if (!mContent)
+        return;
+
+    if (!mBackground)
+    {
+        mBackground = new QLabel(mContent);
+        mBackground->setMargin(0);
+        mBackground->setGeometry(0, 0, width(), height());
+        mBackground->setStyleSheet(QString("background-color: %1").arg(QColor(Qt::transparent).name(QColor::HexArgb)));
+    }
+
+    mBackground->setPixmap(bm);
+    mBackground->show();
+}
+
 void TResizableWidget::paintEvent(QPaintEvent*)
 {
     if (!mSelected)
@@ -242,9 +269,9 @@ void TResizableWidget::resizeEvent(QResizeEvent*)
 {
     if (mContent)
     {
-        const int m = mFrameMargin + 2;
-        int w = std::max(0, width() - 2 * m);
-        int h = std::max(0, height() - 2 * m);
+        const int m = 0; // mFrameMargin + 2;
+        int w = qMax(0, width()); // std::max(0, width() - 2 * m);
+        int h = qMax(0, height()); // std::max(0, height() - 2 * m);
         mContent->setGeometry(m, m, w, h);
         emit objectSizeChanged(this, QSize(w, h));
 //        emit objectMoved(this, QPoint(mContent->geometry().left(), mContent->geometry().top()));
@@ -293,7 +320,7 @@ void TResizableWidget::updateGripsVisibility()
 
 Qt::CursorShape TResizableWidget::cursorFor(Handle h)
 {
-    DECL_TRACER("TResizableWidget::cursorFor(Handle h)");
+//    DECL_TRACER("TResizableWidget::cursorFor(Handle h)");
 
     switch (h)
     {

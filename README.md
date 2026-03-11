@@ -24,10 +24,10 @@ Currently the program is under heavy development and in an early state. At the m
 |Print preview|||❌|Low||
 |Print Setup|||❌|Low||
 |**Menu: Edit**|
-|Selection Tool||✔️||High|Still problems after loading a document|
-|Button Draw Tool||✔️||High|Still problems after loading a document|
+|Selection Tool|✅|||High||
+|Button Draw Tool|✅|||High||
 |Show Grid|✅|||High||
-|Snap to Grid||✔️||High|After creating a new document or loading one it is not correctly initialized|
+|Snap to Grid||✔️||High|Works currently only on moving|
 |Quick Input|||❌|Low||
 |Undo|||❌|Medium||
 |Redo|||❌|Medium||

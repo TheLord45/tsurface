@@ -84,20 +84,25 @@ void TElementGradientColors::createLine()
     {
         haveLayout = true;
         // Delete all widget contained by the layout
-        QList<QWidget*> childs = findChildren<QWidget*>();
+        QList<QWidget*> childs = findChildren<QWidget*>(Qt::FindDirectChildrenOnly);
         MSG_DEBUG("Found " << childs.size() << " childs");
 
         for (QWidget *item : childs)
         {
-            MSG_DEBUG("Try to remove object \"" << item->objectName().toStdString() << "\"");
+            if (!item)
+                continue;
 
             QString oName = item->objectName();
+            MSG_DEBUG("Found object \"" << oName.toStdString() << "\"");
 
             if (oName == "PushButton" || oName.startsWith("Color_"))
             {
+                MSG_DEBUG("Removing object " << oName.toStdString());
+
                 if (oName == "PushButton")
                     mButton = nullptr;
 
+                item->deleteLater();
                 mLayout->removeWidget(item);
                 delete item;
             }

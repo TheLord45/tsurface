@@ -8071,8 +8071,11 @@ FAMILY_t TGraphics::getBorder(const QString& name)
 
     for (FAMILY_t family : mDraw.borders)
     {
-        if (family.name == name)
-            return family;
+        for (QString brd : family.member)
+        {
+            if (brd == name)
+                return family;
+        }
     }
 
     return FAMILY_t();

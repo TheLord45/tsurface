@@ -180,7 +180,7 @@ QList<TResizableWidget*> TCanvasWidget::mResizableChildren() const
 {
     DECL_TRACER("TCanvasWidget::mResizableChildren() const");
 
-    return findChildren<TResizableWidget*>(QString(), Qt::FindDirectChildrenOnly);
+    return findChildren<TResizableWidget*>(Qt::FindDirectChildrenOnly);
 }
 
 void TCanvasWidget::selectOnly(TResizableWidget* w)
@@ -286,6 +286,8 @@ TResizableWidget *TCanvasWidget::getWidget(int bi)
 
     for (TResizableWidget *w : mResizableChildren())
     {
+        MSG_DEBUG("Found child " << w->getId() << " on page " << w->getPageId());
+
         if (w->getId() == bi)
             return w;
     }

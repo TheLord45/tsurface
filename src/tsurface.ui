@@ -200,7 +200,11 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QTableWidget" name="tableWidgetGeneral"/>
+           <widget class="QTableWidget" name="tableWidgetGeneral">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -211,6 +215,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QTableWidget" name="tableWidgetProgramming">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+            </property>
             <attribute name="horizontalHeaderVisible">
              <bool>false</bool>
             </attribute>
@@ -228,6 +235,12 @@
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <widget class="QTreeWidget" name="treeWidgetStates">
+            <property name="locale">
+             <locale language="English" country="AmericanSamoa"/>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+            </property>
             <property name="columnCount">
              <number>2</number>
             </property>
@@ -254,7 +267,11 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QTableWidget" name="tableWidgetEvents"/>
+           <widget class="QTableWidget" name="tableWidgetEvents">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

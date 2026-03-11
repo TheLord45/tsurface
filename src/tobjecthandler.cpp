@@ -240,9 +240,9 @@ void TObjectHandler::setSrToAllInstances(const SR_T& sr)
     }
 }
 
-bool TObjectHandler::drawObject(QWidget *widget, int instance)
+bool TObjectHandler::drawObject(TResizableWidget *widget, int instance)
 {
-    DECL_TRACER("TObjectHandler::drawObject(QWidget *widget, int instance)");
+    DECL_TRACER("TObjectHandler::drawObject(TResizableWidget *widget, int instance)");
 
     TDrawObject drawObject(this, widget);
     drawObject.draw(instance);

@@ -21,6 +21,8 @@
 #include <QWidget>
 #include <array>
 
+class QLabel;
+
 class TResizableWidget : public QWidget
 {
     Q_OBJECT
@@ -29,6 +31,7 @@ class TResizableWidget : public QWidget
         explicit TResizableWidget(QWidget* content = nullptr, QWidget* parent = nullptr);
         void setContentWidget(QWidget* w);
         QWidget* contentWidget() const { return mContent; }
+        void setPixmap(const QPixmap& bm);
 
         void setMinimumSize(const QSize& s) { mMinSize = s; QWidget::setMinimumSize(s); }
         void setMinimumSize(int w, int h) { setMinimumSize(QSize(w, h)); }
@@ -101,6 +104,7 @@ class TResizableWidget : public QWidget
         // Identifier settings
         int mID{0};             // Button ID
         int mPageID{0};         // The ID of the page this object belongs to.
+        QLabel *mBackground{nullptr};
 };
 
 #endif

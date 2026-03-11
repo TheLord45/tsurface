@@ -33,7 +33,7 @@ class ShadowLabel : public QLabel
 
         void setShadowType(int number);
         void setTextColor(const QColor &color);
-        void setTextEffectolor(const QColor& color);
+        void setTextEffectColor(const QColor& color);
 
     protected:
         void paintEvent(QPaintEvent *event) override;

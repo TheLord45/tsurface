@@ -56,7 +56,7 @@ void ShadowLabel::setTextColor(const QColor &color)
     update();
 }
 
-void ShadowLabel::setTextEffectolor(const QColor& color)
+void ShadowLabel::setTextEffectColor(const QColor& color)
 {
     DECL_TRACER("ShadowLabel::setTextEffectolor(const QColor& color)");
 
@@ -271,7 +271,7 @@ bool TDrawText::draw()
     mLabel->setFont(mFont);
     mLabel->setText(mText);
     mLabel->setTextColor(mColor);
-    mLabel->setTextEffectolor(mTextEffectColor);
+    mLabel->setTextEffectColor(mTextEffectColor);
     mLabel->setShadowType(mTextEffect);
     mLabel->setStyleSheet(QString("background: transparent; color: %1").arg(mColor.name(QColor::HexArgb)));
     MSG_DEBUG("Using text color: " << mColor.name(QColor::HexArgb).toStdString());
@@ -309,11 +309,18 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
     DECL_TRACER("TDrawText::drawObject(QPixmap *bm, int instance)");
 
     if (!bm || bm->isNull() || instance < 0 || instance >= mBtObject.sr.size())
+    {
+        MSG_ERROR("One or more parameters are wrong or out of range!");
         return false;
+    }
 
     if (mBtObject.bi <= 0 || mBtObject.sr[instance].te.isEmpty())
+    {
+        MSG_DEBUG("Have no text to draw!");
         return false;
+    }
 
+    MSG_DEBUG("Drawing text \"" << mBtObject.sr[instance].te.toStdString() << "\"");
     QPainter painter(bm);
 
     QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
@@ -349,7 +356,7 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
         label.setText(mBtObject.sr[instance].te);
         label.setTextColor(mBtObject.sr[instance].ct);
         label.setShadowType(mBtObject.sr[instance].et);
-        label.setTextEffectolor(mBtObject.sr[instance].ec);
+        label.setTextEffectColor(mBtObject.sr[instance].ec);
         QPixmap px = label.grab();
         painter.drawPixmap(0, 0, px);
     }
@@ -357,5 +364,6 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
         painter.drawText(rect, aFlag, mBtObject.sr[instance].te);
 
     // TODO: Continue
+    painter.end();
     return false;
 }

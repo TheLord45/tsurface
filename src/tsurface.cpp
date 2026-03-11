@@ -433,9 +433,9 @@ void TSurface::addObject(int id, QPoint pt)
  * @return If everything went well a pointer to the new widget
  * (TResizableWidget) is returned. Otherwise a \b nullptr will be returned.
  */
-TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex)
+TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex, int instance)
 {
-    DECL_TRACER("TSurface::initObject(Page::PAGE_t *page, int objIndex)");
+    DECL_TRACER("TSurface::initObject(Page::PAGE_t *page, int objIndex, int instance)");
 
     if (!page || page->pageID <= 0 || objIndex < 0 || objIndex >= page->objects.size() || !page->baseObject.widget)
         return nullptr;
@@ -449,12 +449,13 @@ TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex)
         return nullptr;
     }
 
+    int inst = instance < 0 || instance > object.sr.size() ? 0 : instance;
     QWidget* content = new QWidget(page->baseObject.widget);
     QString objName = QString("Object_%1").arg(object.bi);
     QPoint pt(object.lt, object.tp);
     MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
-    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name(QColor::HexArgb)));
+    content->setStyleSheet(QString("background: %1").arg(object.sr[inst].cf.name(QColor::HexArgb)));
     page->baseObject.widget->clearSelection();
     page->baseObject.widget->setCurrentTool(mSelectedTool);
 
@@ -466,15 +467,15 @@ TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex)
     wrap->setId(object.bi);
     wrap->setPageId(page->pageID);
     wrap->setSelected(false);
-    drawObject(page, objIndex);
+//    drawObject(page, objIndex, inst);
 
     connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
     connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
 
     TWorkSpaceHandler::Current().setObject(pobject);
-    STATE_TYPE stype = getStateFromPageType(page->popupType);
-    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
+    STATE_TYPE stype = getStateFromButtonType(object.type);
+//    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
     return wrap;
 }
 
@@ -498,7 +499,8 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)
         return;
 
     TObjectHandler *pobject = page->objects[objIndex];
-    ObjHandler::TOBJECT_t object = pobject->getObject();
+    ObjHandler::TOBJECT_t& object = pobject->getObject();
+    int inst = instance < 0 || instance >= object.sr.size() ? 0 : instance;
 
     if (object.sr.empty())
     {
@@ -506,12 +508,13 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)
         return;
     }
 
+    MSG_DEBUG("Drawing object " << object.bi << ", " << object.na.toStdString() << " on page " << page->pageID << " and using instance " << instance);
     TResizableWidget *rwidget = page->baseObject.widget->getWidget(object.bi);
 
     if (!rwidget)
         rwidget = initObject(page, objIndex);
 
-    pobject->drawObject(rwidget, instance < 0 || instance >= object.sr.size() ? 0 : instance);
+    pobject->drawObject(rwidget, inst);
 }
 
 int TSurface::getNextObjectNumber(QList<ObjHandler::TOBJECT_t>& objects)
@@ -2059,6 +2062,22 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
 
     // First draw everything on the background
     //----------------------------------------
+    // If there was an image added with the help of a QLabel, then
+    // we must first remove this label.
+    if (page->baseObject.widget)
+    {
+        QObjectList objects = page->baseObject.widget->children();
+
+        for (QObject *obj : objects)
+        {
+            if (obj->objectName() == "LabelPixmap")
+            {
+                QLabel *label = static_cast<QLabel *>(obj);
+                label->clear();
+                break;
+            }
+        }
+    }
     // Background color
     if (page->srPage.vf == "100" || page->srPage.vf == "101")
     {
@@ -2090,7 +2109,8 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
         }
     }
 
-    // Draw the objects
+    // Draw all the objects on the page
+    // --------------------------------
     for (int idx = 0; idx < page->objects.size(); ++idx)
         drawObject(page, idx);
     // Resotre selection

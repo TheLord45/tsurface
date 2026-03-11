@@ -457,6 +457,8 @@ namespace ObjHandler
     }TOBJECT_t;
 };
 
+class TResizableWidget;
+
 /**
  * @brief The TObjectHandler class
  * This class controls an object. An object can be a button, bargraph, ...
@@ -486,7 +488,7 @@ class TObjectHandler
         TCanvasWidget *getObjectWidget() { return mObject.baseObject.widget; }
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
         ObjHandler::SR_T getSrCommon();
-        bool drawObject(QWidget *widget, int instance);
+        bool drawObject(TResizableWidget *widget, int instance);
 
         inline void setSize(const QRect& rect)
         {

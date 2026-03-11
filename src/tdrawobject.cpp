@@ -18,6 +18,7 @@
 #include <QPainter>
 
 #include "tdrawobject.h"
+#include "tresizablewidget.h"
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tdrawborder.h"
@@ -43,7 +44,7 @@ QList<QString> altGrTypes = {
 };
 /********************************************************************************/
 
-TDrawObject::TDrawObject(TObjectHandler *object, QWidget *widget)
+TDrawObject::TDrawObject(TObjectHandler *object, TResizableWidget *widget)
     : mWidget(widget),
       mObject(object)
 {
@@ -88,6 +89,7 @@ void TDrawObject::draw(int instance)
     for (int _order = 0; _order < ORD_ELEM_COUNT; ++_order)
     {
         DRAW_ORDER_t order = mDOrder[_order];
+        MSG_DEBUG("Next part in draw order: " << order);
 
         switch(order)
         {
@@ -116,11 +118,12 @@ void TDrawObject::draw(int instance)
             case ORD_ELEM_TEXT:
                 if (object.sr[instance].md > 0 && object.sr[instance].mr > 0)
                 {
+                    MSG_DEBUG("Marquee line");
                     // TODO: Draw marquee line
                 }
                 else
                 {
-                    // TODO: Draw Text
+                    // Draw Text
                     TDrawText drText(object);
                     drText.drawObject(&button, instance);
                 }
@@ -132,6 +135,10 @@ void TDrawObject::draw(int instance)
                     TDrawBorder border(&button);
                     border.draw(object, instance);
                 }
+                else
+                {
+                    MSG_DEBUG("No border to draw!");
+                }
             break;
 
             default:
@@ -139,9 +146,7 @@ void TDrawObject::draw(int instance)
         }
     }
 
-    QPalette palette(mWidget->palette());
-    palette.setBrush(QPalette::Window, QBrush(button));
-    mWidget->setPalette(palette);
+    mWidget->setPixmap(button);
 }
 
 /**
@@ -204,6 +209,8 @@ void TDrawObject::getDrawOrder(const QString& sdo, DRAW_ORDER_t *order)
 
 void TDrawObject::getDefaultDrawOrder(DRAW_ORDER_t *order)
 {
+    DECL_TRACER("TDrawObject::getDefaultDrawOrder(DRAW_ORDER_t *order)");
+
     if (!order)
         return;
 
@@ -225,7 +232,7 @@ bool TDrawObject::buttonFill(QPixmap* bm, SR_T sr)
     }
 
     // If there is a gradient color defined, we draw it now
-    if (!sr.ft.isEmpty())
+    if (!sr.ft.isEmpty() && sr.ft != "solid")
         return drawBackgroundColor(bm, sr, sr.gradientColors);
 
     if (isValidVf(sr.vf))   // Is this a video streaming object?
@@ -244,6 +251,7 @@ bool TDrawObject::buttonFill(QPixmap* bm, SR_T sr)
     // we put this image over the existing image "bm". In case this method is
     // not the first in the draw order, it prevents the button from completely
     // overwrite.
+    MSG_DEBUG("Creating temporary image with size " << bm->size().width() << " x " << bm->size().height());
     QPixmap bitmap(bm->size());
     bitmap.fill(sr.cf);                             // Fill the new bitmap with the fill color
     QPainter painter(bm);

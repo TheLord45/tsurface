@@ -24,6 +24,8 @@
 
 #define ORD_ELEM_COUNT  5
 
+class TResizableWidget;
+
 /**
  * @brief The TDrawObject class
  * This class draws all instances of an object. The object is stored as
@@ -40,7 +42,7 @@
 class TDrawObject
 {
     public:
-        TDrawObject(TObjectHandler *object, QWidget *widget);
+        TDrawObject(TObjectHandler *object, TResizableWidget *widget);
 
         typedef enum DRAW_ORDER_t
         {
@@ -64,7 +66,7 @@ class TDrawObject
         bool isValidVf(const QString& vf);
 
         TObjectHandler *mObject{nullptr};       // A pointer to the object
-        QWidget *mWidget{nullptr};              // The widget to place the pixmap representing the object
+        TResizableWidget *mWidget{nullptr};     // The widget to place the pixmap representing the object
         QList<QPixmap> mPixButtons;             // The object as a pixmap; A pixmap for each instance
         bool mHaveError{false};                 // In case of an error this is TRUE
 

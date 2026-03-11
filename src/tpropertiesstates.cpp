@@ -476,7 +476,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 /**
  * @brief TPropertiesStates::createPage
  * This method creates the visible table(s) inside the tree view. The number
- * of tables depends on the type of page or object drawn.
+ * of tables depends on the type of page or object.
  * If the parameter \b force is set to TRUE, The tree view, if any already
  * exist, is cleared and all tables are recreated. If this parameter is not set
  * or set to FALSE then, if a tree view already exists, only the visible rows in
@@ -495,6 +495,8 @@ void TPropertiesStates::createPage(bool force)
         MSG_WARNING("Tree widget is not initialized!")
         return;
     }
+
+    MSG_DEBUG("Creating page " << mPage.pageID << " " << (force ? "with" : "without") << " force.");
 
     if (mInitialized && !force)
     {
@@ -632,7 +634,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
         {
             case TTEXT_BORDER_NAME:
                 col0->setText(getLeftColText(TTEXT_BORDER_NAME));
-                table->setCellWidget(row, 1, makeBorderName("PopupBorderName"));
+                table->setCellWidget(row, 1, makeBorderName("BorderName"));
             break;
 
             case TTEXT_CHAMELEON_IMAGE:
@@ -1154,6 +1156,8 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
     {
         if (name == "BorderColor")
             col = mPage.srPage.cb;
+        if (name == "FillColor")
+            col = mPage.srPage.cf;
         else if (name == "TextColor")
             col = mPage.srPage.ct;
         else if (name == "TextEffectColor")
@@ -1163,6 +1167,8 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
     {
         if (name == "BorderColor")
             col = mActSr.cb;
+        if (name == "FillColor")
+            col = mActSr.cf;
         else if (name == "TextColor")
             col = mActSr.ct;
         else if (name == "TextEffectColor")
@@ -1451,6 +1457,8 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 
     if (isAnyPage())
     {
+        MSG_DEBUG("Setting value on page " << mPage.pageID << " for value " << name.toStdString());
+
         if (name == "FillType")
             mPage.srPage.ft = value.toString();
         else if (name == "FillColor")
@@ -1492,6 +1500,8 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
     }
     else
     {
+        MSG_DEBUG("Setting value on page " << mPage.pageID << ", at object " << mActObjectID << " for value " << name.toStdString());
+
         if (name == "BorderName")
             mPage.objects[mActObjectID]->setBorder(value.toString(), mActInstance);
         else if (name == "FillType")
