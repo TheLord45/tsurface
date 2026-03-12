@@ -19,9 +19,11 @@ class TDrawBorder
         bool stretchImageWidth(QPixmap *bm, int width);
         bool stretchImageHeight(QPixmap *bm, int height);
         bool stretchImageWH(QPixmap *bm, int width, int height);
-        void erasePart(QPixmap *bm, QPixmap& mask, QRect& clip);
+        void erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip);
 
     private:
+        bool setPixel(QImage *img, QColor col, int x, int y);
+
         QPixmap *mPixmap{nullptr};
         int mBorderWidth{0};
 };

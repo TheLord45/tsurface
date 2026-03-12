@@ -29,22 +29,22 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         return false;
     }
 
-    Graphics::FAMILY_t family = TGraphics::Current().getBorder(object.sr[instance].bs);
+    QString bname = object.sr[instance].bs;
+    Graphics::FAMILY_t family = TGraphics::Current().getBorder(bname);
 
     if (family.name.isEmpty() || family.member.empty())
     {
-        MSG_ERROR("Unknown border name " << object.sr[instance].bs.toStdString());
+        MSG_ERROR("Unknown border name " << bname.toStdString());
         return false;
     }
 
     BORDER_t bd;
     int numBorders = 0;
     LINE_TYPE_t lnType = LT_OFF;
-    QString bname = object.sr[instance].bs;
 
     if (object.sr.size() == 2)
     {
-        QString n = object.sr[instance].bs.toLower();
+        QString n = bname.toLower();
 
         if ((n.contains("inset") || n.contains("active on")) && lnType == LT_OFF)
             lnType = LT_ON;
@@ -101,7 +101,6 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         QPixmap frame(mPixmap->width(), mPixmap->height());
         frame.fill(Qt::transparent);
 
-        QPainter target(mPixmap);
         QPainter canvas(&frame);
 
         canvas.drawPixmap(imgBL.width(), object.ht - imgB.height(), imgB);
@@ -112,12 +111,17 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         canvas.drawPixmap(0, object.ht - imgBL.height(), imgBL);
         canvas.drawPixmap(0, imgTL.height(), imgL);
         canvas.drawPixmap(object.wt - imgR.width(), imgTR.height(), imgR);
+        canvas.end();
 
         // Define inner clip region
-        QRect clip(imgL.width(), imgT.width(), object.wt - imgR.width(), object.ht - imgB.width());
+        QRect clip(imgTL.width(), imgTL.height(),
+                   object.wt - imgL.width() - imgR.width(),
+                   object.ht - imgT.height() - imgB.height());
+        MSG_DEBUG("Inner clipping region: " << clip.x() << ", " << clip.y() << ", " << clip.width() << ", " << clip.height());
         // Erase everything outside of clip region
         erasePart(mPixmap, frame, clip);
         // Make final pixmap
+        QPainter target(mPixmap);
         target.drawPixmap(0, 0, frame);
         target.end();
     }
@@ -164,6 +168,7 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
         if (!path.isEmpty() && retrieveImage(path, image))
         {
             haveBaseImage = true;
+            img = image->toImage();
             // Underly the pixels with the border color
             MSG_DEBUG("Path: " << path.toStdString() << ", pathAlpha: " << pathAlpha.toStdString());
 
@@ -177,7 +182,7 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
                     for (int y = 0; y < image->height(); ++y)
                     {
                         int alpha = img.pixelColor(x, y).alpha();
-                        QColor pix = b.pixelColor(x, y);
+                        QColor pix(Qt::transparent);
 
                         if (alpha > 0)
                         {
@@ -185,7 +190,7 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
                             pix.setAlpha(alpha);
                         }
 
-                        img.setPixelColor(x, y, pix);
+                        b.setPixelColor(x, y, pix);
                     }
                 }
 
@@ -251,11 +256,11 @@ bool TDrawBorder::retrieveImage(const QString& path, QPixmap *image)
 {
     DECL_TRACER("TDrawBorder::retrieveImage(const QString& path, QPixmap *image)");
 
-    if (path.isEmpty() || image)
+    if (path.isEmpty() || !image)
         return false;
 
     QString tempPath = TConfMain::Current().getPathTemporary();
-    QString file = tempPath + "/__system/graphics/" + path;
+    QString file = tempPath + "/__system/graphics/borders/" + path;
 
     return image->load(file);
 }
@@ -267,7 +272,8 @@ bool TDrawBorder::stretchImageWidth(QPixmap *bm, int width)
     if (!bm || bm->isNull() || width <= 0)
         return false;
 
-    QPixmap stretched = bm->scaledToWidth(width);
+    QPixmap stretched = bm->scaled(width, bm->height());
+    MSG_DEBUG("Stretched width from " << bm->width() << " to " << stretched.width());
     *bm = stretched;
     return true;
 }
@@ -279,7 +285,8 @@ bool TDrawBorder::stretchImageHeight(QPixmap *bm, int height)
     if (!bm || bm->isNull() || height <= 0)
         return false;
 
-    QPixmap stretched = bm->scaledToHeight(height);
+    QPixmap stretched = bm->scaled(bm->width(), height);
+    MSG_DEBUG("Stretched height from " << bm->height() << " to " << stretched.height());
     *bm = stretched;
     return true;
 }
@@ -292,13 +299,30 @@ bool TDrawBorder::stretchImageWH(QPixmap *bm, int width, int height)
         return false;
 
     QPixmap stretched = bm->scaled(width, height);
+    MSG_DEBUG("Stretched width from " << bm->width() << " to " << stretched.width());
+    MSG_DEBUG("Stretched height from " << bm->height() << " to " << stretched.height());
     *bm = stretched;
     return true;
 }
 
-void TDrawBorder::erasePart(QPixmap *bm, QPixmap& mask, QRect& clip)
+/**
+ * @brief TDrawBorder::erasePart
+ * The method erases all pixels outside of the clip region defined by
+ * @b clip. To not erase any pixel outside of the clip region but already inside
+ * the the frame, it erases first from left, then from right, then from top and
+ * finally from bottom. At the moment it finds a pixel which is not transparent
+ * it stops. This guaranties that the content inside the frame remains
+ * untouched.
+ * The pixmap in @b bm is manipulated and will be used later to put the frame on
+ * top of it.
+ *
+ * @param bm        A pointer to a pixmap not containing the frame.
+ * @param mask      The frame and only the frame.
+ * @param clip      The region which is forbidden.
+ */
+void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
 {
-    DECL_TRACER("TDrawBorder::erasePart(QPixmap *bm, QPixmap& mask, QRect& clip)");
+    DECL_TRACER("TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)");
 
     if (!bm || bm->isNull())
         return;
@@ -311,28 +335,61 @@ void TDrawBorder::erasePart(QPixmap *bm, QPixmap& mask, QRect& clip)
 
     QImage img = bm->toImage();
     QImage msk = mask.toImage();
+    int width = bm->width();
+    int height = bm->height();
 
-    int x, y;
-
-    for (x = 0; x < img.width(); ++x)
+    for (int y = 0; y < height; ++y)        // from left
     {
-        for (y = 0; y < img.height(); ++y)
+        for (int x = 0; x < width; ++x)
         {
-            if (x > clip.x() && x < clip.width() &&
-                    y > clip.y() && y < clip.height())
+            if (clip.contains(x, y))
                 continue;
 
-            QColor colImg = img.pixelColor(x, y);
-            QColor colMsk = msk.pixelColor(x, y);
-            int alpha = colMsk.alpha();
+            if (setPixel(&img, msk.pixelColor(x, y), x, y))
+                break;
+        }
 
-            if (alpha > 0)
-            {
-                colImg.setAlpha(0);
-                img.setPixelColor(x, y, colImg);
-            }
+        for (int x = width - 1; x > 0; --x) // from right
+        {
+            if (clip.contains(x, y))
+                continue;
+
+            if (setPixel(&img, msk.pixelColor(x, y), x, y))
+                break;
+        }
+    }
+
+    for (int x = 0; x < width; ++x)
+    {
+        for (int y = 0; y < height; ++y)    // from top
+        {
+            if (clip.contains(x, y))
+                continue;
+
+            if (setPixel(&img, msk.pixelColor(x, y), x, y))
+                break;
+        }
+
+        for (int y = height - 1; y > 0; --y) // from bottom
+        {
+            if (clip.contains(x, y))
+                continue;
+
+            if (setPixel(&img, msk.pixelColor(x, y), x, y))
+                break;
         }
     }
 
     *bm = QPixmap::fromImage(img);
+}
+
+bool TDrawBorder::setPixel(QImage *img, QColor col, int x, int y)
+{
+    if (col.alpha() == 0)
+    {
+        img->setPixelColor(x, y, Qt::transparent);
+        return false;
+    }
+
+    return true;
 }

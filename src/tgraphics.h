@@ -301,7 +301,8 @@ class TGraphics
         bool writeSoundResources(const QString& path);
         bool evaluateName(const QStringList& parts, const QString& name);
         int scanBorderFiles(const QString& name);
-        QString getBorderFile(const QString& name, bool precise=true);
+        QString getBorderFile(const QString& part, bool alpha=true);
+        QString getEntryWithPart(const QString& part, bool precise);
 
     private:
         static TGraphics *mCurrent;

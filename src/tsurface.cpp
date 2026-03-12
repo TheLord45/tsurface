@@ -514,6 +514,7 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)
     if (!rwidget)
         rwidget = initObject(page, objIndex);
 
+    rwidget->setStyleSheet("background-color: transparent");
     pobject->drawObject(rwidget, inst);
 }
 

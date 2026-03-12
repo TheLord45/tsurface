@@ -1504,6 +1504,8 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 
         if (name == "BorderName")
             mPage.objects[mActObjectID]->setBorder(value.toString(), mActInstance);
+        else if (name == "BorderColor")
+            mPage.objects[mActObjectID]->setBorderColor(value.toString(), mActInstance);
         else if (name == "FillType")
             mPage.objects[mActObjectID]->setGradientFillType(value.toString(), mActInstance);
         else if (name == "FillColor")

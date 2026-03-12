@@ -30,6 +30,12 @@
 
 using namespace ObjHandler;
 
+/**
+ * @brief ShadowLabel::ShadowLabel
+ * Constructor
+ *
+ * @param parent    A pointer to an optional parent widget.
+ */
 ShadowLabel::ShadowLabel(QWidget *parent)
             : QLabel(parent)
 {
@@ -39,29 +45,84 @@ ShadowLabel::ShadowLabel(QWidget *parent)
     setStyleSheet("QLabel { background: transparent; }");
 }
 
+/**
+ * @brief ShadowLabel::~ShadowLabel
+ * Destructor.
+ */
+ShadowLabel::~ShadowLabel()
+{
+    DECL_TRACER("ShadowLabel::~ShadowLabel()");
+}
+
+/**
+ * @brief ShadowLabel::exec
+ * Initiate the painting of the text with all effects. After setting the
+ * colors for the text and the shadow this method should be executed.
+ */
+void ShadowLabel::exec()
+{
+    DECL_TRACER("ShadowLabel::exec()");
+
+    update();
+}
+
+/**
+ * @brief ShadowLabel::setShadowType
+ * The method take the text effect as a number. The number must be between
+ * 1 and 56. Anything els will be ignored.
+ * This method should be called as the last because it draws the effect
+ * immediately. If the colors were not set previously the default colors will
+ * be used.
+ *
+ * @param number    The effect tyle number. This must be between 1 and 56. The
+ * numbers have the following meaning:
+ *      Outline: 1 - 4
+ *      Glow: 5 - 8
+ *      Soft Drop Shadow: 9 - 16
+ *      Medium Drop Shadow: 17 - 24
+ *      Hard Drop Shadow: 25 - 32
+ *      Soft Drop Shadow with outline: 33 - 40
+ *      Medium Drop Shadow with Outline: 41 - 48
+ *      Hard Drop Shadow with Outline: 49 - 56
+ */
 void ShadowLabel::setShadowType(int number)
 {
     DECL_TRACER("ShadowLabel::setShadowType(int number)");
+
+    if (number < 1 || number > 56)
+        return;
 
     mTextEffect = number;
     mStyle = TGraphics::Current().getEffectDetails(number);
     updateEffect();
 }
 
+/**
+ * @brief ShadowLabel::setTextColor
+ * Sets the color to use for drawing the text. If this method is not used the
+ * text will be drawn with black color.
+ *
+ * @param color     Any valid color.
+ */
 void ShadowLabel::setTextColor(const QColor &color)
 {
     DECL_TRACER("ShadowLabel::setTextColor(const QColor &color)");
 
     mTextColor = color;
-    update();
 }
 
+/**
+ * @brief ShadowLabel::setTextEffectColor
+ * Sets the color used to draw the glowing and the the shadow. If this is not
+ * used the text effect will be drawn with red color.
+ *
+ * @param color     Any valid color.
+ */
 void ShadowLabel::setTextEffectColor(const QColor& color)
 {
     DECL_TRACER("ShadowLabel::setTextEffectolor(const QColor& color)");
 
     mTextEffectColor = color;
-    update();
 }
 
 // Outline: 1 - 4
@@ -72,6 +133,14 @@ void ShadowLabel::setTextEffectColor(const QColor& color)
 // Soft Drop Shadow with outline: 33 - 40
 // Medium Drop Shadow with Outline: 41 - 48
 // Hard Drop Shadow with Outline: 49 - 56
+/**
+ * @brief ShadowLabel::paintEvent
+ * This is an overwritten callback to the class @class QLabel. It draw the
+ * outline effect or a plain text in case of another effect.
+ *
+ * @param event     The event happened. This is not used to draw. It is used
+ * only to be passed to the original method in case there was nothing to do.
+ */
 void ShadowLabel::paintEvent(QPaintEvent *event)
 {
     DECL_TRACER("ShadowLabel::paintEvent(QPaintEvent *event)");
@@ -115,6 +184,10 @@ void ShadowLabel::paintEvent(QPaintEvent *event)
     }
 }
 
+/**
+ * @brief ShadowLabel::updateEffect
+ * Internal class to draw glowing and shadow effects.
+ */
 void ShadowLabel::updateEffect()
 {
     DECL_TRACER("ShadowLabel::updateEffect()");
@@ -141,8 +214,8 @@ void ShadowLabel::updateEffect()
 
         shadow->setBlurRadius(sigma);
         shadow->setOffset(0, 0);
-        update();
         setGraphicsEffect(shadow);
+        update();
         return;
     }
 
@@ -193,8 +266,8 @@ void ShadowLabel::updateEffect()
         shadow->setBlurRadius(0);
 
     shadow->setOffset(mOffset, mOffset);
-    update();
     setGraphicsEffect(shadow);
+    update();
 }
 
 //
@@ -223,6 +296,19 @@ TDrawText::TDrawText(const ObjHandler::TOBJECT_t& object)
     DECL_TRACER("TDrawText::TDrawText(const ObjHandler::TOBJECT_t& object)");
 }
 
+TDrawText::~TDrawText()
+{
+    DECL_TRACER("TDrawText::~TDrawText()");
+}
+
+/**
+ * @brief TDrawText::setAbolutePosition
+ * Sets the absolute position of the text, The parameters define the upper left
+ * corner of the frame where the text is shown.
+ *
+ * @param x     Left position of text.
+ * @param y     Top position of text.
+ */
 void TDrawText::setAbolutePosition(int x, int y)
 {
     DECL_TRACER("TDrawText::setAbolutePosition(int x, int y)");
@@ -234,6 +320,15 @@ void TDrawText::setAbolutePosition(int x, int y)
     mY = y;
 }
 
+/**
+ * @brief TDrawText::draw
+ * This method is used to draw text on the background of a window. It useses
+ * the class @class ShadowLabel to draw the text. The class creates a QLabel
+ * and draws the text and the defined effect in it. By parenting the class
+ * to the window it should appear on, it can be ordered to the wanted window.
+ *
+ * @return If everything went well TRUE is returned.
+ */
 bool TDrawText::draw()
 {
     DECL_TRACER("TDrawText::draw()");
@@ -257,7 +352,6 @@ bool TDrawText::draw()
 
     if (!haveLabel)
     {
-        MSG_DEBUG("Adding a new label to widget ...");
         mLabel = new ShadowLabel(mObject->widget);
         mLabel->setObjectName(LABEL_NAME);
         mLabel->hide();
@@ -272,9 +366,8 @@ bool TDrawText::draw()
     mLabel->setText(mText);
     mLabel->setTextColor(mColor);
     mLabel->setTextEffectColor(mTextEffectColor);
-    mLabel->setShadowType(mTextEffect);
     mLabel->setStyleSheet(QString("background: transparent; color: %1").arg(mColor.name(QColor::HexArgb)));
-    MSG_DEBUG("Using text color: " << mColor.name(QColor::HexArgb).toStdString());
+    mLabel->setShadowType(mTextEffect);
 
     switch(mOrientation)
     {
@@ -304,6 +397,18 @@ bool TDrawText::draw()
     return true;
 }
 
+/**
+ * @brief TDrawText::drawObject
+ * The method draws text along with optional defined effects. It uses the class
+ * @class ShadowLabel to draw everything. This method should be used to draw the
+ * text on top of a Pixmap.
+ *
+ * @param bm        A valid Pixmap in the size of the object.
+ * @param instance  The instance of an object to take for drawing. This must be
+ * a number between 0 and the maximum number of states of an object.
+ *
+ * @return In case all went well TRUE is returned.
+ */
 bool TDrawText::drawObject(QPixmap *bm, int instance)
 {
     DECL_TRACER("TDrawText::drawObject(QPixmap *bm, int instance)");
@@ -324,7 +429,7 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
     QPainter painter(bm);
 
     QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
-    font.setPixelSize(mBtObject.sr[instance].fs);
+    font.setPointSize(mBtObject.sr[instance].fs);
     painter.setFont(font);
     painter.setPen(mBtObject.sr[instance].ct);
     QRect rect(0, 0, mBtObject.wt, mBtObject.ht);
@@ -355,8 +460,8 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
         label.setAlignment(aFlag);
         label.setText(mBtObject.sr[instance].te);
         label.setTextColor(mBtObject.sr[instance].ct);
-        label.setShadowType(mBtObject.sr[instance].et);
         label.setTextEffectColor(mBtObject.sr[instance].ec);
+        label.setShadowType(mBtObject.sr[instance].et);
         QPixmap px = label.grab();
         painter.drawPixmap(0, 0, px);
     }

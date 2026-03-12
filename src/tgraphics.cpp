@@ -8115,7 +8115,8 @@ bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *borde
              * information we'll find the correct border style and with it the
              * file names containing the border graphics.
              */
-            QStringList parts = strIter->split(" ");
+            QStringList parts = strIter->split(" ", Qt::SkipEmptyParts);
+            MSG_DEBUG("Family: " << iter->name.toStdString() << " with member " << strIter->toStdString() << " has " << parts.size() << " parts.");
 
             if (evaluateName(parts, family))   // Here we find the wanted member
             {
@@ -8161,6 +8162,7 @@ bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *borde
     MSG_DEBUG("External system border " << family.toStdString() << " found.");
     vector<BORDER_DATA_t>::iterator brdIter;
     QString dataName = (family2.length() > 0 ? family2 : fullName);
+    MSG_DEBUG("dataName: " << dataName.toStdString() << ", fullName: " << fullName.toStdString());
 
     for (brdIter = mDraw.borderData.begin(); brdIter != mDraw.borderData.end(); brdIter++)
     {
@@ -8168,29 +8170,94 @@ bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *borde
         {
             if (!info)
             {
-                QString baseFile = brdIter->baseFile + "_";
+                QString baseFile = brdIter->baseFile;
                 int num = scanBorderFiles(baseFile);
+                MSG_DEBUG("Found " << num << " entries which contain " << baseFile.toStdString());
 
                 if (num < 8)
                     continue;
 
-                border->b = getBorderFile(baseFile + "_b");
-                border->bl = getBorderFile(baseFile + "_bl");
-                border->br = getBorderFile(baseFile + "_br");
-                border->l = getBorderFile(baseFile + "_l");
-                border->r = getBorderFile(baseFile + "_r");
-                border->t = getBorderFile(baseFile + "_t");
-                border->tl = getBorderFile(baseFile + "_tl");
-                border->tr = getBorderFile(baseFile + "_tr");
-                border->b_alpha = getBorderFile(baseFile + "_b_");
-                border->bl_alpha = getBorderFile(baseFile + "_bl_");
-                border->br_alpha = getBorderFile(baseFile + "_br_");
-                border->l_alpha = getBorderFile(baseFile + "_l_");
-                border->r_alpha = getBorderFile(baseFile + "_r_");
-                border->t_alpha = getBorderFile(baseFile + "_t_");
-                border->tl_alpha = getBorderFile(baseFile + "_tl_");
-                border->tr_alpha = getBorderFile(baseFile + "_tr_");
+                border->b = getBorderFile(baseFile + "_b", false);
+                border->bl = getBorderFile(baseFile + "_bl", false);
+                border->br = getBorderFile(baseFile + "_br", false);
+                border->l = getBorderFile(baseFile + "_l", false);
+                border->r = getBorderFile(baseFile + "_r", false);
+                border->t = getBorderFile(baseFile + "_t", false);
+                border->tl = getBorderFile(baseFile + "_tl", false);
+                border->tr = getBorderFile(baseFile + "_tr", false);
+                border->b_alpha = getBorderFile(baseFile + "_b");
+                border->bl_alpha = getBorderFile(baseFile + "_bl");
+                border->br_alpha = getBorderFile(baseFile + "_br");
+                border->l_alpha = getBorderFile(baseFile + "_l");
+                border->r_alpha = getBorderFile(baseFile + "_r");
+                border->t_alpha = getBorderFile(baseFile + "_t");
+                border->tl_alpha = getBorderFile(baseFile + "_tl");
+                border->tr_alpha = getBorderFile(baseFile + "_tr");
                 border->border = *brdIter;
+                // Eliminate equal paths
+                if (border->b == border->b_alpha)
+                {
+                    if (border->b.contains("_alpha"))
+                        border->b.clear();
+                    else
+                        border->b_alpha.clear();
+                }
+
+                if (border->t == border->t_alpha)
+                {
+                    if (border->t.contains("_alpha"))
+                        border->t.clear();
+                    else
+                        border->t_alpha.clear();
+                }
+
+                if (border->l == border->l_alpha)
+                {
+                    if (border->l.contains("_alpha"))
+                        border->l.clear();
+                    else
+                        border->l_alpha.clear();
+                }
+
+                if (border->r == border->r_alpha)
+                {
+                    if (border->r.contains("_alpha"))
+                        border->r.clear();
+                    else
+                        border->r_alpha.clear();
+                }
+
+                if (border->tl == border->tl_alpha)
+                {
+                    if (border->tl.contains("_alpha"))
+                        border->tl.clear();
+                    else
+                        border->tl_alpha.clear();
+                }
+
+                if (border->tr == border->tr_alpha)
+                {
+                    if (border->tr.contains("_alpha"))
+                        border->tr.clear();
+                    else
+                        border->tr_alpha.clear();
+                }
+
+                if (border->bl == border->bl_alpha)
+                {
+                    if (border->bl.contains("_alpha"))
+                        border->bl.clear();
+                    else
+                        border->bl_alpha.clear();
+                }
+
+                if (border->br == border->br_alpha)
+                {
+                    if (border->br.contains("_alpha"))
+                        border->br.clear();
+                    else
+                        border->br_alpha.clear();
+                }
 
                 MSG_DEBUG("Bottom        : " << border->b.toStdString());
                 MSG_DEBUG("Top           : " << border->t.toStdString());
@@ -8237,7 +8304,7 @@ bool TGraphics::evaluateName(const QStringList& parts, const QString& name)
         return false;
 
     size_t found = 0;
-    QStringList nameParts = name.split(" ");
+    QStringList nameParts = name.split(" ", Qt::SkipEmptyParts);
     QStringList::ConstIterator iter;
 
     // First find the minimum number of parts who must match
@@ -8280,29 +8347,53 @@ int TGraphics::scanBorderFiles(const QString& name)
     return num;
 }
 
-QString TGraphics::getBorderFile(const QString& name, bool precise)
+QString TGraphics::getBorderFile(const QString& part, bool alpha)
 {
-    for (int i = 0; i < borderResources.size(); ++i)
+    QString such = part;
+
+    if (alpha)
+        such += "_alpha";
+
+    MSG_DEBUG("Searching for: " << such.toStdString());
+    QString dirEntry = getEntryWithPart(such, true);
+    such = part;
+
+    if (dirEntry.isEmpty())
+        dirEntry = getEntryWithPart(such, false);
+
+    return dirEntry;
+}
+
+QString TGraphics::getEntryWithPart(const QString& part, bool precise)
+{
+    if (borderResources.empty())
+        return QString();
+
+    vector<QString>::const_iterator iter;
+    qsizetype pos;
+
+    for (iter = borderResources.cbegin(); iter != borderResources.cend(); ++iter)
     {
-        if (borderResources[i].contains(name))
+        QString fname;
+
+        if ((pos = iter->lastIndexOf('/')) >= 0)
+            fname = iter->right(iter->length() - pos - 1);
+
+        if ((pos = fname.indexOf(part)) >= 0)
         {
-            int pos = borderResources[i].lastIndexOf('/');
-            QString file;
+            QChar next = fname.at(pos + part.length());
+            QChar prev = (pos > 0 ? fname.at(pos - 1) : QChar(0));
 
-            if (pos >= 0)
-                file = borderResources[i].right(borderResources[i].length() - pos + 1);
-            else
-                file = borderResources[i];
+            if (next == '.')
+                return fname;
 
-            if (precise)
-            {
-                QString rest = file.right(file.length() - name.length());
+            if (precise && (next == '_' || prev != '\0'))
+                continue;
 
-                if (rest.startsWith("_") || rest.startsWith("."))
-                    return file;
-            }
-            else
-                return file;
+            if ((next >= 'A' && next <= 'Z') || (next >= 'a' && next <= 'z'))
+                continue;
+
+            return fname;
         }
     }
 
