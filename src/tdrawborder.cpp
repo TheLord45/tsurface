@@ -84,7 +84,7 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         if (!getBorderFragment(bd.l, bd.l_alpha, &imgL, color) || imgL.isNull())
             return false;
 
-        mBorderWidth = imgL.width();
+        mBorderWidth = qMax(imgL.width(), imgR.width());
 
         if (!getBorderFragment(bd.bl, bd.bl_alpha, &imgBL, color) || imgBL.isNull())
             return false;
@@ -114,7 +114,7 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         canvas.end();
 
         // Define inner clip region
-        QRect clip(imgTL.width(), imgTL.height(),
+        QRect clip(imgL.width() > 0 ? imgTL.width() : 0, imgT.height() > 0 ? imgTL.height() : 0,
                    object.wt - imgTL.width() - imgTR.width(),
                    object.ht - imgTL.height() - imgTR.height());
         MSG_DEBUG("Inner clipping region: " << clip.x() << ", " << clip.y() << ", " << clip.width() << ", " << clip.height());
@@ -156,7 +156,7 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
         return false;
     }
 
-    QImage img = image->toImage();
+    QImage img;
     QPixmap bm;
     bool haveBaseImage = false;
     QColor swCol = color;
@@ -184,11 +184,8 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
                         int alpha = img.pixelColor(x, y).alpha();
                         QColor pix(Qt::transparent);
 
-                        if (alpha > 0)
-                        {
-                            pix = swCol.rgb();
-                            pix.setAlpha(alpha);
-                        }
+                        if (alpha == 0)
+                            pix = swCol;
 
                         b.setPixelColor(x, y, pix);
                     }

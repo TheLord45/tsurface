@@ -94,59 +94,16 @@ void TElementBorderName::setBorder(const QString& border)
     QSignalBlocker sigBlock(this);
     mBorder = border;
 
-    if (!border.isEmpty())
+    const QModelIndexList matches = mModel->match(mModel->index(0, 0), Qt::DisplayRole, border, 1, Qt::MatchExactly | Qt::MatchRecursive);
+
+    if (!matches.isEmpty())
     {
-        QLineEdit *line = mCombo->lineEdit();
-
-        if (!line)
-        {
-            MSG_WARNING("ComboBox has no line edit!");
-            return;
-        }
-
-        line->setText(border);
-/*        bool found = false;
-        Graphics::BORDER_STYLE_t style = TGraphics::Current().getBorderStyle(border);
-        MSG_DEBUG("Searching for border " << border.toStdString() << " with number " << style.number);
-
-        if (style.number > 0)
-        {
-            int index = 0;
-
-            for (int row = 0; row < mParentItem->rowCount(); ++row)
-            {
-                QStandardItem *item = mParentItem->child(row, 0);
-                MSG_DEBUG("Item " << item->text().toStdString() << " with data " << item->data().toInt());
-
-                if (item->data().toInt() <= 0)
-                {
-                    for (int r = 0; r < item->rowCount(); ++r)
-                    {
-                        QStandardItem *itemDetail = item->child(r, 0);
-                        MSG_DEBUG("Item detail " << itemDetail->text().toStdString() << " with data " << itemDetail->data().toInt());
-
-                        if (itemDetail && itemDetail->data().toInt() == style.number)
-                        {
-                            QModelIndex modIndex = mModel->indexFromItem(itemDetail);
-                            MSG_DEBUG("Using Index: " << index << " (item row: " << itemDetail->row() << ", model index row: " << modIndex.row() << ")");
-                            mCombo->setCurrentIndex(modIndex.row());
-//                            mTreeView->setCurrentIndex(itemDetail->index());
-//                            QItemSelectionModel *selModel = mCombo->view()->selectionModel();
-//                            selModel->setCurrentIndex(itemDetail->index(), QItemSelectionModel::Current);
-                            found = true;
-                            break;
-                        }
-
-//                        index++;
-                    }
-                }
-
-                if (found)
-                    break;
-
-                index++;
-            }
-        } */
+        const QModelIndex modelIdx = matches.first();
+        // Temporarily set the root to the parent to allow row-based selection
+        mCombo->setRootModelIndex(modelIdx.parent());
+        mCombo->setCurrentIndex(modelIdx.row());
+        // Restore the original root to show the full tree
+        mCombo->setRootModelIndex(QModelIndex());
     }
 }
 
