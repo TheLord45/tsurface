@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QTreeView>
 #include <QStandardItemModel>
+#include <QLineEdit>
 
 #include "telementbordername.h"
 #include "tgraphics.h"
@@ -46,24 +47,28 @@ TElementBorderName::TElementBorderName(const QString& brd, const QString& name, 
     mModel->setColumnCount(1);
     mModel->setHorizontalHeaderLabels(QStringList() << "Items");
 
-    QStandardItem *parentItem = mModel->invisibleRootItem();
+    mParentItem = mModel->invisibleRootItem();
     QStandardItem *top = new QStandardItem("none");
     top->setData(SEL_NONE);
-    parentItem->appendRow(top);
+    mParentItem->appendRow(top);
+    mSelected = 0;
 
     for (FAMILY_t border : borders)
     {
         top = new QStandardItem(border.name);
         top->setData(SEL_TOP);
         top->setFlags(top->flags() & ~Qt::ItemIsSelectable);
-        parentItem->appendRow(top);
+        mParentItem->appendRow(top);
 
         for (QString member : border.member)
         {
-            int e = TGraphics::Current().getEffectStyleNumber(member);
+            BORDER_STYLE_t style = TGraphics::Current().getBorderStyle(member);
             QStandardItem *item = new QStandardItem(member);
-            item->setData(e);
+            item->setData(style.number);
             top->appendRow(item);
+
+            if (!brd.isEmpty() && member == brd)
+                mSelected = style.number;
         }
     }
 
@@ -71,9 +76,10 @@ TElementBorderName::TElementBorderName(const QString& brd, const QString& name, 
     mCombo->setModelColumn(0);
 
     if (!brd.isEmpty())
-        mCombo->setCurrentText(brd);
+        setBorder(brd);
 
     connect(mCombo, &QComboBox::currentTextChanged, this, &TElementBorderName::onComboTextChanged);
+    connect(mCombo, &QComboBox::currentIndexChanged, this, &TElementBorderName::onComboIndexChanged);
 }
 
 TElementBorderName::~TElementBorderName()
@@ -89,7 +95,59 @@ void TElementBorderName::setBorder(const QString& border)
     mBorder = border;
 
     if (!border.isEmpty())
-        mCombo->setCurrentText(border);
+    {
+        QLineEdit *line = mCombo->lineEdit();
+
+        if (!line)
+        {
+            MSG_WARNING("ComboBox has no line edit!");
+            return;
+        }
+
+        line->setText(border);
+/*        bool found = false;
+        Graphics::BORDER_STYLE_t style = TGraphics::Current().getBorderStyle(border);
+        MSG_DEBUG("Searching for border " << border.toStdString() << " with number " << style.number);
+
+        if (style.number > 0)
+        {
+            int index = 0;
+
+            for (int row = 0; row < mParentItem->rowCount(); ++row)
+            {
+                QStandardItem *item = mParentItem->child(row, 0);
+                MSG_DEBUG("Item " << item->text().toStdString() << " with data " << item->data().toInt());
+
+                if (item->data().toInt() <= 0)
+                {
+                    for (int r = 0; r < item->rowCount(); ++r)
+                    {
+                        QStandardItem *itemDetail = item->child(r, 0);
+                        MSG_DEBUG("Item detail " << itemDetail->text().toStdString() << " with data " << itemDetail->data().toInt());
+
+                        if (itemDetail && itemDetail->data().toInt() == style.number)
+                        {
+                            QModelIndex modIndex = mModel->indexFromItem(itemDetail);
+                            MSG_DEBUG("Using Index: " << index << " (item row: " << itemDetail->row() << ", model index row: " << modIndex.row() << ")");
+                            mCombo->setCurrentIndex(modIndex.row());
+//                            mTreeView->setCurrentIndex(itemDetail->index());
+//                            QItemSelectionModel *selModel = mCombo->view()->selectionModel();
+//                            selModel->setCurrentIndex(itemDetail->index(), QItemSelectionModel::Current);
+                            found = true;
+                            break;
+                        }
+
+//                        index++;
+                    }
+                }
+
+                if (found)
+                    break;
+
+                index++;
+            }
+        } */
+    }
 }
 
 void TElementBorderName::onComboTextChanged(const QString& text)
@@ -100,4 +158,15 @@ void TElementBorderName::onComboTextChanged(const QString& text)
     emit borderChanged(text, mName);
     emit borderChangedInst(text, mName, mInstance);
     mTreeView->collapseAll();
+}
+
+void TElementBorderName::onComboIndexChanged(int index)
+{
+    DECL_TRACER("TElementBorderName::onComboIndexChanged(int index)");
+
+    int number = mCombo->itemData(index).toInt();
+    MSG_DEBUG("Data changed: " << number << " at index " << index);
+
+    if (number > 0)
+        emit borderDataChanged(number, mName, mInstance);
 }

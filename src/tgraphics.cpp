@@ -2159,6 +2159,7 @@ void TGraphics::initBorderStyle()
     DECL_TRACER("TGraphics::initBorderStyle()");
 
     BORDER_STYLE_t style;
+    style.number = 1;
     style.name = "Single Line";
     style.off = "Single Line";
     style.on = "Single Line";
@@ -2169,6 +2170,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 2;
     style.name = "Double Line";
     style.off = "Double Line";
     style.on = "Double Line";
@@ -2180,6 +2182,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 3;
     style.name = "Quad Line";
     style.off = "Quad Line";
     style.on = "Quad Line";
@@ -2190,6 +2193,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 4;
     style.name = "Picture Frame";
     style.off = "Picture Frame";
     style.on = "Picture Frame";
@@ -2200,6 +2204,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 5;
     style.name = "Fuzzy";
     style.off = "Fuzzy";
     style.on = "Fuzzy";
@@ -2208,6 +2213,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 6;
     style.name = "Circle 15";
     style.off = "Circle 15";
     style.on = "Circle 15";
@@ -2220,6 +2226,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 7;
     style.name = "Circle 25";
     style.off = "Circle 25";
     style.on = "Circle 25";
@@ -2228,6 +2235,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 8;
     style.name = "Circle 35";
     style.off = "Circle 35";
     style.on = "Circle 35";
@@ -2236,6 +2244,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 9;
     style.name = "Circle 45";
     style.off = "Circle 45";
     style.on = "Circle 45";
@@ -2244,6 +2253,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 10;
     style.name = "Circle 55";
     style.off = "Circle 55";
     style.on = "Circle 55";
@@ -2252,6 +2262,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 11;
     style.name = "Circle 65";
     style.off = "Circle 65";
     style.on = "Circle 65";
@@ -2260,6 +2271,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 12;
     style.name = "Circle 75";
     style.off = "Circle 75";
     style.on = "Circle 75";
@@ -2268,6 +2280,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 13;
     style.name = "Circle 85";
     style.off = "Circle 85";
     style.on = "Circle 85";
@@ -2276,6 +2289,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 14;
     style.name = "Circle 95";
     style.off = "Circle 95";
     style.on = "Circle 95";
@@ -2284,6 +2298,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 15;
     style.name = "Circle 105";
     style.off = "Circle 105";
     style.on = "Circle 105";
@@ -2292,6 +2307,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 16;
     style.name = "Circle 115";
     style.off = "Circle 115";
     style.on = "Circle 115";
@@ -2300,6 +2316,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 17;
     style.name = "Circle 125";
     style.off = "Circle 125";
     style.on = "Circle 125";
@@ -2308,6 +2325,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 18;
     style.name = "Circle 135";
     style.off = "Circle 135";
     style.on = "Circle 135";
@@ -2316,6 +2334,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 19;
     style.name = "Circle 145";
     style.off = "Circle 145";
     style.on = "Circle 145";
@@ -2324,6 +2343,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 20;
     style.name = "Circle 155";
     style.off = "Circle 155";
     style.on = "Circle 155";
@@ -2332,6 +2352,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 21;
     style.name = "Circle 165";
     style.off = "Circle 165";
     style.on = "Circle 165";
@@ -2340,6 +2361,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 22;
     style.name = "Circle 175";
     style.off = "Circle 175";
     style.on = "Circle 175";
@@ -2348,6 +2370,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 23;
     style.name = "Circle 185";
     style.off = "Circle 185";
     style.on = "Circle 185";
@@ -2356,6 +2379,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 24;
     style.name = "Circle 195";
     style.off = "Circle 195";
     style.on = "Circle 195";
@@ -2364,6 +2388,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 25;
     style.name = "Menu Rounded Spacer -Vertical";
     style.off = "Menu Rounded Vertical";
     style.on = "Menu Rounded Vertical";
@@ -2372,6 +2397,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 26;
     style.name = "Menu Rounded Spacer -Horizontal";
     style.off = "Menu Rounded Horizontal";
     style.on = "Menu Rounded Horizontal";
@@ -2380,6 +2406,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style .init();
+    style.number = 27;
     style.name = "Oval H 60x30";
     style.off = "Oval H 60x30";
     style.on = "Oval H 60x30";
@@ -2388,6 +2415,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 28;
     style.name = "Oval H 100x50";
     style.off = "Oval H 100x50";
     style.on = "Oval H 100x50";
@@ -2396,6 +2424,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 29;
     style.name = "Oval H 150x75";
     style.off = "Oval H 150x75";
     style.on = "Oval H 150x75";
@@ -2404,6 +2433,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style .init();
+    style.number = 30;
     style.name = "Oval H 200x100";
     style.off = "Oval H 200x100";
     style.on = "Oval H 200x100";
@@ -2412,6 +2442,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 31;
     style.name = "Oval V 30x60";
     style.off = "Oval V 30x60";
     style.on = "Oval V 30x60";
@@ -2420,6 +2451,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 32;
     style.name = "Oval V 50x100";
     style.off = "Oval V 50x100";
     style.on = "Oval V 50x100";
@@ -2428,6 +2460,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 33;
     style.name = "Oval V 75x150";
     style.off = "Oval V 75x150";
     style.on = "Oval V 75x150";
@@ -2436,6 +2469,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 34;
     style.name = "Oval V 100x200";
     style.off = "Oval V 100x200";
     style.on = "Oval V 100x200";
@@ -2444,6 +2478,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 35;
     style.name = "Diamond 15";
     style.off = "Diamond 15";
     style.on = "Diamond 15";
@@ -2452,6 +2487,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 36;
     style.name = "Diamond 25";
     style.off = "Diamond 25";
     style.on = "Diamond 25";
@@ -2460,6 +2496,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 37;
     style.name = "Diamond 35";
     style.off = "Diamond 35";
     style.on = "Diamond 35";
@@ -2468,6 +2505,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 38;
     style.name = "Diamond 45";
     style.off = "Diamond 45";
     style.on = "Diamond 45";
@@ -2476,6 +2514,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 39;
     style.name = "Diamond 55";
     style.off = "Diamond 55";
     style.on = "Diamond 55";
@@ -2484,6 +2523,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 40;
     style.name = "Diamond 65";
     style.off = "Diamond 65";
     style.on = "Diamond 65";
@@ -2492,6 +2532,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 41;
     style.name = "Diamond 75";
     style.off = "Diamond 75";
     style.on = "Diamond 75";
@@ -2500,6 +2541,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 42;
     style.name = "Diamond 85";
     style.off = "Diamond 85";
     style.on = "Diamond 85";
@@ -2508,6 +2550,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 43;
     style.name = "Diamond 95";
     style.off = "Diamond 95";
     style.on = "Diamond 95";
@@ -2516,6 +2559,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 44;
     style.name = "Diamond 105";
     style.off = "Diamond 105";
     style.on = "Diamond 105";
@@ -2524,6 +2568,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 45;
     style.name = "Diamond 115";
     style.off = "Diamond 115";
     style.on = "Diamond 115";
@@ -2532,6 +2577,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 46;
     style.name = "Diamond 125";
     style.off = "Diamond 125";
     style.on = "Diamond 125";
@@ -2540,6 +2586,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 47;
     style.name = "Diamond 135";
     style.off = "Diamond 135";
     style.on = "Diamond 135";
@@ -2548,6 +2595,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 48;
     style.name = "Diamond 145";
     style.off = "Diamond 145";
     style.on = "Diamond 145";
@@ -2556,6 +2604,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 49;
     style.name = "Diamond 155";
     style.off = "Diamond 155";
     style.on = "Diamond 155";
@@ -2564,6 +2613,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 50;
     style.name = "Diamond 165";
     style.off = "Diamond 165";
     style.on = "Diamond 165";
@@ -2572,6 +2622,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 51;
     style.name = "Diamond 175";
     style.off = "Diamond 175";
     style.on = "Diamond 175";
@@ -2580,6 +2631,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 52;
     style.name = "Diamond 185";
     style.off = "Diamond 185";
     style.on = "Diamond 185";
@@ -2588,6 +2640,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 53;
     style.name = "Diamond 195";
     style.off = "Diamond 195";
     style.on = "Diamond 195";
@@ -2596,6 +2649,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 54;
     style.name = "AMX Elite -L";
     style.off = "AMX Elite Raised -L";
     style.on = "AMX Elite Inset -L";
@@ -2604,6 +2658,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 55;
     style.name = "AMX Elite -M";
     style.off = "AMX Elite Raised -M";
     style.on = "AMX Elite Inset -M";
@@ -2612,6 +2667,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 56;
     style.name = "AMX Elite -S";
     style.off = "AMX Elite Raised -S";
     style.on = "AMX Elite Inset -S";
@@ -2620,6 +2676,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 57;
     style.name = "Bevel -L";
     style.off = "Bevel Raised -L";
     style.on = "Bevel Inset -L";
@@ -2628,6 +2685,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 58;
     style.name = "Bevel -M";
     style.off = "Bevel Raised -M";
     style.on = "Bevel Inset -M";
@@ -2637,6 +2695,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 59;
     style.name = "Bevel -S";
     style.off = "Bevel Raised -S";
     style.on = "Bevel Inset -S";
@@ -2646,6 +2705,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 60;
     style.name = "Double Bevel -L";
     style.off = "Double Bevel Raised -L";
     style.on = "Double Bevel Inset -L";
@@ -2654,6 +2714,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 61;
     style.name = "Double Bevel -M";
     style.off = "Double Bevel Raised -M";
     style.on = "Double Bevel Inset -M";
@@ -2662,6 +2723,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 62;
     style.name = "Double Bevel -S";
     style.off = "Double Bevel Raised -S";
     style.on = "Double Bevel Inset -S";
@@ -2670,6 +2732,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 63;
     style.name = "Neon Active -S";
     style.off = "Neon Active Off -S";
     style.on = "Neon Active On -S";
@@ -2678,6 +2741,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 64;
     style.name = "Neon Active -L";
     style.off = "Neon Active Off -L";
     style.on = "Neon Active On -L";
@@ -2686,6 +2750,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 65;
     style.name = "Neon Inactive -S";
     style.off = "Neon Inactive -S";
     style.on = "Neon Inactive -S";
@@ -2698,6 +2763,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 66;
     style.name = "Neon Inactive -L";
     style.off = "Neon Inactive -L";
     style.on = "Neon Inactive -L";
@@ -2706,6 +2772,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 67;
     style.name = "Glow -L";
     style.off = "Glow -L";
     style.on = "Glow -L";
@@ -2714,6 +2781,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 68;
     style.name = "Glow -S";
     style.off = "Glow -S";
     style.on = "Glow -S";
@@ -2722,6 +2790,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 69;
     style.name = "Cursor Top";
     style.off = "Cursor Top";
     style.on = "Cursor Top";
@@ -2730,6 +2799,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 70;
     style.name = "Cursor Bottom";
     style.off = "Cursor Bottom";
     style.on = "Cursor Bottom";
@@ -2738,6 +2808,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 71;
     style.name = "Cursor Left";
     style.off = "Cursor Left";
     style.on = "Cursor Left";
@@ -2746,6 +2817,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 72;
     style.name = "Cursor Right";
     style.off = "Cursor Right";
     style.on = "Cursor Right";
@@ -2754,6 +2826,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 73;
     style.name = "Cursor Top with Hole";
     style.off = "Cursor Top with Hole";
     style.on = "Cursor Top with Hole";
@@ -2762,6 +2835,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 74;
     style.name = "Cursor Bottom with Hole";
     style.off = "Cursor Bottom with Hole";
     style.on = "Cursor Bottom with Hole";
@@ -2770,6 +2844,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 75;
     style.name = "Cursor Left with Hole";
     style.off = "Cursor Left with Hole";
     style.on = "Cursor Left with Hole";
@@ -2778,6 +2853,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 76;
     style.name = "Cursor Right with Hole";
     style.off = "Cursor Right with Hole";
     style.on = "Cursor Right with Hole";
@@ -2786,6 +2862,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 77;
     style.name = "Custom Frame";
     style.off = "Custom Frame";
     style.on = "Custom Frame";
@@ -2794,6 +2871,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 78;
     style.name = "Windows Style Popup (Status Bar)";
     style.off = "Windows Style Popup (Status Bar)";
     style.on = "Windows Style Popup (Status Bar)";
@@ -2802,6 +2880,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 79;
     style.name = "Windows Style Popup";
     style.off = "Windows Style Popup";
     style.on = "Windows Style Popup";
@@ -2810,6 +2889,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 80;
     style.name = "Help Down";
     style.off = "Help Down";
     style.on = "Help Down";
@@ -2818,6 +2898,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 81;
     style.name = "Help Down Reversed";
     style.off = "Help Down Reversed";
     style.on = "Help Down Reversed";
@@ -2826,6 +2907,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 82;
     style.name = "Menu Left Rounded 15";
     style.off = "Menu Left Rounded 15";
     style.on = "Menu Left Rounded 15";
@@ -2834,6 +2916,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 83;
     style.name = "Menu Left Rounded 25";
     style.off = "Menu Left Rounded 25";
     style.on = "Menu Left Rounded 25";
@@ -2842,6 +2925,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 84;
     style.name = "Menu Left Rounded 35";
     style.off = "Menu Left Rounded 35";
     style.on = "Menu Left Rounded 35";
@@ -2850,6 +2934,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 85;
     style.name = "Menu Left Rounded 45";
     style.off = "Menu Left Rounded 45";
     style.on = "Menu Left Rounded 45";
@@ -2858,6 +2943,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 86;
     style.name = "Menu Left Rounded 55";
     style.off = "Menu Left Rounded 55";
     style.on = "Menu Left Rounded 55";
@@ -2866,6 +2952,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 87;
     style.name = "Menu Left Rounded 65";
     style.off = "Menu Left Rounded 65";
     style.on = "Menu Left Rounded 65";
@@ -2874,6 +2961,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 88;
     style.name = "Menu Left Rounded 75";
     style.off = "Menu Left Rounded 75";
     style.on = "Menu Left Rounded 75";
@@ -2882,6 +2970,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 89;
     style.name = "Menu Left Rounded 85";
     style.off = "Menu Left Rounded 85";
     style.on = "Menu Left Rounded 85";
@@ -2890,6 +2979,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 90;
     style.name = "Menu Left Rounded 95";
     style.off = "Menu Left Rounded 95";
     style.on = "Menu Left Rounded 95";
@@ -2898,6 +2988,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 91;
     style.name = "Menu Left Rounded 105";
     style.off = "Menu Left Rounded 105";
     style.on = "Menu Left Rounded 105";
@@ -2906,6 +2997,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 92;
     style.name = "Menu Left Rounded 115";
     style.off = "Menu Left Rounded 115";
     style.on = "Menu Left Rounded 115";
@@ -2914,6 +3006,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 93;
     style.name = "Menu Left Rounded 125";
     style.off = "Menu Left Rounded 125";
     style.on = "Menu Left Rounded 125";
@@ -2922,6 +3015,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 94;
     style.name = "Menu Left Rounded 135";
     style.off = "Menu Left Rounded 135";
     style.on = "Menu Left Rounded 135";
@@ -2930,6 +3024,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 95;
     style.name = "Menu Left Rounded 145";
     style.off = "Menu Left Rounded 145";
     style.on = "Menu Left Rounded 145";
@@ -2938,6 +3033,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 96;
     style.name = "Menu Left Rounded 155";
     style.off = "Menu Left Rounded 155";
     style.on = "Menu Left Rounded 155";
@@ -2946,6 +3042,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 97;
     style.name = "Menu Left Rounded 165";
     style.off = "Menu Left Rounded 165";
     style.on = "Menu Left Rounded 165";
@@ -2954,6 +3051,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 98;
     style.name = "Menu Left Rounded 175";
     style.off = "Menu Left Rounded 175";
     style.on = "Menu Left Rounded 175";
@@ -2962,6 +3060,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 99;
     style.name = "Menu Left Rounded 185";
     style.off = "Menu Left Rounded 185";
     style.on = "Menu Left Rounded 185";
@@ -2970,6 +3069,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 100;
     style.name = "Menu Left Rounded 195";
     style.off = "Menu Left Rounded 195";
     style.on = "Menu Left Rounded 195";
@@ -2978,6 +3078,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 101;
     style.name = "Menu Right Rounded 15";
     style.off = "Menu Right Rounded 15";
     style.on = "Menu Right Rounded 15";
@@ -2986,6 +3087,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 102;
     style.name = "Menu Right Rounded 25";
     style.off = "Menu Right Rounded 25";
     style.on = "Menu Right Rounded 25";
@@ -2994,6 +3096,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 103;
     style.name = "Menu Right Rounded 35";
     style.off = "Menu Right Rounded 35";
     style.on = "Menu Right Rounded 35";
@@ -3002,6 +3105,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 104;
     style.name = "Menu Right Rounded 45";
     style.off = "Menu Right Rounded 45";
     style.on = "Menu Right Rounded 45";
@@ -3010,6 +3114,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 105;
     style.name = "Menu Right Rounded 55";
     style.off = "Menu Right Rounded 55";
     style.on = "Menu Right Rounded 55";
@@ -3018,6 +3123,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 106;
     style.name = "Menu Right Rounded 65";
     style.off = "Menu Right Rounded 65";
     style.on = "Menu Right Rounded 65";
@@ -3026,6 +3132,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 107;
     style.name = "Menu Right Rounded 75";
     style.off = "Menu Right Rounded 75";
     style.on = "Menu Right Rounded 75";
@@ -3034,6 +3141,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 108;
     style.name = "Menu Right Rounded 85";
     style.off = "Menu Right Rounded 85";
     style.on = "Menu Right Rounded 85";
@@ -3042,6 +3150,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 109;
     style.name = "Menu Right Rounded 95";
     style.off = "Menu Right Rounded 95";
     style.on = "Menu Right Rounded 95";
@@ -3050,6 +3159,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 110;
     style.name = "Menu Right Rounded 105";
     style.off = "Menu Right Rounded 105";
     style.on = "Menu Right Rounded 105";
@@ -3058,6 +3168,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 111;
     style.name = "Menu Right Rounded 115";
     style.off = "Menu Right Rounded 115";
     style.on = "Menu Right Rounded 115";
@@ -3066,6 +3177,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 112;
     style.name = "Menu Right Rounded 125";
     style.off = "Menu Right Rounded 125";
     style.on = "Menu Right Rounded 125";
@@ -3074,6 +3186,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 113;
     style.name = "Menu Right Rounded 135";
     style.off = "Menu Right Rounded 135";
     style.on = "Menu Right Rounded 135";
@@ -3082,6 +3195,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 114;
     style.name = "Menu Right Rounded 145";
     style.off = "Menu Right Rounded 145";
     style.on = "Menu Right Rounded 145";
@@ -3090,6 +3204,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 115;
     style.name = "Menu Right Rounded 155";
     style.off = "Menu Right Rounded 155";
     style.on = "Menu Right Rounded 155";
@@ -3098,6 +3213,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 116;
     style.name = "Menu Right Rounded 165";
     style.off = "Menu Right Rounded 165";
     style.on = "Menu Right Rounded 165";
@@ -3106,6 +3222,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 117;
     style.name = "Menu Right Rounded 175";
     style.off = "Menu Right Rounded 175";
     style.on = "Menu Right Rounded 175";
@@ -3114,6 +3231,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 118;
     style.name = "Menu Right Rounded 185";
     style.off = "Menu Right Rounded 185";
     style.on = "Menu Right Rounded 185";
@@ -3122,6 +3240,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 119;
     style.name = "Menu Right Rounded 195";
     style.off = "Menu Right Rounded 195";
     style.on = "Menu Right Rounded 195";
@@ -3130,6 +3249,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 120;
     style.name = "Menu Top Rounded 15";
     style.off = "Menu Top Rounded 15";
     style.on = "Menu Top Rounded 15";
@@ -3138,6 +3258,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 121;
     style.name = "Menu Top Rounded 25";
     style.off = "Menu Top Rounded 25";
     style.on = "Menu Top Rounded 25";
@@ -3146,6 +3267,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 122;
     style.name = "Menu Top Rounded 35";
     style.off = "Menu Top Rounded 35";
     style.on = "Menu Top Rounded 35";
@@ -3154,6 +3276,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 123;
     style.name = "Menu Top Rounded 45";
     style.off = "Menu Top Rounded 45";
     style.on = "Menu Top Rounded 45";
@@ -3162,6 +3285,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 124;
     style.name = "Menu Top Rounded 55";
     style.off = "Menu Top Rounded 55";
     style.on = "Menu Top Rounded 55";
@@ -3170,6 +3294,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 125;
     style.name = "Menu Top Rounded 65";
     style.off = "Menu Top Rounded 65";
     style.on = "Menu Top Rounded 65";
@@ -3178,6 +3303,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 126;
     style.name = "Menu Top Rounded 75";
     style.off = "Menu Top Rounded 75";
     style.on = "Menu Top Rounded 75";
@@ -3186,6 +3312,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 127;
     style.name = "Menu Top Rounded 85";
     style.off = "Menu Top Rounded 85";
     style.on = "Menu Top Rounded 85";
@@ -3194,6 +3321,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 128;
     style.name = "Menu Top Rounded 95";
     style.off = "Menu Top Rounded 95";
     style.on = "Menu Top Rounded 95";
@@ -3202,6 +3330,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 129;
     style.name = "Menu Top Rounded 105";
     style.off = "Menu Top Rounded 105";
     style.on = "Menu Top Rounded 105";
@@ -3210,6 +3339,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 130;
     style.name = "Menu Top Rounded 115";
     style.off = "Menu Top Rounded 115";
     style.on = "Menu Top Rounded 115";
@@ -3218,6 +3348,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 131;
     style.name = "Menu Top Rounded 125";
     style.off = "Menu Top Rounded 125";
     style.on = "Menu Top Rounded 125";
@@ -3226,6 +3357,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 132;
     style.name = "Menu Top Rounded 135";
     style.off = "Menu Top Rounded 135";
     style.on = "Menu Top Rounded 135";
@@ -3234,6 +3366,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 133;
     style.name = "Menu Top Rounded 145";
     style.off = "Menu Top Rounded 145";
     style.on = "Menu Top Rounded 145";
@@ -3242,6 +3375,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 134;
     style.name = "Menu Top Rounded 155";
     style.off = "Menu Top Rounded 155";
     style.on = "Menu Top Rounded 155";
@@ -3250,6 +3384,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 135;
     style.name = "Menu Top Rounded 165";
     style.off = "Menu Top Rounded 165";
     style.on = "Menu Top Rounded 165";
@@ -3258,6 +3393,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 136;
     style.name = "Menu Top Rounded 175";
     style.off = "Menu Top Rounded 175";
     style.on = "Menu Top Rounded 175";
@@ -3266,6 +3402,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 137;
     style.name = "Menu Top Rounded 185";
     style.off = "Menu Top Rounded 185";
     style.on = "Menu Top Rounded 185";
@@ -3274,6 +3411,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 138;
     style.name = "Menu Top Rounded 195";
     style.off = "Menu Top Rounded 195";
     style.on = "Menu Top Rounded 195";
@@ -3282,6 +3420,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 139;
     style.name = "Menu Bottom Rounded 15";
     style.off = "Menu Bottom Rounded 15";
     style.on = "Menu Bottom Rounded 15";
@@ -3290,6 +3429,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 140;
     style.name = "Menu Bottom Rounded 25";
     style.off = "Menu Bottom Rounded 25";
     style.on = "Menu Bottom Rounded 25";
@@ -3298,6 +3438,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 141;
     style.name = "Menu Bottom Rounded 35";
     style.off = "Menu Bottom Rounded 35";
     style.on = "Menu Bottom Rounded 35";
@@ -3306,6 +3447,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 142;
     style.name = "Menu Bottom Rounded 45";
     style.off = "Menu Bottom Rounded 45";
     style.on = "Menu Bottom Rounded 45";
@@ -3314,6 +3456,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 143;
     style.name = "Menu Bottom Rounded 55";
     style.off = "Menu Bottom Rounded 55";
     style.on = "Menu Bottom Rounded 55";
@@ -3322,6 +3465,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 144;
     style.name = "Menu Bottom Rounded 65";
     style.off = "Menu Bottom Rounded 65";
     style.on = "Menu Bottom Rounded 65";
@@ -3330,6 +3474,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 145;
     style.name = "Menu Bottom Rounded 75";
     style.off = "Menu Bottom Rounded 75";
     style.on = "Menu Bottom Rounded 75";
@@ -3338,6 +3483,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 146;
     style.name = "Menu Bottom Rounded 85";
     style.off = "Menu Bottom Rounded 85";
     style.on = "Menu Bottom Rounded 85";
@@ -3346,6 +3492,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 147;
     style.name = "Menu Bottom Rounded 95";
     style.off = "Menu Bottom Rounded 95";
     style.on = "Menu Bottom Rounded 95";
@@ -3354,6 +3501,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 148;
     style.name = "Menu Bottom Rounded 105";
     style.off = "Menu Bottom Rounded 105";
     style.on = "Menu Bottom Rounded 105";
@@ -3362,6 +3510,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 149;
     style.name = "Menu Bottom Rounded 115";
     style.off = "Menu Bottom Rounded 115";
     style.on = "Menu Bottom Rounded 115";
@@ -3370,6 +3519,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 150;
     style.name = "Menu Bottom Rounded 125";
     style.off = "Menu Bottom Rounded 125";
     style.on = "Menu Bottom Rounded 125";
@@ -3378,6 +3528,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 151;
     style.name = "Menu Bottom Rounded 135";
     style.off = "Menu Bottom Rounded 135";
     style.on = "Menu Bottom Rounded 135";
@@ -3386,6 +3537,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 152;
     style.name = "Menu Bottom Rounded 145";
     style.off = "Menu Bottom Rounded 145";
     style.on = "Menu Bottom Rounded 145";
@@ -3394,6 +3546,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 153;
     style.name = "Menu Bottom Rounded 155";
     style.off = "Menu Bottom Rounded 155";
     style.on = "Menu Bottom Rounded 155";
@@ -3402,6 +3555,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 154;
     style.name = "Menu Bottom Rounded 165";
     style.off = "Menu Bottom Rounded 165";
     style.on = "Menu Bottom Rounded 165";
@@ -3410,6 +3564,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 155;
     style.name = "Menu Bottom Rounded 175";
     style.off = "Menu Bottom Rounded 175";
     style.on = "Menu Bottom Rounded 175";
@@ -3418,6 +3573,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 156;
     style.name = "Menu Bottom Rounded 185";
     style.off = "Menu Bottom Rounded 185";
     style.on = "Menu Bottom Rounded 185";
@@ -3426,6 +3582,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 157;
     style.name = "Menu Bottom Rounded 195";
     style.off = "Menu Bottom Rounded 195";
     style.on = "Menu Bottom Rounded 195";
@@ -3434,6 +3591,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 158;
     style.name = "Smart Button Bubbled Very Large";
     style.off = "Smart Button Bubbled Very Large";
     style.on = "Smart Button Bubbled Very Large";
@@ -3442,6 +3600,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 159;
     style.name = "Smart Button Bubbled Large";
     style.off = "Smart Button Bubbled Large";
     style.on = "Smart Button Bubbled Large";
@@ -3450,6 +3609,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 160;
     style.name = "Smart Button Bubbled Medium";
     style.off = "Smart Button Bubbled Medium";
     style.on = "Smart Button Bubbled Medium";
@@ -3458,6 +3618,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 161;
     style.name = "Smart Button Bubbled Small";
     style.off = "Smart Button Bubbled Small";
     style.on = "Smart Button Bubbled Small";
@@ -3466,6 +3627,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 162;
     style.name = "News Header";
     style.off = "News Header";
     style.on = "News Header";
@@ -3474,6 +3636,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 163;
     style.name = "News Header Right";
     style.off = "News Header Right";
     style.on = "News Header Right";
@@ -3482,6 +3645,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 164;
     style.name = "News Header Left";
     style.off = "News Header Left";
     style.on = "News Header Left";
@@ -3490,6 +3654,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 165;
     style.name = "Smart Button Squared Large";
     style.off = "Smart Button Squared Large";
     style.on = "Smart Button Squared Large";
@@ -3498,6 +3663,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 166;
     style.name = "Smart Button Squared Medium";
     style.off = "Smart Button Squared Medium";
     style.on = "Smart Button Squared Medium";
@@ -3506,6 +3672,7 @@ void TGraphics::initBorderStyle()
     mDraw.borderStyles.push_back(style);
 
     style.init();
+    style.number = 167;
     style.name = "Smart Button Squared Small";
     style.off = "Smart Button Squared Small";
     style.on = "Smart Button Squared Small";
@@ -8067,7 +8234,7 @@ QList<FAMILY_t> TGraphics::getBorders()
 
 FAMILY_t TGraphics::getBorder(const QString& name)
 {
-    DECL_TRACER("TGraphics::getBorder(const QString& name)");
+//    DECL_TRACER("TGraphics::getBorder(const QString& name)");
 
     for (FAMILY_t family : mDraw.borders)
     {
@@ -8079,6 +8246,32 @@ FAMILY_t TGraphics::getBorder(const QString& name)
     }
 
     return FAMILY_t();
+}
+
+BORDER_STYLE_t TGraphics::getBorderStyle(const QString& name)
+{
+//    DECL_TRACER("TGraphics::getBorderStyle(const QString& name)");
+
+    for (BORDER_STYLE_t style : mDraw.borderStyles)
+    {
+        if (style.name == name)
+            return style;
+    }
+
+    return BORDER_STYLE_t();
+}
+
+BORDER_STYLE_t TGraphics::getBorderStyle(int number)
+{
+//    DECL_TRACER("TGraphics::getBorderStyle(int number)");
+
+    for (BORDER_STYLE_t style : mDraw.borderStyles)
+    {
+        if (style.number == number)
+            return style;
+    }
+
+    return BORDER_STYLE_t();
 }
 
 bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *border, const QString& family2, bool info)

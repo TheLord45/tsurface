@@ -24,6 +24,7 @@ class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
 class QComboBox;
+class QStandardItem;
 
 class TElementBorderName : public QWidget
 {
@@ -41,9 +42,11 @@ class TElementBorderName : public QWidget
     signals:
         void borderChanged(const QString& border, const QString& name);
         void borderChangedInst(const QString& border, const QString& name, int instance);
+        void borderDataChanged(int number, const QString& name, int instance);
 
     protected:
         void onComboTextChanged(const QString& text);
+        void onComboIndexChanged(int index);
 
     private:
         const int SEL_NONE{-1};
@@ -52,9 +55,11 @@ class TElementBorderName : public QWidget
         QComboBox *mCombo{nullptr};
         QTreeView *mTreeView{nullptr};
         QStandardItemModel *mModel{nullptr};
+        QStandardItem *mParentItem{nullptr};
         QString mName;
         QString mBorder;
         int mInstance{-1};
+        int mSelected{0};
 };
 
 #endif // TELEMENTBORDERNAME_H

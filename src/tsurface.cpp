@@ -395,7 +395,8 @@ void TSurface::addObject(int id, QPoint pt)
     QString objName = QString("Object_%1").arg(btNumber);
     MSG_DEBUG("Adding object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
-    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name()));
+//    content->setStyleSheet(QString("background: %1").arg(object.sr[0].cf.name()));
+    content->setStyleSheet("background: transparent");
     page->baseObject.widget->clearSelection();
 
     TResizableWidget* wrap = new TResizableWidget(content, page->baseObject.widget);
@@ -455,7 +456,8 @@ TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex, int ins
     QPoint pt(object.lt, object.tp);
     MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
-    content->setStyleSheet(QString("background: %1").arg(object.sr[inst].cf.name(QColor::HexArgb)));
+//    content->setStyleSheet(QString("background: %1").arg(object.sr[inst].cf.name(QColor::HexArgb)));
+    content->setStyleSheet("background: transparent");
     page->baseObject.widget->clearSelection();
     page->baseObject.widget->setCurrentTool(mSelectedTool);
 
@@ -514,7 +516,7 @@ void TSurface::drawObject(Page::PAGE_t *page, int objIndex, int instance)
     if (!rwidget)
         rwidget = initObject(page, objIndex);
 
-    rwidget->setStyleSheet("background-color: transparent");
+    rwidget->setStyleSheet("background: transparent");
     pobject->drawObject(rwidget, inst);
 }
 

@@ -115,8 +115,8 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
 
         // Define inner clip region
         QRect clip(imgTL.width(), imgTL.height(),
-                   object.wt - imgL.width() - imgR.width(),
-                   object.ht - imgT.height() - imgB.height());
+                   object.wt - imgTL.width() - imgTR.width(),
+                   object.ht - imgTL.height() - imgTR.height());
         MSG_DEBUG("Inner clipping region: " << clip.x() << ", " << clip.y() << ", " << clip.width() << ", " << clip.height());
         // Erase everything outside of clip region
         erasePart(mPixmap, frame, clip);
@@ -343,7 +343,7 @@ void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
         for (int x = 0; x < width; ++x)
         {
             if (clip.contains(x, y))
-                continue;
+                break;
 
             if (setPixel(&img, msk.pixelColor(x, y), x, y))
                 break;
@@ -352,7 +352,7 @@ void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
         for (int x = width - 1; x > 0; --x) // from right
         {
             if (clip.contains(x, y))
-                continue;
+                break;
 
             if (setPixel(&img, msk.pixelColor(x, y), x, y))
                 break;
@@ -364,7 +364,7 @@ void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
         for (int y = 0; y < height; ++y)    // from top
         {
             if (clip.contains(x, y))
-                continue;
+                break;;
 
             if (setPixel(&img, msk.pixelColor(x, y), x, y))
                 break;
@@ -373,7 +373,7 @@ void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
         for (int y = height - 1; y > 0; --y) // from bottom
         {
             if (clip.contains(x, y))
-                continue;
+                break;;
 
             if (setPixel(&img, msk.pixelColor(x, y), x, y))
                 break;
@@ -385,7 +385,7 @@ void TDrawBorder::erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip)
 
 bool TDrawBorder::setPixel(QImage *img, QColor col, int x, int y)
 {
-    if (col.alpha() == 0)
+    if (col.alpha() <= 0)
     {
         img->setPixelColor(x, y, Qt::transparent);
         return false;

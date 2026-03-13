@@ -80,6 +80,7 @@ namespace Graphics
 
     typedef struct BORDER_STYLE_t
     {
+        int number{0};
         QString name;
         QString off;
         QString on;
@@ -89,6 +90,7 @@ namespace Graphics
 
         void init()
         {
+            number = 0;
             name.clear();
             off.clear();
             on.clear();
@@ -270,6 +272,8 @@ class TGraphics
         QStringList getBorderNames();
         QList<Graphics::FAMILY_t> getBorders();
         Graphics::FAMILY_t getBorder(const QString& name);
+        Graphics::BORDER_STYLE_t getBorderStyle(int number);
+        Graphics::BORDER_STYLE_t getBorderStyle(const QString& name);
         bool getBorder(const QString& family, Graphics::LINE_TYPE_t lt, Graphics::BORDER_t *border, const QString& family2="", bool info=false);
         QList<Graphics::FAMILY_t> getEfects();
         int getEffectStyleNumber(const QString& name);
