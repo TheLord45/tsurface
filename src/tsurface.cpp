@@ -149,9 +149,9 @@ TSurface::TSurface(QWidget *parent)
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePage, this, &TSurface::onAddNewPage);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::addNewTreePopup, this, &TSurface::onAddNewPopup);
     connect(&TWorkSpaceHandler::Current(), &TWorkSpaceHandler::windowToFront, this, &TSurface::onItemToFront);
-    TWorkSpaceHandler::Current().regDataChanged(bind(&TSurface::onDataChanged, this, std::placeholders::_1));
     TWorkSpaceHandler::Current().regMarkDirty(bind(&TSurface::onMarkDirty, this));
     TWorkSpaceHandler::Current().regRequestDraw(bind(&TSurface::onRedrawRequest, this, std::placeholders::_1));
+    TWorkSpaceHandler::Current().regRequestDrawObject(bind(&TSurface::onRedrawObject, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     connect(m_ui->splitter, &QSplitter::splitterMoved, this, &TSurface::onSplitterMoved);
     connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &TSurface::onSubWindowActivated);
@@ -418,6 +418,8 @@ void TSurface::addObject(int id, QPoint pt)
     int index = TPageHandler::Current().appendObject(page->pageID, o);
     TWorkSpaceHandler::Current().setObject(o);
     TWorkSpaceHandler::Current().setAllProperties(*page, STATE_BUTTON, index);
+    // Draw the new object
+    onRedrawObject(object, page->pageID);
     mProjectChanged = true;
 }
 
@@ -1575,23 +1577,6 @@ void TSurface::onItemToFront(int id)
         TWorkSpaceHandler::Current().setPopup(pageID);
 }
 
-/**
- * @brief TSurface::onDataChanged
- * This is a callback method. It is called out of one of the subclasses of
- * "TWorkSpaceHandler". Beside this the project is marked as changed.
- *
- * @param page  A pointer to the structure containing all page data. This
- * structure is send to class "TPageHandler" where it is put into the array
- * of pages.
- */
-void TSurface::onDataChanged(Page::PAGE_t *page)
-{
-    DECL_TRACER("TSurface::onDataChanged(Page::PAGE_t *page)");
-
-    mProjectChanged = true;
-    TPageHandler::Current().setPage(*page);
-}
-
 void TSurface::onMarkDirty()
 {
     DECL_TRACER("TSurface::onMarkDirty()");
@@ -1875,6 +1860,7 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 
     object->setSize(geom);
     TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    onRedrawObject(object->getObject(), w->getPageId());
     mProjectChanged = true;
 }
 
@@ -2116,13 +2102,35 @@ void TSurface::onRedrawRequest(Page::PAGE_t *page)
     // --------------------------------
     for (int idx = 0; idx < page->objects.size(); ++idx)
         drawObject(page, idx);
-    // Resotre selection
+    // Restore selection
     if (objId > 0)
     {
         selected = page->baseObject.widget->getWidget(objId);
 
         if (selected)
             selected->setSelected(true);
+    }
+}
+
+void TSurface::onRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance)
+{
+    DECL_TRACER("TSurface::onRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance)");
+
+    Page::PAGE_t *page = TPageHandler::Current().getPage(pageID);
+
+    if (!page)
+    {
+        MSG_WARNING("Page " << pageID << " not found!");
+        return;
+    }
+
+    for (int idx = 0; idx < page->objects.size(); ++idx)
+    {
+        if (page->objects[idx]->getButtonIndex() == object.bi)
+        {
+            drawObject(page, idx, instance);
+            break;
+        }
     }
 }
 

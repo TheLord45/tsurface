@@ -71,7 +71,6 @@ class TSurface : public QMainWindow
         void onActionShowHideGrid(bool checked);
         void onActionSnapToGrid(bool checked);
         void onItemToFront(int id);
-        void onDataChanged(Page::PAGE_t *page);
         void onMarkDirty();
         void onFailedClickAt(const QPoint& pt);
         void onObjectSelectChanged(TResizableWidget *w, bool selected);
@@ -79,6 +78,7 @@ class TSurface : public QMainWindow
         void onObjectSizeChanged(TResizableWidget *w, QSize size);
         TOOL onGetCurrentTool() { return mSelectedTool; };
         void onRedrawRequest(Page::PAGE_t *page);
+        void onRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance=0);
         // Splitter
         void onSplitterMoved(int pos, int index);
 

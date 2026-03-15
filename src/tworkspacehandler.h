@@ -70,9 +70,9 @@ class TWorkSpaceHandler
         // because all three subclasses define the Q_OBJECT. Therefore
         // we would have an ambiguous name lookup. To overcome this we use
         // the methods of "functional". The result is the same.
-        void regDataChanged(std::function<void (Page::PAGE_t *page)> func) { _dataChanged = func; }
         void regMarkDirty(std::function<void ()> func) { _markDirty = func; }
         void regRequestDraw(std::function<void (Page::PAGE_t *page)> func) { _requestDraw = func; }
+        void regRequestDrawObject(std::function <void (const ObjHandler::TOBJECT_t& object, int pageID, int instance)> func) { _requestDrawObject = func; }
 
     protected:
         void pageNameChanged(int id, const QString& name) override;
@@ -81,6 +81,7 @@ class TWorkSpaceHandler
         ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) override;
         Page::PAGE_t getCurrentPage() override;
         void requestRedraw(Page::PAGE_t *page) override;
+        void requestRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance=0) override;
         void setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype) override;
         void pageTypeChanged(Page::PAGE_TYPE ptype, int pageID) override;               // For TPropertiesGeneral only
         void objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index) override;       // For TPropertiesGeneral only
@@ -90,9 +91,9 @@ class TWorkSpaceHandler
         void on_objecttype_changed(ObjHandler::BUTTONTYPE btype, int index);
 
     private:
-        std::function<void (Page::PAGE_t *page)> _dataChanged{nullptr};
         std::function<void ()> _markDirty{nullptr};
         std::function<void (Page::PAGE_t *page)> _requestDraw{nullptr};
+        std::function<void (const ObjHandler::TOBJECT_t& object, int pageID, int instance)> _requestDrawObject{nullptr};
 
         static TWorkSpaceHandler *mCurrent;
         QWidget *mParent{nullptr};

@@ -41,7 +41,7 @@ TPageHandler::TPageHandler()
 
 TPageHandler& TPageHandler::Current()
 {
-    DECL_TRACER("TPageHandler::Current()");
+//    DECL_TRACER("TPageHandler::Current()");
 
     if (!mCurrent)
         mCurrent = new TPageHandler;

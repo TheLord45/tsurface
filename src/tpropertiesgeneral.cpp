@@ -479,6 +479,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
         return;
 
     Q_UNUSED(stype);
+    QSignalBlocker sigBlock(this);
     int rows = 41;
     mTable->clear();
     mTable->setColumnCount(2);
@@ -1560,7 +1561,7 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
     }
 
     mChanged = true;
-    markChanged();
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name)

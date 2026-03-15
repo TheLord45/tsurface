@@ -59,6 +59,7 @@ class TPropertiesStates : public QObject
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged() = 0;
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
+        virtual void requestRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance=0) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
 
         // Other methods

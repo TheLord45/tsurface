@@ -548,7 +548,6 @@ void TPropertiesStates::createPage(bool force)
             table = createTableWidget(mTreeWidget);
             mStates.append(table);
             mTreeWidget->setItemWidget(item, 0, table);
-//            totalHeight += table->height();
         }
     }
 
@@ -622,7 +621,6 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
     // The row count must be defined before rows are added to the table! Otherwise
     // an empty table with only the grid will be visible.
     table->setRowCount(rows);
-//    int totalHeight = 0;
 
     for (int row = 0; row < rows; ++row)
     {
@@ -753,11 +751,8 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
             break;
         }
 
-//        totalHeight += table->cellWidget(row, 1)->size().height();
         table->setItem(row, 0, col0);
     }
-
-//    table->setMaximumHeight(totalHeight);
 }
 
 QString TPropertiesStates::getLeftColText(int line)
@@ -940,6 +935,8 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
 
     if (!w)
         return 0;
+
+    QSignalBlocker sigBlock(this);
 
     switch(etype)
     {
@@ -1546,7 +1543,10 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
     saveChangedData(&mPage, TBL_STATES);
     rebuildTree();
     // Call to draw immediately
-    requestRedraw(&mPage);
+    if (isAnyPage())
+        requestRedraw(&mPage);
+    else
+        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
 }
 
 void TPropertiesStates::setColor(QLabel *label, QColor& color)
@@ -1578,7 +1578,11 @@ void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bit
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
-    requestRedraw(&mPage);
+    // Call to draw immediately
+    if (isAnyPage())
+        requestRedraw(&mPage);
+    else
+        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
 }
 
 void TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& name, int instance)
@@ -1598,7 +1602,11 @@ void TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& na
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
-    requestRedraw(&mPage);
+    // Call to draw immediately
+    if (isAnyPage())
+        requestRedraw(&mPage);
+    else
+        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
 }
 
 void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name, int instance)
@@ -1659,7 +1667,11 @@ void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, cons
 
     saveChangedData(&mPage, TBL_STATES);
     mChanged = false;
-    requestRedraw(&mPage);
+    // Call to draw immediately
+    if (isAnyPage())
+        requestRedraw(&mPage);
+    else
+        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
 }
 
 void TPropertiesStates::onSoundChanged(const QString& file, const QString& name, int instance)

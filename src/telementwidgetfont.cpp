@@ -59,7 +59,6 @@ void TElementWidgetFont::setFont(const QFont& font)
 {
     DECL_TRACER("TElementWidgetFont::setFont(const QFont& font)");
 
-    QSignalBlocker sigBlock(this);
     mFont = font;
     QSignalBlocker block(this);
     mLine->setText(font.family());

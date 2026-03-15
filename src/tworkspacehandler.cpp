@@ -50,7 +50,7 @@ TWorkSpaceHandler::~TWorkSpaceHandler()
 
 TWorkSpaceHandler& TWorkSpaceHandler::Current()
 {
-    DECL_TRACER("TWorkSpaceHandler::Current()");
+//    DECL_TRACER("TWorkSpaceHandler::Current()");
 
     if (!mCurrent)
         mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr, nullptr);
@@ -292,9 +292,6 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
 {
     DECL_TRACER("TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)");
 
-    if (!_dataChanged)
-        return;
-
     Page::PAGE_t *pg = TPageHandler::Current().getPage(page->pageID);
 
     switch(prop)
@@ -342,7 +339,6 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
     }
 
     _markDirty();
-//    _dataChanged(pg);
 }
 
 void TWorkSpaceHandler::markChanged()
@@ -392,4 +388,12 @@ void TWorkSpaceHandler::requestRedraw(Page::PAGE_t *page)
 
     if (_requestDraw)
         _requestDraw(page);
+}
+
+void TWorkSpaceHandler::requestRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance)
+{
+    DECL_TRACER("TWorkSpaceHandler::requestRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance)");
+
+    if (_requestDrawObject)
+        _requestDrawObject(object, pageID, instance);
 }

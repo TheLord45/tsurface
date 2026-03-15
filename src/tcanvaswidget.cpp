@@ -113,7 +113,7 @@ void TCanvasWidget::setSolidColor(const QColor& color)
 
 void TCanvasWidget::paintEvent(QPaintEvent*)
 {
-    DECL_TRACER("TCanvasWidget::paintEvent(QPaintEvent*)");
+//    DECL_TRACER("TCanvasWidget::paintEvent(QPaintEvent*)");
 
     QPainter p(this);
     QPalette pal = palette();

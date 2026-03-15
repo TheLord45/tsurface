@@ -55,6 +55,7 @@ void TElementGradientColors::setGradientColors(const QList<QColor>& colors)
     DECL_TRACER("TElementGradientColors::setGradientColors(const QList<QColor>& colors)");
 
     mGradients = colors;
+    QSignalBlocker sigBlocker(this);
     createLine();
 }
 
