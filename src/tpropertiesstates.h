@@ -49,6 +49,7 @@ class TPropertiesStates : public QObject
         ~TPropertiesStates();
 
         void setPage(const Page::PAGE_t& page);
+        void setObject(TObjectHandler *object, int index);
         void setActualObject(int index, STATE_TYPE stype);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         void setState(STATE_TYPE stype);

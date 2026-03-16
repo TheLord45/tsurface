@@ -498,6 +498,7 @@ class TObjectHandler
             mObject.ht = rect.height();
         }
 
+        QRect getSize();
         ObjHandler::SR_T getSr(int number);
         ObjHandler::SR_T getSrFromIndex(int index);
         QList<ObjHandler::SR_T>& getSrList() { return mObject.sr; }

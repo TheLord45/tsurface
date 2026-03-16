@@ -82,6 +82,7 @@ void TDrawObject::draw(int instance)
         return;
     }
 
+    MSG_DEBUG("Object size: " << object.lt << ", " << object.tp << ", size: " << object.wt << " x " << object.ht);
     getDrawOrder(object.sr[instance]._do, mDOrder);
     QPixmap button(object.wt, object.ht);               // Creates an empty image
     button.fill(Qt::transparent);                       // Fills the image and prepares it for QPainter

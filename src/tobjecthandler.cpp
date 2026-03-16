@@ -60,6 +60,25 @@ ObjHandler::SR_T TObjectHandler::getSr(int number)
 }
 
 /**
+ * @brief TObjectHandler::getSize
+ * Returns the geometry of the object.
+ *
+ * @return A QRect containing the upper left corner as well as the width and
+ * height of the object.
+ */
+QRect TObjectHandler::getSize()
+{
+    DECL_TRACER("TObjectHandler::getSize()");
+
+    QRect rect;
+    rect.setX(mObject.lt);
+    rect.setY(mObject.tp);
+    rect.setWidth(mObject.wt);
+    rect.setHeight(mObject.ht);
+    return rect;
+}
+
+/**
  * @brief TObjectHandler::getSrFromIndex
  * This method returns an instance from the given index. If the index is
  * out of range a common object is generated. For details look at

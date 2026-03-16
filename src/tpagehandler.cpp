@@ -992,13 +992,13 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             INSERTJ(jsr, "jb", s.jb, 5);
             INSERTJ(jsr, "bx", s.bx, 0);
             INSERTJ(jsr, "by", s.by, 0);
-            INSERTJ(jsr, "fi", s.fi, 0);
+            INSERTJ(jsr, "fi", s.fi, 0);    // G4 font index
             INSERTJ(jsr, "te", s.te, "");
             INSERTJ(jsr, "jt", s.jt, ObjHandler::ORI_CENTER_MIDDLE);
             INSERTJ(jsr, "tx", s.tx, 0);
             INSERTJ(jsr, "ty", s.ty, 0);
             INSERTJ(jsr, "ff", s.ff, "");
-            INSERTJ(jsr, "fs", s.fs, 0);
+            INSERTJ(jsr, "fs", s.fs, TConfMain::Current().getFontBaseSize());
             INSERTJ(jsr, "ww", s.ww, 0);
             INSERTJ(jsr, "et", s.et, 0);
 
@@ -1009,6 +1009,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             INSERTJ(jsr, "mr", s.mr, 0);
             INSERTJ(jsr, "ms", s.ms, 1);
             INSERTJ(jsr, "vf", s.vf, "");
+            INSERTJ(jsr, "dv", s.dv, "");
 
             sr.append(jsr);
         }
@@ -1405,7 +1406,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s.ct = QColor(jsr.value("ct").toString(TConfMain::Current().getColorText().name(QColor::HexArgb)));      // Text color
             s.ec = QColor(jsr.value("ec").toString("#ff808080"));      // Text effect color
             s.bm = jsr.value("bm").toString();
-            QJsonArray bitmaps = jsr.value("bitmaps").toArray();
+            QJsonArray bitmaps = jsr.value("bitmapEntries").toArray();
 
             for (int k = 0; k < bitmaps.count(); ++k)
             {
@@ -1447,8 +1448,8 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s.jt = static_cast<ObjHandler::ORIENTATION>(jsr.value("jt").toInt(ObjHandler::ORIENTATION::ORI_CENTER_MIDDLE));
             s.tx = jsr.value("tx").toInt(0);
             s.ty = jsr.value("ty").toInt(0);
-            s.ff = jsr.value("ff").toString();
-            s.fs = jsr.value("fs").toInt(0);
+            s.ff = jsr.value("ff").toString(TConfMain::Current().getFontBase().family());
+            s.fs = jsr.value("fs").toInt(TConfMain::Current().getFontBaseSize());
             s.ww = jsr.value("ww").toInt(0);
             s.et = jsr.value("et").toInt(0);
             s.oo = jsr.value("oo").toInt(255);

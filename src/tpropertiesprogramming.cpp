@@ -290,6 +290,13 @@ void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
         mActObjectID = id;
         mChanged = false;
     }
+    else if (id >= mPage.objects.size())
+    {
+        TObjectHandler *obj = TPageHandler::Current().getObjectHandler(mPage.pageID, object.bi);
+        mPage.objects.append(obj);
+        mActObject = object;
+        mActObjectID = mPage.objects.size() - 1;
+    }
 
     setSType();
 }

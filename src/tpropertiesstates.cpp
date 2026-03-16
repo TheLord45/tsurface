@@ -137,6 +137,49 @@ void TPropertiesStates::setActualObject(int index, STATE_TYPE stype)
     }
 }
 
+void TPropertiesStates::setObject(TObjectHandler *object, int index)
+{
+    DECL_TRACER("TPropertiesStates::setObject(const TObjectHandler *object, int index)");
+
+    if (!object)
+        return;
+
+    int idx = index;
+
+    if (mPage.objects.size() <= index)
+    {
+        bool found =false;
+
+        for (int i = 0; i < mPage.objects.size(); ++i)
+        {
+            if (mPage.objects[i]->getButtonIndex() == object->getButtonIndex())
+            {
+                mPage.objects[i] = object;
+                idx = i;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            mPage.objects.append(object);
+            idx = mPage.objects.size() - 1;
+        }
+    }
+
+    bool force = false;
+
+    mActObject = object->getObject();
+
+    if (mActObjectID != idx)
+        force = true;
+
+    mActObjectID = index;
+    setSType();
+    createPage(force);
+}
+
 void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 {
     DECL_TRACER("TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");

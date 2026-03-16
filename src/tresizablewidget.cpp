@@ -236,6 +236,8 @@ void TResizableWidget::setPixmap(const QPixmap& bm)
         mBackground->setGeometry(0, 0, width(), height());
         mBackground->setStyleSheet(QString("background-color: %1").arg(QColor(Qt::transparent).name(QColor::HexArgb)));
     }
+    else if (mBackground->width() != bm.width() || mBackground->height() != bm.height())
+        mBackground->setGeometry(0, 0, bm.width(), bm.height());
 
     mBackground->setPixmap(bm);
     mBackground->show();
@@ -269,12 +271,15 @@ void TResizableWidget::resizeEvent(QResizeEvent*)
 {
     if (mContent)
     {
-        const int m = 0; // mFrameMargin + 2;
-        int w = qMax(0, width()); // std::max(0, width() - 2 * m);
-        int h = qMax(0, height()); // std::max(0, height() - 2 * m);
+        const int m = 0;
+        int w = qMax(0, width());
+        int h = qMax(0, height());
         mContent->setGeometry(m, m, w, h);
+
+        if (mBackground)
+            mBackground->setGeometry(0, 0, w, h);
+
         emit objectSizeChanged(this, QSize(w, h));
-//        emit objectMoved(this, QPoint(mContent->geometry().left(), mContent->geometry().top()));
     }
 
     layoutGrips();

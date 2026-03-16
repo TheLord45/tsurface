@@ -1822,9 +1822,6 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
     DECL_TRACER("TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)");
 
     MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId() << ", point: " << pt.x() << ", " << pt.y());
-    QRect geom = w->geometry();
-    geom.setLeft(pt.x());
-    geom.setTop(pt.y());
     Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
 
     if (!page)
@@ -1835,14 +1832,30 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
     if (!object)
         return;
 
+    QRect geom = object->getSize();
+    MSG_DEBUG("Old position: " << geom.x() << ", " << geom.y());
+    MSG_DEBUG("New position: " << pt.x() << ", " << pt.y());
+    geom.setX(pt.x());
+    geom.setY(pt.y());
     object->setSize(geom);
-    TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    int index = TPageHandler::Current().getObjectIndex(*page, w->getId());
+
+    if (index < 0 || index >= page->objects.size())
+    {
+        MSG_ERROR("Index is out of range! Allowed range is 0 to " << (page->objects.size() - 1) << " but have " << index << "!");
+        return;
+    }
+
+    TWorkSpaceHandler::Current().setActualObject(object, index);
     mProjectChanged = true;
 }
 
 void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 {
     DECL_TRACER("TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)");
+
+    if (!w)
+        return;
 
     MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId());
     QRect geom = w->geometry();
@@ -1858,8 +1871,19 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
     if (!object)
         return;
 
+    QRect rect = object->getSize();
+    MSG_DEBUG("Original size: " << rect.width() << " x " << rect.height());
+    MSG_DEBUG("New size     : " << geom.width() << " x " << geom.height());
     object->setSize(geom);
-    TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+    int index = TPageHandler::Current().getObjectIndex(*page, w->getId());
+
+    if (index < 0 || index >= page->objects.size())
+    {
+        MSG_ERROR("Index is out of range! Allowed range is 0 to " << (page->objects.size() - 1) << " but have " << index << "!");
+        return;
+    }
+
+    TWorkSpaceHandler::Current().setActualObject(object, index);
     onRedrawObject(object->getObject(), w->getPageId());
     mProjectChanged = true;
 }

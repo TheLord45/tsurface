@@ -140,7 +140,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
 
     TPropertiesGeneral::update();
     TPropertiesProgramming::setObject(object->getObject(), index);
-    TPropertiesStates::setObjectType(object->getType(), index);
+    TPropertiesStates::setObject(object, index);
 }
 
 void TWorkSpaceHandler::clear()

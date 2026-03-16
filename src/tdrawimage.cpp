@@ -111,7 +111,7 @@ void TDrawImage::draw()
     }
 
     // The chameleon images is drawn first
-    if (!mHaveWidget && !mChameleon.isEmpty())
+    if (!mChameleon.isEmpty())
         drawChameleon();
 
     // If there are more than one bitmap draw them now
@@ -274,6 +274,7 @@ void TDrawImage::drawChameleon()
         return;
     }
 
+    MSG_DEBUG("Loaded chameleon image " << mChameleon.toStdString());
     QPixmap imgRed(pix);
     QPixmap imgMask;
 
@@ -281,14 +282,19 @@ void TDrawImage::drawChameleon()
     {
         bm = mBitmaps[0];
 
-        if (!imgMask.load(pathTemp + "/images/" + mBitmaps[0].fileName))
+        if (!imgMask.load(pathTemp + "/images/" + bm.fileName))
         {
-            MSG_ERROR("Couldn't load mask image " << mBitmaps[0].fileName.toStdString());
+            MSG_ERROR("Couldn't load mask image " << bm.fileName.toStdString());
             imgMask = QPixmap();
+        }
+        else
+        {
+            MSG_DEBUG("Loaded chameleon mask " << bm.fileName.toStdString());
         }
     }
 
     bool haveBothImages = mBitmaps.empty() || imgMask.isNull() ? false : true;
+    MSG_DEBUG("Have " << (haveBothImages ? "both" : "only one") << " image(s).");
 
     if (!haveBothImages)
     {
@@ -318,7 +324,7 @@ void TDrawImage::drawChameleon()
             if (ix < pixmapRed.width() && iy < pixmapRed.height())
                 pixelRed = pixmapRed.pixel(ix, iy);
             else
-                pixelRed = Qt::black;
+                pixelRed = Qt::transparent;
 
             if (haveBothImages && !imgMask.isNull() &&
                     ix < pixmapMask.width() && iy < pixmapMask.height())
@@ -327,12 +333,12 @@ void TDrawImage::drawChameleon()
                 pixelMask = Qt::transparent;
 
             QColor pixel = baseColor(pixelRed, pixelMask);
-            uint alpha = pixel.alpha();
+            int alpha = pixel.alpha();
 
             if (alpha == 0)
                 pixel = pixelMask;
 
-            maskBm.setPixel(ix, iy, pixel.rgba());
+            maskBm.setPixelColor(ix, iy, pixel);
         }
     }
 
@@ -361,9 +367,9 @@ void TDrawImage::drawChameleon()
 
 QColor TDrawImage::baseColor(QColor basePix, QColor maskPix)
 {
-    uint alpha = basePix.alpha();
-    uint green = basePix.green();
-    uint red = basePix.red();
+    int alpha = basePix.alpha();
+    int green = basePix.green();
+    int red = basePix.red();
 
     if (alpha == 0)
         return maskPix;
