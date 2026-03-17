@@ -997,8 +997,8 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             INSERTJ(jsr, "jt", s.jt, ObjHandler::ORI_CENTER_MIDDLE);
             INSERTJ(jsr, "tx", s.tx, 0);
             INSERTJ(jsr, "ty", s.ty, 0);
-            INSERTJ(jsr, "ff", s.ff, "");
-            INSERTJ(jsr, "fs", s.fs, TConfMain::Current().getFontBaseSize());
+            jsr.insert("ff", s.ff);
+            jsr.insert("fs", s.fs);
             INSERTJ(jsr, "ww", s.ww, 0);
             INSERTJ(jsr, "et", s.et, 0);
 

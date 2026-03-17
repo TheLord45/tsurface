@@ -16,10 +16,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QStandardItemModel>
+#include <QFileDialog>
+#include <QProgressDialog>
 
 #include "tbitmapselectdialog.h"
 #include "ui_tbitmapselectdialog.h"
+#include "tdynamicimagedialog.h"
 #include "tmaps.h"
+#include "tmisc.h"
+#include "tconfig.h"
 #include "terror.h"
 
 static QSize iconSize(64, 64);
@@ -70,9 +75,11 @@ void TBitmapSelectDialog::init()
         QString file = mPathTemporary + "/images/" + *iter;
         MSG_DEBUG("Loading image: " << file.toStdString());
         QStandardItem *item = new QStandardItem(*iter);
-        item->setData(sizeImage(iconSize, file), Qt::DecorationRole);
+        QSize oriSize;
+        item->setData(sizeImage(iconSize, file, &oriSize), Qt::DecorationRole);
         item->setSizeHint(gridSize);
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        item->setToolTip(QString("%1 (%2x%3)").arg(*iter).arg(oriSize.width()).arg(oriSize.height()));
         model->appendRow(item);
         row++;
     }
@@ -111,7 +118,37 @@ void TBitmapSelectDialog::setSingleSelect(bool sel)
 
 void TBitmapSelectDialog::on_pushButtonImport_clicked()
 {
+    DECL_TRACER("TBitmapSelectDialog::on_pushButtonImport_clicked()");
+    QString lastOpenPath = TConfig::Current().getLastDirectory();
 
+    if (mCurrentTab == SEL_IMAGES)
+    {
+        mImportImagesDialog = new QFileDialog(this, tr("Import Image"), lastOpenPath, tr("Image (*.png *.jpg);;All (*)"));
+        mImportImagesDialog->setFileMode(QFileDialog::ExistingFiles);
+        connect(mImportImagesDialog, &QFileDialog::finished, this, &TBitmapSelectDialog::onImageImportFinished);
+        mImportImagesDialog->open();
+    }
+    else if (mCurrentTab == SEL_DYNIMAGES)
+    {
+        TDynamicImageDialog dynDialog(this);
+
+        if (dynDialog.exec() == QDialog::Rejected)
+            return;
+
+        ConfigMain::RESOURCE_t res;
+        res.name = dynDialog.getName();
+        res.protocol = dynDialog.getProtocol();
+        res.host = dynDialog.getHost();
+        res.path = dynDialog.getPath();
+        res.file = dynDialog.getFile();
+        res.user = dynDialog.getUser();
+        res.password = dynDialog.getPassword();
+        res.refreshRate = dynDialog.getRefreshRate();
+        res.refreshStart = dynDialog.getRefreshStart();
+        addDynamicResource(res);
+        TConfMain::Current().setDynamicResource(res);
+        ui->tableViewDynamic->resizeColumnsToContents();
+    }
 }
 
 
@@ -132,14 +169,6 @@ void TBitmapSelectDialog::on_tabWidget_tabBarClicked(int index)
     DECL_TRACER("TBitmapSelectDialog::on_tabWidget_tabBarClicked(int index)");
 
     mCurrentTab = index;
-}
-
-QPixmap TBitmapSelectDialog::sizeImage(const QSize& size, const QString& file)
-{
-    DECL_TRACER("TBitmapSelectDialog::sizeImage(const QSize& size, const QString& file)");
-
-    QPixmap pm(file);
-    return QPixmap(pm.scaled(size, Qt::KeepAspectRatio));
 }
 
 void TBitmapSelectDialog::addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model)
@@ -211,4 +240,85 @@ void TBitmapSelectDialog::accept()
     }
 
     done(QDialog::Accepted);
+}
+
+void TBitmapSelectDialog::onImageImportFinished(int result)
+{
+    DECL_TRACER("TBitmapSelectDialog::onImageImportFinished(int result)");
+
+    if (!mImportImagesDialog)
+        return;
+
+    if (result != QDialog::Accepted)
+    {
+        mImportImagesDialog = nullptr;
+        return;
+    }
+
+    QStringList files = mImportImagesDialog->selectedFiles();
+    mImportImagesDialog = nullptr;
+    importImagesToListView(files);
+}
+
+void TBitmapSelectDialog::importImagesToListView(const QStringList& images)
+{
+    DECL_TRACER("TBitmapSelectDialog::importImagesToListView(const QStringList& images)");
+
+    if (images.empty())
+        return;
+
+    QProgressDialog progress(tr("Copying images"), tr("Abort copy"), 0, images.count(), this);
+    progress.setWindowModality(Qt::WindowModal);
+
+    TMaps::Current().setPathTemporary(mPathTemporary);
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->listViewImages->model());
+    QStringList::ConstIterator iter;
+    int pos = 0;
+
+    for (iter = images.cbegin(); iter != images.cend(); ++iter)
+    {
+        MSG_DEBUG("Working on file " << iter->toStdString());
+        pos++;
+
+        progress.setValue(pos);
+
+        if (progress.wasCanceled())
+            break;
+
+        if (!mImages.isEmpty())
+        {
+            QStringList::Iterator imIter;
+            bool haveImage = false;
+
+            for (imIter = mImages.begin(); imIter != mImages.end(); ++imIter)
+            {
+                if (*imIter == *iter)
+                {
+                    MSG_DEBUG("Image exists");
+                    haveImage = true;
+                    QList<QStandardItem *> items = model->findItems(*iter);
+                    QList<QStandardItem *>::Iterator itItem;
+
+                    for (itItem = items.begin(); itItem != items.end(); ++itItem)
+                        model->itemChanged(*itItem);
+                }
+            }
+
+            if (haveImage)
+                continue;
+        }
+
+        QString bn = basename(*iter);
+        QStandardItem *item = new QStandardItem(bn);
+        QSize oriSize;
+        item->setData(sizeImage(iconSize, *iter, &oriSize), Qt::DecorationRole);
+        item->setSizeHint(gridSize);
+        item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        item->setToolTip(QString("%1 (%2x%3)").arg(*iter).arg(oriSize.width()).arg(oriSize.height()));
+        model->appendRow(item);
+        mImages.append(bn);
+        TMaps::Current().addBitmap(*iter, 0, 0, 0, 0);
+    }
+
+    model->sort(0);
 }

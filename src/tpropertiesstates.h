@@ -39,6 +39,7 @@ class TElementBorderName;
 class TElementGradientColors;
 class TElementSound;
 class TElementSingleBitmap;
+class TElementSpinBox;
 
 class TPropertiesStates : public QObject
 {
@@ -75,7 +76,7 @@ class TPropertiesStates : public QObject
         TElementBitmapSelector *makeBitmapSelector(const QString& name);
         TElementSingleBitmap *makeSingleBitmapSelector(const QString& name);
         TElementWidgetFont *makeFontSelector(const QString& name);
-        QSpinBox *makeValueSelector(const QString& name, int max);
+        TElementSpinBox *makeValueSelector(const QString& name, int max);
         QWidget *makeTextValue(const QString& name);
         TElementWidgetCombo *makeTextJustification(const QString& name);
         TElementTextEffect *makeTextEffect(const QString& name);
@@ -98,6 +99,7 @@ class TPropertiesStates : public QObject
         void onColorChanged(const QColor& color, const QString& name, int instance);
         void onTextValueChanged(const QString& text, const QString& name, int instance);
         void onFillTypeChanged(const QString& text, const QVariant& data, const QString& name, int instance);
+        void onSpinValueChanged(int value, const QString& name, int instance);
 
     private:
         void setValue(const QString& name, const QVariant& value);

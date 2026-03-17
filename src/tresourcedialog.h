@@ -72,7 +72,6 @@ class TResourceDialog : public QDialog
         QStringList& getImageList() { return mImages; }
 
     protected:
-        QPixmap sizeImage(const QSize& size, const QString& file);
         void importImagesToListView(const QStringList& files);
         void removeItemFromListView(const QString& file, int row);
         int getRowFromListView(const QString& file);

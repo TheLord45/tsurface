@@ -77,9 +77,11 @@ TResourceDialog::TResourceDialog(QWidget *parent)
         QString file = mPathTemporary + "/images/" + *iter;
         MSG_DEBUG("Loading image: " << file.toStdString());
         QStandardItem *item = new QStandardItem(*iter);
-        item->setData(sizeImage(iconSize, file), Qt::DecorationRole);
+        QSize oriSize;
+        item->setData(sizeImage(iconSize, file, &oriSize), Qt::DecorationRole);
         item->setSizeHint(gridSize);
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        item->setToolTip(QString("%1 (%2x%3)").arg(*iter).arg(oriSize.width()).arg(oriSize.height()));
         model->appendRow(item);
         row++;
     }
@@ -890,14 +892,6 @@ int TResourceDialog::getClipboardImageNumber()
 
     mClipboardPixmapNumber++;
     return mClipboardPixmapNumber;
-}
-
-QPixmap TResourceDialog::sizeImage(const QSize& size, const QString& file)
-{
-    DECL_TRACER("TResourceDialog::sizeImage(const QSize& size, const QString& file)");
-
-    QPixmap pm(file);
-    return QPixmap(pm.scaled(size, Qt::KeepAspectRatio));
 }
 
 void TResourceDialog::importImagesToListView(const QStringList& images)

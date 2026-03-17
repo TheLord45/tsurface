@@ -141,3 +141,13 @@ STATE_TYPE getStateFromPageType(int pt)
 
     return STATE_UNKNOWN;
 }
+
+QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori)
+{
+    QPixmap pm(file);
+
+    if (ori)
+        *ori = pm.size();
+
+    return QPixmap(pm.scaled(size, Qt::KeepAspectRatio));
+}

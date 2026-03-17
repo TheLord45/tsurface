@@ -41,6 +41,7 @@
 #include "telementcolorselector.h"
 #include "telementwidgettext.h"
 #include "telementsinglebitmap.h"
+#include "telementspinbox.h"
 #include "tconfmain.h"
 #include "terror.h"
 
@@ -402,7 +403,6 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     {
         mActObject = mPage.objects[mActObjectID]->getObject();
         mActSr = mPage.objects[mActObjectID]->getSrFromIndex(instance);
-        mActInstance = instance;
         MSG_DEBUG("Recreating table for object " << mActObject.bi << " (" << mActObject.na.toStdString() << ") and instance " << instance);
 
         if (instance >= mActObject.sr.size())
@@ -1032,6 +1032,20 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
         }
         break;
 
+        case W_SPINBOX:
+        {
+            TElementSpinBox *p = static_cast<TElementSpinBox *>(w);
+            p->setValue(data.toInt());
+        }
+        break;
+
+        case W_FONT:
+        {
+            TElementWidgetFont *p = static_cast<TElementWidgetFont *>(w);
+            p->setFont(data.toString());
+        }
+        break;
+
         default:
             return w->height();
     }
@@ -1138,7 +1152,7 @@ TElementBorderName *TPropertiesStates::makeBorderName(const QString& name)
     else if (isValidObjectIndex())
         border = mActSr.bs;
 
-    TElementBorderName *brd = new TElementBorderName(border, name, mParent);
+    TElementBorderName *brd = new TElementBorderName(border, name, mTreeWidget);
     brd->setInstance(mActInstance);
     connect(brd, &TElementBorderName::borderChangedInst, this, &TPropertiesStates::onBorderNameChanged);
     return brd;
@@ -1262,7 +1276,7 @@ TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& nam
         bitmaps = mActSr.bitmaps;
 
     MSG_DEBUG("Number bitmaps on page " << mPage.pageID << ": " << bitmaps.size() << ". First bitmap: " << (bitmaps.size() > 0 ? bitmaps[0].fileName.toStdString() : "(none)"));
-    TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mParent);
+    TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mTreeWidget);
     bs->setInstance(mActInstance);
     connect(bs, &TElementBitmapSelector::bitmapsChangedInst, this, &TPropertiesStates::onBitmapsChanged);
     return bs;
@@ -1285,7 +1299,7 @@ TElementSingleBitmap *TPropertiesStates::makeSingleBitmapSelector(const QString&
             pixName = mActSr.mi;
     }
 
-    TElementSingleBitmap *sbm = new TElementSingleBitmap(pixName, name, mParent);
+    TElementSingleBitmap *sbm = new TElementSingleBitmap(pixName, name, mTreeWidget);
     sbm->setInstance(mActInstance);
     connect(sbm, &TElementSingleBitmap::bitmapChangedInst, this, &TPropertiesStates::onPixmapNameChanged);
     return sbm;
@@ -1302,13 +1316,13 @@ TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
     else if (isValidObjectIndex())
         ff = mActSr.ff;
 
-    TElementWidgetFont *widget = new TElementWidgetFont(QFont(ff), name, mParent);
+    TElementWidgetFont *widget = new TElementWidgetFont(QFont(ff), name, mTreeWidget);
     widget->setInstance(mActInstance);
     connect(widget, &TElementWidgetFont::fontChangedInst, this, &TPropertiesStates::onFontChanged);
     return widget;
 }
 
-QSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
+TElementSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
 {
     DECL_TRACER("TPropertiesStates::makeValueSelector(const QString& name, int max)");
 
@@ -1349,18 +1363,10 @@ QSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int max)
             value = mActSr.ty;
     }
 
-    QSpinBox *spin = new QSpinBox;
-    spin->setObjectName(name);
+    TElementSpinBox *spin = new TElementSpinBox(value, 0, max, name, mTreeWidget);
+    spin->setInstance(mActInstance);
 
-    spin->setRange(0, max);
-    spin->setValue(value);
-
-    int inst = mActInstance;
-    connect(spin, &QSpinBox::valueChanged, [this, name, inst](int value) {
-        mActInstance = inst;
-        setValue(name, value);
-    });
-
+    connect(spin, &TElementSpinBox::valueChangedInst, this, &TPropertiesStates::onSpinValueChanged);
     return spin;
 }
 
@@ -1407,7 +1413,7 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& nam
     else
         ori = mActSr.jt;
 
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mParent);
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTreeWidget);
     combo->addItems(items);
     combo->addData(data);
     combo->setCurrentIndex(ori);
@@ -1427,7 +1433,7 @@ TElementTextEffect *TPropertiesStates::makeTextEffect(const QString& name)
     else
         et = mActSr.et;
 
-    TElementTextEffect *eff = new TElementTextEffect(et, name, mParent);
+    TElementTextEffect *eff = new TElementTextEffect(et, name, mTreeWidget);
     eff->setInstance(mActInstance);
     connect(eff, &TElementTextEffect::effectChangedInst, this, &TPropertiesStates::onTextEffectChanged);
     return eff;
@@ -1447,7 +1453,7 @@ TElementWidgetCombo *TPropertiesStates::makeWordWrap(const QString& name)
     QList<QString> items = { tr("no"), tr("yes") };
     QList<QVariant> data = { false, true };
 
-    TElementWidgetCombo *cbox = new TElementWidgetCombo(name, mParent);
+    TElementWidgetCombo *cbox = new TElementWidgetCombo(name, mTreeWidget);
     cbox->addItems(items);
     cbox->addData(data);
     cbox->setInstance(mActInstance);
@@ -1470,7 +1476,7 @@ TElementGradientColors *TPropertiesStates::makeGradientColors(const QString& nam
     else
         color = mActSr.gradientColors;
 
-    TElementGradientColors *grad = new TElementGradientColors(color, name, mParent);
+    TElementGradientColors *grad = new TElementGradientColors(color, name, mTreeWidget);
     grad->setInstance(mActInstance);
     connect(grad, &TElementGradientColors::gradientColorChangedInst, this, &TPropertiesStates::onGradientColorChanged);
     return grad;
@@ -1580,6 +1586,8 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
             mPage.objects[mActObjectID]->setOverallOpacity(value.toInt(), mActInstance);
         else if (name == "VideoFill")
             mPage.objects[mActObjectID]->setVideoFill(value.toString(), mActInstance);
+
+        mActObject = mPage.objects[mActObjectID]->getObject();
     }
 
     mChanged = true;
@@ -1754,6 +1762,7 @@ void TPropertiesStates::onTextValueChanged(const QString& text, const QString& n
     DECL_TRACER("TPropertiesStates::onTextValueChanged(const QString& text, const QString& name, int instance)");
 
     mActInstance = instance;
+    MSG_DEBUG("Changing text on instance " << instance << " to " << text.toStdString());
     setValue(name, text);
 }
 
@@ -1766,3 +1775,12 @@ void TPropertiesStates::onFillTypeChanged(const QString& text, const QVariant& d
     mActInstance = instance;
     setValue(name, data);
 }
+
+void TPropertiesStates::onSpinValueChanged(int value, const QString& name, int instance)
+{
+    DECL_TRACER("TPropertiesStates::onSpinValueChanged(int value, const QString& name, int instance)");
+
+    mActInstance = instance;
+    setValue(name, value);
+}
+

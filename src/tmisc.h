@@ -67,6 +67,7 @@ typedef enum
 }ELEMENT_TYPE_t;
 
 class QPixmap;
+class QSize;
 
 QString basename(const QString& path);
 QString pathname(const QString& path);
@@ -75,6 +76,7 @@ QString wcharToUnicodeString(const QChar& ch);
 QPixmap makePixmapFromString(const QString& str, int width);
 STATE_TYPE getStateFromButtonType(int bt);
 STATE_TYPE getStateFromPageType(int pt);
+QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori=nullptr);
 
 #define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
 

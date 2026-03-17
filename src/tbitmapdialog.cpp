@@ -299,8 +299,8 @@ void TBitmapDialog::onBitmapsChanged(const QList<BITMAPS_t>& bitmaps, const QStr
 {
     DECL_TRACER("TBitmapDialog::onBitmapsChanged(const QList<BITMAPS_t>& bitmaps, const QString& name)");
 
-    Q_UNUSED(name);
-    mBitmaps = bitmaps;
+    int idx = getObjectID(name, "Bitmap_");
+    mBitmaps[idx] = bitmaps[0];
 }
 
 void TBitmapDialog::onOrientationChanged(const QString& text, const QVariant& data, const QString& name)

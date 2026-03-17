@@ -113,8 +113,7 @@ ObjHandler::SR_T TObjectHandler::getSrCommon()
 {
     DECL_TRACER("TObjectHandler::getSrCommon()");
 
-    TOBJECT_t obj = mObject;
-    SR_T common = obj.sr[0];
+    SR_T common = mObject.sr[0];
 
     for (int i = 1; i < mObject.sr.size(); ++i)
     {

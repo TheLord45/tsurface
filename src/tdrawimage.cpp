@@ -265,17 +265,16 @@ void TDrawImage::drawChameleon()
     DECL_TRACER("TDrawImage::drawChameleon()");
 
     QString pathTemp = TConfMain::Current().getPathTemporary();
-    QPixmap pix;
+    QPixmap imgRed;
     BITMAPS_t bm;
     // Load the image
-    if (!pix.load(pathTemp + "/images/" + mChameleon))
+    if (!imgRed.load(pathTemp + "/images/" + mChameleon))
     {
         MSG_ERROR("Couldn't load image " << mChameleon.toStdString());
         return;
     }
 
     MSG_DEBUG("Loaded chameleon image " << mChameleon.toStdString());
-    QPixmap imgRed(pix);
     QPixmap imgMask;
 
     if (mBitmaps.size() > 0)
@@ -303,16 +302,20 @@ void TDrawImage::drawChameleon()
         bm.offsetY = 0;
     }
 
-    bm.width = pix.width();
-    bm.height = pix.height();
+    bm.width = imgRed.width();
+    bm.height = imgRed.height();
 
     QImage pixmapRed = imgRed.toImage();
     QImage pixmapMask;
     QImage maskBm(mWidth, mHeight, QImage::Format_ARGB32);
     maskBm.fill(Qt::transparent);
+    MSG_DEBUG("Size of pixmapRed: " << pixmapRed.width() << " x " << pixmapRed.height());
 
     if (!imgMask.isNull())
+    {
         pixmapMask = imgMask.toImage();
+        MSG_DEBUG("Size of pixmapMask: " << pixmapMask.width() << " x " << pixmapMask.height());
+    }
 
     for (int ix = 0; ix < mWidth; ix++)
     {
@@ -322,13 +325,13 @@ void TDrawImage::drawChameleon()
             QColor pixelMask;
 
             if (ix < pixmapRed.width() && iy < pixmapRed.height())
-                pixelRed = pixmapRed.pixel(ix, iy);
+                pixelRed = pixmapRed.pixelColor(ix, iy);
             else
                 pixelRed = Qt::transparent;
 
             if (haveBothImages && !imgMask.isNull() &&
                     ix < pixmapMask.width() && iy < pixmapMask.height())
-                pixelMask = pixmapMask.pixel(ix, iy);
+                pixelMask = pixmapMask.pixelColor(ix, iy);
             else
                 pixelMask = Qt::transparent;
 
@@ -355,6 +358,10 @@ void TDrawImage::drawChameleon()
 
     int x, y;
     getLeftUpper(&x, &y, bm);
+    // To have all transparent pixels from the chameleon image we must fill the
+    // base image with transparent pixels. This removes the background which was
+    // already drawn.
+    mPixmap->fill(Qt::transparent);
 
     QPainter p(mPixmap);
 

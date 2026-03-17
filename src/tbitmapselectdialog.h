@@ -27,6 +27,7 @@ namespace Ui {
 }
 
 class QStandardItemModel;
+class QFileDialog;
 
 class TBitmapSelectDialog : public QDialog
 {
@@ -42,6 +43,7 @@ class TBitmapSelectDialog : public QDialog
 
     protected:
         virtual void accept() override;
+        void onImageImportFinished(int result);
 
     private slots:
         void on_pushButtonImport_clicked();
@@ -50,12 +52,19 @@ class TBitmapSelectDialog : public QDialog
         void on_tabWidget_tabBarClicked(int index);
 
     private:
+        typedef enum
+        {
+            SEL_IMAGES,
+            SEL_DYNIMAGES
+        }TABSEL_t;
+
         void init();
-        QPixmap sizeImage(const QSize& size, const QString& file);
-        void addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model);
+        void addDynamicResource(const ConfigMain::RESOURCE_t& res, QStandardItemModel *model=nullptr);
+        void importImagesToListView(const QStringList& images);
 
         Ui::TBitmapSelectDialog *ui;
 
+        QFileDialog *mImportImagesDialog{nullptr};
         QList<QString> mImages;
         QString mPathTemporary;
         QList<ConfigMain::RESOURCE_t> mDynamicResources;
