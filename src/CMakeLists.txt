@@ -13,8 +13,8 @@ find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de gr)
 qt6_add_translations(tsurface QM_FILES_OUTPUT_VARIABLE qm_files)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Core Gui Network)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui Network)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Core Gui Network Xml)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui Network Xml)
 
 if(${QT_VERSION_MAJOR} LESS 6)
     message(FATAL_ERROR "Qt with version ${QT_VERSION} is not supported!")
@@ -171,6 +171,14 @@ qt_add_executable(tsurface
     tdrawimage.cpp
     tdrawborder.cpp
     tdrawborder.h
+    tfsfreader.cpp
+    tfsfreader.h
+    readtp4.cpp
+    readtp4.h
+    expand.cpp
+    expand.h
+    tscramble.cpp
+    tscramble.h
     tsurface.qrc
     borders.qrc
     sliders.qrc
@@ -180,7 +188,7 @@ qt_add_executable(tsurface
 )
 
 # Use the Widgets module from Qt 6.
-target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network archive fontconfig ssl crypto)
+target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network Qt6::Xml archive fontconfig ssl crypto z)
 target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable

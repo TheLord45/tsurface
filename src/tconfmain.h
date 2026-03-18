@@ -25,6 +25,7 @@
 #include <QFont>
 
 #include "tpaneltypes.h"
+#include "tpagehandler.h"
 
 namespace ConfigMain
 {
@@ -55,6 +56,8 @@ namespace ConfigMain
         QString themeFile;
         QString buttonFile;
         QString appFile;
+        QString logFile;
+        QString iconFile;   // G4 backward compatibility
     }FILELIST_t;
 
     typedef struct SETUP_t
@@ -82,14 +85,54 @@ namespace ConfigMain
     {
         QString name;
         int pageID{0};
+        Page::PAGE_TYPE type{Page::PT_UNKNOWN};
         QString file;
+        QString group;
         bool isValid{true};
         PANELTYPE_t popupType{PN_UNDEFINED};
     }PAGEENTRY_t;
 
+    typedef struct SUBPAGEITEMS_t
+    {
+        int index{0};
+        QString pageName;
+        int pageID{0};
+    }SUBPAGEITEMS_t;
+
+    typedef struct SUBPAGESET_t
+    {
+        int id{0};
+        QString name;
+        int pgWidth{0};
+        int pgHeight{0};
+        QList<SUBPAGEITEMS_t> items;
+    }SUBPAGESET_t;
+
+    typedef struct DROPGROUP_t
+    {
+        int id{0};
+        QString name;
+    }DROPGROUP_t;
+
+    typedef struct MAPLIST_t
+    {
+        int id{0};
+        QString map;
+    }MAPLIST_t;
+
+    typedef struct DATAMAP_t
+    {
+        QString type;
+        QString sort;
+        QString dynMapName;
+        QList<MAPLIST_t> dataMap;
+        QStringList sortList;
+    }DATAMAP_t;
+
     // Structure to define access to devices like cameras etc.
     typedef struct RESOURCE_t
     {
+        QString type;
         QString name;
         QString protocol;
         QString host;
@@ -97,8 +140,10 @@ namespace ConfigMain
         QString file;
         QString user;
         QString password;
+        QString format;
         int refreshRate{0};
         bool refreshStart{false};
+        QList<DATAMAP_t> dataMapList;   // for listviews
     }RESOURCE_t;
 
     typedef enum
@@ -142,6 +187,13 @@ namespace ConfigMain
         int headlines{0};       // The number of headlines
     }DATASOURCE_t;
 
+    typedef struct PALETTELIST_t
+    {
+        QString name;
+        QString file;
+        int paletteID{0};
+    }PALETTELIST_t;
+
     typedef struct CONFMAIN_t
     {
         int fileVersion{1};
@@ -151,10 +203,15 @@ namespace ConfigMain
         SETUP_t setup;
         QList<PAGEENTRY_t> pageList;
         QList<PAGEENTRY_t> popupList;
+        QList<SUBPAGESET_t> subPageSet;
+        QList<DROPGROUP_t> dropGroups;
         QList<RESOURCE_t> resourceList;
         QList<DATASOURCE_t> dataSourceList;
+        QList<PALETTELIST_t> paletteList;
     }CONFMAIN_t;
 };
+
+class QDomElement;
 
 class TConfMain
 {
@@ -171,11 +228,14 @@ class TConfMain
         void renamePopup(int num, const QString& name);
         void deletePage(const QString& name);
         void deletePopup(const QString& name);
-        bool readProject(const QString& path);
+        bool readProject(const QString& path, bool g5=false);
         void saveProject();
         void reset();
         void removeDynamicImage(const QString& name);
         void removeDynamicData(const QString& name);
+        bool isAMX() { return mAMX; }
+        bool isG5() { return mG5; }
+        bool isSubpage(int pageID);
 
         // Setter
         void setDefaultPanelType(TPanelType::PANELTYPE_t pt) { mPanType = pt; }
@@ -220,8 +280,19 @@ class TConfMain
 
     protected:
         void initConfig(bool force=false);
+        bool readProjectAMX(const QString& file);
 
     private:
+        void parseVersionInfo(const QDomElement &versionInfo);
+        void parseProjectInfo(const QDomElement &projectInfo);
+        void parseSupportFileList(const QDomElement &supportFileList);
+        void parsePanelSetup(const QDomElement &panelSetup);
+        void parsePageList(const QDomElement &pageList);
+        void parseResourceList(const QDomElement &resourceList);
+        void parsePaletteList(const QDomElement &paletteList);
+        void parseSubPageSet(const QDomElement& subPageSet);
+        void parseDropGroups(const QDomElement& subPageSet);
+
         static TConfMain *mCurrent;
 
         ConfigMain::CONFMAIN_t *mConfMain{nullptr};
@@ -235,6 +306,8 @@ class TConfMain
         QFont mFontBase;            // The default font
         int mFontBaseSize{10};      // The default font size
         bool mFileNameAuto{false};  // TRUE = File name is auto generated
+        bool mAMX{false};           // TRUE = Read a TP4 or TP5 file.
+        bool mG5{false};            // If mAMX is TRUE and this is TRUE then we read an AMX G5 file.
 };
 
 #endif // TCONFMAIN_H

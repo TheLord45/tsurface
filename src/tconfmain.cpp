@@ -25,6 +25,9 @@
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QFile>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomNodeList>
+#include <QtXml/QDomElement>
 
 #include "tconfmain.h"
 #include "tpaneltypes.h"
@@ -276,9 +279,30 @@ void TConfMain::setSetup(const SETUP_t& setup)
     mConfMain->setup = setup;
 }
 
-bool TConfMain::readProject(const QString& path)
+bool TConfMain::readProject(const QString& path, bool g5)
 {
-    DECL_TRACER("TConfMain::readMain(const QString& path)");
+    DECL_TRACER("TConfMain::readMain(const QString& path, bool g5)");
+
+    mG5 = g5;
+
+    if (path.endsWith(".xma"))
+    {
+        mAMX = true;
+        MSG_DEBUG("Reading AMX file: " << path.toStdString());
+
+        if (!readProjectAMX(path))
+            return false;
+
+        if (!TFonts::readAMXFontFile(mPathTemporary + "/" + mConfMain->fileList.fontFile))
+            return false;
+
+        TMaps::Current().setPathTemporary(mPathTemporary);
+
+        if (!TMaps::Current().parseAMXMaps(mPathTemporary + "/" + mConfMain->fileList.mapFile))
+            return false;
+
+        return true;
+    }
 
     QFile project(path);
 
@@ -443,12 +467,116 @@ bool TConfMain::readProject(const QString& path)
     }
 
     if (!TFonts::readFontFile(mPathTemporary, mConfMain->fileList.fontFile))
-        return false;
+       return false;
 
     TMaps::Current().setPathTemporary(mPathTemporary);
 
     if (!TMaps::Current().readMaps(mPathTemporary, mConfMain->fileList.mapFile))
         return false;
+
+    return true;
+}
+
+bool TConfMain::readProjectAMX(const QString& path)
+{
+    DECL_TRACER("TConfMain::readProjectAMX(const QString& path)");
+
+    QFile file(path);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("Error opening file: " << file.errorString().toStdString());
+        return false;
+    }
+
+    QDomDocument doc;
+
+    QString errorMsg;
+    QDomDocument::ParseResult result;
+
+    if (!(result = doc.setContent(&file)))
+    {
+        MSG_ERROR("Failed to parse XML: " << result.errorMessage.toStdString() << " at line " << result.errorLine << " column " << result.errorColumn);
+        file.close();
+        return false;
+    }
+
+    file.close();
+
+    if (mConfMain)
+        delete mConfMain;
+
+    mConfMain = new CONFMAIN_t;
+    QDomElement root = doc.documentElement();
+
+    if (root.tagName() != "root")
+    {
+        MSG_ERROR("Unexpected root element:" << root.tagName().toStdString());
+        return false;
+    }
+
+    // Parse versionInfo
+    QDomElement versionInfo = root.firstChildElement("versionInfo");
+
+    if (!versionInfo.isNull())
+        parseVersionInfo(versionInfo);
+
+    // Parse projectInfo
+    QDomElement projectInfo = root.firstChildElement("projectInfo");
+
+    if (!projectInfo.isNull())
+        parseProjectInfo(projectInfo);
+
+    // Parse supportFileList
+    QDomElement supportFileList = root.firstChildElement("supportFileList");
+
+    if (!supportFileList.isNull())
+        parseSupportFileList(supportFileList);
+
+    // Parse panelSetup
+    QDomElement panelSetup = root.firstChildElement("panelSetup");
+
+    if (!panelSetup.isNull())
+        parsePanelSetup(panelSetup);
+
+    // Parse all pageList elements (there are multiple with different types)
+    QDomNodeList pageLists = root.elementsByTagName("pageList");
+
+    for (int i = 0; i < pageLists.count(); ++i)
+    {
+        QDomElement pageList = pageLists.at(i).toElement();
+        parsePageList(pageList);
+    }
+
+    // Parse subPageSets
+    QDomNodeList subPageSets = root.elementsByTagName("subPageSets");
+
+    for (int i = 0; i < subPageSets.count(); ++i)
+    {
+        QDomElement pageSet = subPageSets.at(i).toElement();
+        parseSubPageSet(pageSet);
+    }
+
+    // Parse dropGroups
+    QDomNodeList dropGroups = root.elementsByTagName("dropGroups");
+
+    for (int i = 0; i < dropGroups.count(); ++i)
+    {
+        QDomElement dg = dropGroups.at(i).toElement();
+        parseDropGroups(dg);
+    }
+
+    // Parse resourceList
+    QDomElement resourceList = root.firstChildElement("resourceList");
+
+    if (!resourceList.isNull())
+        parseResourceList(resourceList);
+
+    // Parse paletteList
+    QDomElement paletteList = root.firstChildElement("paletteList");
+
+    if (!paletteList.isNull())
+        parsePaletteList(paletteList);
 
     return true;
 }
@@ -634,6 +762,19 @@ void TConfMain::removeDynamicData(const QString& name)
             return;
         }
     }
+}
+
+bool TConfMain::isSubpage(int pageID)
+{
+    DECL_TRACER("TConfMain::isSubpage(int pageID)");
+
+    for (SUBPAGESET_t sp : mConfMain->subPageSet)
+    {
+        if (sp.id == pageID)
+            return true;
+    }
+
+    return false;
 }
 
 QList<DATASOURCE_t>& TConfMain::getAllDynamicData()
@@ -924,4 +1065,212 @@ QString TConfMain::getUrl(const ConfigMain::RESOURCE_t& data)
 
     txt.append(data.file);
     return txt;
+}
+
+// XML parser
+
+void TConfMain::parseVersionInfo(const QDomElement &versionInfo)
+{
+    MSG_DEBUG("formatVersion:   " << versionInfo.firstChildElement("formatVersion").text().toStdString());
+    MSG_DEBUG("graphicsVersion: " << versionInfo.firstChildElement("graphicsVersion").text().toStdString());
+    MSG_DEBUG("fileVersion:     " << versionInfo.firstChildElement("fileVersion").text().toStdString());
+    MSG_DEBUG("designVersion:   " << versionInfo.firstChildElement("designVersion").text().toStdString());
+}
+
+void TConfMain::parseProjectInfo(const QDomElement &projectInfo)
+{
+    mConfMain->projectInfo.protection = projectInfo.firstChildElement("protection").text() == "none" ? false : true;
+    QDomElement password = projectInfo.firstChildElement("password");
+    // qDebug() << "  password encrypted:" << password.attribute("encrypted");
+    mConfMain->projectInfo.password = password.text();
+    mConfMain->projectInfo.panelType = projectInfo.firstChildElement("panelType").text();
+    mConfMain->projectInfo.dealer = projectInfo.firstChildElement("dealerId").text();
+    mConfMain->projectInfo.jobName = projectInfo.firstChildElement("jobName").text();
+    mConfMain->projectInfo.designer = projectInfo.firstChildElement("designerId").text();
+    mConfMain->projectInfo.lastDate = QDateTime::fromString(projectInfo.firstChildElement("lastSaveDate").text());
+    mConfMain->projectInfo.comment = projectInfo.firstChildElement("jobComment").text();
+}
+
+void TConfMain::parseSupportFileList(const QDomElement &supportFileList)
+{
+    mConfMain->fileList.mapFile = supportFileList.firstChildElement("mapFile").text();
+    mConfMain->fileList.colorFile = supportFileList.firstChildElement("colorFile").text();
+    mConfMain->fileList.fontFile = supportFileList.firstChildElement("fontFile").text();
+    mConfMain->fileList.themeFile = supportFileList.firstChildElement("themeFile").text();
+    mConfMain->fileList.iconFile = supportFileList.firstChildElement("iconFile").text();
+    mConfMain->fileList.appFile = supportFileList.firstChildElement("appFile").text();
+    mConfMain->fileList.logFile = supportFileList.firstChildElement("logFile").text();
+}
+
+void TConfMain::parsePanelSetup(const QDomElement &panelSetup)
+{
+    mConfMain->setup.portCount = panelSetup.firstChildElement("portCount").text().toInt();
+    mConfMain->setup.setupPort = panelSetup.firstChildElement("setupPort").text().toInt();
+    mConfMain->setup.screenWidth = panelSetup.firstChildElement("screenWidth").text().toInt();
+    mConfMain->setup.screenHeight = panelSetup.firstChildElement("screenHeight").text().toInt();
+    mConfMain->setup.powerUpPage = panelSetup.firstChildElement("powerUpPage").text();
+
+    QDomNodeList popups = panelSetup.elementsByTagName("powerUpPopup");
+
+    for (int i = 0; i < popups.count(); ++i)
+    {
+        QDomElement entry = popups.at(i).toElement();
+        mConfMain->setup.powerUpPopups.append(entry.text());
+    }
+
+    mConfMain->setup.idlePage = panelSetup.firstChildElement("idlePage").text();
+    mConfMain->setup.idleTimeout = panelSetup.firstChildElement("idleTimeout").text().toInt();
+    mConfMain->setup.inactivityPage = panelSetup.firstChildElement("inactivityPage").text();
+    mConfMain->setup.batteryLevelPort = panelSetup.firstChildElement("batteryLevelPort").text().toInt();
+    mConfMain->setup.batteryLevelCode = panelSetup.firstChildElement("batteryLevelCode").text().toInt();
+    mConfMain->setup.marqeeSpeed = panelSetup.firstChildElement("marqueeSpeed").text().toInt();
+    mConfMain->setup.screenRotate = panelSetup.firstChildElement("screenRotate").text().toInt();
+    mConfMain->setup.shutdownString = panelSetup.firstChildElement("shutdownString").text();
+    mConfMain->setup.startupString = panelSetup.firstChildElement("startupString").text();
+    mConfMain->setup.wakeupString = panelSetup.firstChildElement("wakeupString").text();
+    mConfMain->setup.sleepString = panelSetup.firstChildElement("sleepString").text();
+}
+
+void TConfMain::parsePageList(const QDomElement &pageList)
+{
+    QString type = pageList.attribute("type");
+    PANELTYPE_t ptype = PN_UNDEFINED;
+
+    if (type == "page")
+        ptype = PN_PAGE;
+    else if (type == "subpage")
+        ptype = PN_POPUP;
+
+    QDomNodeList pages = pageList.elementsByTagName("pageEntry");
+
+    for (int i = 0; i < pages.count(); ++i)
+    {
+        PAGEENTRY_t pentry;
+        pentry.popupType = ptype;
+        QDomElement pageEntry = pages.at(i).toElement();
+        pentry.name = pageEntry.firstChildElement("name").text();
+        pentry.pageID = pageEntry.firstChildElement("pageID").text().toInt();
+        pentry.file = pageEntry.firstChildElement("file").text();
+
+        if (!pageEntry.firstChildElement("group").isNull())
+            pentry.group = pageEntry.firstChildElement("group").text();
+
+        if (!pageEntry.firstChildElement("popupType").isNull())
+        {
+            int popupType = pageEntry.firstChildElement("popupType").text().toInt();
+
+            if (popupType == 1)
+                pentry.type = Page::PT_POPUP;
+            else if (popupType == 2)
+                pentry.type = Page::PT_SUBPAGE;
+        }
+
+        if (!pageEntry.firstChildElement("isValid").isNull())
+            pentry.isValid = pageEntry.firstChildElement("isValid").text().toInt();
+
+        if (ptype == PN_PAGE)
+            mConfMain->pageList.append(pentry);
+        else
+            mConfMain->popupList.append(pentry);
+    }
+}
+
+void TConfMain::parseSubPageSet(const QDomElement& subPageSet)
+{
+    QDomNodeList sets = subPageSet.elementsByTagName("subPageSetEntry");
+
+    for (int i = 0; i < sets.count(); ++i)
+    {
+        SUBPAGESET_t pageSet;
+        QDomElement entry = sets.at(i).toElement();
+        pageSet.id = entry.attribute("id").toInt();
+        pageSet.name = entry.firstChildElement("name").text();
+        pageSet.pgWidth = entry.firstChildElement("pgWidth").text().toInt();
+        pageSet.pgHeight = entry.firstChildElement("pgHeight").text().toInt();
+
+        QDomNodeList items = entry.elementsByTagName("items");
+
+        for (int j = 0; j < items.count(); ++j)
+        {
+            SUBPAGEITEMS_t item;
+            QDomElement di = items.at(j).toElement();
+            item.index = di.attribute("index").toInt();
+            item.pageName = di.firstChildElement("pageName").text();
+            item.pageID = di.firstChildElement("pageID").text().toInt();
+            pageSet.items.append(item);
+        }
+
+        mConfMain->subPageSet.append(pageSet);
+    }
+}
+
+void TConfMain::parseDropGroups(const QDomElement& dropGroups)
+{
+    QDomNodeList groups = dropGroups.elementsByTagName("dropGroup");
+
+    for (int i = 0; i < groups.count(); ++i)
+    {
+        DROPGROUP_t dg;
+        QDomElement entry = groups.at(i).toElement();
+        dg.id = entry.attribute("id").toInt();
+        dg.name = entry.firstChildElement("name").text();
+        mConfMain->dropGroups.append(dg);
+    }
+}
+
+void TConfMain::parseResourceList(const QDomElement &resourceList)
+{
+    QString type = resourceList.attribute("type");
+    QDomNodeList resources = resourceList.elementsByTagName("resource");
+
+    for (int i = 0; i < resources.count(); ++i)
+    {
+        QDomElement resource = resources.at(i).toElement();
+        RESOURCE_t res;
+        res.type = type;
+        res.name = resource.firstChildElement("name").text();
+        res.protocol = resource.firstChildElement("protocol").text();
+        res.host = resource.firstChildElement("host").text();
+
+        if (!resource.firstChildElement("user").isNull())
+            res.user = resource.firstChildElement("user").text();
+
+        res.file = resource.firstChildElement("file").text();
+
+        if (!resource.firstChildElement("refresh").isNull())
+            res.refreshRate = resource.firstChildElement("refresh").text().toInt();
+
+        if (!resource.firstChildElement("password").isNull())
+            res.password = resource.firstChildElement("password").text();
+
+        if (!resource.firstChildElement("path").isNull())
+            res.path = resource.firstChildElement("path").text();
+
+        if (!resource.firstChildElement("file").isNull())
+            res.file = resource.firstChildElement("file").text();
+
+        if (!resource.firstChildElement("format").isNull())
+            res.format = resource.firstChildElement("format").text();
+
+        if (!resource.firstChildElement("format").isNull())
+            res.format = resource.firstChildElement("format").text();
+
+        // TODO: Parse dataMapList
+        mConfMain->resourceList.append(res);
+    }
+}
+
+void TConfMain::parsePaletteList(const QDomElement &paletteList)
+{
+    QDomNodeList palettes = paletteList.elementsByTagName("palette");
+
+    for (int i = 0; i < palettes.count(); ++i)
+    {
+        PALETTELIST_t pal;
+        QDomElement palette = palettes.at(i).toElement();
+        pal.name = palette.firstChildElement("name").text();
+        pal.file = palette.firstChildElement("file").text();
+        pal.paletteID = palette.firstChildElement("paletteID").text().toInt();
+        mConfMain->paletteList.append(pal);
+    }
 }

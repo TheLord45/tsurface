@@ -89,6 +89,8 @@ namespace Maps
     }MAPS_T;
 };
 
+class QDomElement;
+
 class TMaps
 {
     public:
@@ -110,9 +112,12 @@ class TMaps
 
         bool readMaps(const QString& path, const QString& file);
         bool writeMaps(const QString& path, const QString& file);
+        bool parseAMXMaps(const QString& file);
 
     protected:
         bool buttonExist(Maps::MAP_TYPE type, int port, int channel, int pgnum, int *btIndex=nullptr);
+        void parseMeElement(const QDomElement &me, const QString& sectionName);
+        void parseSection(const QDomElement &root, const QString &sectionName);
 
     private:
         static TMaps *mCurrent;

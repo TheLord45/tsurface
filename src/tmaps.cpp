@@ -22,6 +22,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QFile>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomElement>
+#include <QtXml/QDomNodeList>
 
 #include "tmaps.h"
 #include "tpagehandler.h"
@@ -625,4 +628,219 @@ bool TMaps::writeMaps(const QString& path, const QString& file)
     f.write(doc.toJson(QJsonDocument::Indented));
     f.close();
     return true;
+}
+
+//------------------------------------------------------------------------------
+// Read from AMX "map.xma" file
+//------------------------------------------------------------------------------
+bool TMaps::parseAMXMaps(const QString& xmlFilePath)
+{
+    DECL_TRACER("TMaps::parseAMXMaps(const QString& xmlFilePath)");
+
+    MSG_DEBUG("Reading AMX map file: " << xmlFilePath.toStdString());
+    QFile file(xmlFilePath);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("Cannot open file:" << xmlFilePath.toStdString());
+        return false;
+    }
+
+    QDomDocument doc;
+    QString errorMsg;
+    QDomDocument::ParseResult result;
+
+    if (!doc.setContent(&file))
+    {
+        MSG_ERROR("Parse error at line " << result.errorLine << " column " << result.errorColumn << ": " << result.errorMessage.toStdString());
+        file.close();
+        return false;
+    }
+
+    file.close();
+
+    QDomElement root = doc.documentElement();
+
+    if (root.tagName() != "root")
+    {
+        MSG_ERROR("Unexpected root element:" << root.tagName().toStdString());
+        return false;
+    }
+
+    // Parse <cm>, <am>, <lm>, <bm>, <cmdm>, <evpf>, <evaw>, <spvm> sections if present
+    QStringList sections = {"cm", "am", "lm", "bm", "sm", "pm", "cmdm", "strm", "evpf", "evaw", "spvm"};
+
+    for (const QString &sectionName : sections)
+    {
+        parseSection(root, sectionName);
+    }
+
+    return true;
+}
+
+// Parse <me> element common fields
+void TMaps::parseMeElement(const QDomElement &me, const QString& sectionName)
+{
+    DECL_TRACER("TMaps::parseMeElement(const QDomElement &me, const QString& sectionName) ");
+
+    auto textOrEmpty = [](const QDomElement &el)
+    {
+        return el.isNull() ? QString() : el.text();
+    };
+
+    int p = textOrEmpty(me.firstChildElement("p")).toInt();
+    int c = textOrEmpty(me.firstChildElement("c")).toInt();
+    int pg = textOrEmpty(me.firstChildElement("pg")).toInt();
+    int bt = textOrEmpty(me.firstChildElement("bt")).toInt();
+    QString pn = textOrEmpty(me.firstChildElement("pn"));
+    QString bn = textOrEmpty(me.firstChildElement("bn"));
+
+    int ax = 0;
+    int rt = 0;
+    int st = 0;
+    int rc = 0;
+    int id = 0;
+    int sl = 0;
+    int a = 0;
+    int ai = 0;
+    QString ev;
+    QString t;
+    QString si;
+    QString src;
+
+    // Optional elements
+    if (!me.firstChildElement("ax").isNull())
+        ax = me.firstChildElement("ax").text().toInt();
+
+    if (!me.firstChildElement("rt").isNull())
+        rt = me.firstChildElement("rt").text().toInt();
+
+    if (!me.firstChildElement("st").isNull())
+        st = me.firstChildElement("st").text().toInt();
+
+    if (!me.firstChildElement("rc").isNull())
+        rc = me.firstChildElement("rc").text().toInt();
+
+    if (!me.firstChildElement("id").isNull())
+        id = me.firstChildElement("id").text().toInt();
+
+    if (!me.firstChildElement("sl").isNull())
+        sl = me.firstChildElement("sl").text().toInt();
+
+    if (!me.firstChildElement("a").isNull())
+        a = me.firstChildElement("a").text().toInt();
+
+    if (!me.firstChildElement("ai").isNull())
+        ai = me.firstChildElement("ai").text().toInt();
+
+    if (!me.firstChildElement("ev").isNull())
+        ev = me.firstChildElement("ev").text();
+
+    if (!me.firstChildElement("t").isNull())
+        t = me.firstChildElement("t").text();
+
+    if (!me.firstChildElement("i").isNull())
+        si = me.firstChildElement("i").text();
+
+    if (!me.firstChildElement("src").isNull())
+        src = me.firstChildElement("src").text();
+
+    // Parse <ais> if present (list of <ai>)
+    QDomElement ais = me.firstChildElement("ais");
+    QList<int> aisList;
+
+    if (!ais.isNull())
+    {
+        QDomNodeList aiList = ais.elementsByTagName("ai");
+
+        for (int i = 0; i < aiList.count(); ++i)
+            aisList.append(aiList.at(i).toElement().text().toInt());
+    }
+
+    // Insert the values into the structure
+    if (sectionName == "cm" || sectionName == "am" || sectionName == "lm" || sectionName == "strm")
+    {
+        MAP_T cm;
+        cm.p = p;
+        cm.c = c;
+        cm.pg = pg;
+        cm.bt = bt;
+        cm.pn = pn;
+        cm.bn = bn;
+        cm.ax = ax;
+
+        if (sectionName == "cm")
+            mMap.map_cm.push_back(cm);
+        else if (sectionName == "am")
+            mMap.map_am.push_back(cm);
+        else if (sectionName == "lm")
+            mMap.map_lm.push_back(cm);
+        else if (sectionName == "strm")
+            mMap.map_strm.push_back(cm);
+    }
+    else if (sectionName == "bm")
+    {
+        MAP_BM_T bm;
+        bm.bn = bn;
+        bm.bt = bt;
+        bm.i = si;
+        bm.id = id;
+        bm.pg = pg;
+        bm.pn = pn;
+        bm.rc = rc;
+        bm.rt = rt;
+        bm.sl = sl;
+        bm.src = src;
+        bm.st = st;
+
+        mMap.map_bm.push_back(bm);
+    }
+    else if (sectionName == "evpf")
+    {
+        MAP_EVPF_T evpf;
+        evpf.a = a;
+        evpf.ai = ai;
+        evpf.bt = bt;
+        evpf.ev = ev;
+        evpf.pg = pg;
+        evpf.t = t;
+        mMap.map_evpf.push_back(evpf);
+    }
+    else if (sectionName == "sm")
+    {
+        mMap.map_sm.push_back(si);
+    }
+    else if (sectionName == "pm")
+    {
+        MAP_PM_T pm;
+        pm.a = a;
+        pm.bn = bn;
+        pm.bt = bt;
+        pm.pg = pg;
+        pm.pn = pn;
+        pm.t = t;
+        mMap.map_pm.push_back(pm);
+    }
+}
+
+void TMaps::parseSection(const QDomElement &root, const QString &sectionName)
+{
+    DECL_TRACER("TMaps::parseSection(const QDomElement &root, const QString &sectionName) ");
+
+    QDomElement section = root.firstChildElement(sectionName);
+
+    if (section.isNull())
+    {
+        MSG_ERROR("No section <" << sectionName.toStdString() << "> found.");
+        return;
+    }
+
+    MSG_DEBUG("Parsing section:" << sectionName.toStdString());
+    QDomNodeList meList = section.elementsByTagName("me");
+
+    for (int i = 0; i < meList.count(); ++i)
+    {
+        QDomElement me = meList.at(i).toElement();
+        parseMeElement(me, sectionName);
+    }
 }

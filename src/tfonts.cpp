@@ -27,6 +27,9 @@
 #include <QJsonDocument>
 #include <QFile>
 #include <QDir>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomElement>
+#include <QtXml/QDomNodeList>
 
 #include "tfonts.h"
 #include "tconfmain.h"
@@ -140,6 +143,38 @@ QFont TFonts::getFont(const QString& ff)
     }
 
     font.setFamily(ff);
+    font.setPointSize(TConfMain::Current().getFontBaseSize());
+    return font;
+}
+
+QFont TFonts::getFontFromIndex(int index)
+{
+    DECL_TRACER("TFonts::getFontFromIndex(int index)");
+
+    QFont font;
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        if (iter->ID == index)
+        {
+            font.setFamilies(iter->family);
+
+            if (TConfMain::Current().isAMX() && !TConfMain::Current().isG5())
+            {
+                font.setPointSize(iter->size);
+
+                if (iter->subfamilyName == "Bold")
+                    font.setBold(true);
+                else if (iter->subfamilyName == "Italic")
+                    font.setItalic(true);
+            }
+
+            return font;
+        }
+    }
+
+    font = TConfMain::Current().getFontBase();
     font.setPointSize(TConfMain::Current().getFontBaseSize());
     return font;
 }
@@ -403,4 +438,89 @@ bool TFonts::readSystemFonts(const QString& path)
     }
 
     return true;
+}
+
+bool TFonts::readAMXFontFile(const QString& xmlFilePath)
+{
+    DECL_TRACER("TFonts::readAMXFontFile(const QString& file)");
+
+    QFile file(xmlFilePath);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("Failed to open file:" << xmlFilePath.toStdString() << ". Error: " << file.errorString().toStdString());
+        return false;
+    }
+
+    QDomDocument doc;
+    QString errorMsg;
+    QDomDocument::ParseResult result;
+
+    if (!doc.setContent(&file))
+    {
+        MSG_ERROR("Failed to parse XML: " << result.errorMessage.toStdString() << " at line " << result.errorLine << " column " << result.errorColumn);
+        file.close();
+        return false;
+    }
+
+    file.close();
+
+    QDomElement root = doc.documentElement();
+
+    if (root.tagName() != "root")
+    {
+        MSG_ERROR("Unexpected root element:" << root.tagName().toStdString());
+        return false;
+    }
+
+    QDomElement fontList = root.firstChildElement("fontList");
+
+    if (fontList.isNull())
+    {
+        MSG_ERROR("No <fontList> element found");
+        return false;
+    }
+
+    QDomNodeList fonts = fontList.elementsByTagName("font");
+
+    for (int i = 0; i < fonts.count(); ++i)
+    {
+        QDomElement font = fonts.at(i).toElement();
+        parseFont(font);
+    }
+
+    return true;
+}
+
+void TFonts::parseFont(const QDomElement &font)
+{
+    DECL_TRACER("TFonts::parseFont(const QDomElement &font)");
+
+    PRIVFONTS_t fnt;
+
+    if (font.hasAttribute("number"))
+        fnt.ID = font.attribute("number").toInt();
+    else
+        fnt.ID = mLocalFonts.size();
+
+    fnt.file = font.firstChildElement("file").text();
+    fnt.family.append(font.firstChildElement("fullName").text());
+    fnt.usageCount = font.firstChildElement("usageCount").text().toInt();
+    // The rest is coming only from G4 files.
+    if (!font.firstChildElement("fileSize").isNull())
+        fnt.fileSize = font.firstChildElement("fileSize").text().toInt();
+
+    if (!font.firstChildElement("faceIndex").isNull())
+        fnt.fi = font.firstChildElement("faceIndex").text().toInt();
+
+    if (!font.firstChildElement("name").isNull())
+        fnt.name = font.firstChildElement("name").text();
+
+    if (!font.firstChildElement("subfamilyName").isNull())
+        fnt.subfamilyName = font.firstChildElement("subfamilyName").text();
+
+    if (!font.firstChildElement("size").isNull())
+        fnt.size = font.firstChildElement("size").text().toInt();
+
+    mLocalFonts.append(fnt);
 }

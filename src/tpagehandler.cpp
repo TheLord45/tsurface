@@ -22,6 +22,9 @@
 #include <QFile>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomElement>
+#include <QtXml/QDomNodeList>
 
 #include "tpagehandler.h"
 #include "tcanvaswidget.h"
@@ -1169,6 +1172,7 @@ void TPageHandler::parsePage(const QJsonObject& page)
     pg.width = page.value("width").toInt(0);
     pg.height = page.value("height").toInt(0);
     pg.modal = page.value("modal").toInt(0);
+    pg.showLockX = page.value("showLocX").toInt(0);
     pg.collapseDirection = static_cast<COLDIR_t>(page.value("collapseDirection").toInt(COLDIR_NONE));
     pg.collapseOffset = page.value("collapseOffset").toInt(0);
     pg.collapsible = page.value("collapsible").toBool(false);
@@ -1464,4 +1468,608 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         o->setObject(object);
         page->objects.append(o);
     }
+}
+
+//--------------------------------------------------------------------------
+// Read/Load AMX pages.
+// This pages are in XML format and were extracted from a TP4 or TP5 file.
+// Because TSurface is honoring only the TP5 format, the TP4 pages are
+// converted to TP5 format.
+//--------------------------------------------------------------------------
+
+bool TPageHandler::readAMXPages(const QStringList& list)
+{
+    DECL_TRACER("TPageHandler::readAMXPages(const QStringList& list)");
+
+    for (QString xmlFilePath : list)
+    {
+        QFile file(xmlFilePath);
+
+        if (!file.open(QIODevice::ReadOnly))
+        {
+            MSG_ERROR("Cannot open file:" << xmlFilePath.toStdString() << ". Error: " << file.errorString().toStdString());
+            return false;
+        }
+
+        QDomDocument doc;
+        QString errorMsg;
+        int errorLine, errorColumn;
+
+        QDomDocument::ParseResult result;
+
+        if (!(result = doc.setContent(xmlFilePath)))
+        {
+            MSG_ERROR("Failed to parse XML: " << result.errorMessage.toStdString() << " at line " << result.errorLine << " column " << result.errorColumn);
+            return false;
+        }
+
+        file.close();
+
+        QDomElement root = doc.documentElement();
+
+        if (root.tagName() != "root")
+        {
+            MSG_ERROR("Unexpected root element:" << root.tagName().toStdString());
+            return false;
+        }
+
+        QDomElement page = root.firstChildElement("page");
+
+        if (page.isNull())
+        {
+            MSG_ERROR("No <page> element found");
+            return false;
+        }
+
+        parsePage(page);
+    }
+
+    return true;
+}
+
+void TPageHandler::parseBitmapEntry(ObjHandler::SR_T *sr, const QDomElement &bitmapEntry)
+{
+    DECL_TRACER("TPageHandler::parseBitmapEntry(PAGE_t *page, const QDomElement &bitmapEntry) ");
+
+    if (bitmapEntry.isNull())
+        return;
+
+    ObjHandler::BITMAPS_t bitmap;
+    bitmap.fileName = bitmapEntry.firstChildElement("fileName").text();
+
+    if (!bitmapEntry.firstChildElement("justification").isNull())
+        bitmap.justification = static_cast<ObjHandler::ORIENTATION>(bitmapEntry.firstChildElement("justification").text().toInt());
+
+    if (!bitmapEntry.firstChildElement("offsetX").isNull())
+        bitmap.offsetX = bitmapEntry.firstChildElement("offsetX").text().toInt();
+
+    if (!bitmapEntry.firstChildElement("offsetY").isNull())
+        bitmap.offsetY = bitmapEntry.firstChildElement("offsetY").text().toInt();
+
+    if (!bitmapEntry.firstChildElement("dynamic").isNull())
+        bitmap.dynamic = bitmapEntry.firstChildElement("dynamic").text().toInt() == 0 ? false : true;
+
+    bitmap.index = sr->bitmaps.size();
+    sr->bitmaps.append(bitmap);
+}
+
+void TPageHandler::parseGradientColors(QList<QColor> *gradientColors, const QDomNodeList& gradColors)
+{
+    DECL_TRACER("TPageHandler::parseGradientColors(QList<QColor> *gradientColors, const QDomElement& gradColors)");
+
+    if (gradColors.isEmpty())
+    {
+        gradientColors->append(Qt::gray);
+        gradientColors->append(Qt::white);
+        return;
+    }
+
+    for (int i = 0; i < gradColors.count(); ++i)
+        gradientColors->append(QColor(gradColors.at(i).firstChildElement("gradientColor").text()));
+}
+
+void TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr)
+{
+    DECL_TRACER("TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr) ");
+
+    ObjHandler::SR_T lsr;
+    lsr.number = sr.attribute("number").toInt();
+    lsr.bs = sr.firstChildElement("bs").text();
+    lsr._do = sr.firstChildElement("do").text();
+    lsr.ft = sr.firstChildElement("ft").text();
+    lsr.cb = QColor(sr.firstChildElement("cb").text());
+    lsr.cf = QColor(sr.firstChildElement("cf").text());
+    lsr.ct = QColor(sr.firstChildElement("ct").text());
+    lsr.ec = QColor(sr.firstChildElement("ec").text());
+
+    if (!TConfMain::Current().isG5() && !sr.firstChildElement("bm").isNull())
+    {
+        ObjHandler::BITMAPS_t bitmap;
+        bitmap.fileName = sr.firstChildElement("bm").text();
+        bitmap.index = 0;
+        bitmap.justification = ObjHandler::ORI_CENTER_MIDDLE;
+        lsr.bitmaps.append(bitmap);
+    }
+
+    QDomElement bitmapEntry = sr.firstChildElement("bitmapEntry");
+    parseBitmapEntry(&lsr, bitmapEntry);
+
+    QDomNodeList gradColors = sr.elementsByTagName("gradientColors");
+    parseGradientColors(&lsr.gradientColors, gradColors);
+
+    if (!sr.firstChildElement("mi").isNull())
+        lsr.mi = sr.firstChildElement("mi").text();
+
+    if (!sr.firstChildElement("ff").isNull())
+        lsr.ff = sr.firstChildElement("ff").text();
+
+    if (!sr.firstChildElement("fs").isNull())
+        lsr.fs = sr.firstChildElement("fs").text().toInt();
+
+    if (!sr.firstChildElement("te").isNull())
+        lsr.te = sr.firstChildElement("te").text();
+
+    if (!sr.firstChildElement("jt").isNull())
+        lsr.jt = static_cast<ObjHandler::ORIENTATION>(sr.firstChildElement("jt").text().toInt());
+    else
+        lsr.jt = ObjHandler::ORI_CENTER_MIDDLE;
+
+    if (!sr.firstChildElement("tx").isNull())
+        lsr.tx = sr.firstChildElement("tx").text().toInt();
+
+    if (!sr.firstChildElement("ty").isNull())
+        lsr.ty = sr.firstChildElement("ty").text().toInt();
+
+    if (!sr.firstChildElement("gr").isNull())
+        lsr.gr = sr.firstChildElement("gr").text().toInt();
+
+    if (!sr.firstChildElement("gx").isNull())
+        lsr.gx = sr.firstChildElement("gx").text().toInt();
+
+    if (!sr.firstChildElement("gy").isNull())
+        lsr.gy = sr.firstChildElement("gy").text().toInt();
+
+    if (!sr.firstChildElement("sd").isNull())
+        lsr.sd = sr.firstChildElement("sd").text();
+
+    if (!sr.firstChildElement("dynamic").isNull())
+        lsr.dynamic = sr.firstChildElement("dynamic").text().toInt() == 0 ? false : true;
+
+    if (!sr.firstChildElement("sb").isNull())
+        lsr.sb = sr.firstChildElement("sb").text().toInt();
+
+    if (!sr.firstChildElement("jb").isNull())
+        lsr.jb = sr.firstChildElement("jb").text().toInt();
+
+    if (!sr.firstChildElement("bx").isNull())
+        lsr.bx = sr.firstChildElement("bx").text().toInt();
+
+    if (!sr.firstChildElement("by").isNull())
+        lsr.by = sr.firstChildElement("by").text().toInt();
+
+    if (!sr.firstChildElement("fi").isNull())   // G4 font index will be converted to a real font
+        lsr.fi = sr.firstChildElement("fi").text().toInt();
+
+    if (!sr.firstChildElement("ww").isNull())
+        lsr.ww = sr.firstChildElement("ww").text().toInt();
+
+    if (!sr.firstChildElement("et").isNull())
+        lsr.et = sr.firstChildElement("et").text().toInt();
+
+    if (!sr.firstChildElement("oo").isNull())
+        lsr.oo = sr.firstChildElement("oo").text().toInt();
+    else
+        lsr.oo = 255;
+
+    if (!sr.firstChildElement("md").isNull())
+        lsr.md = sr.firstChildElement("md").text().toInt();
+
+    if (!sr.firstChildElement("mr").isNull())
+        lsr.mr = sr.firstChildElement("mr").text().toInt();
+
+    if (!sr.firstChildElement("ms").isNull())
+        lsr.ms = sr.firstChildElement("ms").text().toInt();
+
+    if (!sr.firstChildElement("vf").isNull())
+        lsr.vf = sr.firstChildElement("vf").text();
+}
+
+void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
+{
+    DECL_TRACER("TPageHandler::parseButton(PAGE_t *page, const QDomElement &button) ");
+
+    ObjHandler::TOBJECT_t object;
+
+    object.type = getButtonType(button.attribute("type"));
+    object.bi = button.firstChildElement("bi").text().toInt();
+    object.na = button.firstChildElement("na").text();
+
+    // Optional elements
+    if (!button.firstChildElement("bd").isNull())
+        object.bd = button.firstChildElement("bd").text();
+
+    if (!button.firstChildElement("li").isNull())
+        object.li = button.firstChildElement("li").text().toInt();
+
+    if (!button.firstChildElement("lt").isNull())
+        object.lt = button.firstChildElement("lt").text().toInt();
+
+    if (!button.firstChildElement("tp").isNull())
+        object.tp = button.firstChildElement("tp").text().toInt();
+
+    if (!button.firstChildElement("wt").isNull())
+        object.wt = button.firstChildElement("wt").text().toInt();
+
+    if (!button.firstChildElement("ht").isNull())
+        object.ht = button.firstChildElement("ht").text().toInt();
+
+    if (!button.firstChildElement("zo").isNull())
+        object.zo = button.firstChildElement("zo").text().toInt();
+
+    if (!button.firstChildElement("hs").isNull())
+        object.hs = button.firstChildElement("hs").text();
+
+    if (!button.firstChildElement("bs").isNull())
+        object.bs = button.firstChildElement("bs").text();
+
+    if (!button.firstChildElement("ap").isNull())
+        object.ap = button.firstChildElement("ap").text().toInt();
+
+    if (!button.firstChildElement("ad").isNull())
+        object.ad = button.firstChildElement("ad").text().toInt();
+
+    if (!button.firstChildElement("ch").isNull())
+        object.ch = button.firstChildElement("ch").text().toInt();
+
+    if (!button.firstChildElement("cp").isNull())
+        object.cp = button.firstChildElement("cp").text().toInt();
+
+    if (!button.firstChildElement("lp").isNull())
+        object.lp = button.firstChildElement("lp").text().toInt();
+
+    if (!button.firstChildElement("ta").isNull())
+        object.ta = button.firstChildElement("ta").text().toInt();
+
+    if (!button.firstChildElement("ti").isNull())
+        object.ti = button.firstChildElement("ti").text().toInt();
+
+    if (!button.firstChildElement("tr").isNull())
+        object.tr = button.firstChildElement("tr").text().toInt();
+
+    if (!button.firstChildElement("tj").isNull())
+        object.tj = button.firstChildElement("tj").text().toInt();
+
+    if (!button.firstChildElement("tk").isNull())
+        object.tk = button.firstChildElement("tk").text().toInt();
+
+    if (!button.firstChildElement("tg").isNull())
+        object.tg = button.firstChildElement("tg").text().toInt();
+
+    if (!button.firstChildElement("so").isNull())
+        object.so = button.firstChildElement("so").text().toInt();
+
+    if (!button.firstChildElement("of").isNull())
+        object.of = button.firstChildElement("of").text().toInt();
+
+    if (!button.firstChildElement("co").isNull())
+        object.co = button.firstChildElement("co").text().toInt();
+
+    if (!button.firstChildElement("lvc").isNull())
+        object.lvc = button.firstChildElement("lvc").text().toInt();
+
+    if (!button.firstChildElement("lvh").isNull())
+        object.lvh = button.firstChildElement("lvh").text().toInt();
+
+    if (!button.firstChildElement("lvl").isNull())
+        object.lvl = button.firstChildElement("lvl").text().toInt();
+
+    if (!button.firstChildElement("lhp").isNull())
+        object.lhp = button.firstChildElement("lhp").text().toInt();
+
+    if (!button.firstChildElement("lvp").isNull())
+        object.lvp = button.firstChildElement("lvp").text().toInt();
+
+    if (!button.firstChildElement("lvs").isNull())
+        object.lvs = button.firstChildElement("lvs").text().toInt();
+
+    if (!button.firstChildElement("lsh").isNull())
+        object.lsh = button.firstChildElement("lsh").text().toInt();
+
+    if (!button.firstChildElement("lva").isNull())
+        object.lva = button.firstChildElement("lva").text().toInt();
+
+    if (!button.firstChildElement("lds").isNull())
+        object.lds = button.firstChildElement("lds").text();
+
+    if (!button.firstChildElement("ldm").isNull())
+        object.ldm = button.firstChildElement("ldm").text();
+
+    if (!button.firstChildElement("ddt").isNull())
+        object.ddt = button.firstChildElement("ddt").text();
+
+    if (!button.firstChildElement("lv").isNull())
+        object.lv = button.firstChildElement("lv").text().toInt();
+
+    if (!button.firstChildElement("rh").isNull())
+        object.rh = button.firstChildElement("rh").text().toInt();
+
+    // Insert "cm" from G4
+    QDomNodeList cm = button.elementsByTagName("cm");
+
+    for (int i = 0; i < cm.count(); ++i)
+        object.cm.append(cm.at(i).firstChild().toElement().text());
+
+    // Other optional fields (like fb, vt, ddt, etc.)
+    if (!button.firstChildElement("dr").isNull())
+        object.dr = button.firstChildElement("dr").text();
+
+    if (!button.firstChildElement("va").isNull())
+        object.va = button.firstChildElement("va").text().toInt();
+
+    if (!button.firstChildElement("stateCount").isNull())
+        object.stateCount = button.firstChildElement("stateCount").text().toInt();
+
+    if (!button.firstChildElement("rm").isNull())
+        object.rm = button.firstChildElement("rm").text().toInt();
+
+    if (!button.firstChildElement("nu").isNull())
+        object.nu = button.firstChildElement("nu").text().toInt();
+
+    if (!button.firstChildElement("nd").isNull())
+        object.nd = button.firstChildElement("nd").text().toInt();
+
+    if (!button.firstChildElement("ar").isNull())
+        object.ar = button.firstChildElement("ar").text().toInt();
+
+    if (!button.firstChildElement("ru").isNull())
+        object.ru = button.firstChildElement("ru").text().toInt();
+
+    if (!button.firstChildElement("rd").isNull())
+        object.rd = button.firstChildElement("rd").text().toInt();
+
+    if (!button.firstChildElement("lu").isNull())
+        object.lu = button.firstChildElement("lu").text().toInt();
+
+    if (!button.firstChildElement("ld").isNull())
+        object.ld = button.firstChildElement("ld").text().toInt();
+
+    if (!button.firstChildElement("rv").isNull())
+        object.rv = button.firstChildElement("rv").text().toInt();
+
+    if (!button.firstChildElement("rl").isNull())
+        object.rl = button.firstChildElement("rl").text().toInt();
+
+    if (!button.firstChildElement("rh").isNull())
+        object.rh = button.firstChildElement("rh").text().toInt();
+
+    if (!button.firstChildElement("ri").isNull())
+        object.ri = button.firstChildElement("ri").text().toInt();
+
+    if (!button.firstChildElement("ji").isNull())
+        object.ji = button.firstChildElement("ji").text().toInt();
+
+    if (!button.firstChildElement("rn").isNull())
+        object.rn = button.firstChildElement("rn").text().toInt();
+
+    if (!button.firstChildElement("ac").isNull())
+        object.ac_di = button.firstChildElement("ac").text().toInt();
+
+    if (!button.firstChildElement("hd").isNull())
+        object.hd = button.firstChildElement("hd").text().toInt();
+
+    if (!button.firstChildElement("da").isNull())
+        object.da = button.firstChildElement("da").text().toInt();
+
+    if (!button.firstChildElement("pp").isNull())
+        object.pp = button.firstChildElement("pp").text().toInt();
+
+    if (!button.firstChildElement("lf").isNull())
+        object.lf = button.firstChildElement("lf").text();
+
+    if (!button.firstChildElement("sd").isNull())
+        object.sd = button.firstChildElement("sd").text();
+
+    if (!button.firstChildElement("vt").isNull())
+        object.vt = button.firstChildElement("vt").text();
+
+    if (!button.firstChildElement("cd").isNull())
+        object.cd = button.firstChildElement("cd").text();
+
+    if (!button.firstChildElement("sc").isNull())
+        object.sc = QColor(button.firstChildElement("sc").text());
+
+    if (!button.firstChildElement("cc").isNull())
+        object.cc = QColor(button.firstChildElement("cc").text());
+
+    if (!button.firstChildElement("mt").isNull())
+        object.mt = button.firstChildElement("mt").text().toInt();
+
+    if (!button.firstChildElement("fb").isNull())
+        object.fb = getButtonFeedback(button.firstChildElement("fb").text());
+
+    if (!button.firstChildElement("dt").isNull())
+        object.dt = button.firstChildElement("dt").text();
+
+    if (!button.firstChildElement("im").isNull())
+        object.im = button.firstChildElement("im").text();
+
+    if (!button.firstChildElement("st").isNull())
+        object.st = button.firstChildElement("st").text().toInt();
+
+    if (!button.firstChildElement("ws").isNull())
+        object.ws = button.firstChildElement("ws").text().toInt();
+
+    if (!button.firstChildElement("on").isNull())
+        object.on = button.firstChildElement("on").text();
+
+    if (!button.firstChildElement("sa").isNull())
+        object.sa = button.firstChildElement("sa").text().toInt();
+
+    if (!button.firstChildElement("dy").isNull())
+        object.dy = button.firstChildElement("dy").text().toInt();
+
+    if (!button.firstChildElement("rs").isNull())
+        object.rs = button.firstChildElement("rs").text().toInt();
+
+    if (!button.firstChildElement("ba").isNull())
+        object.ba = button.firstChildElement("ba").text().toInt();
+
+    if (!button.firstChildElement("bo").isNull())
+        object.bo = button.firstChildElement("bo").text().toInt();
+
+    if (!button.firstChildElement("we").isNull())
+        object.we = button.firstChildElement("we").text();
+
+    if (!button.firstChildElement("pc").isNull())
+        object.pc = button.firstChildElement("pc").text();
+
+    if (!button.firstChildElement("op").isNull())
+        object.op = button.firstChildElement("op").text();
+
+    if (!button.firstChildElement("on").isNull())
+        object.on = button.firstChildElement("on").text();
+
+    // TODO: Insert "pushFunc"
+    QDomNodeList pfList = button.elementsByTagName("pf");
+/*
+    for (int i = 0; i < pfList.count(); ++i)
+    {
+        QDomElement pf = pfList.at(i).toElement();
+        parseSR(page, pf);
+    }
+*/
+    // Parse sr elements inside button
+    QDomNodeList srList = button.elementsByTagName("sr");
+
+    for (int i = 0; i < srList.count(); ++i)
+    {
+        QDomElement sr = srList.at(i).toElement();
+        parseSR(page, sr);
+    }
+
+    TObjectHandler *objHandler = new TObjectHandler(object.type, object.bi, object.na);
+    objHandler->setObject(object);
+    page->objects.append(objHandler);
+}
+
+void TPageHandler::parsePage(const QDomElement &page)
+{
+    DECL_TRACER("TPageHandler::parsePage(const QDomElement &page)");
+
+    PAGE_t pg;
+    QString type = page.attribute("type");
+    QString popupType;
+
+    if (page.hasAttribute("popupType"))
+        popupType = page.attribute("popupType");
+
+    if (type == "page")
+        pg.popupType = PT_PAGE;
+    else if (type == "subpage" || popupType == "popup")
+        pg.popupType = PT_POPUP;
+    else if (popupType == "subpage")
+        pg.popupType = PT_SUBPAGE;
+    else
+    {
+        MSG_ERROR("Unknown page type " << type.toStdString());
+        return;
+    }
+
+    pg.pageID = page.firstChildElement("pageID").text().toInt();
+
+    if (TConfMain::Current().isSubpage(pg.pageID))
+        pg.popupType = PT_SUBPAGE;
+
+    pg.name = page.firstChildElement("name").text();
+    pg.description = page.firstChildElement("description").text();
+    pg.ap = page.firstChildElement("ap").text().toInt();
+    pg.ad = page.firstChildElement("ad").text().toInt();
+    pg.cp = page.firstChildElement("cp").text().toInt();
+    pg.ch = page.firstChildElement("ch").text().toInt();
+    pg.left = page.firstChildElement("left").text().toInt();
+    pg.top = page.firstChildElement("top").text().toInt();
+    pg.width = page.firstChildElement("width").text().toInt();
+    pg.height = page.firstChildElement("height").text().toInt();
+    pg.modal = page.firstChildElement("modal").text().toInt();
+    pg.showLockX = page.firstChildElement("showLocX").text().toInt();
+    pg.collapseDirection = static_cast<COLDIR_t>(page.firstChildElement("collapseDirection").text().toInt());
+    pg.collapseOffset = page.firstChildElement("collapseOffset").text().toInt();
+    pg.collapsible = page.firstChildElement("collapsible").text().toInt() == 0 ? false : true;
+    pg.colState = static_cast<COLLAPS_STATE_t>(page.firstChildElement("colState").text().toInt());
+    pg.group = page.firstChildElement("group").text();
+    pg.timeout = page.firstChildElement("timeout").text().toInt();
+    pg.showEffect = static_cast<SHOWEFFECT>(page.firstChildElement("showEffect").text().toInt());
+    pg.showTime = page.firstChildElement("showTime").text().toInt();
+    pg.showX = page.firstChildElement("showX").text().toInt();
+    pg.showY = page.firstChildElement("showY").text().toInt();
+    pg.hideEffect = static_cast<SHOWEFFECT>(page.firstChildElement("hideEffect").text().toInt());
+    pg.hideTime = page.firstChildElement("hideTime").text().toInt();
+    pg.hideX = page.firstChildElement("hideX").text().toInt();
+    pg.hideY = page.firstChildElement("hideY").text().toInt();
+
+    // Parse buttons
+    QDomNodeList buttons = page.elementsByTagName("button");
+
+    for (int i = 0; i < buttons.count(); ++i)
+    {
+        QDomElement button = buttons.at(i).toElement();
+        parseButton(&pg, button);
+    }
+
+    // Parse sr elements directly under page (outside buttons)
+    QDomNodeList srList = page.elementsByTagName("sr");
+
+    for (int i = 0; i < srList.count(); ++i)
+    {
+        QDomElement sr = srList.at(i).toElement();
+        // To avoid double parsing sr inside buttons, check parent:
+        if (sr.parentNode().toElement() == page)
+            parseSR(&pg, sr);
+    }
+}
+
+ObjHandler::BUTTONTYPE TPageHandler::getButtonType(const QString& bt)
+{
+    DECL_TRACER("TPageHandler::getButtonType(const string& bt)");
+
+    if (bt.compare("general", Qt::CaseInsensitive) == 0)
+        return ObjHandler::GENERAL;
+    else if (bt.compare("multi-state general", Qt::CaseInsensitive) == 0 || bt.compare("multiGeneral", Qt::CaseInsensitive) == 0)
+        return ObjHandler::MULTISTATE_GENERAL;
+    else if (bt.compare("bargraph", Qt::CaseInsensitive) == 0)
+        return ObjHandler::BARGRAPH;
+    else if (bt.compare("multi-state bargraph", Qt::CaseInsensitive) == 0 || bt.compare("multiBargraph", Qt::CaseInsensitive) == 0)
+        return ObjHandler::MULTISTATE_BARGRAPH;
+    else if (bt.compare("joystick", Qt::CaseInsensitive) == 0)
+        return ObjHandler::JOYSTICK;
+    else if (bt.compare("text input", Qt::CaseInsensitive) == 0 || bt.compare("textArea", Qt::CaseInsensitive) == 0)
+        return ObjHandler::TEXT_INPUT;
+    else if (bt.compare("computer control", Qt::CaseInsensitive) == 0)
+        return ObjHandler::COMPUTER_CONTROL;
+    else if (bt.compare("take note", Qt::CaseInsensitive) == 0)
+        return ObjHandler::TAKE_NOTE;
+    else if (bt.compare("sub-page view", Qt::CaseInsensitive) == 0 || bt.compare("subPageView", Qt::CaseInsensitive) == 0)
+        return ObjHandler::SUBPAGE_VIEW;
+    else if (bt.compare("listBox", Qt::CaseInsensitive) == 0)
+        return ObjHandler::LISTBOX;
+
+    return ObjHandler::NONE;
+}
+
+ObjHandler::FEEDBACK_t TPageHandler::getButtonFeedback(const QString& fb)
+{
+    DECL_TRACER("TPageHandler::getButtonFeedback(const QString& fb)");
+
+    if (fb.compare("channel") == 0)
+        return ObjHandler::FB_CHANNEL;
+    else if (fb.compare("inverted channel") == 0)
+        return ObjHandler::FB_INV_CHANNEL;
+    else if (fb.compare("always on") == 0)
+        return ObjHandler::FB_ALWAYS_ON;
+    else if (fb.compare("momentary") == 0)
+        return ObjHandler::FB_MOMENTARY;
+    else if (fb.compare("blink") == 0)
+        return ObjHandler::FB_BLINK;
+
+    return ObjHandler::FB_NONE;
 }

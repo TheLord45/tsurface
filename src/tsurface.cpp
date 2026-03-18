@@ -43,6 +43,7 @@
 #include "tdrawtext.h"
 #include "tgraphics.h"
 #include "tfonts.h"
+#include "tfsfreader.h"
 #include "tconfig.h"
 #include "terror.h"
 #include "tmisc.h"
@@ -570,7 +571,26 @@ void TSurface::on_actionOpen_triggered()
     if (file.isEmpty())
         return;
 
-    if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
+    QString lowerFile = file.toLower();
+
+    if (lowerFile.endsWith(".tp4") || lowerFile.endsWith("tp5"))
+    {
+        mLastOpenPath = pathname(file);                                     // The path from where the file was opened
+        mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
+        // TODO: Call import for AMX format.
+        TFsfReader reader;
+
+        if (!reader.unpack(file.toStdString(), mPathTemporary.toStdString()))
+        {
+            QMessageBox::critical(this, tr("File read error"), tr("Error reading file %1!").arg(file));
+            return;
+        }
+
+        bool g5 = reader.isG5();
+        TConfMain::Current().setPathTemporary(mPathTemporary);              // Initialize class with path to temporary directory
+        TConfMain::Current().readProject(mPathTemporary + "/prj.xma", g5);      // Read the main project file
+    }
+    else if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
     {
         mLastOpenPath = pathname(file);                                     // The path from where the file was opened
         mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
@@ -2321,6 +2341,8 @@ QString TSurface::createTemporaryPath(const QString& name)
 
     if (!name.endsWith(".tsf"))
         temp.append(".tsf");
+    else
+        temp.append(".amx");
 
     MSG_PROTOCOL("Using temporary path: " << temp.toStdString());
 

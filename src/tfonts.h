@@ -22,6 +22,8 @@
 #include <QStringList>
 #include <QFont>
 
+class QDomElement;
+
 class TFonts
 {
     public:
@@ -31,6 +33,12 @@ class TFonts
             QString file;
             QString intFile;
             int ID{0};
+            int fileSize{0};        // G4
+            int fi{0};              // G4 face index
+            QString name;           // G4 font name
+            QString subfamilyName;  // G4 subfamily name (not available on *NIX fonts!)
+            int size{0};            // G4 The used font size
+            int usageCount{0};      // Statistics about usage
         }PRIVFONTS_t;
 
         static QString getFontFile(const QFont& font);
@@ -39,13 +47,16 @@ class TFonts
         static void freePrivateFonts();
         static void releaseFontConfig();
         static QFont getFont(const QString& ff);
+        static QFont getFontFromIndex(int index);
 
         static bool readFontFile(const QString& path, const QString& file);
         static bool writeFontFile(const QString& path, const QString& file);
+        static bool readAMXFontFile(const QString& file);
 
     protected:
         static void init();
         static bool readSystemFonts(const QString& path);
+        static void parseFont(const QDomElement &font);
 
     private:
         TFonts() {};    // Must never be called
