@@ -144,6 +144,17 @@ QFont TFonts::getFont(const QString& ff)
 
     font.setFamily(ff);
     font.setPointSize(TConfMain::Current().getFontBaseSize());
+
+    if (ff.endsWith("bold italic", Qt::CaseInsensitive))
+    {
+        font.setBold(true);
+        font.setItalic(true);
+    }
+    else if (ff.endsWith("bold", Qt::CaseInsensitive))
+        font.setBold(true);
+    else if (ff.endsWith("italic", Qt::CaseInsensitive))
+        font.setItalic(true);
+
     return font;
 }
 
@@ -164,9 +175,14 @@ QFont TFonts::getFontFromIndex(int index)
             {
                 font.setPointSize(iter->size);
 
-                if (iter->subfamilyName == "Bold")
+                if (iter->subfamilyName.compare("Bold Italic", Qt::CaseInsensitive) == 0)
+                {
                     font.setBold(true);
-                else if (iter->subfamilyName == "Italic")
+                    font.setItalic(true);
+                }
+                else if (iter->subfamilyName.compare("Bold", Qt::CaseInsensitive) == 0)
+                    font.setBold(true);
+                else if (iter->subfamilyName.compare("Italic", Qt::CaseInsensitive) == 0)
                     font.setItalic(true);
             }
 
@@ -456,7 +472,7 @@ bool TFonts::readAMXFontFile(const QString& xmlFilePath)
     QString errorMsg;
     QDomDocument::ParseResult result;
 
-    if (!doc.setContent(&file))
+    if (!(result = doc.setContent(&file)))
     {
         MSG_ERROR("Failed to parse XML: " << result.errorMessage.toStdString() << " at line " << result.errorLine << " column " << result.errorColumn);
         file.close();

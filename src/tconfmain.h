@@ -57,7 +57,8 @@ namespace ConfigMain
         QString buttonFile;
         QString appFile;
         QString logFile;
-        QString iconFile;   // G4 backward compatibility
+        QString iconFile;           // G4 backward compatibility
+        QStringList paletteFiles;   // G4 backward compatibility
     }FILELIST_t;
 
     typedef struct SETUP_t
@@ -268,6 +269,8 @@ class TConfMain
         QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
         QString getPathTemporary() { return mPathTemporary; }
         QString getMapsFile() { if (mConfMain) return mConfMain->fileList.mapFile; else return QString(); }
+        QString getIconFile() { if (mConfMain) return mConfMain->fileList.iconFile; else return QString(); }
+        QStringList getPaletteFiles();
         ConfigMain::RESOURCE_t getDynamicResource(const QString& name);
         QList<ConfigMain::RESOURCE_t> getAllDynamicResources() { if (mConfMain) return mConfMain->resourceList; else return QList<ConfigMain::RESOURCE_t>(); }
         ConfigMain::DATASOURCE_t getDynamicData(const QString& name);

@@ -33,6 +33,7 @@
 #include "tpaneltypes.h"
 #include "tfonts.h"
 #include "tmaps.h"
+#include "tconverticons.h"
 #include "tmisc.h"
 #include "terror.h"
 
@@ -1065,6 +1066,18 @@ QString TConfMain::getUrl(const ConfigMain::RESOURCE_t& data)
 
     txt.append(data.file);
     return txt;
+}
+
+QStringList TConfMain::getPaletteFiles()
+{
+    DECL_TRACER("TConfMain::getPaletteFiles()");
+
+    QStringList files;
+
+    for (PALETTELIST_t pl : mConfMain->paletteList)
+        files.append(pl.file);
+
+    return files;
 }
 
 // XML parser

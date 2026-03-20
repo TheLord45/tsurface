@@ -44,7 +44,7 @@ TMaps::TMaps()
 
 TMaps& TMaps::Current()
 {
-    DECL_TRACER("TMaps::Current()");
+//    DECL_TRACER("TMaps::Current()");
 
     if (!mCurrent)
         mCurrent = new TMaps;
@@ -638,26 +638,20 @@ bool TMaps::parseAMXMaps(const QString& xmlFilePath)
     DECL_TRACER("TMaps::parseAMXMaps(const QString& xmlFilePath)");
 
     MSG_DEBUG("Reading AMX map file: " << xmlFilePath.toStdString());
-    QFile file(xmlFilePath);
+    QString mapsContent = convertToUTF8(xmlFilePath);
 
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        MSG_ERROR("Cannot open file:" << xmlFilePath.toStdString());
+    if (mapsContent.isEmpty())
         return false;
-    }
 
     QDomDocument doc;
     QString errorMsg;
     QDomDocument::ParseResult result;
 
-    if (!doc.setContent(&file))
+    if (!doc.setContent(mapsContent))
     {
         MSG_ERROR("Parse error at line " << result.errorLine << " column " << result.errorColumn << ": " << result.errorMessage.toStdString());
-        file.close();
         return false;
     }
-
-    file.close();
 
     QDomElement root = doc.documentElement();
 
@@ -681,7 +675,7 @@ bool TMaps::parseAMXMaps(const QString& xmlFilePath)
 // Parse <me> element common fields
 void TMaps::parseMeElement(const QDomElement &me, const QString& sectionName)
 {
-    DECL_TRACER("TMaps::parseMeElement(const QDomElement &me, const QString& sectionName) ");
+//    DECL_TRACER("TMaps::parseMeElement(const QDomElement &me, const QString& sectionName) ");
 
     auto textOrEmpty = [](const QDomElement &el)
     {

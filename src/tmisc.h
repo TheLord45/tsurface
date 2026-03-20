@@ -77,6 +77,7 @@ QPixmap makePixmapFromString(const QString& str, int width);
 STATE_TYPE getStateFromButtonType(int bt);
 STATE_TYPE getStateFromPageType(int pt);
 QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori=nullptr);
+QString convertToUTF8(const QString& file);
 
 #define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
 

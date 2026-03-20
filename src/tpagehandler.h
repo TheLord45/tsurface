@@ -30,6 +30,7 @@ class TCanvasWidget;
 class QMdiArea;
 class QDomElement;
 class QDomNodeList;
+class TConvertColors;
 
 namespace Page
 {
@@ -212,6 +213,7 @@ class TPageHandler : public QObject
         void setWidget(TCanvasWidget *w, int number);
         bool saveAllPages();
         bool readPages(const QStringList& list);
+        bool readAMXPages(const QStringList& list);
         ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
         int appendObject(int pageID, TObjectHandler *object);
         // Getter/Setter
@@ -245,14 +247,14 @@ class TPageHandler : public QObject
         void parseObjects(Page::PAGE_t *page, const QJsonArray& obj);
         QJsonArray getObjects(const QList<TObjectHandler *>& objects);
         Page::PAGE_t *getPagePointer(int num);
-        bool readAMXPages(const QStringList& list);
-        void parsePage(const QDomElement &page);
+        int parsePage(const QDomElement &page);
         void parseButton(Page::PAGE_t *page, const QDomElement &button);
-        void parseSR(Page::PAGE_t *page, const QDomElement &sr);
+        void parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr);
         void parseBitmapEntry(ObjHandler::SR_T *sr, const QDomElement &bitmapEntry);
         void parseGradientColors(QList<QColor> *gradientColors, const QDomNodeList& gradColors);
         ObjHandler::BUTTONTYPE getButtonType(const QString& bt);
         ObjHandler::FEEDBACK_t getButtonFeedback(const QString& fb);
+        QColor getColor(const QString& name);
 
     private:
         static TPageHandler *mCurrent;

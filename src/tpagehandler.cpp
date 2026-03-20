@@ -28,7 +28,10 @@
 
 #include "tpagehandler.h"
 #include "tcanvaswidget.h"
+#include "tconverticons.h"
+#include "tconvertcolors.h"
 #include "tconfmain.h"
+#include "tfonts.h"
 #include "tmisc.h"
 #include "terror.h"
 
@@ -1481,29 +1484,40 @@ bool TPageHandler::readAMXPages(const QStringList& list)
 {
     DECL_TRACER("TPageHandler::readAMXPages(const QStringList& list)");
 
+    if (!TConfMain::Current().isAMX())
+    {
+        MSG_ERROR("No AMX file!");
+        return false;
+    }
+
+    TConvertIcons icons;
+
+    if (!TConfMain::Current().isG5())
+    {
+        icons.readAMXIcons(TConfMain::Current().getPathTemporary() + "/" + TConfMain::Current().getIconFile());
+
+        QStringList palFiles = TConfMain::Current().getPaletteFiles();
+
+        for (const QString pal : palFiles)
+            TConvertColors::readAMXPalette(TConfMain::Current().getPathTemporary() + "/" + pal);
+    }
+
     for (QString xmlFilePath : list)
     {
-        QFile file(xmlFilePath);
+        QString file = mPathTemporary + "/" + xmlFilePath + ".xml";
+        QString fileContent = convertToUTF8(file);
 
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            MSG_ERROR("Cannot open file:" << xmlFilePath.toStdString() << ". Error: " << file.errorString().toStdString());
-            return false;
-        }
+        if (fileContent.isEmpty())
+            continue;
 
         QDomDocument doc;
-        QString errorMsg;
-        int errorLine, errorColumn;
-
         QDomDocument::ParseResult result;
 
-        if (!(result = doc.setContent(xmlFilePath)))
+        if (!(result = doc.setContent(fileContent)))
         {
             MSG_ERROR("Failed to parse XML: " << result.errorMessage.toStdString() << " at line " << result.errorLine << " column " << result.errorColumn);
             return false;
         }
-
-        file.close();
 
         QDomElement root = doc.documentElement();
 
@@ -1521,7 +1535,48 @@ bool TPageHandler::readAMXPages(const QStringList& list)
             return false;
         }
 
-        parsePage(page);
+        int pageID = parsePage(page);
+        PAGE_t *pg = getPage(pageID);
+
+        if (pg && icons.getMaxIcons() > 0)
+        {
+            if (pg->srPage.ii > 0)
+            {
+                ObjHandler::BITMAPS_t bm;
+                bm.fileName = icons.getIcon(pg->srPage.ii);
+                bm.justification = static_cast<ObjHandler::ORIENTATION>(pg->srPage.ji);
+                bm.offsetX = pg->srPage.ix;
+                bm.offsetY = pg->srPage.iy;
+                pg->srPage.bitmaps.append(bm);
+
+                if (pg->srPage.fi > 0)
+                {
+                    QFont font = TFonts::getFontFromIndex(pg->srPage.fi);
+                    pg->srPage.ff = font.family();
+                    pg->srPage.fs = font.pointSize();
+                }
+            }
+
+            for (TObjectHandler *obj : pg->objects)
+            {
+                ObjHandler::TOBJECT_t object = obj->getObject();
+
+                for (ObjHandler::SR_T sr : object.sr)
+                {
+                    if (sr.ii > 0)
+                    {
+                        ObjHandler::BITMAPS_t bm;
+                        bm.fileName = icons.getIcon(pg->srPage.ii);
+                        bm.justification = static_cast<ObjHandler::ORIENTATION>(pg->srPage.ji);
+                        bm.offsetX = pg->srPage.ix;
+                        bm.offsetY = pg->srPage.iy;
+                        sr.bitmaps.append(bm);
+                    }
+                }
+
+                obj->setObject(object);
+            }
+        }
     }
 
     return true;
@@ -1568,19 +1623,19 @@ void TPageHandler::parseGradientColors(QList<QColor> *gradientColors, const QDom
         gradientColors->append(QColor(gradColors.at(i).firstChildElement("gradientColor").text()));
 }
 
-void TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr)
+void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
 {
-    DECL_TRACER("TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr) ");
+    DECL_TRACER("TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr) ");
 
     ObjHandler::SR_T lsr;
     lsr.number = sr.attribute("number").toInt();
     lsr.bs = sr.firstChildElement("bs").text();
     lsr._do = sr.firstChildElement("do").text();
     lsr.ft = sr.firstChildElement("ft").text();
-    lsr.cb = QColor(sr.firstChildElement("cb").text());
-    lsr.cf = QColor(sr.firstChildElement("cf").text());
-    lsr.ct = QColor(sr.firstChildElement("ct").text());
-    lsr.ec = QColor(sr.firstChildElement("ec").text());
+    lsr.cb = getColor(sr.firstChildElement("cb").text());
+    lsr.cf = getColor(sr.firstChildElement("cf").text());
+    lsr.ct = getColor(sr.firstChildElement("ct").text());
+    lsr.ec = getColor(sr.firstChildElement("ec").text());
 
     if (!TConfMain::Current().isG5() && !sr.firstChildElement("bm").isNull())
     {
@@ -1605,6 +1660,9 @@ void TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr)
 
     if (!sr.firstChildElement("fs").isNull())
         lsr.fs = sr.firstChildElement("fs").text().toInt();
+
+    if (!sr.firstChildElement("fi").isNull())
+        lsr.fi = sr.firstChildElement("fi").text().toInt();
 
     if (!sr.firstChildElement("te").isNull())
         lsr.te = sr.firstChildElement("te").text();
@@ -1650,6 +1708,18 @@ void TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr)
     if (!sr.firstChildElement("fi").isNull())   // G4 font index will be converted to a real font
         lsr.fi = sr.firstChildElement("fi").text().toInt();
 
+    if (!sr.firstChildElement("ii").isNull())
+        lsr.ii = sr.firstChildElement("ii").text().toInt();
+
+    if (!sr.firstChildElement("ji").isNull())
+        lsr.ji = sr.firstChildElement("ji").text().toInt();
+
+    if (!sr.firstChildElement("ix").isNull())
+        lsr.ix = sr.firstChildElement("ix").text().toInt();
+
+    if (!sr.firstChildElement("iy").isNull())
+        lsr.iy = sr.firstChildElement("iy").text().toInt();
+
     if (!sr.firstChildElement("ww").isNull())
         lsr.ww = sr.firstChildElement("ww").text().toInt();
 
@@ -1672,6 +1742,15 @@ void TPageHandler::parseSR(PAGE_t *page, const QDomElement &sr)
 
     if (!sr.firstChildElement("vf").isNull())
         lsr.vf = sr.firstChildElement("vf").text();
+
+    if (lsr.fi > 0)
+    {
+        QFont font = TFonts::getFontFromIndex(lsr.fi);
+        lsr.ff = font.family();
+        lsr.fs = font.pointSize();
+    }
+
+    object->sr.append(lsr);
 }
 
 void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
@@ -1944,15 +2023,16 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
     for (int i = 0; i < srList.count(); ++i)
     {
         QDomElement sr = srList.at(i).toElement();
-        parseSR(page, sr);
+        parseSR(&object, sr);
     }
 
     TObjectHandler *objHandler = new TObjectHandler(object.type, object.bi, object.na);
+    MSG_DEBUG("Added object of type " << object.type << " with index " << object.bi << " named " << object.na.toStdString());
     objHandler->setObject(object);
     page->objects.append(objHandler);
 }
 
-void TPageHandler::parsePage(const QDomElement &page)
+int TPageHandler::parsePage(const QDomElement &page)
 {
     DECL_TRACER("TPageHandler::parsePage(const QDomElement &page)");
 
@@ -1972,7 +2052,7 @@ void TPageHandler::parsePage(const QDomElement &page)
     else
     {
         MSG_ERROR("Unknown page type " << type.toStdString());
-        return;
+        return 0;
     }
 
     pg.pageID = page.firstChildElement("pageID").text().toInt();
@@ -2024,8 +2104,49 @@ void TPageHandler::parsePage(const QDomElement &page)
         QDomElement sr = srList.at(i).toElement();
         // To avoid double parsing sr inside buttons, check parent:
         if (sr.parentNode().toElement() == page)
-            parseSR(&pg, sr);
+        {
+            ObjHandler::TOBJECT_t object;
+            parseSR(&object, sr);
+            ObjHandler::SR_T s = object.sr[0];
+            pg.srPage.bitmaps = s.bitmaps;
+            pg.srPage.bm = s.bm;
+            pg.srPage.bs = s.bs;
+            pg.srPage.bx = s.bx;
+            pg.srPage.by = s.by;
+            pg.srPage.cb = s.cb;
+            pg.srPage.cf = s.cf;
+            pg.srPage.ct = s.ct;
+            pg.srPage.dv = s.dv;
+            pg.srPage.dynamic = s.dynamic;
+            pg.srPage.ec = s.ec;
+            pg.srPage.et = s.et;
+            pg.srPage.ff = s.ff;
+            pg.srPage.fi = s.fi;
+            pg.srPage.fs = s.fs;
+            pg.srPage.ft = s.ft;
+            pg.srPage.gr = s.gr;
+            pg.srPage.gradientColors = s.gradientColors;
+            pg.srPage.gx = s.gx;
+            pg.srPage.gy = s.gy;
+            pg.srPage.ii = s.ii;
+            pg.srPage.ix = s.ix;
+            pg.srPage.iy = s.iy;
+            pg.srPage.jb = s.jb;
+            pg.srPage.ji = s.ji;
+            pg.srPage.jt = s.jt;
+            pg.srPage.mi = s.mi;
+            pg.srPage.oo = s.oo;
+            pg.srPage.sb = s.sb;
+            pg.srPage.te = s.te;
+            pg.srPage.tx = s.tx;
+            pg.srPage.ty = s.ty;
+            pg.srPage.vf = s.vf;
+            pg.srPage.ww = s.ww;
+        }
     }
+
+    mPages.append(pg);
+    return pg.pageID;
 }
 
 ObjHandler::BUTTONTYPE TPageHandler::getButtonType(const QString& bt)
@@ -2072,4 +2193,14 @@ ObjHandler::FEEDBACK_t TPageHandler::getButtonFeedback(const QString& fb)
         return ObjHandler::FB_BLINK;
 
     return ObjHandler::FB_NONE;
+}
+
+QColor TPageHandler::getColor(const QString& name)
+{
+    DECL_TRACER("TPageHandler::getColor(const QString& name)");
+
+    if (name.isEmpty())
+        return Qt::transparent;
+
+    return TConvertColors::getColorFromColor(name);
 }

@@ -16,6 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QPixmap>
+#include <QFile>
+#include <QStringConverter>
 
 #include <sstream>
 #include <iomanip>
@@ -150,4 +152,21 @@ QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori)
         *ori = pm.size();
 
     return QPixmap(pm.scaled(size, Qt::KeepAspectRatio));
+}
+
+QString convertToUTF8(const QString& filename)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        MSG_ERROR("convertToUTF8: Cannot open file:" << filename.toStdString() << "! Error: " << file.errorString().toStdString());
+        return QString();
+    }
+
+    QByteArray buffer = file.readAll();
+    file.close();
+
+    auto toUtf8 = QStringDecoder(QStringDecoder::Latin1);
+    return toUtf8(buffer);
 }

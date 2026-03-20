@@ -34,7 +34,7 @@ class TFonts
             QString intFile;
             int ID{0};
             int fileSize{0};        // G4
-            int fi{0};              // G4 face index
+            int fi{0};              // G4 font index
             QString name;           // G4 font name
             QString subfamilyName;  // G4 subfamily name (not available on *NIX fonts!)
             int size{0};            // G4 The used font size

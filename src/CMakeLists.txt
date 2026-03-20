@@ -161,6 +161,8 @@ qt_add_executable(tsurface
     telementcolorselector.h
     telementsound.cpp
     telementsound.h
+    telementsinglebitmap.cpp
+    telementsinglebitmap.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
     tdrawobject.cpp
@@ -171,6 +173,10 @@ qt_add_executable(tsurface
     tdrawimage.cpp
     tdrawborder.cpp
     tdrawborder.h
+    tconverticons.cpp
+    tconverticons.h
+    tconvertcolors.cpp
+    tconvertcolors.h
     tfsfreader.cpp
     tfsfreader.h
     readtp4.cpp
@@ -184,12 +190,11 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    telementsinglebitmap.h telementsinglebitmap.cpp
 )
 
 # Use the Widgets module from Qt 6.
 target_link_libraries(tsurface PRIVATE Qt6::Core Qt6::Widgets Qt6::Network Qt6::Xml archive fontconfig ssl crypto z)
-target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+#target_link_libraries(tsurface PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Install the executable
 install(TARGETS tsurface DESTINATION bin)

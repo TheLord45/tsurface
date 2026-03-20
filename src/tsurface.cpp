@@ -572,6 +572,7 @@ void TSurface::on_actionOpen_triggered()
         return;
 
     QString lowerFile = file.toLower();
+    bool doCommon = false;
 
     if (lowerFile.endsWith(".tp4") || lowerFile.endsWith("tp5"))
     {
@@ -588,7 +589,16 @@ void TSurface::on_actionOpen_triggered()
 
         bool g5 = reader.isG5();
         TConfMain::Current().setPathTemporary(mPathTemporary);              // Initialize class with path to temporary directory
-        TConfMain::Current().readProject(mPathTemporary + "/prj.xma", g5);      // Read the main project file
+        TConfMain::Current().readProject(mPathTemporary + "/prj.xma", g5);  // Read the main project file
+
+        TFonts::readAMXFontFile(mPathTemporary + "/" + TConfMain::Current().getFontFile());
+
+        TPageHandler::Current().setPathTemporary(mPathTemporary);           // Initialize class with path to temporary directory
+        QStringList pages = TConfMain::Current().getAllPages();             // Get names of all pages
+        QStringList popups = TConfMain::Current().getAllPopups();           // Get names of all popups
+        pages.append(popups);                                               // Merge the lists
+        TPageHandler::Current().readAMXPages(pages);                        // Read all pages fron their files
+        doCommon = true;
     }
     else if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
     {
@@ -603,6 +613,11 @@ void TSurface::on_actionOpen_triggered()
         QStringList popups = TConfMain::Current().getAllPopups();           // Get names of all popups
         pages.append(popups);                                               // Merge the lists
         TPageHandler::Current().readPages(pages);                           // Read all pages fron their files
+        doCommon = true;
+    }
+
+    if (doCommon)
+    {
         TWorkSpaceHandler::Current().createTree(TConfMain::Current().getJobName(), TConfMain::Current().getPanelType());   // Create the basic tree
         connect(&TWorkSpaceHandler::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);    // Connect to get informed about clicks
 
