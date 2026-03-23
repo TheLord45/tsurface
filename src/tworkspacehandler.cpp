@@ -239,7 +239,7 @@ void TWorkSpaceHandler::pageTypeChanged(Page::PAGE_TYPE ptype, int pageID)
 {
     DECL_TRACER("TWorkSpaceHandler::pageTypeChanged(Page::PAGE_TYPE ptype, int pageID)");
 
-    TPageTree::setPageType(ptype, pageID);
+    TPageTree::setPageType(ptype, pageID, "");
     TPropertiesProgramming::setTable(ptype == Page::PT_SUBPAGE ? STATE_SUBPAGE : STATE_POPUP);
 }
 

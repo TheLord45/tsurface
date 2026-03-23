@@ -639,7 +639,7 @@ void TSurface::on_actionOpen_triggered()
             if (pg->popupType == Page::PT_PAGE)                              // Is it a page?
                 TWorkSpaceHandler::Current().addTreePage(pg->name, pg->pageID);   // Yes, then add it to page part of tree
             else if (pg->popupType == Page::PT_POPUP)                        // Is it a popup?
-                TWorkSpaceHandler::Current().addTreePopup(pg->name, pg->pageID);  // Yes, then add it to popup part of tree
+                TWorkSpaceHandler::Current().addTreePopup(pg->name, pg->group, pg->pageID);  // Yes, then add it to popup part of tree
             else if (pg->popupType == Page::PT_SUBPAGE)
                 TWorkSpaceHandler::Current().addTreeSubPage(pg->name, pg->pageID);
         }
@@ -734,7 +734,7 @@ void TSurface::on_actionNew_triggered()
     cmain.setFontBase(npd.getFontName());
     cmain.setFontBaseSize(npd.getFontSize());
     // Create tree menu
-    TWorkSpaceHandler::Current().createNewTree(npd.getProjectName(), npd.getPageName(), npd.getPanelName());
+    TWorkSpaceHandler::Current().createNewTree(npd.getProjectName(), npd.getPageName(), npd.getPanelName(), 1);
     connect(&TWorkSpaceHandler::Current(), &TPageTree::clicked, this, &TSurface::onClickedPageTree);
     // Add main page to MDI
     TCanvasWidget *widget = new TCanvasWidget;
@@ -2022,7 +2022,7 @@ void TSurface::onAddNewPopup()
     widget->activateWindow();
     widget->show();
     TPageHandler::Current().setVisible(id, true);
-    TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), id);
+    TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), "", id);
     TWorkSpaceHandler::Current().invalidateObject();
     TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
     // Here we set everyting of the page we currently know

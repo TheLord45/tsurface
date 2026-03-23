@@ -43,6 +43,7 @@ class TPageTree : public QObject
         const int MENU_POPUP = 10002;
         const int MENU_SUBPAGES = 10003;
         const int MENU_APPS = 10004;
+        const int MENU_POPUPGROUP = 10005;
 
         const int POPMEN_ADDPAGE = 1;
         const int POPMEN_ADDPOPUP = 2;
@@ -65,18 +66,19 @@ class TPageTree : public QObject
 
         void setParent(QWidget *parent) { mParent = parent; }
         void setTreeView(QTreeView *tree) { mTreeView = tree; }
-        void createNewTree(const QString& job, const QString& pname, const QString& panel);
+        void createNewTree(const QString& job, const QString& pname, const QString& panel, int pageID);
         void createTree(const QString& job, const QString& panel);
         void resetTree();
         void addTreePage(const QString& name, int num);
-        void addTreePopup(const QString& name, int num);
+        void addTreePopup(const QString& name, const QString& group, int num);
         void addTreeSubPage(const QString& name, int num);
 //        void addApp(const QString& name, int num);
         void updatePageName(int id, const QString& name);
         void updatePopupName(int id, const QString& name);
         void updateSubPageName(int id, const QString& name);
-        void setPageType(Page::PAGE_TYPE ptype, int pageID);
+        void setPageType(Page::PAGE_TYPE ptype, int pageID, const QString& group);
         void setFocus(int id);
+        void setPopupGroup(const QString& group, int pageID);
 
     signals:
         void clicked(const WINTYPE_t wt, int num, const QString& name);
@@ -103,7 +105,8 @@ class TPageTree : public QObject
 
         void menuPopup();
         TPageTree *getPointer() { return this; }
-        void makeTree(const QString& job, const QString& panel, const QString& pname);
+        void makeTree(const QString& job, const QString& panel, const QString& pname, int pageID);
+        void removeGroupFromList(const QString& name);
 
     private:
         QTreeView *mTreeView{nullptr};
@@ -111,6 +114,7 @@ class TPageTree : public QObject
         QStandardItemModel *mItemModel{nullptr};
         QStandardItem *mPages{nullptr};     // Pointer to tree part containing the pages
         QStandardItem *mPopup{nullptr};     // Pointer to tree part containing the popups
+        QList<QStandardItem *> mPopupGroups;// List of pointers for groups. Each group is a subtree of "mPopup"
         QStandardItem *mSubPages{nullptr};  // Pointer to tree part containing the subpages
         QStandardItem *mApps{nullptr};      // Pointer to tree part containing the apps
         QMenu *mMenuPopup{nullptr};

@@ -46,9 +46,9 @@ TPageTree::~TPageTree()
  * @param pname The name of the page. The page entry is named like this.
  * @param panel The name of the panel.
  */
-void TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel)
+void TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel, int pageID)
 {
-    DECL_TRACER("TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel)");
+    DECL_TRACER("TPageTree::createNewTree(const QString& job, const QString& pname, const QString& panel, pageID)");
 
     if (!mTreeView)
     {
@@ -56,7 +56,7 @@ void TPageTree::createNewTree(const QString& job, const QString& pname, const QS
         return;
     }
 
-    makeTree(job, panel, pname);
+    makeTree(job, panel, pname, pageID);
 }
 
 void TPageTree::createTree(const QString& job, const QString& panel)
@@ -69,12 +69,29 @@ void TPageTree::createTree(const QString& job, const QString& panel)
         return;
     }
 
-    makeTree(job, panel, QString());
+    makeTree(job, panel, QString(), 0);
 }
 
-void TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname)
+/**
+ * @brief TPageTree::makeTree
+ * This method creates a tree from scratch. In case there is already a tree it
+ * deletes it first. Then a standrd tree is created.
+ * If the parameter @b pname contains a string, a page entry is added to the
+ * pages.
+ * The parameters @b job and @b panel are used to write their content into the
+ * header of the tree.
+ *
+ * @param job       The name of the job. This appears in the herader of the
+ * tree.
+ * @param panel     The type name of the panel. This is written inside of
+ * brackets into the head.
+ * @param pname     An optional page name. If it contains a string, a page with
+ * this name is visible.
+ * @param pageID    The ID of the page.
+ */
+void TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname, int pageID)
 {
-    DECL_TRACER("TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname)");
+    DECL_TRACER("TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname, int pageID)");
 
     mPageNum = 0;
     mPopupNum = 500;
@@ -101,7 +118,7 @@ void TPageTree::makeTree(const QString& job, const QString& panel, const QString
         mPageNum++;
         QStandardItem *pageMain = new QStandardItem(pname);
         pageMain->setEditable(false);
-        pageMain->setData(mPageNum);
+        pageMain->setData(pageID);
         mPages->appendRow(pageMain);
     }
 
@@ -135,6 +152,11 @@ void TPageTree::makeTree(const QString& job, const QString& panel, const QString
     connect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
 }
 
+/**
+ * @brief TPageTree::resetTree
+ * Reset all parts of the tree. It removes all parts of the tree and disconnects
+ * the callbacks. The internal counters are also reset.
+ */
 void TPageTree::resetTree()
 {
     DECL_TRACER("TPageTree::reset()");
@@ -151,6 +173,13 @@ void TPageTree::resetTree()
     mGroupNum = 2000;
 }
 
+/**
+ * @brief TPageTree::addTreePage
+ * This method adds a page to the page part.
+ *
+ * @param name  The name of the page
+ * @param num   The ID of the page
+ */
 void TPageTree::addTreePage(const QString& name, int num)
 {
     DECL_TRACER("TPageTree::addPage(const QString& name, int num)");
@@ -167,9 +196,19 @@ void TPageTree::addTreePage(const QString& name, int num)
     mPages->appendRow(pg);
 }
 
-void TPageTree::addTreePopup(const QString& name, int num)
+/**
+ * @brief TPageTree::addTreePopup
+ * This method adds a popup to the popup part of the tree. If there is also a
+ * group name, the popup is added to this group. If the group doesn't exist, it
+ * will be created.
+ *
+ * @param name      The name of the popup
+ * @param group     Optional: The name of the group the popup belongs to.
+ * @param num       The ID of the popup.
+ */
+void TPageTree::addTreePopup(const QString& name, const QString& group, int num)
 {
-    DECL_TRACER("TPageTree::addPopup(const QString& name, int num)");
+    DECL_TRACER("TPageTree::addPopup(const QString& name, const QString& group, int num)");
 
     if (!mPopup)
     {
@@ -180,9 +219,39 @@ void TPageTree::addTreePopup(const QString& name, int num)
     QStandardItem *pg = new QStandardItem(name);
     pg->setEditable(false);
     pg->setData(num);
-    mPopup->appendRow(pg);
+
+    if (!group.isEmpty())
+    {
+        // Search for the group
+        for (QStandardItem *item : mPopupGroups)
+        {
+            if (item->text() == group)
+            {
+                item->appendRow(pg);
+                return;
+            }
+        }
+
+        // Here we know that the group doesn't exist. Therefor we add it.
+        QStandardItem *gr = new QStandardItem(group);
+        gr->setEditable(false);
+        gr->setData(MENU_POPUPGROUP);
+        mPopup->appendRow(gr);
+        mPopupGroups.append(gr);
+        // At least add the popup to the new group.
+        gr->appendRow(pg);
+    }
+    else
+        mPopup->appendRow(pg);
 }
 
+/**
+ * @brief TPageTree::addTreeSubPage
+ * This method adds a subpage to the subpage part of the tree.
+ *
+ * @param name  The name of the subpage
+ * @param num   The ID of the subpage.
+ */
 void TPageTree::addTreeSubPage(const QString& name, int num)
 {
     DECL_TRACER("TPageTree::addTreeSubPage(const QString& name, int num)");
@@ -262,9 +331,17 @@ void TPageTree::updateSubPageName(int id, const QString& name)
     }
 }
 
-void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)
+/**
+ * @brief TPageTree::setPageType
+ * This method moves a subpage to a page and the other way around depending on
+ * the parameter @b ptype.
+ *
+ * @param ptype     The new type of the page
+ * @param pageID    The ID of the page. This ID never changes.
+ */
+void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID, const QString& group)
 {
-    DECL_TRACER("TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)");
+    DECL_TRACER("TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID, const QString& group)");
 
     if (ptype == Page::PT_SUBPAGE)
     {
@@ -283,6 +360,20 @@ void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)
                 mPopup->removeRow(i);
                 return;
             }
+            else if (item && item->data().toInt() == MENU_POPUPGROUP)
+            {
+                for (int j = 0; j < item->rowCount(); ++j)
+                {
+                    QStandardItem *it = item->child(j, 0);
+
+                    if (it && it->data().toInt() == pageID)
+                    {
+                        addTreeSubPage(it->text(), pageID);
+                        item->removeRow(j);
+                        return;
+                    }
+                }
+            }
         }
     }
     else
@@ -298,10 +389,100 @@ void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID)
 
             if (item && item->data().toInt() == pageID)
             {
-                addTreePopup(item->text(), pageID);
+                addTreePopup(item->text(), group, pageID);
                 mSubPages->removeRow(i);
                 return;
             }
+        }
+    }
+}
+
+/**
+ * @brief TPageTree::setPopupGroup
+ * The method searches for a popup with the page ID @b pageID. If it finds the
+ * popup, it removes it first. Then it adds it again by passing the group name.
+ * If the popup was in a group and the group name was empty, it is moved to the
+ * main part of popups. A popup from the main part or any group can be moved to
+ * any other group.
+ * The method assumes the popup with the ID @b pageID exists. If not, nothing
+ * happens.
+ *
+ * @param group     The new group name the popup belongs to. This may be empty.
+ * @param pageID    The page ID of the popup.
+ */
+void TPageTree::setPopupGroup(const QString& group, int pageID)
+{
+    DECL_TRACER("TPageTree::setPopupGroup(const QString& group, int pageID)");
+
+    if (!mPopup || !mPopup->hasChildren())
+        return;
+
+    bool found = false;
+    QString name;
+    int rows = mPopup->rowCount();
+
+    for (int i = 0; i < rows; ++i)
+    {
+        QStandardItem *item = mPopup->child(i, 0);
+
+        if (item)
+        {
+            if (item->data().toInt() == pageID)
+            {
+                name = item->text();
+                mPopup->removeRow(i);
+                found = true;
+                break;
+            }
+            else if (item->data().toInt() == MENU_POPUPGROUP)
+            {
+                for (int j = 0; j < item->rowCount(); ++j)
+                {
+                    QStandardItem *it = item->child(j, 0);
+
+                    if (it && it->data().toInt() == pageID)
+                    {
+                        name = it->text();
+                        item->removeRow(j);
+
+                        if (!item->hasChildren())
+                            removeGroupFromList(item->text());
+
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found)
+                    break;
+            }
+        }
+    }
+
+    if (found)
+        addTreePopup(name, group, pageID);
+}
+
+void TPageTree::removeGroupFromList(const QString& name)
+{
+    DECL_TRACER("TPageTree::removeGroupFromList(const QString& name)");
+
+    QList<QStandardItem *>::Iterator iter;
+
+    for (iter = mPopupGroups.begin(); iter != mPopupGroups.end(); ++iter)
+    {
+        QStandardItem *item = *iter;
+
+        if (item->text() == name)
+        {
+            if (item->hasChildren())
+            {
+                MSG_WARNING("Group " << item->text().toStdString() << " is not empty! Will not remove it.");
+                return;
+            }
+
+            mPopupGroups.erase(iter);
+            return;
         }
     }
 }
