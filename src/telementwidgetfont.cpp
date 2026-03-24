@@ -37,7 +37,7 @@ TElementWidgetFont::TElementWidgetFont(const QFont& font, const QString& name, Q
 
     mLine = new QLineEdit;
     mLine->setObjectName(name);
-    mLine->setText(font.family());
+    setFontName();
 
     mButton = new QPushButton;
     mButton->setText("...");
@@ -60,8 +60,7 @@ void TElementWidgetFont::setFont(const QFont& font)
     DECL_TRACER("TElementWidgetFont::setFont(const QFont& font)");
 
     mFont = font;
-    QSignalBlocker block(this);
-    mLine->setText(font.family());
+    setFontName();
 }
 
 void TElementWidgetFont::onLineEditTextChanged(const QString& text)
@@ -71,7 +70,7 @@ void TElementWidgetFont::onLineEditTextChanged(const QString& text)
     if (mBlocked)
         return;
 
-    mFont.setFamily(text);
+    mFont.setFamily(getFontName(text));
     emit fontChanged(mFont, mName);
     emit fontChangedInst(mFont, mName, mInstance);
 }
@@ -81,15 +80,76 @@ void TElementWidgetFont::onPushButtonClicked()
     DECL_TRACER("TElementWidgetFont::onPushButtonClicked()");
 
     bool ok = false;
-    QFont f = QFontDialog::getFont(&ok, mFont, this, tr("Select font"));
+    QFont f = QFontDialog::getFont(&ok, mFont, this, tr("Select font"),
+                                   QFontDialog::ScalableFonts |
+                                   QFontDialog::MonospacedFonts |
+                                   QFontDialog::ProportionalFonts);
 
     if (ok)
     {
         mFont = f;
         mBlocked = true;
-        mLine->setText(mFont.family());
+        setFontName();
         emit fontChanged(mFont, mName);
         emit fontChangedInst(mFont, mName, mInstance);
         mBlocked = false;
     }
+}
+
+void TElementWidgetFont::setFontName()
+{
+    DECL_TRACER("TElementWidgetFont::setFontName()");
+
+    QString fntName = mFont.family();
+
+    if (mFont.bold())
+        fntName += " Bold";
+
+    if (mFont.italic())
+        fntName += " Italic";
+
+    if (mFont.strikeOut())
+        fntName += " Strike";
+
+    if (mFont.underline())
+        fntName += " Underline";
+
+    QSignalBlocker block(this);
+    mLine->setText(fntName);
+}
+
+QString TElementWidgetFont::getFontName(const QString& name)
+{
+    DECL_TRACER("TElementWidgetFont::getFontName(const QString& name)");
+
+    QList<int> index;
+    int pos1 = name.indexOf(" bold", 0, Qt::CaseInsensitive);
+    int pos2 = name.indexOf(" italic", 0, Qt::CaseInsensitive);
+    int pos3 = name.indexOf(" strike", 0, Qt::CaseInsensitive);
+    int pos4 = name.indexOf(" underline", 0, Qt::CaseInsensitive);
+
+    if(pos1 > 0)
+        index.append(pos1);
+
+    if (pos2 > 0)
+        index.append(pos2);
+
+    if (pos3 > 0)
+        index.append(pos3);
+
+    if (pos4 > 0)
+        index.append(pos4);
+
+    if (index.empty())
+        return name;
+
+    int pos = 0xffffffff;
+
+    for (int p : index)
+    {
+        if (p < pos)
+            pos = p;
+    }
+
+    return name.left(pos);
 }

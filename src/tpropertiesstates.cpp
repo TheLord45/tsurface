@@ -43,6 +43,7 @@
 #include "telementsinglebitmap.h"
 #include "telementspinbox.h"
 #include "tconfmain.h"
+#include "tfonts.h"
 #include "terror.h"
 
 using namespace Page;
@@ -1675,7 +1676,7 @@ void TPropertiesStates::onFontChanged(const QFont& font, const QString& name, in
     DECL_TRACER("TPropertiesStates::onFontChanged(const QFont& font, const QString& name, int instance)");
 
     mActInstance = instance;
-    setValue(name, font.family());
+    setValue(name, TFonts::getFontName(font));
 }
 
 void TPropertiesStates::onTextEffectChanged(int eff, const QString& effect, const QString& name, int instance)

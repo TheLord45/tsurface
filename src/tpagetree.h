@@ -29,7 +29,7 @@ class QTreeView;
 class QStandardItemModel;
 class QMenu;
 class QModelIndex;
-class QStandardItem;
+class TCustomItem;
 
 class TPageTree : public QObject
 {
@@ -112,16 +112,13 @@ class TPageTree : public QObject
         QTreeView *mTreeView{nullptr};
         QWidget *mParent{nullptr};
         QStandardItemModel *mItemModel{nullptr};
-        QStandardItem *mPages{nullptr};     // Pointer to tree part containing the pages
-        QStandardItem *mPopup{nullptr};     // Pointer to tree part containing the popups
-        QList<QStandardItem *> mPopupGroups;// List of pointers for groups. Each group is a subtree of "mPopup"
-        QStandardItem *mSubPages{nullptr};  // Pointer to tree part containing the subpages
-        QStandardItem *mApps{nullptr};      // Pointer to tree part containing the apps
+        TCustomItem *mPages{nullptr};       // Pointer to tree part containing the pages
+        TCustomItem *mPopup{nullptr};       // Pointer to tree part containing the popups
+        QList<TCustomItem *> mPopupGroups;  // List of pointers for groups. Each group is a subtree of "mPopup"
+        TCustomItem *mSubPages{nullptr};    // Pointer to tree part containing the subpages
+        TCustomItem *mApps{nullptr};        // Pointer to tree part containing the apps
         QMenu *mMenuPopup{nullptr};
         bool mHaveModel{false};
-        int mPageNum{0};            // The number of a page. Range 1 to 50
-        int mPopupNum{500};         // The number of a subpage. Range 500 to 1000
-        int mGroupNum{2000};        // The number of a group. Range 2000 to 2100
 };
 
 #endif // TPAGETREE_H

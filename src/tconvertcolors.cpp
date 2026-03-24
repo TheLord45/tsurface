@@ -129,7 +129,10 @@ void TConvertColors::parseColor(const QDomElement& color)
     COLOR_t col;
     col.index = color.attribute("index").toInt();
     col.name = color.attribute("name");
-    QString sCol = color.firstChildElement().text();
+    QString sCol = color.text();
+
+    if (sCol.isEmpty())
+        return;
 
     if (sCol.length() == 9)
     {

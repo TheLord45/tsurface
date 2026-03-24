@@ -47,6 +47,9 @@ class TElementWidgetFont : public QWidget
         void onPushButtonClicked();
 
     private:
+        void setFontName();
+        QString getFontName(const QString& name);
+
         QFont mFont;
         QString mName;
         QLineEdit *mLine{nullptr};

@@ -97,6 +97,27 @@ QString TFonts::getFontFile(const QFont& qfont)
     return fontFile;
 }
 
+QString TFonts::getFontName(const QFont& font)
+{
+    DECL_TRACER("TFonts::getFontName(const QFont& font)");
+
+    QString fntName = font.family();
+
+    if (font.bold())
+        fntName += " Bold";
+
+    if (font.italic())
+        fntName += " Italic";
+
+    if (font.strikeOut())
+        fntName += " Strike";
+
+    if (font.underline())
+        fntName += " Underline";
+
+    return fntName;
+}
+
 /**
  * @brief TFonts::releaseFontConfig
  * This method released the allocated memory of the library fontconfig. Once
@@ -144,16 +165,7 @@ QFont TFonts::getFont(const QString& ff)
 
     font.setFamily(ff);
     font.setPointSize(TConfMain::Current().getFontBaseSize());
-
-    if (ff.endsWith("bold italic", Qt::CaseInsensitive))
-    {
-        font.setBold(true);
-        font.setItalic(true);
-    }
-    else if (ff.endsWith("bold", Qt::CaseInsensitive))
-        font.setBold(true);
-    else if (ff.endsWith("italic", Qt::CaseInsensitive))
-        font.setItalic(true);
+    setFontAttributes(&font, ff);
 
     return font;
 }
@@ -167,23 +179,14 @@ QFont TFonts::getFontFromIndex(int index)
 
     for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
     {
-        if (iter->ID == index)
+        if (iter->fi == index)
         {
             font.setFamilies(iter->family);
 
             if (TConfMain::Current().isAMX() && !TConfMain::Current().isG5())
             {
                 font.setPointSize(iter->size);
-
-                if (iter->subfamilyName.compare("Bold Italic", Qt::CaseInsensitive) == 0)
-                {
-                    font.setBold(true);
-                    font.setItalic(true);
-                }
-                else if (iter->subfamilyName.compare("Bold", Qt::CaseInsensitive) == 0)
-                    font.setBold(true);
-                else if (iter->subfamilyName.compare("Italic", Qt::CaseInsensitive) == 0)
-                    font.setItalic(true);
+                setFontAttributes(&font, iter->subfamilyName);
             }
 
             return font;
@@ -222,6 +225,8 @@ void TFonts::addFont(const QFont& font, const QString& file)
         PRIVFONTS_t pf;
         pf.file = basename(file);
         pf.intFile = file;
+        pf.bold = font.bold();
+        pf.italic = font.italic();
         pf.ID = -1;
         pf.family = font.families();
         mLocalFonts.append(pf);
@@ -539,4 +544,24 @@ void TFonts::parseFont(const QDomElement &font)
         fnt.size = font.firstChildElement("size").text().toInt();
 
     mLocalFonts.append(fnt);
+}
+
+void TFonts::setFontAttributes(QFont *font, const QString& name)
+{
+    DECL_TRACER("TFonts::setFontAttributes(QFont *font, const QString& name)");
+
+    if (!font)
+        return;
+
+    if (name.contains(" bold",Qt::CaseInsensitive))
+        font->setBold(true);
+
+    if (name.contains(" italic", Qt::CaseInsensitive))
+        font->setItalic(true);
+
+    if (name.contains(" strike", Qt::CaseInsensitive))
+        font->setStrikeOut(true);
+
+    if (name.contains(" underline", Qt::CaseInsensitive))
+        font->setUnderline(true);
 }

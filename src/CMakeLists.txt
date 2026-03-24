@@ -177,6 +177,8 @@ qt_add_executable(tsurface
     tconverticons.h
     tconvertcolors.cpp
     tconvertcolors.h
+    tcustomitem.cpp
+    tcustomitem.h
     tfsfreader.cpp
     tfsfreader.h
     readtp4.cpp

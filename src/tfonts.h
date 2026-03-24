@@ -29,10 +29,14 @@ class TFonts
     public:
         typedef struct PRIVFONTS_t
         {
-            QStringList family;
-            QString file;
-            QString intFile;
-            int ID{0};
+            QStringList family;     // The list of font families
+            QString file;           // Only the file name
+            QString intFile;        // Intern: Real file name with full path
+            bool bold{false};       // Intern: TRUE = bold font
+            bool italic{false};     // Intern: TRUE = italic font
+            bool strike{false};     // Intern: TRUE = strike out font
+            bool underline{false};  // Intern: TRUE = underline font
+            int ID{0};              // Not used
             int fileSize{0};        // G4
             int fi{0};              // G4 font index
             QString name;           // G4 font name
@@ -42,6 +46,7 @@ class TFonts
         }PRIVFONTS_t;
 
         static QString getFontFile(const QFont& font);
+        static QString getFontName(const QFont& font);
         static void addFont(const QFont& font, const QString& file);
         static void addFontFile(const QString& file);
         static void freePrivateFonts();
@@ -57,6 +62,7 @@ class TFonts
         static void init();
         static bool readSystemFonts(const QString& path);
         static void parseFont(const QDomElement &font);
+        static void setFontAttributes(QFont *font, const QString& name);
 
     private:
         TFonts() {};    // Must never be called

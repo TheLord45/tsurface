@@ -25,6 +25,7 @@
 #include <QtEnvironmentVariables>
 
 #include "tsurface.h"
+#include "tcustomitem.h"
 #include "tresizablewidget.h"
 #include "tcanvaswidget.h"
 #include "tsurfacereader.h"
@@ -115,6 +116,7 @@ TSurface::TSurface(QWidget *parent)
 {
     DECL_TRACER("TSurface::TSurface(QWidget *parent)");
 
+    qRegisterMetaType<TCustomItem>();
     m_ui->setupUi(this);
 
     m_ui->mdiArea->setStyleSheet(QString("QMdiSubWindow{selection-background-color: %1;}").arg(TConfig::Current().getGutterColor().name()));

@@ -17,11 +17,11 @@
  */
 #include <QGuiApplication>
 #include <QTreeView>
-#include <QStandardItem>
 #include <QMenu>
 #include <QCursor>
 
 #include "tpagetree.h"
+#include "tcustomitem.h"
 #include "terror.h"
 
 TPageTree::TPageTree(QTreeView *tree, QWidget *parent)
@@ -59,6 +59,14 @@ void TPageTree::createNewTree(const QString& job, const QString& pname, const QS
     makeTree(job, panel, pname, pageID);
 }
 
+/**
+ * @brief TPageTree::createTree
+ * Checks first if the pointer to the QTreeView was already initialized and if
+ * yes, it call the method makeTree() to create a new, empty tree.
+ *
+ * @param job       The name of the job
+ * @param panel     The type name of the choosen panel.
+ */
 void TPageTree::createTree(const QString& job, const QString& panel)
 {
     DECL_TRACER("TPageTree::createTree(const QString& job, const QString& panel)");
@@ -93,10 +101,6 @@ void TPageTree::makeTree(const QString& job, const QString& panel, const QString
 {
     DECL_TRACER("TPageTree::makeTree(const QString& job, const QString& panel, const QString& pname, int pageID)");
 
-    mPageNum = 0;
-    mPopupNum = 500;
-    mGroupNum = 2000;
-
     if (!mItemModel)
         mItemModel = new QStandardItemModel;
     else
@@ -108,14 +112,13 @@ void TPageTree::makeTree(const QString& job, const QString& panel, const QString
 
     QStandardItem *parentItem = mItemModel->invisibleRootItem();
     // Folder Pages
-    mPages = new QStandardItem(tr("Pages"));
+    mPages = new TCustomItem(tr("Pages"));
     mPages->setEditable(false);
     mPages->setData(MENU_PAGE);
 
     if (!pname.isEmpty())
     {
         // Page
-        mPageNum++;
         QStandardItem *pageMain = new QStandardItem(pname);
         pageMain->setEditable(false);
         pageMain->setData(pageID);
@@ -124,17 +127,17 @@ void TPageTree::makeTree(const QString& job, const QString& panel, const QString
 
     parentItem->appendRow(mPages);
     // Folder Popup Pages
-    mPopup = new QStandardItem(tr("Popup pages"));
+    mPopup = new TCustomItem(tr("Popup pages"));
     mPopup->setEditable(false);
     mPopup->setData(MENU_POPUP);
     parentItem->appendRow(mPopup);
     // Folder Sup-pages
-    mSubPages = new QStandardItem(tr("Sub-pages"));
+    mSubPages = new TCustomItem(tr("Sub-pages"));
     mSubPages->setEditable(false);
     mSubPages->setData(MENU_SUBPAGES);
     parentItem->appendRow(mSubPages);
     // Folder Apps
-    mApps = new QStandardItem(tr("Application windows"));
+    mApps = new TCustomItem(tr("Application windows"));
     mApps->setEditable(false);
     mApps->setData(MENU_APPS);
     parentItem->appendRow(mApps);
@@ -168,9 +171,6 @@ void TPageTree::resetTree()
     disconnect(mTreeView, &QTreeView::pressed, this, &TPageTree::onClicked);
     disconnect(mTreeView, &QTreeView::doubleClicked, this, &TPageTree::onDoubleClicked);
     delete mTreeView;
-    mPageNum = 0;
-    mPopupNum = 500;
-    mGroupNum = 2000;
 }
 
 /**
@@ -216,33 +216,38 @@ void TPageTree::addTreePopup(const QString& name, const QString& group, int num)
         return;
     }
 
-    QStandardItem *pg = new QStandardItem(name);
+    TCustomItem *pg = new TCustomItem(name);
     pg->setEditable(false);
     pg->setData(num);
 
     if (!group.isEmpty())
     {
         // Search for the group
-        for (QStandardItem *item : mPopupGroups)
+        for (TCustomItem *item : mPopupGroups)
         {
             if (item->text() == group)
             {
                 item->appendRow(pg);
+                item->sortChildren(0);
                 return;
             }
         }
 
         // Here we know that the group doesn't exist. Therefor we add it.
-        QStandardItem *gr = new QStandardItem(group);
+        TCustomItem *gr = new TCustomItem(group);
         gr->setEditable(false);
         gr->setData(MENU_POPUPGROUP);
         mPopup->appendRow(gr);
+        mPopup->sortChildren(0);
         mPopupGroups.append(gr);
         // At least add the popup to the new group.
         gr->appendRow(pg);
     }
     else
+    {
         mPopup->appendRow(pg);
+        mPopup->sortChildren(0);
+    }
 }
 
 /**
@@ -262,24 +267,34 @@ void TPageTree::addTreeSubPage(const QString& name, int num)
         return;
     }
 
-    QStandardItem *pg = new QStandardItem(name);
+    TCustomItem *pg = new TCustomItem(name);
     pg->setEditable(false);
     pg->setData(num);
     mSubPages->appendRow(pg);
+    mSubPages->sortChildren(0);
 }
 
+/**
+ * @brief TPageTree::updatePageName
+ * Searches for a page with the given @b id. If found, it changes the name to
+ * whatever @b name contains.
+ * The parameter @b name must not be empty.
+ *
+ * @param id        The ID of a page
+ * @param name      The new name of the page
+ */
 void TPageTree::updatePageName(int id, const QString& name)
 {
     DECL_TRACER("TPageTree::updatePageName(int id, const QString& name)");
 
-    if (!mPages || !mPages->hasChildren())
+    if (!mPages || !mPages->hasChildren() || name.isEmpty())
         return;
 
     int rows = mPages->rowCount();
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mPages->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mPages->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -287,20 +302,31 @@ void TPageTree::updatePageName(int id, const QString& name)
             break;
         }
     }
+
+    mPages->sortChildren(0);
 }
 
+/**
+ * @brief TPageTree::updatePopupName
+ * Searches for a popup with the given @b id. If found, it changes the name to
+ * whatever @b name contains.
+ * The parameter @b name must not be empty.
+ *
+ * @param id    The ID of a popup
+ * @param name  The new name of a popup
+ */
 void TPageTree::updatePopupName(int id, const QString& name)
 {
     DECL_TRACER("TPageTree::updatePopupName(int id, const QString& name)");
 
-    if (!mPopup || !mPopup->hasChildren())
+    if (!mPopup || !mPopup->hasChildren() || name.isEmpty())
         return;
 
     int rows = mPopup->rowCount();
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mPopup->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mPopup->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -308,20 +334,31 @@ void TPageTree::updatePopupName(int id, const QString& name)
             break;
         }
     }
+
+    mPopup->sortChildren(0);
 }
 
+/**
+ * @brief TPageTree::updateSubPageName
+ * Searches for a subpage with the given @b id. If found, it changes the name to
+ * whatever @b name contains.
+ * The parameter @b name must not be empty.
+ *
+ * @param id    The ID of a subpage
+ * @param name  The new name of a subpage
+ */
 void TPageTree::updateSubPageName(int id, const QString& name)
 {
     DECL_TRACER("TPageTree::updateSubPageName(int id, const QString& name)");
 
-    if (!mSubPages || !mSubPages->hasChildren())
+    if (!mSubPages || !mSubPages->hasChildren() || name.isEmpty())
         return;
 
     int rows = mSubPages->rowCount();
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mSubPages->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mSubPages->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -329,11 +366,13 @@ void TPageTree::updateSubPageName(int id, const QString& name)
             break;
         }
     }
+
+    mSubPages->sortChildren(0);
 }
 
 /**
  * @brief TPageTree::setPageType
- * This method moves a subpage to a page and the other way around depending on
+ * This method moves a subpage to a page and the other way around, depending on
  * the parameter @b ptype.
  *
  * @param ptype     The new type of the page
@@ -352,24 +391,26 @@ void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID, const QString& gr
 
         for (int i = 0; i < rows; ++i)
         {
-            QStandardItem *item = mPopup->child(i, 0);
+            TCustomItem *item = static_cast<TCustomItem *>(mPopup->child(i, 0));
 
             if (item && item->data().toInt() == pageID)
             {
                 addTreeSubPage(item->text(), pageID);
                 mPopup->removeRow(i);
+                mPopup->sortChildren(0);
                 return;
             }
             else if (item && item->data().toInt() == MENU_POPUPGROUP)
             {
                 for (int j = 0; j < item->rowCount(); ++j)
                 {
-                    QStandardItem *it = item->child(j, 0);
+                    TCustomItem *it = static_cast<TCustomItem *>(item->child(j, 0));
 
                     if (it && it->data().toInt() == pageID)
                     {
                         addTreeSubPage(it->text(), pageID);
                         item->removeRow(j);
+                        item->sortChildren(0);
                         return;
                     }
                 }
@@ -385,12 +426,13 @@ void TPageTree::setPageType(Page::PAGE_TYPE ptype, int pageID, const QString& gr
 
         for (int i = 0; i < rows; ++i)
         {
-            QStandardItem *item = mSubPages->child(i, 0);
+            TCustomItem *item = static_cast<TCustomItem *>(mSubPages->child(i, 0));
 
             if (item && item->data().toInt() == pageID)
             {
                 addTreePopup(item->text(), group, pageID);
                 mSubPages->removeRow(i);
+                mSubPages->sortChildren(0);
                 return;
             }
         }
@@ -423,7 +465,7 @@ void TPageTree::setPopupGroup(const QString& group, int pageID)
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mPopup->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mPopup->child(i, 0));
 
         if (item)
         {
@@ -438,7 +480,7 @@ void TPageTree::setPopupGroup(const QString& group, int pageID)
             {
                 for (int j = 0; j < item->rowCount(); ++j)
                 {
-                    QStandardItem *it = item->child(j, 0);
+                    TCustomItem *it = static_cast<TCustomItem *>(item->child(j, 0));
 
                     if (it && it->data().toInt() == pageID)
                     {
@@ -467,11 +509,11 @@ void TPageTree::removeGroupFromList(const QString& name)
 {
     DECL_TRACER("TPageTree::removeGroupFromList(const QString& name)");
 
-    QList<QStandardItem *>::Iterator iter;
+    QList<TCustomItem *>::Iterator iter;
 
     for (iter = mPopupGroups.begin(); iter != mPopupGroups.end(); ++iter)
     {
-        QStandardItem *item = *iter;
+        TCustomItem *item = *iter;
 
         if (item->text() == name)
         {
@@ -503,7 +545,7 @@ void TPageTree::setFocus(int id)
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mPages->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mPages->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -516,7 +558,7 @@ void TPageTree::setFocus(int id)
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mPopup->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mPopup->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -529,7 +571,7 @@ void TPageTree::setFocus(int id)
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mSubPages->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mSubPages->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -542,7 +584,7 @@ void TPageTree::setFocus(int id)
 
     for (int i = 0; i < rows; ++i)
     {
-        QStandardItem *item = mApps->child(i, 0);
+        TCustomItem *item = static_cast<TCustomItem *>(mApps->child(i, 0));
 
         if (item && item->data().toInt() == id)
         {
@@ -556,7 +598,7 @@ void TPageTree::onDoubleClicked(const QModelIndex& index)
 {
     DECL_TRACER("TPageTree::onDoubleClicked(const QModelIndex& index)");
 
-    QStandardItem *item = mItemModel->itemFromIndex(index);
+    TCustomItem *item = static_cast<TCustomItem *>(mItemModel->itemFromIndex(index));
     int menu = item->data().toInt();
     MSG_DEBUG("Menu " << menu << " was double clicked.");
 
@@ -575,7 +617,7 @@ void TPageTree::onClicked(const QModelIndex& index)
 {
     DECL_TRACER("TPageTree::onClicked()");
 
-    QStandardItem *item = mItemModel->itemFromIndex(index);
+    TCustomItem *item = static_cast<TCustomItem *>(mItemModel->itemFromIndex(index));
     int menu = item->data().toInt();
     MSG_DEBUG("Menu " << menu << " was clicked.");
 
