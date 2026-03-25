@@ -269,6 +269,7 @@ void TPropertiesGeneral::setGeneralObjectID(int index)
 
     mActObject = mPage.objects[index]->getObject();
     mActObjectID = index;
+    setTable(getStateFromButtonType(mActObject.type), true);
 }
 
 void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)

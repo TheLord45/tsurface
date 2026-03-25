@@ -28,6 +28,7 @@
 
 #include "tmaps.h"
 #include "tpagehandler.h"
+#include "tconfmain.h"
 #include "terror.h"
 #include "tmisc.h"
 
@@ -638,7 +639,7 @@ bool TMaps::parseAMXMaps(const QString& xmlFilePath)
     DECL_TRACER("TMaps::parseAMXMaps(const QString& xmlFilePath)");
 
     MSG_DEBUG("Reading AMX map file: " << xmlFilePath.toStdString());
-    QString mapsContent = convertToUTF8(xmlFilePath);
+    QString mapsContent = convertToUTF8(xmlFilePath, TConfMain::Current().isG5());
 
     if (mapsContent.isEmpty())
         return false;

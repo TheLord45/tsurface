@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>237</height>
+        <height>253</height>
        </rect>
       </property>
       <attribute name="label">
@@ -240,8 +240,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>530</width>
-        <height>241</height>
+        <width>544</width>
+        <height>253</height>
        </rect>
       </property>
       <attribute name="label">
@@ -358,6 +358,15 @@
                   <height>16777215</height>
                  </size>
                 </property>
+                <property name="fontFilters">
+                 <set>QFontComboBox::FontFilter::MonospacedFonts|QFontComboBox::FontFilter::ProportionalFonts|QFontComboBox::FontFilter::ScalableFonts</set>
+                </property>
+                <property name="currentFont">
+                 <font>
+                  <family>Courier</family>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                </widget>
               </item>
               <item row="1" column="0">
@@ -423,7 +432,7 @@
         <x>0</x>
         <y>0</y>
         <width>544</width>
-        <height>237</height>
+        <height>253</height>
        </rect>
       </property>
       <attribute name="label">

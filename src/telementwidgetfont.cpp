@@ -21,6 +21,7 @@
 #include <QFontDialog>
 
 #include "telementwidgetfont.h"
+#include "tfonts.h"
 #include "terror.h"
 
 TElementWidgetFont::TElementWidgetFont(const QFont& font, const QString& name, QWidget *parent)
@@ -70,7 +71,7 @@ void TElementWidgetFont::onLineEditTextChanged(const QString& text)
     if (mBlocked)
         return;
 
-    mFont.setFamily(getFontName(text));
+    mFont.setFamily(TFonts::getFontBaseName(text));
     emit fontChanged(mFont, mName);
     emit fontChangedInst(mFont, mName, mInstance);
 }
@@ -100,56 +101,8 @@ void TElementWidgetFont::setFontName()
 {
     DECL_TRACER("TElementWidgetFont::setFontName()");
 
-    QString fntName = mFont.family();
-
-    if (mFont.bold())
-        fntName += " Bold";
-
-    if (mFont.italic())
-        fntName += " Italic";
-
-    if (mFont.strikeOut())
-        fntName += " Strike";
-
-    if (mFont.underline())
-        fntName += " Underline";
+    QString fntName = TFonts::getFontName(mFont);
 
     QSignalBlocker block(this);
     mLine->setText(fntName);
-}
-
-QString TElementWidgetFont::getFontName(const QString& name)
-{
-    DECL_TRACER("TElementWidgetFont::getFontName(const QString& name)");
-
-    QList<int> index;
-    int pos1 = name.indexOf(" bold", 0, Qt::CaseInsensitive);
-    int pos2 = name.indexOf(" italic", 0, Qt::CaseInsensitive);
-    int pos3 = name.indexOf(" strike", 0, Qt::CaseInsensitive);
-    int pos4 = name.indexOf(" underline", 0, Qt::CaseInsensitive);
-
-    if(pos1 > 0)
-        index.append(pos1);
-
-    if (pos2 > 0)
-        index.append(pos2);
-
-    if (pos3 > 0)
-        index.append(pos3);
-
-    if (pos4 > 0)
-        index.append(pos4);
-
-    if (index.empty())
-        return name;
-
-    int pos = 0xffffffff;
-
-    for (int p : index)
-    {
-        if (p < pos)
-            pos = p;
-    }
-
-    return name.left(pos);
 }

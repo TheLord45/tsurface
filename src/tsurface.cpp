@@ -2458,6 +2458,7 @@ bool TSurface::saveAs()
     TConfMain::Current().saveProject();
     TPageHandler::Current().setPathTemporary(mPathTemporary);
     TPageHandler::Current().saveAllPages();
+    TFonts::writeFontFile(mPathTemporary, "fonts_.json");
     TSurfaceWriter prjSave(mPathTemporary, file);
 
     if (prjSave.haveError())
@@ -2482,6 +2483,7 @@ bool TSurface::saveNormal()
     TConfMain::Current().saveProject();
     TPageHandler::Current().setPathTemporary(mPathTemporary);
     TPageHandler::Current().saveAllPages();
+    TFonts::writeFontFile(mPathTemporary, "fonts_.json");
     TSurfaceWriter prjSave(mPathTemporary, file);
 
     if (prjSave.haveError())

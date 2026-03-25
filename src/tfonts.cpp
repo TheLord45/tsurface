@@ -137,11 +137,32 @@ void TFonts::releaseFontConfig()
     }
 }
 
+void TFonts::reset()
+{
+    DECL_TRACER("TFonts::reset()");
+
+    freePrivateFonts();
+    mLocalFonts.clear();
+}
+
+/**
+ * @brief TFonts::getFont
+ * This method takes the family name of a font woth the names of the attributes
+ * appended. It searches in the internal font list for the name and returnes a
+ * real font with all attributes set. The size is set to the defined project
+ * font size.
+ * If no font could be found, the default project font will be returned.
+ *
+ * @param ff    Font family name with optional attributes appended.
+ * @return A real font with all attributes set. If the family name was not
+ * found, the standard project font and size is returned.
+ */
 QFont TFonts::getFont(const QString& ff)
 {
     DECL_TRACER("TFonts::getFont(const QString& ff)");
 
     QFont font;
+    QString baseName = getFontBaseName(ff);
 
     if (ff.isEmpty())
     {
@@ -155,10 +176,11 @@ QFont TFonts::getFont(const QString& ff)
 
     for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
     {
-        if (iter->file == ff)
+        if (iter->file == baseName)
         {
             font.setFamilies(iter->family);
-            font.setPointSize(TConfMain::Current().getFontBaseSize());
+            setFontAttributes(&font, ff);
+            font.setPointSize(iter->size > 0 ? iter->size : TConfMain::Current().getFontBaseSize());
             return font;
         }
     }
@@ -170,6 +192,67 @@ QFont TFonts::getFont(const QString& ff)
     return font;
 }
 
+/**
+ * @brief TFonts::getFontBaseName
+ * This method takes the family name of a font and looks for some trailing
+ * keywords in it. If there are any, they are removed from the name. Then the
+ * remaining name is returned.
+ *
+ * @param ff    Font family with attributes appended.
+ * @return In case there were attributes with the name, the attributes are
+ * removed and the remaining name is returned. If there are no attributes in the
+ * name, then the unchanged family name is returned.
+ */
+QString TFonts::getFontBaseName(const QString& ff)
+{
+    DECL_TRACER("TFonts::getFontBaseName(const QString& ff)");
+
+    QList<int> index;
+    int pos1 = ff.lastIndexOf(" bold", 0, Qt::CaseInsensitive);
+    int pos2 = ff.lastIndexOf(" italic", 0, Qt::CaseInsensitive);
+    int pos3 = ff.lastIndexOf(" strike", 0, Qt::CaseInsensitive);
+    int pos4 = ff.lastIndexOf(" underline", 0, Qt::CaseInsensitive);
+
+    if(pos1 > 0)
+        index.append(pos1);
+
+    if (pos2 > 0)
+        index.append(pos2);
+
+    if (pos3 > 0)
+        index.append(pos3);
+
+    if (pos4 > 0)
+        index.append(pos4);
+
+    if (index.empty())
+        return ff;
+
+    int pos = 0xffffffff;
+
+    for (int p : index)
+    {
+        if (p < pos)
+            pos = p;
+    }
+
+    return ff.left(pos);
+}
+
+/**
+ * @brief TFonts::getFontFromIndex
+ * If the project was loaded from a G4 file (TP4), this method searches for the
+ * font index in the internal table. If found, the font is returned as a font
+ * with all attributes set.
+ *
+ * This method returns guaranteed a useable font.
+ *
+ * @param index     The font index.
+ *
+ * @return In case the font index was found, the font with all attributes
+ * including the size is returned. Otherwise the standard font set in the
+ * project definitions is returned.
+ */
 QFont TFonts::getFontFromIndex(int index)
 {
     DECL_TRACER("TFonts::getFontFromIndex(int index)");
@@ -186,7 +269,21 @@ QFont TFonts::getFontFromIndex(int index)
             if (TConfMain::Current().isAMX() && !TConfMain::Current().isG5())
             {
                 font.setPointSize(iter->size);
-                setFontAttributes(&font, iter->subfamilyName);
+
+                if (!iter->subfamilyName.isEmpty())
+                {
+                    if (iter->subfamilyName.contains("Bold", Qt::CaseInsensitive))
+                        font.setBold(true);
+
+                    if (iter->subfamilyName.contains("Italic", Qt::CaseInsensitive))
+                        font.setItalic(true);
+
+                    if (iter->subfamilyName.contains("Strike", Qt::CaseInsensitive))
+                        font.setStrikeOut(true);
+
+                    if (iter->subfamilyName.contains("Underline", Qt::CaseInsensitive))
+                        font.setUnderline(true);
+                }
             }
 
             return font;
@@ -227,6 +324,8 @@ void TFonts::addFont(const QFont& font, const QString& file)
         pf.intFile = file;
         pf.bold = font.bold();
         pf.italic = font.italic();
+        pf.strike = font.strikeOut();
+        pf.underline = font.underline();
         pf.ID = -1;
         pf.family = font.families();
         mLocalFonts.append(pf);
@@ -273,6 +372,44 @@ void TFonts::addFontFile(const QString& file)
         pf.family = QFontDatabase::applicationFontFamilies(id);
         mLocalFonts.append(pf);
     }
+}
+
+/**
+ * @brief TFonts::addFontFamily
+ * The method take a family name and extracts the base name out of it. Then it
+ * adds the font to the list. In case the font is already on the list, nothing
+ * happens.
+ *
+ * @param family    The family name of a font.
+ */
+void TFonts::addFontFamily(const QString& family)
+{
+    DECL_TRACER("TFonts::addFontFamily(const QString& family)");
+
+    if (family.isEmpty())
+        return;
+
+    QString baseName = getFontBaseName(family);
+    QList<PRIVFONTS_t>::Iterator iter;
+    // Look for the font in the table. If it exists, do nothing.
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        QStringList::Iterator famIter;
+
+        for (famIter = iter->family.begin(); famIter != iter->family.end(); ++famIter)
+        {
+            if (*famIter == baseName)
+                return;
+        }
+    }
+
+    QFont font(baseName);
+
+    PRIVFONTS_t pv;
+    pv.intFile = getFontFile(font);
+    pv.file = basename(pv.intFile);
+    pv.family.append(baseName);
+    mLocalFonts.append(pv);
 }
 
 /**
@@ -413,7 +550,7 @@ bool TFonts::writeFontFile(const QString& path, const QString& qfile)
         QFile ffile(iter->intFile);
         QString target = fontTargets + "/" + basename(iter->file);
 
-        if (!ffile.copy(target))
+        if (!fs::exists(target.toStdString()) && !ffile.copy(target))
         {
             MSG_ERROR("Couldn't copy font file from \"" << iter->intFile.toStdString() << "\" to \"" << target.toStdString() << "\"");
         }
@@ -518,13 +655,15 @@ void TFonts::parseFont(const QDomElement &font)
     DECL_TRACER("TFonts::parseFont(const QDomElement &font)");
 
     PRIVFONTS_t fnt;
+    QString path = TConfMain::Current().getPathTemporary();
 
     if (font.hasAttribute("number"))
-        fnt.ID = font.attribute("number").toInt();
+        fnt.fi = font.attribute("number").toInt();
     else
-        fnt.ID = mLocalFonts.size();
+        fnt.fi = mLocalFonts.size();
 
     fnt.file = font.firstChildElement("file").text();
+    fnt.intFile = path + "/fonts/" + fnt.file;
     fnt.family.append(font.firstChildElement("fullName").text());
     fnt.usageCount = font.firstChildElement("usageCount").text().toInt();
     // The rest is coming only from G4 files.
@@ -532,7 +671,10 @@ void TFonts::parseFont(const QDomElement &font)
         fnt.fileSize = font.firstChildElement("fileSize").text().toInt();
 
     if (!font.firstChildElement("faceIndex").isNull())
-        fnt.fi = font.firstChildElement("faceIndex").text().toInt();
+    {
+        if (font.firstChildElement("faceIndex").text().toInt() > 0)
+            fnt.ID = font.firstChildElement("faceIndex").text().toInt();
+    }
 
     if (!font.firstChildElement("name").isNull())
         fnt.name = font.firstChildElement("name").text();

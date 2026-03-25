@@ -25,7 +25,7 @@
 
 #include "tnewprojectdialog.h"
 #include "ui_tnewprojectdialog.h"
-
+#include "tfonts.h"
 #include "terror.h"
 
 using std::string;
@@ -312,7 +312,7 @@ void TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)
     }
 
     ui->labelFontSample->setFont(mFont);
-    ui->labelFontSample->setText(mFont.family() + " <Lorem Ipsum>");
+    ui->labelFontSample->setText(TFonts::getFontName(mFont) + " AaBbCcXxYyZz");
 }
 
 
@@ -326,7 +326,7 @@ void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
     mSize = ui->comboBoxSize->itemData(index).toInt();
     mFont.setPointSize(mSize);
     ui->labelFontSample->setFont(mFont);
-    ui->labelFontSample->setText(mFont.family() + " AaBbCcXxYyZz");
+    ui->labelFontSample->setText(TFonts::getFontName(mFont) + " AaBbCcXxYyZz");
     ui->labelFontSample->setStyleSheet(styleSheetColor());
 }
 

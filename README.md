@@ -16,7 +16,7 @@ Currently the program is under heavy development and in an early state. At the m
 |**Menu: File**|
 |Create a new file|✅|||High||
 |Open an existing file||✔️||High|Support for TP4/TP5 is missing|
-|Close an open file|||❌|Medium||
+|Close an open file|✅|||Medium||
 |Save a loaded file|✅|||High||
 |Save a file with another name|✅|||High||
 |Save as different panel type|||❌|Low||

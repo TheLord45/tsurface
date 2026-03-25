@@ -437,8 +437,8 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
 
     switch(mBtObject.sr[instance].jt)
     {
-        case ORI_ABSOLUT:       aFlag = Qt::AlignTop | Qt::AlignLeft; break;
-        case ORI_TOP_LEFT:      aFlag = Qt::AlignTop |Qt::AlignHCenter; break;
+        case ORI_ABSOLUT:
+        case ORI_TOP_LEFT:      aFlag = Qt::AlignTop |Qt::AlignLeft; break;
         case ORI_TOP_MIDDLE:    aFlag = Qt::AlignTop | Qt::AlignHCenter; break;
         case ORI_TOP_RIGHT:     aFlag = Qt::AlignTop | Qt::AlignRight; break;
         case ORI_CENTER_LEFT:   aFlag = Qt::AlignVCenter | Qt::AlignLeft; break;
@@ -466,7 +466,15 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
         painter.drawPixmap(0, 0, px);
     }
     else
+    {
+        if (mBtObject.sr[instance].jt == ORI_ABSOLUT)
+        {
+            rect.setLeft(mBtObject.sr[instance].tx);
+            rect.setTop(mBtObject.sr[instance].ty / 2);
+        }
+
         painter.drawText(rect, aFlag, mBtObject.sr[instance].te);
+    }
 
     // TODO: Continue
     painter.end();

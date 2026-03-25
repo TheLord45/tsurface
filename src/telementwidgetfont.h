@@ -48,7 +48,6 @@ class TElementWidgetFont : public QWidget
 
     private:
         void setFontName();
-        QString getFontName(const QString& name);
 
         QFont mFont;
         QString mName;

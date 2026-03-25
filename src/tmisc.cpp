@@ -154,7 +154,7 @@ QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori)
     return QPixmap(pm.scaled(size, Qt::KeepAspectRatio));
 }
 
-QString convertToUTF8(const QString& filename)
+QString convertToUTF8(const QString& filename, bool fake)
 {
     QFile file(filename);
 
@@ -166,6 +166,9 @@ QString convertToUTF8(const QString& filename)
 
     QByteArray buffer = file.readAll();
     file.close();
+
+    if (fake)
+        return buffer;
 
     auto toUtf8 = QStringDecoder(QStringDecoder::Latin1);
     return toUtf8(buffer);

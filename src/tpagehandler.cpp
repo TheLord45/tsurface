@@ -670,6 +670,7 @@ bool TPageHandler::saveAllPages()
 {
     DECL_TRACER("TPageHandler::saveAllPages()");
 
+    TFonts::reset();
     QList<Page::PAGE_t>::Iterator pageIter;
 
     for (pageIter = mPages.begin(); pageIter != mPages.end(); ++pageIter)
@@ -694,7 +695,6 @@ bool TPageHandler::savePage(const PAGE_t& page)
     DECL_TRACER("TPageHandler::savePage(const PAGE_t& page)");
 
     int setupPort = TConfMain::Current().getSetupPort();
-
     QJsonObject root;
     root.insert("type", page.popupType);
     root.insert("pageID", page.pageID);
@@ -1094,6 +1094,10 @@ QJsonObject TPageHandler::getSr(PAGE_TYPE pt, const SR_t& srPage, int number)
     INSERTJ(sr, "tx", srPage.tx, 0);
     INSERTJ(sr, "ty", srPage.ty, 0);
     INSERTJ(sr, "ff", srPage.ff, "");
+
+    if (!srPage.ff.isEmpty())
+        TFonts::addFontFamily(srPage.ff);
+
     INSERTJ(sr, "fs", srPage.fs, 0);
     INSERTJ(sr, "ww", srPage.ww, 0);
     INSERTJ(sr, "et", srPage.et, 0);
@@ -1505,7 +1509,7 @@ bool TPageHandler::readAMXPages(const QStringList& list)
     for (QString xmlFilePath : list)
     {
         QString file = mPathTemporary + "/" + xmlFilePath + ".xml";
-        QString fileContent = convertToUTF8(file);
+        QString fileContent = convertToUTF8(file, TConfMain::Current().isG5());
 
         if (fileContent.isEmpty())
             continue;
@@ -1552,7 +1556,7 @@ bool TPageHandler::readAMXPages(const QStringList& list)
                 if (pg->srPage.fi > 0)
                 {
                     QFont font = TFonts::getFontFromIndex(pg->srPage.fi);
-                    pg->srPage.ff = font.family();
+                    pg->srPage.ff = TFonts::getFontName(font);
                     pg->srPage.fs = font.pointSize();
                 }
             }
@@ -1746,7 +1750,7 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     if (lsr.fi > 0)
     {
         QFont font = TFonts::getFontFromIndex(lsr.fi);
-        lsr.ff = font.family();
+        lsr.ff = TFonts::getFontName(font);
         lsr.fs = font.pointSize();
     }
 

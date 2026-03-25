@@ -138,7 +138,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
     if (!mObject)
         return;
 
-    TPropertiesGeneral::update();
+    TPropertiesGeneral::setGeneralObjectID(index);
     TPropertiesProgramming::setObject(object->getObject(), index);
     TPropertiesStates::setObject(object, index);
 }

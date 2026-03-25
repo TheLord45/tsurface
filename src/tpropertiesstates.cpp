@@ -636,7 +636,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
         if (mPage.srPage.ff.isEmpty())
         {
             QFont font = mParent->font();
-            mPage.srPage.ff = font.family();
+            mPage.srPage.ff = TFonts::getFontName(font);
         }
 
         if (mPage.srPage.fs <= 0)
@@ -652,7 +652,7 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
         if (mActSr.ff.isEmpty())
         {
             QFont font = TConfMain::Current().getFontBase();
-            mActSr.ff = font.family();
+            mActSr.ff = TFonts::getFontName(font);
         }
 
         if (mActSr.fs <= 0)
@@ -1317,7 +1317,7 @@ TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
     else if (isValidObjectIndex())
         ff = mActSr.ff;
 
-    TElementWidgetFont *widget = new TElementWidgetFont(QFont(ff), name, mTreeWidget);
+    TElementWidgetFont *widget = new TElementWidgetFont(TFonts::getFont(ff), name, mTreeWidget);
     widget->setInstance(mActInstance);
     connect(widget, &TElementWidgetFont::fontChangedInst, this, &TPropertiesStates::onFontChanged);
     return widget;
