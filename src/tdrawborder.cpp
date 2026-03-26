@@ -1,11 +1,14 @@
 #include <QPainter>
 
+#include <filesystem>
+
 #include "tconfmain.h"
 #include "tgraphics.h"
 #include "tdrawborder.h"
 #include "terror.h"
 
 using namespace Graphics;
+namespace fs = std::filesystem;
 
 TDrawBorder::TDrawBorder(QPixmap *bm)
     : mPixmap(bm)
@@ -29,7 +32,19 @@ bool TDrawBorder::draw(const ObjHandler::TOBJECT_t& object, int instance)
         return false;
     }
 
-    QString bname = object.sr[instance].bs;
+    QString bname;
+
+    // There exists another definition for a frame directly on the object. If
+    // this is defined it's valid for all instances and has precedence over the
+    // frame defined on a stage (instance).
+    // TSurface does not overwrite the frame information on the stages, as the
+    // original TPDesign do. This has the advantage that the frames defined on
+    // stages become active as soon as the frame on the object is removed.
+    if (!object.bs.isEmpty())
+        bname = object.bs;
+    else
+        bname = object.sr[instance].bs;
+
     Graphics::FAMILY_t family = TGraphics::Current().getBorder(bname);
 
     if (family.name.isEmpty() || family.member.empty())
@@ -160,7 +175,7 @@ bool TDrawBorder::getBorderFragment(const QString& path, const QString& pathAlph
     QPixmap bm;
     bool haveBaseImage = false;
     QColor swCol = color;
-
+    MSG_DEBUG("path: \"" << path.toStdString() << "\", pathAlpha: \"" << pathAlpha.toStdString() << "\"");
     // If the path ends with "alpha.png" then it is a mask image. This is not what
     // we want first unless this is the only image available.
     if (!path.endsWith("alpha.png") || pathAlpha.isEmpty())
@@ -259,7 +274,19 @@ bool TDrawBorder::retrieveImage(const QString& path, QPixmap *image)
     QString tempPath = TConfMain::Current().getPathTemporary();
     QString file = tempPath + "/__system/graphics/borders/" + path;
 
-    return image->load(file);
+    if (!fs::exists(file.toStdString()) || !fs::is_regular_file(file.toStdString()))
+    {
+        MSG_ERROR("The file \"" << basename(file).toStdString() << "\" does not exist or is not a regular file!");
+        return false;
+    }
+
+    if (!image->load(file))
+    {
+        MSG_ERROR("Error loading image \"" << basename(path).toStdString() << "\"!");
+        return false;
+    }
+
+    return true;
 }
 
 bool TDrawBorder::stretchImageWidth(QPixmap *bm, int width)

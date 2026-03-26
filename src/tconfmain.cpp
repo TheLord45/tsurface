@@ -280,11 +280,14 @@ void TConfMain::setSetup(const SETUP_t& setup)
     mConfMain->setup = setup;
 }
 
-bool TConfMain::readProject(const QString& path, bool g5)
+bool TConfMain::readProject(const QString& path)
 {
-    DECL_TRACER("TConfMain::readMain(const QString& path, bool g5)");
+    DECL_TRACER("TConfMain::readProject(const QString& path)");
 
-    mG5 = g5;
+    if (mG5)
+    {
+        MSG_DEBUG("Set to G5 project");
+    }
 
     if (path.endsWith(".xma"))
     {
@@ -1084,7 +1087,14 @@ QStringList TConfMain::getPaletteFiles()
 
 void TConfMain::parseVersionInfo(const QDomElement &versionInfo)
 {
-    MSG_DEBUG("formatVersion:   " << versionInfo.firstChildElement("formatVersion").text().toStdString());
+    int formatVersion = versionInfo.firstChildElement("formatVersion").text().toInt();
+
+    if (formatVersion > 10)
+        mG5 = true;
+    else
+        mG5 = false;
+
+    MSG_DEBUG("formatVersion:   " << formatVersion);
     MSG_DEBUG("graphicsVersion: " << versionInfo.firstChildElement("graphicsVersion").text().toStdString());
     MSG_DEBUG("fileVersion:     " << versionInfo.firstChildElement("fileVersion").text().toStdString());
     MSG_DEBUG("designVersion:   " << versionInfo.firstChildElement("designVersion").text().toStdString());

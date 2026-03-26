@@ -19,6 +19,7 @@
 #define TGRAPHICS_H
 
 #include <QString>
+#include <QRect>
 
 #include <vector>
 
@@ -261,6 +262,32 @@ namespace Graphics
         QString imageBase;  // The base image file.
         QString imageAlpha; // The alpha image file.
     }CURSOR_t;
+
+    typedef struct BORDER_SIZE_t
+    {
+        int left{0};
+        int top{0};
+        int right{0};
+        int bottom{0};
+        int cornerTopLeft{0};
+        int cornerTopRight{0};
+        int cornerBottomLeft{0};
+        int cornerBottomRight{0};
+        int fillTop{0};
+        int fillLeft{0};
+        int fillBottom{0};
+        int fillRight{0};
+
+        QRect innerFrame(const QRect& r)
+        {
+            QRect rect;
+            rect.setLeft(left);
+            rect.setTop(top);
+            rect.setWidth(r.width() - left - right);
+            rect.setHeight(r.height() - top - bottom);
+            return rect;
+        }
+    }BORDER_SIZE_t;
 }
 
 class TGraphics
@@ -274,6 +301,7 @@ class TGraphics
         Graphics::FAMILY_t getBorder(const QString& name);
         Graphics::BORDER_STYLE_t getBorderStyle(int number);
         Graphics::BORDER_STYLE_t getBorderStyle(const QString& name);
+        Graphics::BORDER_SIZE_t getBorderSize(const QString& border);
         bool getBorder(const QString& family, Graphics::LINE_TYPE_t lt, Graphics::BORDER_t *border, const QString& family2="", bool info=false);
         QList<Graphics::FAMILY_t> getEfects();
         int getEffectStyleNumber(const QString& name);

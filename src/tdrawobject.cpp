@@ -105,6 +105,8 @@ void TDrawObject::draw(int instance)
                 di.setSize(object.wt, object.ht);
                 di.setBitmaps(object.sr[instance].bitmaps);
                 di.setOpacity(object.sr[instance].oo);
+                QString border = !object.bs.isEmpty() ? object.bs : object.sr[instance].bs;
+                di.setBorder(border);
 
                 if (object.sr[instance].bs.isEmpty())
                 {

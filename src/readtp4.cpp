@@ -110,7 +110,9 @@ bool ReadTP4::doRead()
 
     try
     {
-        fn.read(reinterpret_cast<char*>(&head), SIZE_HEADER);
+        fn.read(reinterpret_cast<char*>(&memblock[0]), SIZE_HEADER);
+        memcpy(head.abyFileID, memblock, 8);
+        head.listStartBlock = makeDWord(&memblock[8]);
 
         if (memcmp(head.abyFileID, "\0FSFILE\0", 8) != 0)
         {
@@ -304,6 +306,8 @@ bool ReadTP4::doRead()
     }
 
     fn.close();
+
+    MSG_INFO("Detected a " << (mG5Type ? "TP5" : "TP4") << " file.");
     return true;
 }
 

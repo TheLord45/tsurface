@@ -426,13 +426,17 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
     }
 
     MSG_DEBUG("Drawing text \"" << mBtObject.sr[instance].te.toStdString() << "\"");
+    QString border = !mBtObject.bs.isEmpty() ? mBtObject.bs : mBtObject.sr[instance].bs;
+    Graphics::BORDER_SIZE_t borderSize = TGraphics::Current().getBorderSize(border);
+
     QPainter painter(bm);
 
     QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
     font.setPointSize(mBtObject.sr[instance].fs);
     painter.setFont(font);
     painter.setPen(mBtObject.sr[instance].ct);
-    QRect rect(0, 0, mBtObject.wt, mBtObject.ht);
+//    QRect rect(0, 0, mBtObject.wt, mBtObject.ht);
+    QRect rect = borderSize.innerFrame(QRect(0, 0, mBtObject.wt, mBtObject.ht));
     QFlags<Qt::AlignmentFlag> aFlag = Qt::AlignCenter;
 
     switch(mBtObject.sr[instance].jt)

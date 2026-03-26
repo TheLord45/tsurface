@@ -652,7 +652,7 @@ bool TFonts::readAMXFontFile(const QString& xmlFilePath)
 
 void TFonts::parseFont(const QDomElement &font)
 {
-    DECL_TRACER("TFonts::parseFont(const QDomElement &font)");
+//    DECL_TRACER("TFonts::parseFont(const QDomElement &font)");
 
     PRIVFONTS_t fnt;
     QString path = TConfMain::Current().getPathTemporary();

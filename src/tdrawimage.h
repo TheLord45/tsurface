@@ -108,7 +108,15 @@ class TDrawImage
          * returned.
          */
         QPixmap *getPixmap() { return mPixmap; }
-
+        /**
+         * @brief setBorder
+         * Set the name of a border. This used to calculate the pixels the
+         * border takes. If there is a border defined then the graphic is mostly
+         * inside the visible part of the border.
+         *
+         * @param border    The name of a border.
+         */
+        void setBorder(const QString& border) { mBorder = border; }
         /**
          * @brief draw
          * The method draws the whole bitmap stack. The target can be either
@@ -137,10 +145,11 @@ class TDrawImage
         void getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm);
 
     private:
+        QList<ObjHandler::BITMAPS_t> mBitmaps;
         ObjHandler::TBASEOBJ_t *mObject{nullptr};
         QPixmap *mPixmap{nullptr};
         QString mChameleon;
-        QList<ObjHandler::BITMAPS_t> mBitmaps;
+        QString mBorder;
         int mOpacity{-1};
         bool mHaveWidget{false};
         int mWidth{0};

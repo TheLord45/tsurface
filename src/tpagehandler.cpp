@@ -1495,24 +1495,31 @@ bool TPageHandler::readAMXPages(const QStringList& list)
     }
 
     TConvertIcons icons;
+    bool g5 = TConfMain::Current().isG5();
 
-    if (!TConfMain::Current().isG5())
-    {
+    MSG_DEBUG("Parsing format: " << (g5 ? "G5" : "G4"));
+
+    if (!g5 && !TConfMain::Current().getIconFile().isEmpty())
         icons.readAMXIcons(TConfMain::Current().getPathTemporary() + "/" + TConfMain::Current().getIconFile());
 
-        QStringList palFiles = TConfMain::Current().getPaletteFiles();
+    // All supported AMX versions may have 1 or more palette files containing a list of colors.
+    QStringList palFiles = TConfMain::Current().getPaletteFiles();
+    QStringList::ConstIterator strIter;
 
-        for (const QString pal : palFiles)
-            TConvertColors::readAMXPalette(TConfMain::Current().getPathTemporary() + "/" + pal);
-    }
+    for (strIter = palFiles.begin(); strIter != palFiles.end(); ++strIter)
+        TConvertColors::readAMXPalette(TConfMain::Current().getPathTemporary() + "/" + *strIter);
 
-    for (QString xmlFilePath : list)
+    for (strIter = list.cbegin(); strIter != list.cend(); ++strIter)
     {
-        QString file = mPathTemporary + "/" + xmlFilePath + ".xml";
-        QString fileContent = convertToUTF8(file, TConfMain::Current().isG5());
+        QString file = mPathTemporary + "/" + *strIter + ".xml";
+        MSG_DEBUG("Reading file: " << file.toStdString());
+        QString fileContent = convertToUTF8(file, g5);
 
         if (fileContent.isEmpty())
+        {
+            MSG_WARNING("File " << basename(file).toStdString() << " is empty! Ignoring it.");
             continue;
+        }
 
         QDomDocument doc;
         QDomDocument::ParseResult result;
@@ -1561,20 +1568,24 @@ bool TPageHandler::readAMXPages(const QStringList& list)
                 }
             }
 
-            for (TObjectHandler *obj : pg->objects)
-            {
-                ObjHandler::TOBJECT_t object = obj->getObject();
+            QList<TObjectHandler *>::Iterator objIter;
 
-                for (ObjHandler::SR_T sr : object.sr)
+            for (objIter = pg->objects.begin(); objIter != pg->objects.end(); ++objIter)
+            {
+                TObjectHandler *obj = *objIter;
+                ObjHandler::TOBJECT_t object = obj->getObject();
+                QList<ObjHandler::SR_T>::Iterator iter;
+
+                for (iter = object.sr.begin(); iter != object.sr.end(); ++iter)
                 {
-                    if (sr.ii > 0)
+                    if (iter->ii > 0)
                     {
                         ObjHandler::BITMAPS_t bm;
                         bm.fileName = icons.getIcon(pg->srPage.ii);
                         bm.justification = static_cast<ObjHandler::ORIENTATION>(pg->srPage.ji);
                         bm.offsetX = pg->srPage.ix;
                         bm.offsetY = pg->srPage.iy;
-                        sr.bitmaps.append(bm);
+                        iter->bitmaps.append(bm);
                     }
                 }
 
@@ -1641,12 +1652,24 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     lsr.ct = getColor(sr.firstChildElement("ct").text());
     lsr.ec = getColor(sr.firstChildElement("ec").text());
 
+    if (!sr.firstChildElement("mi").isNull())
+        lsr.mi = sr.firstChildElement("mi").text();
+
     if (!TConfMain::Current().isG5() && !sr.firstChildElement("bm").isNull())
     {
         ObjHandler::BITMAPS_t bitmap;
         bitmap.fileName = sr.firstChildElement("bm").text();
         bitmap.index = 0;
-        bitmap.justification = ObjHandler::ORI_CENTER_MIDDLE;
+
+        if (!sr.firstChildElement("jb").isNull())
+            bitmap.justification = static_cast<ObjHandler::ORIENTATION>(sr.firstChildElement("jb").text().toInt());
+
+        if (!sr.firstChildElement("bx").isNull())
+            bitmap.offsetX = sr.firstChildElement("bx").text().toInt();
+
+        if (!sr.firstChildElement("by").isNull())
+            bitmap.offsetY = sr.firstChildElement("by").text().toInt();
+
         lsr.bitmaps.append(bitmap);
     }
 
@@ -1655,9 +1678,6 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
 
     QDomNodeList gradColors = sr.elementsByTagName("gradientColors");
     parseGradientColors(&lsr.gradientColors, gradColors);
-
-    if (!sr.firstChildElement("mi").isNull())
-        lsr.mi = sr.firstChildElement("mi").text();
 
     if (!sr.firstChildElement("ff").isNull())
         lsr.ff = sr.firstChildElement("ff").text();
@@ -1699,15 +1719,6 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
 
     if (!sr.firstChildElement("sb").isNull())
         lsr.sb = sr.firstChildElement("sb").text().toInt();
-
-    if (!sr.firstChildElement("jb").isNull())
-        lsr.jb = sr.firstChildElement("jb").text().toInt();
-
-    if (!sr.firstChildElement("bx").isNull())
-        lsr.bx = sr.firstChildElement("bx").text().toInt();
-
-    if (!sr.firstChildElement("by").isNull())
-        lsr.by = sr.firstChildElement("by").text().toInt();
 
     if (!sr.firstChildElement("fi").isNull())   // G4 font index will be converted to a real font
         lsr.fi = sr.firstChildElement("fi").text().toInt();
@@ -2044,26 +2055,39 @@ int TPageHandler::parsePage(const QDomElement &page)
     QString type = page.attribute("type");
     QString popupType;
 
-    if (page.hasAttribute("popupType"))
+    /*
+     * G4 page type definition:
+     * With G4 there was only the attribute "type" at the tag "page". This type
+     * could have been "page" or "supbage". Where a "subpage" is a "popup" page.
+     *
+     * G5 page type definition:
+     * Also with G5 we have still the attribute "type" as an attribute of tag
+     * "page". If it contains "page" then it is a page. If it contains "subpage"
+     * it depends on the second attribute "popupType". If this is "popup" it is
+     * a popup page. If it is "subpage" it is realy a subpage.
+     *
+     * The following "if"s evaluates the attributes and set the variable
+     * popupType to the corresponding value. Internally the type of page depends
+     * only on this variable.
+     */
+    if (TConfMain::Current().isG5() && type == "subpage")
         popupType = page.attribute("popupType");
 
     if (type == "page")
         pg.popupType = PT_PAGE;
-    else if (type == "subpage" || popupType == "popup")
+    else if (!TConfMain::Current().isG5() && type == "subpage")
+        pg.popupType = PT_POPUP;
+    else if (popupType == "popup")
         pg.popupType = PT_POPUP;
     else if (popupType == "subpage")
         pg.popupType = PT_SUBPAGE;
     else
     {
-        MSG_ERROR("Unknown page type " << type.toStdString());
+        MSG_ERROR("Unknown page type: " << type.toStdString() << ", popupType: " << popupType.toStdString());
         return 0;
     }
 
     pg.pageID = page.firstChildElement("pageID").text().toInt();
-
-    if (TConfMain::Current().isSubpage(pg.pageID))
-        pg.popupType = PT_SUBPAGE;
-
     pg.name = page.firstChildElement("name").text();
     pg.description = page.firstChildElement("description").text();
     pg.ap = page.firstChildElement("ap").text().toInt();

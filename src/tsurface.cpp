@@ -573,10 +573,9 @@ void TSurface::on_actionOpen_triggered()
     if (file.isEmpty())
         return;
 
-    QString lowerFile = file.toLower();
     bool doCommon = false;
 
-    if (lowerFile.endsWith(".tp4") || lowerFile.endsWith("tp5"))
+    if (file.endsWith(".tp4", Qt::CaseInsensitive) || file.endsWith(".tp5", Qt::CaseInsensitive))
     {
         mLastOpenPath = pathname(file);                                     // The path from where the file was opened
         mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
@@ -590,19 +589,28 @@ void TSurface::on_actionOpen_triggered()
         }
 
         bool g5 = reader.isG5();
+        TConfMain::Current().setAMX(true);
+        TConfMain::Current().setG5(g5);
         TConfMain::Current().setPathTemporary(mPathTemporary);              // Initialize class with path to temporary directory
-        TConfMain::Current().readProject(mPathTemporary + "/prj.xma", g5);  // Read the main project file
-
-        TFonts::readAMXFontFile(mPathTemporary + "/" + TConfMain::Current().getFontFile());
+        TConfMain::Current().readProject(mPathTemporary + "/prj.xma");      // Read the main project file
 
         TPageHandler::Current().setPathTemporary(mPathTemporary);           // Initialize class with path to temporary directory
         QStringList pages = TConfMain::Current().getAllPages();             // Get names of all pages
         QStringList popups = TConfMain::Current().getAllPopups();           // Get names of all popups
         pages.append(popups);                                               // Merge the lists
         TPageHandler::Current().readAMXPages(pages);                        // Read all pages fron their files
+
+        if (!fs::exists(mPathTemporary.toStdString() + "/__system"))
+        {
+            createNewFileStructure();
+            TGraphics::Current().writeSystemFiles(Graphics::FT_UNKNOWN, mPathTemporary);
+        }
+
         doCommon = true;
     }
-    else if (fs::exists(file.toStdString()) && fs::is_regular_file(file.toStdString()))
+    else if (file.endsWith(".tsf", Qt::CaseInsensitive) &&
+             fs::exists(file.toStdString()) &&
+             fs::is_regular_file(file.toStdString()))
     {
         mLastOpenPath = pathname(file);                                     // The path from where the file was opened
         mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
@@ -616,6 +624,11 @@ void TSurface::on_actionOpen_triggered()
         pages.append(popups);                                               // Merge the lists
         TPageHandler::Current().readPages(pages);                           // Read all pages fron their files
         doCommon = true;
+    }
+    else
+    {
+        QMessageBox::critical(this, tr("File open error"), tr("The file %1 can't be opened!\nMake sure the file exists and is in the formats <i>.tsf</i>, <i>.TP4</i> or <i>.TP5</i>!"));
+        return;
     }
 
     if (doCommon)

@@ -8274,6 +8274,42 @@ BORDER_STYLE_t TGraphics::getBorderStyle(int number)
     return BORDER_STYLE_t();
 }
 
+BORDER_SIZE_t TGraphics::getBorderSize(const QString& border)
+{
+    DECL_TRACER("TGraphics::getBorderSize(const QString& border)");
+
+    if (border.isEmpty())
+        return BORDER_SIZE_t();
+
+    BORDER_STYLE_t style = getBorderStyle(border);
+
+    if (style.name.isEmpty())
+        return BORDER_SIZE_t();
+
+    for (BORDER_DATA_t bd : mDraw.borderData)
+    {
+        if (bd.name == style.off || bd.name == style.on)
+        {
+            BORDER_SIZE_t bs;
+            bs.left = bd.textLeft;
+            bs.top = bd.textTop;
+            bs.right = bd.textRight;
+            bs.bottom = bd.textBottom;
+            bs.cornerTopLeft = bd.fillLeft + bd.fillTop;
+            bs.cornerTopRight = bd.fillTop + bd.fillRight;
+            bs.cornerBottomLeft = bd.fillBottom + bd.fillLeft;
+            bs.cornerBottomRight = bd.fillBottom + bd.fillRight;
+            bs.fillLeft = bd.fillLeft;
+            bs.fillTop = bd.fillTop;
+            bs.fillRight = bd.fillRight;
+            bs.fillBottom = bd.fillBottom;
+            return bs;
+        }
+    }
+
+    return BORDER_SIZE_t();
+}
+
 bool TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *border, const QString& family2, bool info)
 {
     DECL_TRACER("TGraphics::getBorder(const QString &family, LINE_TYPE_t lt, BORDER_t *border, const QString& family2, bool info)");
@@ -8717,23 +8753,22 @@ bool TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePa
 
         file.write(doc.toJson(QJsonDocument::Indented));
         file.close();
-        // Write the resources
-        if (!writeBorderResources(basePath))
-            return false;
-
-        if (!writeSliderResources(basePath))
-            return false;
-
-        if (!writeFontResources(basePath))
-            return false;
-
-        if (!writeSoundResources(basePath))
-            return false;
-
-        return true;
     }
 
-    return false;
+    // Write the resources
+    if (!writeBorderResources(basePath))
+        return false;
+
+    if (!writeSliderResources(basePath))
+        return false;
+
+    if (!writeFontResources(basePath))
+        return false;
+
+    if (!writeSoundResources(basePath))
+        return false;
+
+    return true;
 }
 
 QJsonObject TGraphics::writeSystemBordersJson()

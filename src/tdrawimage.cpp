@@ -21,6 +21,7 @@
 #include "tdrawimage.h"
 #include "tcanvaswidget.h"
 #include "tconfmain.h"
+#include "tgraphics.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -413,6 +414,8 @@ void TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm)
     if (!x || !y)
         return;
 
+    Graphics::BORDER_SIZE_t borderSize = TGraphics::Current().getBorderSize(mBorder);
+
     switch(bm.justification)
     {
         case ORI_ABSOLUT:
@@ -421,43 +424,43 @@ void TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm)
         break;
 
         case ORI_TOP_LEFT:
-            *x = 0;
-            *y = 0;
+            *x = borderSize.fillLeft;
+            *y = borderSize.fillTop;
         break;
 
         case ORI_TOP_MIDDLE:
             *x = (mWidth - bm.width) / 2;
-            *y = 0;
+            *y = borderSize.fillTop;
         break;
 
         case ORI_TOP_RIGHT:
-            *x = mWidth - bm.width;
-            *y = 0;
+            *x = mWidth - bm.width - borderSize.fillRight;
+            *y = borderSize.fillTop;
         break;
 
         case ORI_CENTER_LEFT:
-            *x = 0;
+            *x = borderSize.fillLeft;
             *y = (mHeight - bm.height) / 2;
         break;
 
         case ORI_CENTER_RIGHT:
-            *x = mWidth - bm.width;
+            *x = mWidth - bm.width - borderSize.fillRight;
             *y = (mHeight - bm.height) / 2;
         break;
 
         case ORI_BOTTOM_LEFT:
-            *x = 0;
-            *y = mHeight - bm.height;
+            *x = borderSize.fillLeft;
+            *y = mHeight - bm.height - borderSize.fillBottom;
         break;
 
         case ORI_BOTTOM_MIDDLE:
             *x = (mWidth - bm.width) / 2;
-            *y = mHeight - bm.height;
+            *y = mHeight - bm.height - borderSize.fillBottom;
         break;
 
         case ORI_BOTTOM_RIGHT:
-            *x = mWidth - bm.width;
-            *y = mHeight - bm.height;
+            *x = mWidth - bm.width - borderSize.fillRight;
+            *y = mHeight - bm.height - borderSize.fillBottom;
         break;
 
         default:    // ORI_CENTER_MIDDLE

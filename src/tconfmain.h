@@ -229,7 +229,7 @@ class TConfMain
         void renamePopup(int num, const QString& name);
         void deletePage(const QString& name);
         void deletePopup(const QString& name);
-        bool readProject(const QString& path, bool g5=false);
+        bool readProject(const QString& path);
         void saveProject();
         void reset();
         void removeDynamicImage(const QString& name);
@@ -251,6 +251,8 @@ class TConfMain
         void setFontBaseSize(int size) { mFontBaseSize = size; }
         void setDynamicResource(const ConfigMain::RESOURCE_t& res);
         void setDynamicData(const ConfigMain::DATASOURCE_t& data);
+        void setAMX(bool amx) { mAMX = amx; }
+        void setG5(bool g5) { mG5 = g5; }
         // Getter
         QString getPanelType() { if (mConfMain) return mConfMain->projectInfo.panelType; else return QString(); }
         TPanelType::PANELTYPE_t getDefaultPanelType() { return mPanType; }
