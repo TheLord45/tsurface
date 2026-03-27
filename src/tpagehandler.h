@@ -250,7 +250,7 @@ class TPageHandler : public QObject
         int parsePage(const QDomElement &page);
         void parseButton(Page::PAGE_t *page, const QDomElement &button);
         void parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr);
-        void parseBitmapEntry(ObjHandler::SR_T *sr, const QDomElement &bitmapEntry);
+        void parseBitmapEntry(ObjHandler::SR_T *sr, const QDomNodeList& bitmapEntry);
         void parseGradientColors(QList<QColor> *gradientColors, const QDomNodeList& gradColors);
         ObjHandler::BUTTONTYPE getButtonType(const QString& bt);
         ObjHandler::FEEDBACK_t getButtonFeedback(const QString& fb);

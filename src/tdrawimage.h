@@ -142,7 +142,7 @@ class TDrawImage
         void drawBitmapStack();
         void drawChameleon();
         QColor baseColor(QColor basePix, QColor maskPix);
-        void getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm);
+        void getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm, bool noFrame=false);
 
     private:
         QList<ObjHandler::BITMAPS_t> mBitmaps;

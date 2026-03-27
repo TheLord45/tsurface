@@ -1597,30 +1597,34 @@ bool TPageHandler::readAMXPages(const QStringList& list)
     return true;
 }
 
-void TPageHandler::parseBitmapEntry(ObjHandler::SR_T *sr, const QDomElement &bitmapEntry)
+void TPageHandler::parseBitmapEntry(ObjHandler::SR_T *sr, const QDomNodeList& bitmapEntry)
 {
-    DECL_TRACER("TPageHandler::parseBitmapEntry(PAGE_t *page, const QDomElement &bitmapEntry) ");
+    DECL_TRACER("TPageHandler::parseBitmapEntry(PAGE_t *page, const QDomNodeList& bitmapEntry) ");
 
-    if (bitmapEntry.isNull())
+    if (bitmapEntry.isEmpty())
         return;
 
     ObjHandler::BITMAPS_t bitmap;
-    bitmap.fileName = bitmapEntry.firstChildElement("fileName").text();
 
-    if (!bitmapEntry.firstChildElement("justification").isNull())
-        bitmap.justification = static_cast<ObjHandler::ORIENTATION>(bitmapEntry.firstChildElement("justification").text().toInt());
+    for (int i = 0; i < bitmapEntry.count(); ++i)
+    {
+        bitmap.fileName = bitmapEntry.at(i).firstChildElement("fileName").text();
 
-    if (!bitmapEntry.firstChildElement("offsetX").isNull())
-        bitmap.offsetX = bitmapEntry.firstChildElement("offsetX").text().toInt();
+        if (!bitmapEntry.at(i).firstChildElement("justification").isNull())
+            bitmap.justification = static_cast<ObjHandler::ORIENTATION>(bitmapEntry.at(i).firstChildElement("justification").text().toInt());
 
-    if (!bitmapEntry.firstChildElement("offsetY").isNull())
-        bitmap.offsetY = bitmapEntry.firstChildElement("offsetY").text().toInt();
+        if (!bitmapEntry.at(i).firstChildElement("offsetX").isNull())
+            bitmap.offsetX = bitmapEntry.at(i).firstChildElement("offsetX").text().toInt();
 
-    if (!bitmapEntry.firstChildElement("dynamic").isNull())
-        bitmap.dynamic = bitmapEntry.firstChildElement("dynamic").text().toInt() == 0 ? false : true;
+        if (!bitmapEntry.at(i).firstChildElement("offsetY").isNull())
+            bitmap.offsetY = bitmapEntry.at(i).firstChildElement("offsetY").text().toInt();
 
-    bitmap.index = sr->bitmaps.size();
-    sr->bitmaps.append(bitmap);
+        if (!bitmapEntry.at(i).firstChildElement("dynamic").isNull())
+            bitmap.dynamic = bitmapEntry.at(i).firstChildElement("dynamic").text().toInt() == 0 ? false : true;
+
+        bitmap.index = sr->bitmaps.size();
+        sr->bitmaps.append(bitmap);
+    }
 }
 
 void TPageHandler::parseGradientColors(QList<QColor> *gradientColors, const QDomNodeList& gradColors)
@@ -1673,8 +1677,8 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
         lsr.bitmaps.append(bitmap);
     }
 
-    QDomElement bitmapEntry = sr.firstChildElement("bitmapEntry");
-    parseBitmapEntry(&lsr, bitmapEntry);
+    QDomNodeList bitmaps = sr.elementsByTagName("bitmapEntry");
+    parseBitmapEntry(&lsr, bitmaps);
 
     QDomNodeList gradColors = sr.elementsByTagName("gradientColors");
     parseGradientColors(&lsr.gradientColors, gradColors);

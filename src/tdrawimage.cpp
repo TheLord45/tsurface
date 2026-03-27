@@ -266,8 +266,8 @@ void TDrawImage::drawChameleon()
     DECL_TRACER("TDrawImage::drawChameleon()");
 
     QString pathTemp = TConfMain::Current().getPathTemporary();
-    QPixmap imgRed;
-    BITMAPS_t bm;
+    QPixmap imgRed;     // source: object.sr[instance].mi
+    BITMAPS_t bitmapEntry;
     // Load the image
     if (!imgRed.load(pathTemp + "/images/" + mChameleon))
     {
@@ -280,16 +280,16 @@ void TDrawImage::drawChameleon()
 
     if (mBitmaps.size() > 0)
     {
-        bm = mBitmaps[0];
+        bitmapEntry = mBitmaps[0];
 
-        if (!imgMask.load(pathTemp + "/images/" + bm.fileName))
+        if (!imgMask.load(pathTemp + "/images/" + bitmapEntry.fileName))
         {
-            MSG_ERROR("Couldn't load mask image " << bm.fileName.toStdString());
+            MSG_ERROR("Couldn't load mask image " << bitmapEntry.fileName.toStdString());
             imgMask = QPixmap();
         }
         else
         {
-            MSG_DEBUG("Loaded chameleon mask " << bm.fileName.toStdString());
+            MSG_DEBUG("Loaded chameleon mask " << bitmapEntry.fileName.toStdString());
         }
     }
 
@@ -298,18 +298,18 @@ void TDrawImage::drawChameleon()
 
     if (!haveBothImages)
     {
-        bm.justification = ObjHandler::ORI_CENTER_MIDDLE;
-        bm.offsetX = 0;
-        bm.offsetY = 0;
+        bitmapEntry.justification = ObjHandler::ORI_CENTER_MIDDLE;
+        bitmapEntry.offsetX = 0;
+        bitmapEntry.offsetY = 0;
     }
 
-    bm.width = imgRed.width();
-    bm.height = imgRed.height();
+    bitmapEntry.width = imgRed.width();
+    bitmapEntry.height = imgRed.height();
 
     QImage pixmapRed = imgRed.toImage();
     QImage pixmapMask;
-    QImage maskBm(mWidth, mHeight, QImage::Format_ARGB32);
-    maskBm.fill(Qt::transparent);
+    QImage maskbitmapEntry(mWidth, mHeight, QImage::Format_ARGB32);
+    maskbitmapEntry.fill(Qt::transparent);
     MSG_DEBUG("Size of pixmapRed: " << pixmapRed.width() << " x " << pixmapRed.height());
 
     if (!imgMask.isNull())
@@ -337,28 +337,17 @@ void TDrawImage::drawChameleon()
                 pixelMask = Qt::transparent;
 
             QColor pixel = baseColor(pixelRed, pixelMask);
-            int alpha = pixel.alpha();
-
-            if (alpha == 0)
-                pixel = pixelMask;
-
-            maskBm.setPixelColor(ix, iy, pixel);
+            maskbitmapEntry.setPixelColor(ix, iy, pixel);
         }
     }
 
-    if (maskBm.isNull())
-    {
-        QString bm;
-
-        if (!mBitmaps.empty())
-            bm = mBitmaps[0].fileName;
-
-        MSG_ERROR("Error creating the chameleon image \"" << mChameleon.toStdString() << "\" / \"" << bm.toStdString() << "\"!");
-        return;
-    }
-
-    int x, y;
-    getLeftUpper(&x, &y, bm);
+    int x = 0, y = 0;
+    // A button with a chameleon image can't have a border. Therefore we set the
+    // 4th parameter to true which will ignore the frame and don't even try to
+    // find one.
+    // But the bitmap entry may have other positioning then center, middle.
+    // Therefore we must check this and retrieve the upper left corner.
+    getLeftUpper(&x, &y, bitmapEntry, true);
     // To have all transparent pixels from the chameleon image we must fill the
     // base image with transparent pixels. This removes the background which was
     // already drawn.
@@ -366,10 +355,14 @@ void TDrawImage::drawChameleon()
 
     QPainter p(mPixmap);
 
-    if (mOpacity >= 0)
+    if (mOpacity >= 0 && mOpacity < 255)
         p.setOpacity(1.0 / 255.0 * static_cast<qreal>(mOpacity));         // set opacity from 0.0 to 1.0, where 0.0 is fully transparent and 1.0 is fully opaque.
 
-    p.drawImage(x, y, maskBm);
+    p.drawImage(x, y, maskbitmapEntry);
+
+    if (haveBothImages)
+        p.drawImage(x, y, pixmapMask);
+
     p.end();
 }
 
@@ -407,14 +400,17 @@ void TDrawImage::setChameleonColors(const QColor& col1, const QColor& col2)
     mColor2 = col2;
 }
 
-void TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm)
+void TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm, bool noFrame)
 {
-    DECL_TRACER("TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm)");
+    DECL_TRACER("TDrawImage::getLeftUpper(int *x, int *y, ObjHandler::BITMAPS_t bm, bool noFrame)");
 
     if (!x || !y)
         return;
 
-    Graphics::BORDER_SIZE_t borderSize = TGraphics::Current().getBorderSize(mBorder);
+    Graphics::BORDER_SIZE_t borderSize;
+
+    if (!noFrame)
+        borderSize = TGraphics::Current().getBorderSize(mBorder);
 
     switch(bm.justification)
     {
