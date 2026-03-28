@@ -98,7 +98,7 @@ class TSurface : public QMainWindow
         void on_actionGrab_Properties_Tool_triggered(bool checked);
         void on_actionPaint_Properties_Tool_triggered(bool checked);
         void on_actionShow_Grid_triggered(bool checked);
-        void on_actionSnap_To_Grid(bool checked);
+        void on_actionSnap_To_Grid_triggered(bool checked);
         void on_actionCurrent_Property_triggered();
         void on_actionDisabled_triggered();
         void on_actionText_triggered();

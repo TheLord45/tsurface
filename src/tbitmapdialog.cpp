@@ -269,6 +269,7 @@ void TBitmapDialog::onTreeWidgetItemActivated(QTreeWidgetItem *item, int column)
 {
     DECL_TRACER("TBitmapDialog::onTreeWidgetItemActivated(QTreeWidgetItem *item, int column)");
 
+    Q_UNUSED(column);
     ui->pushButtonDelete->setEnabled(true);
     ui->pushButtonMoveUp->setEnabled(true);
     ui->pushButtonMoveDown->setEnabled(true);

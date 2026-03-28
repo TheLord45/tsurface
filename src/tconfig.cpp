@@ -20,6 +20,7 @@
 #include <filesystem>
 
 #include "tconfig.h"
+#include "tmisc.h"
 #include "terror.h"
 
 using std::endl;
@@ -73,6 +74,7 @@ void TConfig::init()
 
 void TConfig::initDefaults()
 {
+    mLogLevel = "PROTOCOL";
     char *home = getenv("HOME");
     QString sHome;
 
@@ -128,37 +130,45 @@ void TConfig::setLogging()
 {
     if (!mInitialized)
     {
-        mLogLevel = "PROTOCOL";
         char *logfile = getenv("TSLOGFILE");
 
         if (logfile)
         {
             mLogFile = logfile;
-            TStreamError::setLogFile(mLogFile.toStdString());
+            TError::Current()->setLogFile(mLogFile.toStdString());
         }
 
         char *loglevel = getenv("TSLOGLEVEL");
 
         if (loglevel)
-        {
             mLogLevel = loglevel;
-            TStreamError::setLogLevel(mLogLevel.toStdString());
-        }
-        else
-            TStreamError::setLogLevel(mLogLevel.toStdString());
+
+        TError::Current()->setLogLevel(mLogLevel.toStdString());
     }
     else
     {
-        if (!mLogFile.isEmpty())
-            TStreamError::setLogFile(mLogFile.toStdString());
+        if (!mLogFile.isEmpty() && mDebugFile)
+            TError::Current()->setLogFile(mLogFile.toStdString());
 
-        if (!mLogLevel.isEmpty())
-            TStreamError::setLogLevel(mLogLevel.toStdString());
-        else
-        {
-            TStreamError::setLogLevel("PROTOCOL");
-            mLogLevel = "PROTOCOL";
-        }
+        int level = 0;
+
+        if (mDebugError)
+            level |= HLOG_ERROR;
+
+        if (mDebugWarning)
+            level |= HLOG_WARNING;
+
+        if (mDebugInfo)
+            level |= HLOG_INFO;
+
+        if (mDebugDebug)
+            level |= HLOG_DEBUG;
+
+        if (mDebugTrace)
+            level |= HLOG_TRACE;
+
+        mLogLevel = getStrLogLevel(level);
+        TError::Current()->setLogLevel(level);
     }
 }
 
@@ -209,6 +219,16 @@ void TConfig::saveConfig()
     mSettings->setValue("UndoShowAffectedPages", mUndoShowAffectedPages);
     mSettings->setValue("UndoChangeSelection", mUndoChangeSelection);
     mSettings->setValue("RedoEnableSystem", mRedoEnableSystem);
+    mSettings->endGroup();
+
+    mSettings->beginGroup("Debug");
+    mSettings->setValue("Errors", mDebugError);
+    mSettings->setValue("Warnings", mDebugWarning);
+    mSettings->setValue("Infos", mDebugInfo);
+    mSettings->setValue("Debug", mDebugDebug);
+    mSettings->setValue("Trace", mDebugTrace);
+    mSettings->setValue("WriteLogFile", mDebugFile);
+    mSettings->setValue("Profile", mLongFormat);
     mSettings->endGroup();
 
     mSettings->sync();
@@ -265,6 +285,53 @@ bool TConfig::readConfig()
     mUndoChangeSelection = mSettings->value("UndoChangeSelection", false).toBool();
     mRedoEnableSystem = mSettings->value("RedoEnableSystem", false).toBool();
     mSettings->endGroup();
+
+    mSettings->beginGroup("Debug");
+    mDebugError = mSettings->value("Errors").toBool();
+    mDebugWarning = mSettings->value("Warnings").toBool();
+    mDebugInfo = mSettings->value("Infos").toBool();
+    mDebugDebug = mSettings->value("Debug").toBool();
+    mDebugTrace = mSettings->value("Trace").toBool();
+    mDebugFile = mSettings->value("WriteLogFile").toBool();
+    mLongFormat = mSettings->value("Profile").toBool();
+    mSettings->endGroup();
+
+    if (mDebugError && mDebugWarning && mDebugInfo)
+        mDebugProtocol = true;
+    else
+        mDebugProtocol = false;
+
+    int level = 0;
+    mLogLevel.clear();
+
+    if (!mDebugProtocol)
+    {
+        if (mDebugError)
+            level |= HLOG_ERROR;
+
+        if (mDebugWarning)
+            level |= HLOG_WARNING;
+
+        if (mDebugInfo)
+            level |= HLOG_INFO;
+    }
+    else
+        level = HLOG_PROTOCOL;
+
+    if (mDebugDebug)
+        level |= HLOG_DEBUG;
+
+    if (mDebugTrace)
+        level |= HLOG_TRACE;
+
+    mLogLevel = getStrLogLevel(level);
+    std::cout << "Constructed log level: " << mLogLevel.toStdString() << std::endl;
+
+    TError::Current()->setLogFileEnabled(mDebugFile);
+    TError::Current()->setLogLevel(level);
+
+    if (mDebugFile && !mLogFile.isEmpty())
+        TError::Current()->setLogFile(mLogFile.toStdString());
 
     if (mPosition.width() == 0)
         return false;

@@ -78,6 +78,8 @@ STATE_TYPE getStateFromButtonType(int bt);
 STATE_TYPE getStateFromPageType(int pt);
 QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori=nullptr);
 QString convertToUTF8(const QString& file, bool fake=false);
+QString getStrLogLevel(int level);
+int getLogLevelFromString(const QString& level);
 
 #define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
 

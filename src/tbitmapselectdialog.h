@@ -38,6 +38,7 @@ class TBitmapSelectDialog : public QDialog
         ~TBitmapSelectDialog();
 
         void setTemporaryPath(const QString& path);
+        void setDefaultBitmap(const QString& file);
         QList<ObjHandler::BITMAPS_t> getSelected() { return mSelected; }
         void setSingleSelect(bool sel);
 

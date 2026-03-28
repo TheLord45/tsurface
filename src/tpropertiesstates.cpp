@@ -245,6 +245,9 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     for (int i = 0; i < table->rowCount(); ++i)     // Hide all rows
         table->setRowHidden(i, true);
 
+    QFont font = TConfMain::Current().getFontBase();
+    font.setPointSize(10);
+
     int totalHeight = 0;    // Calculate the total height of the table widget depending on the visible lines.
 
     if (!isValidObjectIndex())
@@ -253,7 +256,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         {
             MSG_DEBUG("Recreating table for page " << mPage.pageID);
             table->setRowHidden(TTEXT_FILL_TYPE, false);
-            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO, font);
 
             if (!mPage.srPage.ft.isEmpty() && mPage.srPage.ft != "solid")
             {
@@ -266,29 +269,29 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
 
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gx, W_SPINBOX);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gy, W_SPINBOX);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gx, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gy, W_SPINBOX, font);
                 }
             }
             else
             {
                 table->setRowHidden(TTEXT_FILL_COLOR, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR);
+                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_COLOR, false);
             table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO, font);
 
             if (mPage.srPage.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT, font);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -298,43 +301,45 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
             totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage.srPage.bitmaps, W_BITMAPSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT);
-            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX);
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
+            font = TFonts::getFont(mPage.srPage.ff);
+            font.setPointSize(mPage.srPage.fs);
+            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
 
             if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_EFFECT, false);
             table->setRowHidden(TTEXT_WORD_WRAP, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT);
-            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT, font);
+            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO, font);
         }
         else if (mPage.popupType == Page::PT_POPUP || mPage.popupType == Page::PT_SUBPAGE)
         {
             MSG_DEBUG("Recreating table for popup " << mPage.pageID);
             table->setRowHidden(TTEXT_BORDER_NAME, false);
-            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mPage.srPage.bs, W_BORDERNAME);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mPage.srPage.bs, W_BORDERNAME, font);
 
             if (mPage.srPage.bs.isEmpty())
             {
                 table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
-                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mPage.srPage.mi, W_BITMAPSELECTOR);
+                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mPage.srPage.mi, W_BITMAPSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_BORDER_COLOR, false);
             table->setRowHidden(TTEXT_FILL_TYPE, false);
 
-            totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mPage.srPage.cb, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mPage.srPage.cb, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO, font);
 
             if (!mPage.srPage.ft.isEmpty() && mPage.srPage.ft != "solid")
             {
@@ -347,29 +352,29 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
 
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mPage.srPage.gx, W_SPINBOX);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mPage.srPage.gy, W_SPINBOX);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mPage.srPage.gx, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mPage.srPage.gy, W_SPINBOX, font);
                 }
             }
             else
             {
                 table->setRowHidden(TTEXT_FILL_COLOR, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR);
+                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_COLOR, false);
             table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO, font);
 
             if (mPage.srPage.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT, font);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -379,25 +384,27 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
             totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage.srPage.bitmaps, W_BITMAPSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT);
-            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX);
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
+            font = TFonts::getFont(mPage.srPage.ff);
+            font.setPointSize(mPage.srPage.fs);
+            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
 
             if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_EFFECT, false);
             table->setRowHidden(TTEXT_WORD_WRAP, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT);
-            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT, font);
+            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO, font);
         }
     }
     else
@@ -415,20 +422,20 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
             table->setRowHidden(TTEXT_BORDER_NAME, false);
-            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME, font);
 
             if (mActSr.bs.isEmpty())
             {
                 table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
-                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mActSr.mi, W_BITMAPSELECTOR);
+                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mActSr.mi, W_BITMAPSELECTOR, font);
             }
         }
 
         table->setRowHidden(TTEXT_BORDER_COLOR, false);
         table->setRowHidden(TTEXT_FILL_TYPE, false);
 
-        totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR);
-        totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mActSr.ft, W_COMBO);
+        totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR, font);
+        totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mActSr.ft, W_COMBO, font);
 
         if (!mActSr.ft.isEmpty() && mActSr.ft != "solid")
         {
@@ -441,34 +448,34 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
                 table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
                 table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mActSr.gr, W_SPINBOX);
-                totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mActSr.gx, W_SPINBOX);
-                totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mActSr.gy, W_SPINBOX);
+                totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mActSr.gr, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mActSr.gx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mActSr.gy, W_SPINBOX, font);
             }
         }
         else
         {
             table->setRowHidden(TTEXT_FILL_COLOR, false);
-            totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mActSr.cf, W_COLORSELECTOR);
+            totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mActSr.cf, W_COLORSELECTOR, font);
         }
 
         table->setRowHidden(TTEXT_TEXT_COLOR, false);
         table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
         table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
 
-        totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mActSr.ct, W_COLORSELECTOR);
-        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR);
-        totalHeight += setTableWidget(table, TTEXT_OVERALL_OPACITY, 1, mActSr.oo, W_SPINBOX);
+        totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mActSr.ct, W_COLORSELECTOR, font);
+        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR, font);
+        totalHeight += setTableWidget(table, TTEXT_OVERALL_OPACITY, 1, mActSr.oo, W_SPINBOX, font);
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
-            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mActSr.vf, W_COMBO);
+            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mActSr.vf, W_COMBO, font);
 
             if (mActSr.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mActSr.dv, W_TEXT);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mActSr.dv, W_TEXT, font);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -478,37 +485,39 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         table->setRowHidden(TTEXT_FONT, false);
         table->setRowHidden(TTEXT_FONT_SIZE, false);
 
-        totalHeight += setTableWidget(table, TTEXT_FONT, 1, mActSr.ff, W_FONT);
-        totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mActSr.fs, W_SPINBOX);
+        totalHeight += setTableWidget(table, TTEXT_FONT, 1, mActSr.ff, W_FONT, font);
+        totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mActSr.fs, W_SPINBOX, font);
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
             table->setRowHidden(TTEXT_TEXT, false);
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO);
+            font = TFonts::getFont(mActSr.ff);
+            font.setPointSize(mActSr.fs);
+            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO, font);
 
             if (mActSr.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mActSr.tx, W_SPINBOX);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mActSr.ty, W_SPINBOX);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mActSr.tx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mActSr.ty, W_SPINBOX, font);
             }
         }
 
         table->setRowHidden(TTEXT_TEXT_EFFECT, false);
-        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mActSr.et, W_TEXTEFFECT);
+        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mActSr.et, W_TEXTEFFECT, font);
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
             table->setRowHidden(TTEXT_WORD_WRAP, false);
             table->setRowHidden(TTEXT_SOUND, false);
 
-            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mActSr.ty, W_COMBO);
-            totalHeight += setTableWidget(table, TTEXT_SOUND, 1, mActSr.sd, W_SOUND);
+            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mActSr.ty, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_SOUND, 1, mActSr.sd, W_SOUND, font);
         }
     }
 
@@ -963,9 +972,9 @@ QString TPropertiesStates::getStateName(ObjHandler::BUTTONTYPE type, int instanc
     return name;
 }
 
-int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)
+int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype, const QFont& font)
 {
-    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype)");
+    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype, const QFont& font)");
 
     if (!table)
     {
@@ -1016,6 +1025,7 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
         {
             TElementWidgetText *p = static_cast<TElementWidgetText *>(w);
             p->setText(data.toString());
+            p->setFont(font);
         }
         break;
 
@@ -1376,24 +1386,40 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
     DECL_TRACER("TPropertiesStates::makeTextValue(const QString& name)");
 
     QString text;
+    QFont font;
+    bool simple = false;
 
     if (isAnyPage())
     {
         if (name == "StreamingSource")
+        {
             text = mPage.srPage.dv;
+            simple = true;
+        }
         else if (name == "Text")
             text = mPage.srPage.te;
+
+        font = TFonts::getFont(mPage.srPage.ff);
+        font.setPointSize(mPage.srPage.fs);
     }
     else
     {
         if (name == "StreamingSource")
+        {
             text = mActSr.dv;
+            simple = true;
+        }
         else if (name == "Text")
             text = mActSr.te;
+
+        font = TFonts::getFont(mActSr.ff);
+        font.setPointSize(mActSr.fs);
     }
 
     TElementWidgetText *wtext = new TElementWidgetText(text, name, mTreeWidget);
     wtext->setInstance(mActInstance);
+    wtext->setFont(font);
+    wtext->setSimple(simple);
     connect(wtext, &TElementWidgetText::textChangedInst, this, &TPropertiesStates::onTextValueChanged);
     return wtext;
 }

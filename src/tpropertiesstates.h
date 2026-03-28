@@ -112,7 +112,7 @@ class TPropertiesStates : public QObject
         void rebuildTree();
         QString getStateName(ObjHandler::BUTTONTYPE type, int instance);
         QTableWidget *getTableWidget(int state=0);
-        int setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
+        int setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype, const QFont& font);
         int setTableWidget(QTableWidget *table, int row, int col, const QList<ObjHandler::BITMAPS_t>& bm, ELEMENT_TYPE_t etype);
         int setTableWidget(QTableWidget *table, int row, int col, const QList<QColor>& colors, ELEMENT_TYPE_t etype);
         int setTableWidgetFont(QTableWidget *table, int row, int col, const QFont& font, ELEMENT_TYPE_t etype);

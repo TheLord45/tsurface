@@ -147,6 +147,7 @@ void TElementBitmapSelector::onPushButtonClicked()
         TBitmapSelectDialog bmDialog(this);
         bmDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
         bmDialog.setSingleSelect(mSingleBitmap);
+        bmDialog.setDefaultBitmap(mLine->text());
 
         if (bmDialog.exec() == QDialog::Rejected)
             return;

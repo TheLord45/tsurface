@@ -52,6 +52,8 @@ void TPreferencesDialog::init(INIT_t i)
 {
     DECL_TRACER("TPreferencesDialog::init()");
 
+    QSignalBlocker sigBlock(this);
+
     if (i == INIT_ALL || i == INIT_APPLICATION)
     {
         mSystemGeneratedName = TConfig::Current().getSystemGeneratedName();
@@ -233,6 +235,39 @@ void TPreferencesDialog::init(INIT_t i)
         }
         else if (!mUndoShowAffectedPages)
             ui->checkBoxChangeSelection->setDisabled(true);
+    }
+
+    // Initialize debug
+    if (i == INIT_ALL || i == INIT_DEBUG)
+    {
+        int level = TError::Current()->getLogLevel();
+        mLogProfile = TConfig::Current().getDebugProfile();
+
+        mLogError = (level & HLOG_ERROR) > 0;
+        mLogWarning = (level & HLOG_WARNING) > 0;
+        mLogInfo = (level & HLOG_INFO) > 0;
+        mLogDebug = (level & HLOG_DEBUG) > 0;
+        mLogTrace = (level & HLOG_TRACE) > 0;
+
+        ui->checkBoxErrors->setCheckState(mLogError ? Qt::Checked : Qt::Unchecked);
+        ui->checkBoxWarnings->setCheckState(mLogWarning ? Qt::Checked : Qt::Unchecked);
+        ui->checkBoxInfos->setCheckState(mLogInfo ? Qt::Checked : Qt::Unchecked);
+        ui->checkBoxDebug->setCheckState(mLogDebug ? Qt::Checked : Qt::Unchecked);
+        ui->checkBoxTrace->setCheckState(mLogTrace ? Qt::Checked : Qt::Unchecked);
+        ui->checkBoxProfile->setCheckState(mLogProfile ? Qt::Checked : Qt::Unchecked);
+
+        if (mLogError && mLogWarning && mLogInfo)
+            ui->checkBoxProtocol->setCheckState(Qt::Checked);
+        else
+            ui->checkBoxProtocol->setCheckState(Qt::Unchecked);
+
+        ui->lineEditLogfile->setText(QString::fromStdString(TError::Current()->getLogFile()));
+
+        if (!mLogFile)
+        {
+            ui->lineEditLogfile->setDisabled(true);
+            ui->toolButtonLogfile->setDisabled(true);
+        }
     }
 
     mInitialized = true;
@@ -787,6 +822,116 @@ void TPreferencesDialog::onColorChanged(const QColor& color, const QString& name
     }
 }
 
+void TPreferencesDialog::on_checkBoxErrors_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxErrors_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogError = arg1 == Qt::Checked ? true : false;
+    setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxWarnings_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxWarnings_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogWarning = arg1 == Qt::Checked ? true : false;
+    setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxInfos_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxInfos_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogInfo = arg1 == Qt::Checked ? true : false;
+    setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxDebug_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxDebug_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogDebug = arg1 == Qt::Checked ? true : false;
+    setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxTrace_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxTrace_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogTrace = arg1 == Qt::Checked ? true : false;
+    setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxProtocol_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxProtocol_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogProtocol = arg1 == Qt::Checked ? true : false;
+
+    if (mLogProtocol)
+    {
+        QSignalBlocker sigBlock(this);
+        ui->checkBoxErrors->setCheckState(Qt::Checked);
+        ui->checkBoxWarnings->setCheckState(Qt::Checked);
+        ui->checkBoxInfos->setCheckState(Qt::Checked);
+    }
+    else
+        setDebugProtocol();
+}
+
+void TPreferencesDialog::on_checkBoxProfile_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxProfile_checkStateChanged(const Qt::CheckState &arg1)");
+
+    mLogProfile = arg1 == Qt::Checked ? true : false;
+}
+
+void TPreferencesDialog::on_checkBoxWriteLogs_checkStateChanged(const Qt::CheckState &arg1)
+{
+    DECL_TRACER("TPreferencesDialog::on_checkBoxWriteLogs_checkStateChanged(const Qt::CheckState &arg1)");
+
+    if (arg1 == Qt::Checked)
+    {
+        ui->lineEditLogfile->setEnabled(true);
+        ui->toolButtonLogfile->setEnabled(true);
+        mLogFile = true;
+    }
+    else
+    {
+        ui->lineEditLogfile->setDisabled(true);
+        ui->toolButtonLogfile->setDisabled(true);
+        mLogFile = false;
+    }
+}
+
+void TPreferencesDialog::on_lineEditLogfile_editingFinished()
+{
+    DECL_TRACER("TPreferencesDialog::on_lineEditLogfile_editingFinished()");
+
+    mLogFilePath = ui->lineEditLogfile->text();
+}
+
+
+void TPreferencesDialog::on_toolButtonLogfile_clicked()
+{
+    DECL_TRACER("TPreferencesDialog::on_toolButtonLogfile_clicked()");
+
+    QFileDialog fd(this, tr("Select logfile"), pathname(mLogFilePath), "Logfile (*.log *.dbg *.txt);;All (*)");
+    fd.setFileMode(QFileDialog::AnyFile);
+
+    if (fd.exec() == QDialog::Rejected)
+        return;
+
+    QStringList files = fd.selectedFiles();
+
+    if (files.empty())
+        return;
+
+    mLogFilePath = files[0];
+    QSignalBlocker sigBlock(this);
+    ui->lineEditLogfile->setText(mLogFilePath);
+}
+
 void TPreferencesDialog::onClicked(const QModelIndex& index)
 {
     DECL_TRACER("TPreferencesDialog::onClicked(const QModelIndex& index)");
@@ -882,6 +1027,39 @@ void TPreferencesDialog::save()
     TConfig::Current().setUndoShowAffectedPages(mUndoShowAffectedPages);
     TConfig::Current().setUndoChangeSelection(mUndoChangeSelection);
     TConfig::Current().setRedoEnableSystem(mUndoChangeSelection);
+
+    TConfig::Current().setDebugErrors(mLogError);
+    TConfig::Current().setDebugWarnings(mLogWarning);
+    TConfig::Current().setDebugInfos(mLogInfo);
+    TConfig::Current().setDebugDebug(mLogDebug);
+    TConfig::Current().setDebugTrace(mLogTrace);
+    TConfig::Current().setDebugProtocol(mLogProtocol);
+    TConfig::Current().setDebugLogFile(mLogFile);
+    TConfig::Current().setDebugProfile(mLogProfile);
+
+    int level = 0;
+
+    if (mLogError)
+        level |= HLOG_ERROR;
+
+    if (mLogWarning)
+        level |= HLOG_WARNING;
+
+    if (mLogInfo)
+        level |= HLOG_INFO;
+
+    if (mLogDebug)
+        level |= HLOG_DEBUG;
+
+    if (mLogTrace)
+        level |= HLOG_TRACE;
+
+    TError::Current()->setLogLevel(level);
+
+    if (mLogFile && !mLogFilePath.isEmpty())
+        TError::Current()->setLogFile(mLogFilePath.toStdString());
+    else
+        TError::Current()->setLogFile("");
 }
 
 void TPreferencesDialog::fillImageEditorTable()
@@ -985,6 +1163,24 @@ void TPreferencesDialog::fillSoundEditorTable()
         ui->tableViewEditorList->resizeColumnsToContents();
         ui->tableViewEditorList->setSelectionBehavior(QAbstractItemView::SelectRows);
         ui->tableViewEditorList->setSelectionMode(QAbstractItemView::SingleSelection);
+    }
+}
+
+void TPreferencesDialog::setDebugProtocol()
+{
+    DECL_TRACER("TPreferencesDialog::setDebugProtocol()");
+
+    QSignalBlocker sigBlock(this);
+
+    if (mLogError && mLogWarning && mLogInfo)
+    {
+        ui->checkBoxProtocol->setCheckState(Qt::Checked);
+        mLogProtocol = true;
+    }
+    else
+    {
+        ui->checkBoxProtocol->setCheckState(Qt::Unchecked);
+        mLogProtocol = false;
     }
 }
 

@@ -68,7 +68,6 @@ void TBitmapSelectDialog::init()
     mImages = TMaps::Current().getAllImageFiles();
     QStandardItemModel *model = new QStandardItemModel(this);
     QStringList::Iterator iter;
-    int row = 0;
 
     for (iter = mImages.begin(); iter != mImages.end(); ++iter)
     {
@@ -77,11 +76,11 @@ void TBitmapSelectDialog::init()
         QStandardItem *item = new QStandardItem(*iter);
         QSize oriSize;
         item->setData(sizeImage(iconSize, file, &oriSize), Qt::DecorationRole);
+        item->setData(*iter, Qt::UserRole);
         item->setSizeHint(gridSize);
         item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
         item->setToolTip(QString("%1 (%2x%3)").arg(*iter).arg(oriSize.width()).arg(oriSize.height()));
         model->appendRow(item);
-        row++;
     }
 
     model->sort(0);
@@ -102,6 +101,35 @@ void TBitmapSelectDialog::init()
     ui->tableViewDynamic->resizeColumnsToContents();
     ui->tableViewDynamic->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableViewDynamic->setSelectionMode(QAbstractItemView::SingleSelection);
+}
+
+void TBitmapSelectDialog::setDefaultBitmap(const QString& file)
+{
+    DECL_TRACER("TBitmapSelectDialog::setDefaultBitmap(const QString& file)");
+
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->listViewImages->model());
+
+    if (!model)
+        return;
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        QStandardItem *item =model->item(i, 0);
+
+        if (!item)
+            continue;
+
+        if (item->data(Qt::UserRole).toString() == file)
+        {
+            QItemSelectionModel *selModel = ui->listViewImages->selectionModel();
+
+            if (!selModel)
+                return;
+
+            selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            break;
+        }
+    }
 }
 
 void TBitmapSelectDialog::setSingleSelect(bool sel)

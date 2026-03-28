@@ -49,7 +49,9 @@ class TConfig
         void setLastPosition(const QRect& ws) { mPosition = ws; }
         bool isInitialized() { return mInitialized; }
         bool isLongFormat() { return mLongFormat; }
+        void setLogFile(const QString& file) { mLogFile = file; }
         QString& getLogFile() { return mLogFile; }
+        void setLogLevel(const QString& level) { mLogLevel = level; }
         QString& getLogLevel() { return mLogLevel; }
         bool getProfiling() { return mProfiling; }
         void setProgName(const QString& name) { mProgName = name; }
@@ -128,6 +130,23 @@ class TConfig
         bool getRedoEnableSystem() { return mRedoEnableSystem; }
         void setRedoEnableSystem(bool b) { mRedoEnableSystem = b; }
 
+        void setDebugErrors(bool state) { mDebugError = state; }
+        bool getDebugErrors() { return mDebugError; }
+        void setDebugWarnings(bool state) { mDebugWarning = state; }
+        bool getDebugWarnings() { return mDebugWarning; }
+        void setDebugInfos(bool state) { mDebugInfo = state; }
+        bool getDebugInfos() { return mDebugInfo; }
+        void setDebugDebug(bool state) { mDebugDebug = state; }
+        bool getDebugDebug() { return mDebugDebug; }
+        void setDebugTrace(bool state) { mDebugTrace = state; }
+        bool getDebugTrace() { return mDebugTrace; }
+        void setDebugProtocol(bool state) { mDebugProtocol = state; }
+        bool getDebugProtocol() { return mDebugProtocol; }
+        void setDebugLogFile(bool state) { mDebugFile = state; }
+        bool getDebugLogFile() { return mDebugFile; }
+        void setDebugProfile(bool state) { mLongFormat = state; }
+        bool getDebugProfile() { return mLongFormat; }
+
     protected:
         void init();
         void initDefaults();
@@ -186,6 +205,14 @@ class TConfig
         bool mUndoShowAffectedPages{false};
         bool mUndoChangeSelection{false};
         bool mRedoEnableSystem{false};
+        // Debugging
+        bool mDebugError{false};
+        bool mDebugWarning{false};
+        bool mDebugInfo{false};
+        bool mDebugDebug{false};
+        bool mDebugTrace{false};
+        bool mDebugProtocol{false};
+        bool mDebugFile{false};
 };
 
 #endif // TCONFIG_H

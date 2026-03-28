@@ -53,5 +53,6 @@
         <file>images/view-grid.svg</file>
         <file>images/snap-bounding-box-corners.svg</file>
         <file>images/videostream.png</file>
+        <file>images/debug-file.svg</file>
     </qresource>
 </RCC>

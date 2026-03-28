@@ -80,6 +80,17 @@ class TPreferencesDialog : public QDialog
         void on_checkBoxEnableRedo_checkStateChanged(const Qt::CheckState &arg1);
         void on_pushButtonUndoReset_clicked();
 
+        void on_checkBoxErrors_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxWarnings_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxInfos_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxDebug_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxTrace_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxProtocol_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxProfile_checkStateChanged(const Qt::CheckState &arg1);
+        void on_checkBoxWriteLogs_checkStateChanged(const Qt::CheckState &arg1);
+        void on_lineEditLogfile_editingFinished();
+        void on_toolButtonLogfile_clicked();
+
         void on_pushButtonTakeOver_clicked();
         void on_pushButtonHelp_clicked();
         void on_pushButtonResetAll_clicked();
@@ -98,7 +109,8 @@ class TPreferencesDialog : public QDialog
             INIT_APPEARANCE,
             INIT_DIRECTORIES,
             INIT_EDITORS,
-            INIT_UNDO
+            INIT_UNDO,
+            INIT_DEBUG
         }INIT_t;
 
         void init(INIT_t i=INIT_ALL);
@@ -106,6 +118,7 @@ class TPreferencesDialog : public QDialog
         void setCheckerboardColor();
         void fillImageEditorTable();
         void fillSoundEditorTable();
+        void setDebugProtocol();
 
         Ui::TPreferencesDialog *ui;
 
@@ -155,6 +168,15 @@ class TPreferencesDialog : public QDialog
         bool mUndoShowAffectedPages{false};
         bool mUndoChangeSelection{false};
         bool mRedoEnableSystem{false};
+        bool mLogError{false};
+        bool mLogWarning{false};
+        bool mLogInfo{false};
+        bool mLogDebug{false};
+        bool mLogTrace{false};
+        bool mLogProtocol{false};
+        bool mLogProfile{false};
+        bool mLogFile{false};
+        QString mLogFilePath;
 };
 
 #endif // TPREFERENCESDIALOG_H

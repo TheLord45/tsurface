@@ -21,6 +21,7 @@
 
 #include "telementwidgettext.h"
 #include "ttexteditdialog.h"
+#include "ttextboxdialog.h"
 #include "terror.h"
 
 TElementWidgetText::TElementWidgetText(const QString& text, const QString& name, QWidget *parent)
@@ -30,6 +31,7 @@ TElementWidgetText::TElementWidgetText(const QString& text, const QString& name,
 {
     DECL_TRACER("TElementWidgetText::TElementWidgetText(const QString& text, QWidget *parent)");
 
+    mFont = this->font();
     QSignalBlocker sigBlock(this);
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -87,13 +89,27 @@ void TElementWidgetText::onPushButtonClicked()
 {
     DECL_TRACER("TElementWidgetText::onPushButtonClicked()");
 
-    TTextEditDialog dialog(this);
-    dialog.setCaption(tr("Enter text"));
-    dialog.setDescription(mText);
+    if (mSimple)
+    {
+        TTextEditDialog dialog(this);
+        dialog.setCaption(tr("Enter text"));
+        dialog.setDescription(mText);
 
-    if (dialog.exec() == QDialog::Rejected)
-        return;
+        if (dialog.exec() == QDialog::Rejected)
+            return;
 
-    mText = dialog.getDescription();
-    mLine->setText(mText);
+        mText = dialog.getDescription();
+        mLine->setText(mText);
+    }
+    else
+    {
+        TTextBoxDialog dialog(this);
+        dialog.setTextFont(mText, mFont);
+
+        if (dialog.exec() == QDialog::Rejected)
+            return;
+
+        mText = dialog.getText();
+        mLine->setText(mText);
+    }
 }

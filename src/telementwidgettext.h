@@ -37,6 +37,8 @@ class TElementWidgetText : public QWidget
         void setName(const QString& name);
         void setInstance(int inst) { mInstance = inst; }
         int getInstance() { return mInstance; }
+        void setFont(const QFont& font) { mFont = font; }
+        void setSimple(bool state) { mSimple = state; }
 
     signals:
         void textChanged(const QString& text, const QString& name);
@@ -50,9 +52,11 @@ class TElementWidgetText : public QWidget
     private:
         QString mText;
         QString mName;
+        QFont mFont;
         QLineEdit *mLine{nullptr};
         QPushButton *mButton{nullptr};
         int mInstance{-1};
+        bool mSimple{false};
 };
 
 #endif // TELEMENTWIDGETTEXT_H

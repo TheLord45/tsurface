@@ -500,11 +500,11 @@ void TStreamError::_init(bool reinit)
     if (mLogLevel > 0)
     {
         if (TConfig::Current().isLongFormat())
-            *mStream << "Timestamp          , Type LNr., File name           , ThreadID, Message" << std::endl;
+            *mStream << "Timestamp          ,Type, LNr. , File name                     , ThreadID, Message" << std::endl;
         else
             *mStream << "Type LNr., ThreadID, Message" << std::endl;
 
-        *mStream << "-----------------------------------------------------------------" << std::endl << std::flush;
+        *mStream << "---------------------------------------------------------------------------" << std::endl << std::flush;
     }
     else
         *mStream << std::flush;
@@ -726,7 +726,7 @@ TTracer::TTracer(const string& msg, int line, const char *file, threadID_t tid)
     if (!TConfig::Current().isLongFormat())
         *TError::Current()->getStream() << "TRC, " << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "{entry " << msg << std::endl;
     else
-        *TError::Current()->getStream() << TStreamError::getTime() <<  ", TRC, " << std::setw(5) << std::right << line << ", " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "{entry " << msg << std::endl;
+        *TError::Current()->getStream() << TStreamError::getTime() <<  ", TRC, " << std::setw(5) << std::right << line << ", " << std::setw(30) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "{entry " << msg << std::endl;
 
     TError::Current()->incIndent();
     mHeadMsg = msg;
@@ -766,14 +766,14 @@ TTracer::~TTracer()
         if (!TConfig::Current().isLongFormat())
             *TError::Current()->getStream() << "TRC,      , " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << " Elapsed time: " << nanosecs << std::endl;
         else
-            *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << " Elapsed time: " << nanosecs << std::endl;
+            *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(30) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << " Elapsed time: " << nanosecs << std::endl;
     }
     else
     {
         if (!TConfig::Current().isLongFormat())
             *TError::Current()->getStream() << "TRC,      , " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << std::endl;
         else
-            *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(20) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << std::endl;
+            *TError::Current()->getStream() << TStreamError::getTime() << ", TRC,      , " << std::setw(30) << std::left << mFile << ", " << _threadIDtoStr(mThreadID) << ", " << indent << "}exit " << mHeadMsg << std::endl;
     }
 
     mHeadMsg.clear();
@@ -982,7 +982,7 @@ std::string TError::append(int lv, int line, const std::string& file)
         s << prefix << std::setw(5) << std::right << line << ", " << _threadIDtoStr(mThreadID) << ", " << pre;
     }
     else
-        s << TStreamError::getTime() << ", " << prefix << std::setw(5) << std::right << line << ", " << std::setw(20) << std::left << f << ", " << _threadIDtoStr(mThreadID) << ", ";
+        s << TStreamError::getTime() << ", " << prefix << std::setw(5) << std::right << line << ", " << std::setw(30) << std::left << f << ", " << _threadIDtoStr(mThreadID) << ", ";
 
     return s.str();
 }

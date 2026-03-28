@@ -45,8 +45,8 @@ QList<QString> altGrTypes = {
 /********************************************************************************/
 
 TDrawObject::TDrawObject(TObjectHandler *object, TResizableWidget *widget)
-    : mWidget(widget),
-      mObject(object)
+    : mObject(object),
+      mWidget(widget)
 {
     DECL_TRACER("TDrawObject::TDrawObject(QWidget *widget)");
 }

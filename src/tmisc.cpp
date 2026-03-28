@@ -173,3 +173,78 @@ QString convertToUTF8(const QString& filename, bool fake)
     auto toUtf8 = QStringDecoder(QStringDecoder::Latin1);
     return toUtf8(buffer);
 }
+
+QString getStrLogLevel(int level)
+{
+    QString sl;
+
+    if ((level & HLOG_ERROR) > 0)
+    {
+        if (!sl.isEmpty())
+            sl += "|ERROR";
+        else
+            sl = "ERROR";
+    }
+
+    if ((level & HLOG_WARNING))
+    {
+        if (!sl.isEmpty())
+            sl += "|WARNING";
+        else
+            sl = "WARNING";
+    }
+
+    if ((level & HLOG_INFO))
+    {
+        if (!sl.isEmpty())
+            sl += "|INFO";
+        else
+            sl = "INFO";
+    }
+
+    if ((level & HLOG_DEBUG))
+    {
+        if (!sl.isEmpty())
+            sl += "|DEBUG";
+        else
+            sl = "DEBUG";
+    }
+
+    if ((level & HLOG_TRACE))
+    {
+        if (!sl.isEmpty())
+            sl += "|TRACE";
+        else
+            sl = "TRACE";
+    }
+
+    return sl;
+}
+
+int getLogLevelFromString(const QString& level)
+{
+    int l = 0;
+
+    if (level.contains("ERROR", Qt::CaseInsensitive))
+        l |= HLOG_ERROR;
+
+    if (level.contains("WARNING", Qt::CaseInsensitive))
+        l |= HLOG_ERROR;
+
+    if (level.contains("INFO", Qt::CaseInsensitive))
+        l |= HLOG_ERROR;
+
+    if (level.contains("DEBUG", Qt::CaseInsensitive))
+        l |= HLOG_ERROR;
+
+    if (level.contains("TRACE", Qt::CaseInsensitive))
+        l |= HLOG_ERROR;
+
+    if (level.contains("PROTOCOL", Qt::CaseInsensitive))
+        l |= HLOG_PROTOCOL;
+
+    if (level.contains("ALL", Qt::CaseInsensitive))
+        l |= HLOG_ALL;
+
+    return l;
+}

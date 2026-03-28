@@ -1006,9 +1006,9 @@ void TSurface::on_actionShow_Grid_triggered(bool checked)
     mFromExtern = false;
 }
 
-void TSurface::on_actionSnap_To_Grid(bool checked)
+void TSurface::on_actionSnap_To_Grid_triggered(bool checked)
 {
-    DECL_TRACER("TSurface::on_actionSnap_To_Grid(bool checked)");
+    DECL_TRACER("TSurface::on_actionSnap_To_Grid_triggered(bool checked)");
 
     mFromExtern = true;
     onActionSnapToGrid(checked);
