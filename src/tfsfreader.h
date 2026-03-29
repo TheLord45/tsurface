@@ -24,6 +24,10 @@
 
 #define _BUF_SIZE   1024
 
+#ifdef __OSX_AVAILABLE
+#define off64_t     off_t
+#endif
+
 class TFsfReader
 {
     public:
