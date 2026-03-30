@@ -647,6 +647,12 @@ bool TFonts::readAMXFontFile(const QString& xmlFilePath)
         parseFont(font);
     }
 
+    // Delete the original file ...
+    file.remove();
+    // and save it as a JSON file.
+    writeFontFile(pathname(xmlFilePath), "fonts_.json");
+    TConfMain::Current().setFontFileName("fonts_.json");
+
     return true;
 }
 

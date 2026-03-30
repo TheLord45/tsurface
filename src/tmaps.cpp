@@ -670,6 +670,10 @@ bool TMaps::parseAMXMaps(const QString& xmlFilePath)
         parseSection(root, sectionName);
     }
 
+    QFile file(xmlFilePath);
+    file.remove();
+    writeMaps(pathname(xmlFilePath), "map_.json");
+    TConfMain::Current().setMapsFileName("map_.json");
     return true;
 }
 

@@ -249,6 +249,9 @@ class TConfMain
         void setColorText(const QColor& col) { mColorText = col; }
         void setFontBase(const QFont& font) { mFontBase = font; };
         void setFontBaseSize(int size) { mFontBaseSize = size; }
+        void setFontFileName(const QString& name);
+        void setMapsFileName(const QString& name);
+        void setIconFileName(const QString& name);
         void setDynamicResource(const ConfigMain::RESOURCE_t& res);
         void setDynamicData(const ConfigMain::DATASOURCE_t& data);
         void setAMX(bool amx) { mAMX = amx; }

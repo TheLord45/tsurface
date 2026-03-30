@@ -305,6 +305,12 @@ bool TConfMain::readProject(const QString& path)
         if (!TMaps::Current().parseAMXMaps(mPathTemporary + "/" + mConfMain->fileList.mapFile))
             return false;
 
+        // Finally we delete the original file ...
+        QFile file(path);
+        file.remove();
+        // and save it as a JSON file.
+        saveProject();
+
         return true;
     }
 
@@ -766,6 +772,27 @@ void TConfMain::removeDynamicData(const QString& name)
             return;
         }
     }
+}
+
+void TConfMain::setFontFileName(const QString& name)
+{
+    DECL_TRACER("TConfMain::setFontFileName(const QString& name)");
+
+    mConfMain->fileList.fontFile = name;
+}
+
+void TConfMain::setMapsFileName(const QString& name)
+{
+    DECL_TRACER("TConfMain::setMapsFileName(const QString& name)");
+
+    mConfMain->fileList.mapFile = name;
+}
+
+void TConfMain::setIconFileName(const QString& name)
+{
+    DECL_TRACER("TConfMain::setIconFileName(const QString& name)");
+
+    mConfMain->fileList.iconFile = name;
 }
 
 bool TConfMain::isSubpage(int pageID)

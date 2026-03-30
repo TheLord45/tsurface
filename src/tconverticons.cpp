@@ -21,6 +21,7 @@
 #include <QtXml/QDomNodeList>
 
 #include "tconverticons.h"
+#include "tconfmain.h"
 #include "terror.h"
 
 TConvertIcons::TConvertIcons()
@@ -90,6 +91,9 @@ bool TConvertIcons::readAMXIcons(const QString& filename)
         QDomElement icon = icons.at(i).toElement();
         parseIcon(icon);
     }
+
+    file.remove();
+    TConfMain::Current().setIconFileName("");   // Icons are not supported any more!
 
     return true;
 }

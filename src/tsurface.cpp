@@ -2369,10 +2369,10 @@ QString TSurface::createTemporaryPath(const QString& name)
 
     temp.append(name);
 
-    if (!name.endsWith(".tsf"))
-        temp.append(".tsf");
-    else
+    if (name.endsWith(".TP4", Qt::CaseInsensitive) || name.endsWith(".TP5", Qt::CaseInsensitive))
         temp.append(".amx");
+    else if (!name.endsWith(".tsf"))
+        temp.append(".tsf");
 
     MSG_PROTOCOL("Using temporary path: " << temp.toStdString());
 
@@ -2385,7 +2385,7 @@ bool TSurface::createNewFileStructure()
 
     QString fName = mPathTemporary;
 
-    if (!fName.endsWith(".tsf"))
+    if (!fName.endsWith(".tsf") && !fName.endsWith(".amx"))
         fName.append(".tsf");
 
     try

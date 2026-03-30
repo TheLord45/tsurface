@@ -121,6 +121,7 @@ bool TConvertColors::readAMXPalette(const QString& filename)
         parseColor(color);
     }
 
+    file.remove();
     return true;
 }
 

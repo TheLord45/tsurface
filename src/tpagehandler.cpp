@@ -680,7 +680,7 @@ bool TPageHandler::saveAllPages()
             if (!savePage(*pageIter))
                 return false;
         }
-        else if (pageIter->popupType == PT_POPUP)
+        else if (pageIter->popupType == PT_POPUP || pageIter->popupType == PT_SUBPAGE)
         {
             if (!savePopup(*pageIter))
                 return false;
@@ -1592,7 +1592,13 @@ bool TPageHandler::readAMXPages(const QStringList& list)
                 obj->setObject(object);
             }
         }
+
+        QFile f(file);
+        f.remove();
     }
+
+    // Save the just read pages
+    saveAllPages();
 
     return true;
 }
