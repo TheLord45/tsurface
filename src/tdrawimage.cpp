@@ -366,6 +366,228 @@ void TDrawImage::drawChameleon()
     p.end();
 }
 
+void TDrawImage::drawBargraph(const TOBJECT_t& object)
+{
+    DECL_TRACER("TDrawImage::drawBargraph(const TOBJECT_t& object)");
+
+    // A normal bargraph must have 2 stages. If not we return here.
+    if (object.sr.size() != 2)
+    {
+        MSG_WARNING("Object " << object.bi << " (" << object.na.toStdString() << ") is not a bargraph!");
+        return;
+    }
+
+    QString path = TConfMain::Current().getPathTemporary();
+    int level = (object.rh - object.rl) / 2;
+
+    // Check for a chameleon image
+    if (!object.sr[0].mi.isEmpty() && object.sr[0].bs.isEmpty() && !object.sr[1].bitmaps.empty())
+    {
+        MSG_DEBUG("Detected a chameleon image...");
+        QPixmap bmMi, bmBm;
+
+        if (!bmMi.load(path + "/images/" + object.sr[0].mi))
+        {
+            MSG_ERROR("Couldn't load image " << object.sr[0].mi.toStdString() << "!");
+            return;
+        }
+
+        QString sBitmap = object.sr[1].bitmaps[0].fileName;
+
+        if (!bmBm.load(path + "/images/" + sBitmap))
+        {
+            MSG_ERROR("Couldn't load image " << sBitmap.toStdString() << "!");
+            return;
+        }
+
+        QImage pixmapRed = bmMi.toImage();
+        QImage pixmapMask = bmBm.toImage();
+
+        int width = bmMi.width();
+        int height = bmMi.height();
+        int startX = 0;
+        int startY = 0;
+
+        if (object.dr == "horizontal")
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+        else
+        {
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            startY = bmMi.height() - height;
+            height = bmMi.height();
+        }
+
+        QImage img(bmMi.width(), bmMi.height(), QImage::Format_ARGB32);
+        img.fill(Qt::transparent);
+
+        mColor1 = object.sr[1].cf;
+        mColor2 = object.sr[1].cb;
+
+        for (int ix = 0; ix < bmMi.width(); ++ix)
+        {
+            for (int iy = 0; iy < bmMi.height(); ++iy)
+            {
+                QColor pixel;
+
+                if (ix >= startX && ix < width && iy >= startY && iy < height)
+                {
+                    QColor pixelRed = pixmapRed.pixelColor(ix, iy);
+                    QColor pixelMask;
+
+                    if (!bmBm.isNull())
+                        pixelMask = pixmapMask.pixelColor(ix, iy);
+                    else
+                        pixelMask = Qt::white;
+
+                    pixel = baseColor(pixelRed, pixelMask);
+                }
+                else
+                    pixel = Qt::transparent;
+
+                img.setPixelColor(ix, iy, pixel);
+            }
+        }
+
+        QPainter painter(mPixmap);
+        painter.drawImage(0, 0, img);
+        painter.end();
+    }
+    else if (!object.sr[0].bitmaps.empty() && !object.sr[1].bitmaps.empty())
+    {
+        MSG_DEBUG("Drawing normal bargraph...");
+
+        QImage image1, image2;
+
+        if (!image1.load(path + "/images/" + object.sr[0].bitmaps[0].fileName))
+        {
+            MSG_ERROR("Couldn't load image " << object.sr[0].bitmaps[0].fileName.toStdString() << "!");
+            return;
+        }
+
+        if (!image2.load(path + "/images/" + object.sr[1].bitmaps[0].fileName))
+        {
+            MSG_ERROR("Couldn't load image " << object.sr[1].bitmaps[0].fileName.toStdString() << "!");
+            return;
+        }
+
+        int width = image2.width();
+        int height = image2.height();
+        int startX = 0;
+        int startY = 0;
+
+        if (object.dr == "horizontal")
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+        else
+        {
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            startY = image1.height() - height;
+            height = image1.height();
+        }
+
+        int bm_width = image2.width();
+        int bm_height = image2.height();
+
+        QImage img_bar(bm_width, bm_height, QImage::Format_ARGB32);
+        img_bar.fill(Qt::transparent);
+
+        for (int ix = 0; ix < bm_width; ++ix)
+        {
+            for (int iy = 0; iy < bm_height; ++iy)
+            {
+                QColor pixel;
+
+                if (ix > startX && ix < width && iy >= startY && iy < height)
+                    pixel = image2.pixelColor(ix, iy);
+                else
+                    pixel = Qt::transparent;
+
+                img_bar.setPixelColor(ix, iy, pixel);
+            }
+        }
+
+        QPainter painter(mPixmap);
+        painter.drawImage(0, 0, image1);
+        painter.drawImage(0, 0, image2);
+        painter.drawImage(0, 0, img_bar);
+        painter.end();
+    }
+    else if (object.sr[0].bitmaps.empty() && !object.sr[1].bitmaps.empty())
+    {
+        MSG_DEBUG("Drawing second image...");
+
+        QImage image;
+
+        if (!image.load(path + "/images/" + object.sr[1].bitmaps[0].fileName))
+        {
+            MSG_ERROR("Couldn't load image " << object.sr[1].bitmaps[0].fileName.toStdString() << "!");
+            return;
+        }
+
+        int width = image.width();
+        int height = image.height();
+        int startX = 0;
+        int startY = 0;
+
+        if (object.dr == "horizontal")
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+        else
+        {
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            startY = image.height() - height;
+            height = image.height();
+        }
+
+        QImage img_bar(image.width(), image.height(), QImage::Format_ARGB32);
+        img_bar.fill(Qt::transparent);
+        int bm_width = image.width();
+        int bm_height = image.height();
+
+        for (int ix = 0; ix < bm_width; ++ix)
+        {
+            for (int iy = 0; iy < bm_height; ++iy)
+            {
+                QColor pixel;
+
+                if (ix >= startX && ix < width && iy >= startY && iy < height)
+                    pixel = image.pixelColor(iy, iy);
+                else
+                    pixel = Qt::transparent;
+
+                img_bar.setPixelColor(ix, iy, pixel);
+            }
+        }
+
+        QPainter painter(mPixmap);
+        painter.drawImage(0, 0, image);
+        painter.drawImage(0, 0, img_bar);
+        painter.end();
+    }
+    else
+    {
+        MSG_DEBUG("No bitmap defined...");
+
+        int width = object.wt;
+        int height = object.ht;
+        int startX = 0;
+        int startY = 0;
+
+        if (object.dr == "horizontal")
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+        else
+        {
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            startY = object.ht - height;
+            height = object.ht;
+        }
+
+        QPainter painter(mPixmap);
+        QRect dst(startX, startY, width, height);
+        QBrush brush(object.sr[1].cf);
+        painter.setBrush(brush);
+        painter.fillRect(dst, Qt::SolidPattern);
+    }
+}
+
 QColor TDrawImage::baseColor(QColor basePix, QColor maskPix)
 {
     int alpha = basePix.alpha();

@@ -34,7 +34,7 @@ class TDrawImage
          *
          * @param bitmaps   The bitmap stack
          */
-        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps) { mBitmaps = bitmaps; };
+        void setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps) { mBitmaps = bitmaps; }
         /**
          * @brief setOpacity
          * This sets the opacity of the object. It can be a value between
@@ -137,6 +137,13 @@ class TDrawImage
          * @param bm    The pixmap to draw.
          */
         void drawPixmap(const QPixmap& bm);
+        /**
+         * @brief drawBargraph
+         * Draws all aspects of a bargraph
+         *
+         * @param object    The whole object
+         */
+        void drawBargraph(const ObjHandler::TOBJECT_t& object);
 
     protected:
         void drawBitmapStack();

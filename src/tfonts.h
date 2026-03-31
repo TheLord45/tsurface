@@ -99,6 +99,7 @@ class TFonts
 
     protected:
         static void init();
+        static int loadFont(const QString& path, const QString& file, const QStringList& families);
         static bool readSystemFonts(const QString& path);
         static void parseFont(const QDomElement &font);
         static void setFontAttributes(QFont *font, const QString& name);

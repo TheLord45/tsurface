@@ -483,20 +483,7 @@ bool TFonts::readFontFile(const QString& path, const QString& qfile)
         for (int j = 0; j < families.count(); ++j)
             prvFont.family.append(families[j].toString());
 
-        // In any case we're getting the font file name. If this method does
-        // not return a file name or returns another file name, then the font
-        // in the local directory is not installed on the machine.
-        prvFont.intFile = getFontFile(QFont(prvFont.family));
-
-        // If we got no or a different font file, we must load the local font
-        // into the font database.
-        if (basename(prvFont.intFile) != prvFont.file)
-        {
-            QString srcFile = path + "/fonts/" + prvFont.file;
-            prvFont.ID = QFontDatabase::addApplicationFont(srcFile);
-            MSG_DEBUG("Added font file \"" << srcFile.toStdString() << "\" to font database.");
-        }
-
+        prvFont.ID = loadFont(path, prvFont.file, prvFont.family);
         mLocalFonts.append(prvFont);
     }
 
@@ -691,6 +678,7 @@ void TFonts::parseFont(const QDomElement &font)
     if (!font.firstChildElement("size").isNull())
         fnt.size = font.firstChildElement("size").text().toInt();
 
+    fnt.ID = loadFont(path, fnt.file, fnt.family);
     mLocalFonts.append(fnt);
 }
 
@@ -712,4 +700,25 @@ void TFonts::setFontAttributes(QFont *font, const QString& name)
 
     if (name.contains(" underline", Qt::CaseInsensitive))
         font->setUnderline(true);
+}
+
+int TFonts::loadFont(const QString& path, const QString& file, const QStringList& families)
+{
+    DECL_TRACER("TFonts::loadFont(const QString& path, const QString& file, const QStringList& families)");
+
+    int ID = -1;
+    // In any case we're getting the font file name. If this method does
+    // not return a file name or returns another file name, then the font
+    // in the local directory is not installed on the machine.
+    QString sysFile = getFontFile(QFont(families));
+    // If we got no or a different font file, we must load the local font
+    // into the font database.
+    if (basename(sysFile) != file)
+    {
+        QString srcFile = path + "/fonts/" + file;
+        ID = QFontDatabase::addApplicationFont(srcFile);
+        MSG_DEBUG("Added font file \"" << srcFile.toStdString() << "\" to font database.");
+    }
+
+    return ID;
 }

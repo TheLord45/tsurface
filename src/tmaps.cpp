@@ -591,7 +591,7 @@ bool TMaps::writeMaps(const QString& path, const QString& file)
                 me.insert("rc", bmIter->rc);
             }
 
-            MSG_DEBUG("Adding image " << bmIter->i.toStdString());
+//            MSG_DEBUG("Adding image " << bmIter->i.toStdString() << " for object " << bmIter->bt);
             im.append(me);
         }
     }

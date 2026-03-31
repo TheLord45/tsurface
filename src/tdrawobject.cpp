@@ -83,7 +83,12 @@ void TDrawObject::draw(int instance)
     }
 
     MSG_DEBUG("Object size: " << object.lt << ", " << object.tp << ", size: " << object.wt << " x " << object.ht);
-    getDrawOrder(object.sr[instance]._do, mDOrder);
+
+    if (object.type = BARGRAPH)
+        getDrawOrder(object.sr[1]._do, mDOrder);
+    else
+        getDrawOrder(object.sr[instance]._do, mDOrder);
+
     QPixmap button(object.wt, object.ht);               // Creates an empty image
     button.fill(Qt::transparent);                       // Fills the image and prepares it for QPainter
 
@@ -114,7 +119,10 @@ void TDrawObject::draw(int instance)
                     di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
                 }
 
-                di.draw();
+                if (object.type == BARGRAPH)
+                    di.drawBargraph(object);
+                else
+                    di.draw();
             }
             break;
 
