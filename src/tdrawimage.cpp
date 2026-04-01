@@ -496,7 +496,7 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
             {
                 QColor pixel;
 
-                if (ix > startX && ix < width && iy >= startY && iy < height)
+                if (ix >= startX && ix < width && iy >= startY && iy < height)
                     pixel = image2.pixelColor(ix, iy);
                 else
                     pixel = Qt::transparent;
@@ -507,7 +507,6 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
 
         QPainter painter(mPixmap);
         painter.drawImage(0, 0, image1);
-        painter.drawImage(0, 0, image2);
         painter.drawImage(0, 0, img_bar);
         painter.end();
     }
@@ -558,7 +557,6 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
         }
 
         QPainter painter(mPixmap);
-        painter.drawImage(0, 0, image);
         painter.drawImage(0, 0, img_bar);
         painter.end();
     }
@@ -580,11 +578,11 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
             height = object.ht;
         }
 
+        QColor color(object.sr[1].cf);
         QPainter painter(mPixmap);
         QRect dst(startX, startY, width, height);
-        QBrush brush(object.sr[1].cf);
-        painter.setBrush(brush);
-        painter.fillRect(dst, Qt::SolidPattern);
+        painter.fillRect(dst, color);
+        painter.end();
     }
 }
 

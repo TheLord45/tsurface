@@ -84,7 +84,7 @@ void TDrawObject::draw(int instance)
 
     MSG_DEBUG("Object size: " << object.lt << ", " << object.tp << ", size: " << object.wt << " x " << object.ht);
 
-    if (object.type = BARGRAPH)
+    if (object.type == BARGRAPH)
         getDrawOrder(object.sr[1]._do, mDOrder);
     else
         getDrawOrder(object.sr[instance]._do, mDOrder);
@@ -100,7 +100,10 @@ void TDrawObject::draw(int instance)
         switch(order)
         {
             case ORD_ELEM_FILL:
-                buttonFill(&button, object.sr[instance]);
+                if (object.type == BARGRAPH)
+                    buttonFill(&button, object.sr[0]);
+                else
+                    buttonFill(&button, object.sr[instance]);
             break;
 
             case ORD_ELEM_BITMAP:

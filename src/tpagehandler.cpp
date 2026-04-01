@@ -1669,6 +1669,7 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     {
         ObjHandler::BITMAPS_t bitmap;
         bitmap.fileName = sr.firstChildElement("bm").text();
+        bitmap.dynamic = sr.firstChildElement("bm").attribute("dynamic").toInt();
         bitmap.index = 0;
 
         if (!sr.firstChildElement("jb").isNull())
@@ -1776,6 +1777,48 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     }
 
     object->sr.append(lsr);
+}
+
+void TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba)
+{
+    DECL_TRACER("TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba)");
+
+    ObjHandler::PUSH_FUNC_T pushFunc;
+    pushFunc.pfName = pf.text();
+    pushFunc.pfType = pf.attribute("type");
+    // For G5
+    pushFunc.action = ba;
+
+    if (pf.parentNode().nodeName() == "ep")
+        pushFunc.event = ObjHandler::EVENT_PRESS;
+    else if (pf.parentNode().nodeName() == "er")
+        pushFunc.event = ObjHandler::EVENT_RELEASE;
+    else
+    {
+        pushFunc.event = getButtonEvent(pf.parentNode().nodeName());
+
+        if (pushFunc.event == ObjHandler::EVENT_NONE)
+        {
+            MSG_WARNING("Unknown node name " << pf.parentNode().nodeName().toStdString() << "!");
+        }
+    }
+
+    if (pf.hasAttribute("item"))
+        pushFunc.item = pf.attribute("item").toInt();
+
+    if (ba == ObjHandler::BT_ACTION_LAUNCH)
+    {
+        if (pf.hasAttribute("id"))
+            pushFunc.ID = pf.attribute("id").toInt();
+
+        if (pf.hasAttribute("action"))
+            pushFunc.pfAction = pf.attribute("action");
+    }
+
+    if (ba == ObjHandler::BT_ACTION_COMMAND && pf.hasAttribute("port"))
+        pushFunc.ID = pf.attribute("port").toInt();
+
+    object->pushFunc.push_back(pushFunc);
 }
 
 void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
@@ -2033,15 +2076,94 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
     if (!button.firstChildElement("on").isNull())
         object.on = button.firstChildElement("on").text();
 
-    // TODO: Insert "pushFunc"
+    // Insert "pushFunc"
     QDomNodeList pfList = button.elementsByTagName("pf");
-/*
+
     for (int i = 0; i < pfList.count(); ++i)
     {
         QDomElement pf = pfList.at(i).toElement();
-        parseSR(page, pf);
+        parsePF(&object, pf, ObjHandler::BT_ACTION_PGFLIP);
     }
-*/
+
+    if (!button.firstChildElement("ep").isNull())
+    {
+        QDomElement ep = button.firstChildElement("ep");
+        QDomNodeList epList = ep.elementsByTagName("pgFlip");
+
+        for (int i = 0; i < epList.count(); ++i)
+        {
+            QDomElement ep = epList.at(i).toElement();
+            parsePF(&object, ep, ObjHandler::BT_ACTION_PGFLIP);
+        }
+
+        epList = ep.elementsByTagName("launch");
+
+        for (int i = 0; i < epList.count(); ++i)
+        {
+            QDomElement ep = epList.at(i).toElement();
+            parsePF(&object, ep, ObjHandler::BT_ACTION_LAUNCH);
+        }
+
+        epList = ep.elementsByTagName("command");
+
+        for (int i = 0; i < epList.count(); ++i)
+        {
+            QDomElement ep = epList.at(i).toElement();
+            parsePF(&object, ep, ObjHandler::BT_ACTION_COMMAND);
+        }
+    }
+
+    if (!button.firstChildElement("er").isNull())
+    {
+        QDomElement er = button.firstChildElement("er");
+        QDomNodeList erList = er.elementsByTagName("pgFlip");
+
+        for (int i = 0; i < erList.count(); ++i)
+        {
+            QDomElement er = erList.at(i).toElement();
+            parsePF(&object, er, ObjHandler::BT_ACTION_PGFLIP);
+        }
+
+        erList = er.elementsByTagName("launch");
+
+        for (int i = 0; i < erList.count(); ++i)
+        {
+            QDomElement er = erList.at(i).toElement();
+            parsePF(&object, er, ObjHandler::BT_ACTION_LAUNCH);
+        }
+
+        erList = er.elementsByTagName("command");
+
+        for (int i = 0; i < erList.count(); ++i)
+        {
+            QDomElement er = erList.at(i).toElement();
+            parsePF(&object, er, ObjHandler::BT_ACTION_COMMAND);
+        }
+    }
+
+    QStringList guestures = { "ga", "gu", "gd", "gr", "gl", "gt", "tu", "td", "tr", "tl" };
+    QStringList::Iterator guIter;
+
+    for (guIter = guestures.begin(); guIter != guestures.end(); ++guIter)
+    {
+        QDomElement g = button.firstChildElement(*guIter);
+        QDomNodeList gList = g.elementsByTagName("pgFlip");
+
+        for (int i = 0; i < gList.count(); ++i)
+        {
+            QDomElement gu = gList.at(i).toElement();
+            parsePF(&object, gu, ObjHandler::BT_ACTION_PGFLIP);
+        }
+
+        gList = g.elementsByTagName("launch");
+
+        for (int i = 0; i < gList.count(); ++i)
+        {
+            QDomElement gu = gList.at(i).toElement();
+            parsePF(&object, gu, ObjHandler::BT_ACTION_LAUNCH);
+        }
+    }
+
     // Parse sr elements inside button
     QDomNodeList srList = button.elementsByTagName("sr");
 
@@ -2241,4 +2363,32 @@ QColor TPageHandler::getColor(const QString& name)
         return Qt::transparent;
 
     return TConvertColors::getColorFromColor(name);
+}
+
+ObjHandler::BUTTON_EVENT_t TPageHandler::getButtonEvent(const QString& token)
+{
+    DECL_TRACER("TPageHandler::getButtonEvent(const QString& token)");
+
+    if (token == "ga")
+        return ObjHandler::EVENT_GUESTURE_ANY;
+    else if (token == "gu")
+        return ObjHandler::EVENT_GUESTURE_UP;
+    else if (token == "gd")
+        return ObjHandler::EVENT_GUESTURE_DOWN;
+    else if (token == "gr")
+        return ObjHandler::EVENT_GUESTURE_RIGHT;
+    else if (token == "gl")
+        return ObjHandler::EVENT_GUESTURE_LEFT;
+    else if (token == "gt")
+        return ObjHandler::EVENT_GUESTURE_DBLTAP;
+    else if (token == "tu")
+        return ObjHandler::EVENT_GUESTURE_2FUP;
+    else if (token == "td")
+        return ObjHandler::EVENT_GUESTURE_2FDN;
+    else if (token == "tr")
+        return ObjHandler::EVENT_GUESTURE_2FRT;
+    else if (token == "tl")
+        return ObjHandler::EVENT_GUESTURE_2FLT;
+
+    return ObjHandler::EVENT_NONE;
 }

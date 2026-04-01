@@ -285,6 +285,8 @@ QFont TFonts::getFontFromIndex(int index)
                         font.setUnderline(true);
                 }
             }
+            else
+                font.setPointSize(TConfMain::Current().getFontBaseSize());
 
             return font;
         }

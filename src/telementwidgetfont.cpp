@@ -83,6 +83,7 @@ void TElementWidgetFont::onPushButtonClicked()
     bool ok = false;
     QFont f = QFontDialog::getFont(&ok, mFont, this, tr("Select font"),
                                    QFontDialog::ScalableFonts |
+                                   QFontDialog::NonScalableFonts |
                                    QFontDialog::MonospacedFonts |
                                    QFontDialog::ProportionalFonts);
 
