@@ -21,6 +21,8 @@
 
 #include <sstream>
 #include <iomanip>
+#include <pwd.h>
+#include <unistd.h>
 
 #include "tmisc.h"
 #include "terror.h"
@@ -247,4 +249,45 @@ int getLogLevelFromString(const QString& level)
         l |= HLOG_ALL;
 
     return l;
+}
+
+OS detectOS()
+{
+#if defined(__APPLE__) && defined(__MACH__)
+    return OS::MacOS;
+#elif defined(__linux__)
+    return OS::Linux;
+#else
+    return OS::Unknown;
+#endif
+}
+
+/**
+ * @brief getHomeDir
+ * This method tries to find the home directory on a *NIX system. If there is
+ * the environment variable @b HOME set, it takes the content from it and
+ * returns it.
+ * If the environment varialbe is not available, it looks in the file
+ * /usr/passwd. There the current user should have been defined and there
+ * should be a home directory. It retrieves the user ID and tries to find the
+ * entry for the user. If it was successfully it returns the path which was
+ * found.
+ * If it can't find the user it throws an exception.
+ *
+ * @return The path of the home directory. In case the home directory was not
+ * found, it throws an exception.
+ */
+QString getHomeDir()
+{
+    QString home = qEnvironmentVariable("HOME");
+
+    if (!home.isEmpty())
+        return home;
+
+    struct passwd* pw = getpwuid(getuid());
+
+    if (pw)
+        return QString(pw->pw_dir);
+
+    throw std::runtime_error("Cannot determine home directory");
 }

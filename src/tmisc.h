@@ -81,6 +81,10 @@ QString convertToUTF8(const QString& file, bool fake=false);
 QString getStrLogLevel(int level);
 int getLogLevelFromString(const QString& level);
 
+enum class OS { Linux, MacOS, Unknown };
+OS detectOS();
+QString getHomeDir();
+
 #define INSERTJ(json, name, src, ref)  if (src != ref) json.insert(name, src)
 
 #endif // TMISC_H

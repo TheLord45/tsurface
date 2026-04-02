@@ -722,5 +722,50 @@ int TFonts::loadFont(const QString& path, const QString& file, const QStringList
         MSG_DEBUG("Added font file \"" << srcFile.toStdString() << "\" to font database.");
     }
 
+    try
+    {
+        QString home = getHomeDir();
+        fs::path destDir;
+        OS os = detectOS();
+
+        if (os == OS::Linux)
+            destDir = fs::path(home.toStdString()) / ".local" / "share" / "fonts";
+        else if (os == OS::MacOS)
+            destDir = fs::path(home.toStdString()) / "Library" / "Fonts";
+
+        if (!fs::exists(destDir))
+            fs::create_directories(destDir);
+
+        QString srcFile = path + "/fonts/" + file;
+        fs::path fontFile = srcFile.toStdString();
+        fs::path destFile = destDir / fontFile.filename();
+
+        fs::copy_file(fontFile, destFile, fs::copy_options::overwrite_existing);
+
+        if (os == OS::Linux)
+        {
+            // Update font cache on Linux
+            int ret = system("fc-cache -f -v");
+
+            if (ret != 0)
+            {
+                MSG_ERROR("Failed to update font cache");
+                return -1;
+            }
+
+            MSG_INFO("Font cache updated successfully.");
+        }
+        else if (os == OS::MacOS)
+        {
+            // No cache update needed on macOS for user fonts
+            MSG_DEBUG("No font cache update needed on macOS.");
+        }
+    }
+    catch (const std::exception& e)
+    {
+        MSG_ERROR("Error: " << e.what());
+        return -1;
+    }
+
     return ID;
 }
