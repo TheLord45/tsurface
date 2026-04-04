@@ -1563,7 +1563,7 @@ bool TPageHandler::readAMXPages(const QStringList& list)
                 if (pg->srPage.fi > 0)
                 {
                     QFont font = TFonts::getFontFromIndex(pg->srPage.fi);
-                    pg->srPage.ff = TFonts::getFontName(font);
+                    pg->srPage.ff = font.family();
                     pg->srPage.fs = font.pointSize();
                 }
             }
@@ -1691,7 +1691,7 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     parseGradientColors(&lsr.gradientColors, gradColors);
 
     if (!sr.firstChildElement("ff").isNull())
-        lsr.ff = sr.firstChildElement("ff").text();
+        lsr.ff = TFonts::getFontNameFromFile(sr.firstChildElement("ff").text());
 
     if (!sr.firstChildElement("fs").isNull())
         lsr.fs = sr.firstChildElement("fs").text().toInt();
@@ -2280,7 +2280,7 @@ int TPageHandler::parsePage(const QDomElement &page)
             pg.srPage.dynamic = s.dynamic;
             pg.srPage.ec = s.ec;
             pg.srPage.et = s.et;
-            pg.srPage.ff = s.ff;
+            pg.srPage.ff = TFonts::getFontNameFromFile(s.ff);
             pg.srPage.fi = s.fi;
             pg.srPage.fs = s.fs;
             pg.srPage.ft = s.ft;

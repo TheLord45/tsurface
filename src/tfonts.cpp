@@ -41,6 +41,7 @@ using std::string;
 
 QList<TFonts::PRIVFONTS_t> TFonts::mLocalFonts;
 bool TFonts::mInitialized{false};
+bool TFonts::mFontReload{false};
 
 FcConfig *gFontConfig{nullptr};
 
@@ -116,6 +117,26 @@ QString TFonts::getFontName(const QFont& font)
         fntName += " Underline";
 
     return fntName;
+}
+
+QString TFonts::getFontNameFromFile(const QString& file)
+{
+    DECL_TRACER("TFonts::getFontNameFromFile(const QString& file)");
+
+    QList<PRIVFONTS_t>::Iterator iter;
+
+    for (iter = mLocalFonts.begin(); iter != mLocalFonts.end(); ++iter)
+    {
+        if (iter->file == file && !iter->family.empty())
+            return iter->family[0];
+    }
+
+    int pos = file.lastIndexOf('.');
+
+    if (pos >= 0)
+        return file.left(pos-1);
+
+    return file;
 }
 
 /**
@@ -400,7 +421,7 @@ void TFonts::addFontFamily(const QString& family)
 
         for (famIter = iter->family.begin(); famIter != iter->family.end(); ++famIter)
         {
-            if (*famIter == baseName)
+            if (*famIter == family)
                 return;
         }
     }
@@ -410,7 +431,7 @@ void TFonts::addFontFamily(const QString& family)
     PRIVFONTS_t pv;
     pv.intFile = getFontFile(font);
     pv.file = basename(pv.intFile);
-    pv.family.append(baseName);
+    pv.family.append(family);
     mLocalFonts.append(pv);
 }
 
@@ -490,6 +511,10 @@ bool TFonts::readFontFile(const QString& path, const QString& qfile)
     }
 
     readSystemFonts(path);
+
+    if (mFontReload)
+        updateFontCache();
+
     return true;
 }
 
@@ -636,6 +661,9 @@ bool TFonts::readAMXFontFile(const QString& xmlFilePath)
         parseFont(font);
     }
 
+    if (mFontReload)
+        updateFontCache();
+
     // Delete the original file ...
     file.remove();
     // and save it as a JSON file.
@@ -739,27 +767,12 @@ int TFonts::loadFont(const QString& path, const QString& file, const QStringList
         QString srcFile = path + "/fonts/" + file;
         fs::path fontFile = srcFile.toStdString();
         fs::path destFile = destDir / fontFile.filename();
+        mFontReload = true;
+
+        if (fs::exists(destFile))
+            return ID;
 
         fs::copy_file(fontFile, destFile, fs::copy_options::overwrite_existing);
-
-        if (os == OS::Linux)
-        {
-            // Update font cache on Linux
-            int ret = system("fc-cache -f -v");
-
-            if (ret != 0)
-            {
-                MSG_ERROR("Failed to update font cache");
-                return -1;
-            }
-
-            MSG_INFO("Font cache updated successfully.");
-        }
-        else if (os == OS::MacOS)
-        {
-            // No cache update needed on macOS for user fonts
-            MSG_DEBUG("No font cache update needed on macOS.");
-        }
     }
     catch (const std::exception& e)
     {
@@ -768,4 +781,39 @@ int TFonts::loadFont(const QString& path, const QString& file, const QStringList
     }
 
     return ID;
+}
+
+void TFonts::updateFontCache()
+{
+    DECL_TRACER("TFonts::updateFontCache()");
+
+    try
+    {
+        QString home = getHomeDir();
+        OS os = detectOS();
+
+        if (os == OS::MacOS)
+            return;     // No need to update cache for MacOS!
+
+        fs::path destDir = fs::path(home.toStdString()) / ".local" / "share" / "fonts";
+        // Update font cache on Linux
+        std::string cmd("fc-cache -f ");
+        cmd.append(destDir);
+
+        int ret = system(cmd.c_str());
+
+        if (ret != 0)
+        {
+            MSG_ERROR("Failed to update font cache");
+            return;
+        }
+
+        MSG_INFO("Font cache updated successfully.");
+    }
+    catch (std::exception& e)
+    {
+        MSG_ERROR("Error: " << e.what());
+    }
+
+    mFontReload = false;
 }

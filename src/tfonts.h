@@ -83,6 +83,7 @@ class TFonts
 
         static QString getFontFile(const QFont& font);
         static QString getFontName(const QFont& font);
+        static QString getFontNameFromFile(const QString& file);
         static void addFont(const QFont& font, const QString& file);
         static void addFontFile(const QString& file);
         static void addFontFamily(const QString& family);
@@ -103,12 +104,14 @@ class TFonts
         static bool readSystemFonts(const QString& path);
         static void parseFont(const QDomElement &font);
         static void setFontAttributes(QFont *font, const QString& name);
+        static void updateFontCache();
 
     private:
         TFonts() {};    // Must never be called
 
         static QList<PRIVFONTS_t> mLocalFonts;
         static bool mInitialized;
+        static bool mFontReload;
 };
 
 #endif // TFONTS_H

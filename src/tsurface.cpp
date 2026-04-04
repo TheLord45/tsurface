@@ -791,7 +791,7 @@ void TSurface::on_actionNew_triggered()
     // Store the selected font
     QFont font = npd.getFontName();
     QString ffile = TFonts::getFontFile(font);
-    TFonts::addFontFile(ffile);
+    TFonts::addFontFile(basename(ffile));
     // Enable Menus
     enableBaseMenus();
     // Draw the window with all known data
