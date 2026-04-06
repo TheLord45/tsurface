@@ -376,6 +376,7 @@ bool TDrawText::draw()
             QRect rect = mObject->widget->geometry();
             mLabel->setGeometry(QRect(mX, mY, rect.width() - mX, rect.height() - mY));
             mLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+            MSG_DEBUG("Rect: " << mX << ", " << mY << ", " << (rect.width() - mX) << ", " << (rect.height() - mY) << ". Total size: " << rect.width() << " x " << rect.height());
         }
         break;
 
@@ -474,7 +475,7 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
         if (mBtObject.sr[instance].jt == ORI_ABSOLUT)
         {
             rect.setLeft(mBtObject.sr[instance].tx);
-            rect.setTop(mBtObject.sr[instance].ty / 2);
+            rect.setTop(mBtObject.sr[instance].ty);
         }
 
         painter.drawText(rect, aFlag, mBtObject.sr[instance].te);

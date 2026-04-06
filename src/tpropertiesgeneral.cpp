@@ -360,6 +360,7 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
         break;
 
         case STATE_BUTTON:
+        case STATE_BARGRAPH:
             if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
                 mActObject = mPage.objects[mActObjectID]->getObject();
 

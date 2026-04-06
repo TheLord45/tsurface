@@ -1036,6 +1036,7 @@ void TPreferencesDialog::save()
     TConfig::Current().setDebugProtocol(mLogProtocol);
     TConfig::Current().setDebugLogFile(mLogFile);
     TConfig::Current().setDebugProfile(mLogProfile);
+    TConfig::Current().setLogFile(mLogFilePath);
 
     int level = 0;
 
