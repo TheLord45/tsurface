@@ -73,6 +73,7 @@
 #define TTEXT_VALUE_DIRECTION       37
 #define TTEXT_SLIDER_NAME           38
 #define TTEXT_SLIDER_COLOR          39
+#define TTEXT_SUBPAGE_SET           40
 
 using namespace ObjHandler;
 
@@ -222,6 +223,7 @@ QString TPropertiesGeneral::getLabelText(int line)
         case TTEXT_VALUE_DIRECTION:     return tr("Value Direction"); break;
         case TTEXT_SLIDER_NAME:         return tr("Slider Name"); break;
         case TTEXT_SLIDER_COLOR:        return tr("Slider Color"); break;
+        case TTEXT_SUBPAGE_SET:         return tr("Sub-Page Set"); break;
     }
 
     return QString();
@@ -468,6 +470,33 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             }
         break;
 
+        case STATE_SUBPAGE:
+            if (mActObject.type != ObjHandler::SUBPAGE_VIEW)
+            {
+                mTable->setRowHidden(0, false);             // PopupType
+                mTable->setRowHidden(2, false);             // PageName
+                mTable->setRowHidden(5, false);             // PageDescription
+                mTable->setRowHidden(11, false);            // PopupWidth
+                mTable->setRowHidden(13, false);            // PopupHeight
+            }
+            else
+            {
+                mTable->setRowHidden(1, false);             // ButtonType
+                mTable->setRowHidden(3, false);             // ObjectName
+                mTable->setRowHidden(4, false);             // ButtonLockName
+                mTable->setRowHidden(6, false);             // ObjectDescription
+                mTable->setRowHidden(8, false);             // ObjectLeft
+                mTable->setRowHidden(10, false);            // ObjectTop
+                mTable->setRowHidden(12, false);            // ObjectTop
+                mTable->setRowHidden(14, false);            // ObjectHeight
+                mTable->setRowHidden(16, false);            // ObjectZOrder
+                mTable->setRowHidden(34, false);            // ObjectBorderStyle
+                mTable->setRowHidden(39, false);            // ObjectDisabled
+                mTable->setRowHidden(40, false);            // ObjectHidden
+                mTable->setRowHidden(45, false);            // ObjectSubPageView
+            }
+        break;
+
         default:
             break;
     }
@@ -482,7 +511,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
     Q_UNUSED(stype);
     QSignalBlocker sigBlock(this);
-    int rows = 41;
+    int rows = 46;
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(rows);
@@ -726,6 +755,11 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             case 44:
                 cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
                 mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectPasswordProtection"));
+            break;
+
+            case 45:
+                cell1->setText(getLabelText(TTEXT_SUBPAGE_SET));
+                mTable->setCellWidget(i, 1, makeObjectSubPageSet("ObjectSubPageSet"));
             break;
         }
 
@@ -1333,6 +1367,20 @@ TElementColorSelector *TPropertiesGeneral::makeObjectSliderColor(const QString& 
     return colsel;
 }
 
+TElementWidgetCombo *TPropertiesGeneral::makeObjectSubPageSet(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectSubPageSet(const QString& name)");
+
+    QStringList items;
+    // TODO: Add function to get a list of subpage views
+    items.insert(0, "none");
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectSubPageSet);
+    return combo;
+}
+
 void TPropertiesGeneral::setWidget(QTableWidget *view)
 {
     DECL_TRACER("TPropertiesGeneral::setWidget(QTableWidget *view)");
@@ -1885,6 +1933,14 @@ void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& n
     markChanged();
     mChanged = true;
     requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(name);
+    // TODO: Set group
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)
