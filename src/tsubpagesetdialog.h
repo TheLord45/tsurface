@@ -1,0 +1,48 @@
+#ifndef TSUBPAGESETDIALOG_H
+#define TSUBPAGESETDIALOG_H
+
+#include <QDialog>
+
+#include "tconfmain.h"
+
+namespace Ui {
+    class TSubPageSetDialog;
+}
+
+class TSubPageSetDialog : public QDialog
+{
+        Q_OBJECT
+
+    public:
+        explicit TSubPageSetDialog(QWidget *parent = nullptr);
+        ~TSubPageSetDialog();
+
+    private slots:
+        void on_pushButtonNew_clicked();
+        void on_pushButtonDelete_clicked();
+        void on_lineEditSetName_textChanged(const QString &arg1);
+        void on_pushButtonAdd_clicked();
+        void on_pushButtonRemove_clicked();
+        void on_pushButtonMoveUp_clicked();
+        void on_pushButtonMoveDown_clicked();
+        void on_tableViewSubPageSets_clicked(const QModelIndex &index);
+        void on_tableViewSubPagesLeft_clicked(const QModelIndex &index);
+        void on_tableViewSubPagesRight_clicked(const QModelIndex &index);
+
+    protected:
+        void removeFromList(QStringList *list, const QString& term);
+        void appendNameToSet(const QString& name);
+        void showPages(const QStringList& pages);
+        void showItems(const QList<ConfigMain::SUBPAGEITEMS_t>& items);
+
+    private:
+        Ui::TSubPageSetDialog *ui;
+
+        QList<ConfigMain::SUBPAGESET_t> mSubPageSet;
+        QStringList mSubPageNames;
+        int mSelectedSet{-1};
+        int mSelectedItem{-1};
+        int mSelectedPage{-1};
+};
+
+#endif // TSUBPAGESETDIALOG_H

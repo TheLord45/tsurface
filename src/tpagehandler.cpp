@@ -466,6 +466,23 @@ QStringList TPageHandler::getGroupNames()
     return list;
 }
 
+QStringList TPageHandler::getSubPageNames()
+{
+    DECL_TRACER("TPageHandler::getSubPageNames()");
+
+    QStringList list;
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == Page::PT_SUBPAGE)
+            list.append(iter->name);
+    }
+
+    list.sort();
+    return list;
+}
+
 void TPageHandler::changePageName(int id, const QString& name)
 {
     DECL_TRACER("TPageHandler::changePageName(int id, const QString& name)");

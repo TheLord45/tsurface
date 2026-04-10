@@ -225,6 +225,7 @@ class TPageHandler : public QObject
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
         QStringList getGroupNames();
+        QStringList getSubPageNames();
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
         void changePageName(int id, const QString& name);
         void setGridVisible(int number, bool state);

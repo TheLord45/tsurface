@@ -141,6 +141,9 @@ qt_add_executable(tsurface
     tsoundselectdialog.cpp
     tsoundselectdialog.h
     tsoundselectdialog.ui
+    tsubpagesetdialog.cpp
+    tsubpagesetdialog.h
+    tsubpagesetdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp

@@ -40,6 +40,7 @@
 #include "taddpopupdialog.h"
 #include "tresourcedialog.h"
 #include "tpreferencesdialog.h"
+#include "tsubpagesetdialog.h"
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tgraphics.h"
@@ -1118,10 +1119,15 @@ void TSurface::on_actionAdd_Application_Window_triggered()
 {
 
 }
+
 void TSurface::on_actionEdit_Sub_Page_Sets_triggered()
 {
+    DECL_TRACER("TSurface::on_actionEdit_Sub_Page_Sets_triggered()");
 
+    TSubPageSetDialog dialog(this);
+    dialog.exec();
 }
+
 void TSurface::on_actionEdit_Drop_Target_Groups_triggered()
 {
 

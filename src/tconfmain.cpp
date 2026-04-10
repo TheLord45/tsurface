@@ -1066,6 +1066,19 @@ void TConfMain::initConfig(bool force)
         mConfMain->fileName = basename(mFileName);
 }
 
+QStringList TConfMain::getSubPageSets()
+{
+    DECL_TRACER("TConfMain::getSubPageSets()");
+
+    QStringList list;
+    QList<SUBPAGESET_t>::Iterator iter;
+
+    for (iter = mConfMain->subPageSet.begin(); iter != mConfMain->subPageSet.end(); ++iter)
+        list.append(iter->name);
+
+    return list;
+}
+
 QString TConfMain::getUrl(const ConfigMain::DATASOURCE_t& data)
 {
     DECL_TRACER("TConfMain::getUrl(const ConfigMain::DATASOURCE_t& data)");
