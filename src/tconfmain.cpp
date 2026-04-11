@@ -442,6 +442,43 @@ bool TConfMain::readProject(const QString& path)
         mConfMain->resourceList.append(res);
     }
 
+    QJsonArray subPageSets = root.value("subPageSets").toArray();
+
+    for (int i = 0; i < subPageSets.count(); ++i)
+    {
+        QJsonObject entry = subPageSets[i].toObject();
+        SUBPAGESET_t sub;
+        sub.id = entry.value("id").toInt();
+        sub.name = entry.value("name").toString();
+        sub.pgWidth = entry.value("pgWidth").toInt();
+        sub.pgHeight = entry.value("pgHeight").toInt();
+
+        QJsonArray items = entry.value("items").toArray();
+
+        for (int j = 0; j < items.count(); ++j)
+        {
+            QJsonObject item = items[j].toObject();
+            SUBPAGEITEMS_t it;
+            it.index = item.value("index").toInt();
+            it.pageID = item.value("pageID").toInt();
+            it.pageName = item.value("pageName").toString();
+            sub.items.append(it);
+        }
+
+        mConfMain->subPageSet.append(sub);
+    }
+
+    QJsonArray dropGroups = root.value("dropGroups").toArray();
+
+    for (int i = 0; i < dropGroups.count(); ++i)
+    {
+        QJsonObject dropGroup = dropGroups[i].toObject();
+        DROPGROUP_t dg;
+        dg.id = dropGroup.value("id").toInt();
+        dg.name = dropGroup.value("name").toString();
+        mConfMain->dropGroups.append(dg);
+    }
+
     QJsonArray dataSourceList = root.value("dataSourceList").toArray();
 
     for (int i = 0; i < dataSourceList.count(); ++i)
@@ -774,6 +811,16 @@ void TConfMain::removeDynamicData(const QString& name)
     }
 }
 
+void TConfMain::setSubPageSet(QList<ConfigMain::SUBPAGESET_t>& set)
+{
+    DECL_TRACER("TConfMain::setSubPageSet(QList<ConfigMain::SUBPAGESET_t>& set)");
+
+    if (!mConfMain)
+        return;
+
+    mConfMain->subPageSet = set;
+}
+
 void TConfMain::setFontFileName(const QString& name)
 {
     DECL_TRACER("TConfMain::setFontFileName(const QString& name)");
@@ -930,6 +977,48 @@ void TConfMain::saveProject()
 
     root.insert("resourceList", resourceList);
 
+    QList<SUBPAGESET_t>::Iterator subIter;
+    QJsonArray subPageSets;
+
+    for (subIter = mConfMain->subPageSet.begin(); subIter != mConfMain->subPageSet.end(); ++subIter)
+    {
+        QJsonObject entry;
+        entry.insert("id", subIter->id);
+        entry.insert("name", subIter->name);
+        entry.insert("pgWidth", subIter->pgWidth);
+        entry.insert("pgHeight", subIter->pgHeight);
+
+        QList<SUBPAGEITEMS_t>::Iterator itIter;
+        QJsonArray items;
+
+        for (itIter = subIter->items.begin(); itIter != subIter->items.end(); ++itIter)
+        {
+            QJsonObject item;
+            item.insert("index", itIter->index);
+            item.insert("pageID", itIter->pageID);
+            item.insert("pageName", itIter->pageName);
+            items.append(item);
+        }
+
+        entry.insert("items", items);
+        subPageSets.append(entry);
+    }
+
+    root.insert("subPageSets", subPageSets);
+
+    QJsonArray dropGroups;
+    QList<DROPGROUP_t>::Iterator dgIter;
+
+    for (dgIter = mConfMain->dropGroups.begin(); dgIter != mConfMain->dropGroups.end(); ++dgIter)
+    {
+        QJsonObject dropGroup;
+        dropGroup.insert("id", dgIter->id);
+        dropGroup.insert("name", dgIter->name);
+        dropGroups.append(dropGroup);
+    }
+
+    root.insert("dropGroups", dropGroups);
+
     QJsonArray dataSourceList;
     QList<DATASOURCE_t>::Iterator dresIter;
 
@@ -1008,6 +1097,12 @@ QSize TConfMain::getPanelSize()
     if (!mConfMain)
         return QSize();
 
+    if (mConfMain->projectInfo.panelSize.isEmpty())
+    {
+        mConfMain->projectInfo.panelSize.setWidth(mConfMain->setup.screenWidth);
+        mConfMain->projectInfo.panelSize.setHeight(mConfMain->setup.screenHeight);
+    }
+
     return mConfMain->projectInfo.panelSize;
 }
 
@@ -1077,6 +1172,21 @@ QStringList TConfMain::getSubPageSets()
         list.append(iter->name);
 
     return list;
+}
+
+int TConfMain::getNextSubPageSetID()
+{
+    DECL_TRACER("TConfMain::getNextSubPageSetID()");
+
+    int ID = 0;
+
+    for (SUBPAGESET_t set : mConfMain->subPageSet)
+    {
+        if (set.id > ID)
+            ID = set.id;
+    }
+
+    return ID + 1;
 }
 
 QString TConfMain::getUrl(const ConfigMain::DATASOURCE_t& data)
@@ -1251,7 +1361,8 @@ void TConfMain::parseSubPageSet(const QDomElement& subPageSet)
         pageSet.pgWidth = entry.firstChildElement("pgWidth").text().toInt();
         pageSet.pgHeight = entry.firstChildElement("pgHeight").text().toInt();
 
-        QDomNodeList items = entry.elementsByTagName("items");
+        QDomElement item = entry.firstChildElement("items");
+        QDomNodeList items = item.elementsByTagName("item");
 
         for (int j = 0; j < items.count(); ++j)
         {

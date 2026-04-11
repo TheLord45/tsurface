@@ -1124,6 +1124,9 @@ void TSurface::on_actionEdit_Sub_Page_Sets_triggered()
 {
     DECL_TRACER("TSurface::on_actionEdit_Sub_Page_Sets_triggered()");
 
+    if (!mHaveProject)
+        return;
+
     TSubPageSetDialog dialog(this);
     dialog.exec();
 }

@@ -254,6 +254,7 @@ class TConfMain
         void setIconFileName(const QString& name);
         void setDynamicResource(const ConfigMain::RESOURCE_t& res);
         void setDynamicData(const ConfigMain::DATASOURCE_t& data);
+        void setSubPageSet(QList<ConfigMain::SUBPAGESET_t>& set);
         void setAMX(bool amx) { mAMX = amx; }
         void setG5(bool g5) { mG5 = g5; }
         // Getter
@@ -285,6 +286,7 @@ class TConfMain
         QString getUrl(const ConfigMain::DATASOURCE_t& data);
         QStringList getSubPageSets();
         QList<ConfigMain::SUBPAGESET_t> getSubPageSetList() { if (mConfMain) return mConfMain->subPageSet; else return QList<ConfigMain::SUBPAGESET_t>();}
+        int getNextSubPageSetID();
 
         bool haveDynamicResource(const QString& name);
 

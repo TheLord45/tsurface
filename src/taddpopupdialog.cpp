@@ -319,6 +319,7 @@ void TAddPopupDialog::setPageSize(const QSize& size)
 {
     DECL_TRACER("TAddPopupDialog::setPageSize(const QSize& size)");
 
+    MSG_DEBUG("Page size: " << size.width() << " x " << size.height());
     mPageSize = size;
     ui->spinBoxPositionLeft->setRange(0, size.width());
     ui->spinBoxPositionTop->setRange(0, size.height());

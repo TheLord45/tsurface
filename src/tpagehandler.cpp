@@ -407,6 +407,30 @@ PAGE_t TPageHandler::getPopup(const QString& name)
     return PAGE_t();
 }
 
+PAGE_t TPageHandler::getSubPage(const QString& name)
+{
+    DECL_TRACER("TPageHandler::getSubPage(const QString& name)");
+
+    if (name.isEmpty())
+    {
+        MSG_ERROR("No subpage name!");
+        return PAGE_t();
+    }
+
+    if (mPages.empty())
+        return PAGE_t();
+
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == PT_SUBPAGE && iter->name == name)
+            return *iter;
+    }
+
+    return PAGE_t();
+}
+
 void TPageHandler::setPage(PAGE_t& page)
 {
     DECL_TRACER("TPageHandler::setPage(PAGE_t& page)");

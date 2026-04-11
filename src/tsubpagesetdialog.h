@@ -17,6 +17,9 @@ class TSubPageSetDialog : public QDialog
         explicit TSubPageSetDialog(QWidget *parent = nullptr);
         ~TSubPageSetDialog();
 
+        QList<ConfigMain::SUBPAGESET_t> getSubPageSet() { return mSubPageSet; }
+        bool isChanged() { return mChanged; }
+
     private slots:
         void on_pushButtonNew_clicked();
         void on_pushButtonDelete_clicked();
@@ -30,10 +33,15 @@ class TSubPageSetDialog : public QDialog
         void on_tableViewSubPagesRight_clicked(const QModelIndex &index);
 
     protected:
+        void accept() override;
+
         void removeFromList(QStringList *list, const QString& term);
         void appendNameToSet(const QString& name);
         void showPages(const QStringList& pages);
         void showItems(const QList<ConfigMain::SUBPAGEITEMS_t>& items);
+        void setSlotSize(int width, int height);
+        void appendPageToLeft(const QString& name, int width, int height);
+        void appendPageToRight(const QString& name);
 
     private:
         Ui::TSubPageSetDialog *ui;
@@ -43,6 +51,8 @@ class TSubPageSetDialog : public QDialog
         int mSelectedSet{-1};
         int mSelectedItem{-1};
         int mSelectedPage{-1};
+        bool mBlock{false};
+        bool mChanged{false};
 };
 
 #endif // TSUBPAGESETDIALOG_H

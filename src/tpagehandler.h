@@ -220,6 +220,7 @@ class TPageHandler : public QObject
         Page::PAGE_t *getPage(int number);
         Page::PAGE_t getPage(const QString& name);
         Page::PAGE_t getPopup(const QString& name);
+        Page::PAGE_t getSubPage(const QString& name);
         QList<int> getPageNumbers();
         void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);
