@@ -15,7 +15,7 @@ Currently the program is under heavy development and in an early state. At the m
 |----| :----: | :----: | :----: |--------|--------|
 |**Menu: File**|
 |Create a new file|✅|||High||
-|Open an existing file||✔️||High|Support for TP4/TP5 is missing|
+|Open an existing file|✅|||High||
 |Close an open file|✅|||Medium||
 |Save a loaded file|✅|||High||
 |Save a file with another name|✅|||High||
@@ -45,10 +45,10 @@ Currently the program is under heavy development and in an early state. At the m
 |Edit Next|||❌|Low||
 |Preferences|✅|||High||
 |**Menu: Panel**|
-|Add Page||✔️||High|Works currently only from the popup menu in page tree|
-|Add Popup Page||✔️||High|Works currently only from the popup menu in page tree|
+|Add Page||✔️||High|Still errors on first creation|
+|Add Popup Page||✔️||High|Still errors on first creation|
 |Add Application Window|||❌|High||
-|Edit Sub-Page Sets|||❌|Medium||
+|Edit Sub-Page Sets|✅|||Medium||
 |Edit Drop-Target Groups|||❌|Low||
 |Resource Manager||✔️||High|Undo/Redo is not implemented currently|
 |Refresh Dynamic Images|||❌|Low||
