@@ -15,16 +15,19 @@ TSubPageSetDialog::TSubPageSetDialog(QWidget *parent)
 
     ui->setupUi(this);
     ui->tableViewSubPagesRight->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableViewSubPagesRight->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewSubPagesRight->verticalHeader()->hide();
+
+    ui->tableViewSubPageSets->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewSubPageSets->horizontalHeader()->hide();
     ui->tableViewSubPageSets->verticalHeader()->hide();
+
+    ui->tableViewSubPagesLeft->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableViewSubPagesLeft->horizontalHeader()->hide();
     ui->tableViewSubPagesLeft->verticalHeader()->hide();
+
     ui->pushButtonDelete->setDisabled(true);
-    ui->pushButtonAdd->setDisabled(true);
-    ui->pushButtonRemove->setDisabled(true);
-    ui->pushButtonMoveUp->setDisabled(true);
-    ui->pushButtonMoveDown->setDisabled(true);
+    setMoveButtons();
 
     mSubPageSet = TConfMain::Current().getSubPageSetList();
     mSubPageNames = TPageHandler::Current().getSubPageNames();
@@ -39,22 +42,11 @@ TSubPageSetDialog::TSubPageSetDialog(QWidget *parent)
     headers << tr("Sub-Page") << tr("Width") << tr("Height");
     modelPages->setHorizontalHeaderLabels(headers);
 
-    QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
-    int row = 0;
-
-    for (iter = mSubPageSet.begin(); iter != mSubPageSet.end(); ++iter)
-    {
-        QStandardItem *cell1 = new QStandardItem;
-        cell1->setEditable(false);
-        cell1->setText(iter->name);
-        modelSet->setItem(row, 0, cell1);
-        row++;
-    }
-
     ui->tableViewSubPageSets->setModel(modelSet);
     ui->tableViewSubPagesLeft->setModel(modelItems);
     ui->tableViewSubPagesRight->setModel(modelPages);
 
+    showSets(modelSet);
     QSignalBlocker sigBlock(this);
 
     if (!mSubPageSet.isEmpty())
@@ -63,15 +55,6 @@ TSubPageSetDialog::TSubPageSetDialog(QWidget *parent)
         setSlotSize(mSubPageSet[0].pgWidth, mSubPageSet[0].pgHeight);
         showItems(mSubPageSet[0].items);
     }
-    // Select first entry in Sub-Page Sets, if there is any.
-    if (modelSet->rowCount() > 0)
-    {
-        ui->tableViewSubPageSets->selectRow(0);
-        ui->pushButtonDelete->setEnabled(true);
-        mSelectedSet = 0;
-    }
-
-    ui->tableViewSubPageSets->resizeColumnsToContents();
 }
 
 TSubPageSetDialog::~TSubPageSetDialog()
@@ -109,12 +92,32 @@ void TSubPageSetDialog::on_pushButtonNew_clicked()
     setSlotSize(0, 0);
     appendNameToSet(name);
     showPages(mSubPageNames);
+    QItemSelectionModel *selModel = ui->tableViewSubPageSets->selectionModel();
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPageSets->model());
+
+    if (!selModel || !model)
+        return;
+
+    mSelectedSet = model->rowCount() - 1;
+    selModel->setCurrentIndex(model->index(mSelectedSet, 0), QItemSelectionModel::ClearAndSelect);
     mChanged = true;
 }
 
 void TSubPageSetDialog::on_pushButtonDelete_clicked()
 {
+    DECL_TRACER("TSubPageSetDialog::on_pushButtonDelete_clicked()");
 
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPageSets->model());
+
+    if (mSelectedSet < 0 || !model || mSelectedSet >= model->rowCount())
+        return;
+
+    mSubPageSet.remove(mSelectedSet, 1);
+    mSelectedSet = -1;
+    showSets();
+
+    if (mSelectedSet >= 0)
+        showItems(mSubPageSet[mSelectedSet].items);
 }
 
 void TSubPageSetDialog::on_lineEditSetName_textChanged(const QString &arg1)
@@ -158,24 +161,40 @@ void TSubPageSetDialog::on_pushButtonAdd_clicked()
     if (mSelectedSet < 0 || mSelectedPage < 0)
         return;
 
-    // TODO: Add code to move page
-    Page::PAGE_t page = TPageHandler::Current().getSubPage(mSubPageNames[mSelectedPage]);
+    QString pageName = getSelectedSubPageName();
+
+    if (pageName.isEmpty())
+        return;
+
+    Page::PAGE_t page = TPageHandler::Current().getSubPage(pageName);
 
     if (page.pageID <= 0)
     {
-        MSG_ERROR("Page \"" << mSubPageNames[mSelectedPage].toStdString() << "\" not found!");
+        MSG_ERROR("Page \"" << pageName.toStdString() << "\" not found!");
         return;
     }
 
-    appendPageToLeft(mSubPageNames[mSelectedPage], page.width, page.height);
+    MSG_DEBUG("Selected page: " << mSelectedPage << ", Name: " << pageName.toStdString());
+    appendPageToLeft(pageName, page.width, page.height);
+
+    if (page.width > mSubPageSet[mSelectedSet].pgWidth)
+        mSubPageSet[mSelectedSet].pgWidth = page.width;
+
+    if (page.height > mSubPageSet[mSelectedSet].pgHeight)
+        mSubPageSet[mSelectedSet].pgHeight = page.height;
+
     QStringList leftPages = mSubPageNames;
-    removeFromList(&leftPages, mSubPageNames[mSelectedPage]);
+    QStringList electedPages = getElectedPages();
+    removeFromList(&leftPages, electedPages);
     ConfigMain::SUBPAGEITEMS_t item;
     item.pageID = page.pageID;
-    item.pageName = mSubPageNames[mSelectedPage];
+    item.pageName = pageName;
     item.index = mSubPageSet[mSelectedSet].items.size();
     mSubPageSet[mSelectedSet].items.append(item);
     showPages(leftPages);
+    mSelectedPage = -1;
+    mSelectedItem = -1;
+    setMoveButtons();
     mChanged = true;
 }
 
@@ -206,17 +225,47 @@ void TSubPageSetDialog::on_pushButtonRemove_clicked()
         }
     }
 
+    mSelectedItem = -1;
+    setMoveButtons();
     mChanged = true;
 }
 
 void TSubPageSetDialog::on_pushButtonMoveUp_clicked()
 {
+    DECL_TRACER("TSubPageSetDialog::on_pushButtonMoveUp_clicked()");
 
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesLeft->model());
+
+    if (mSelectedItem < 1 || !model || mSelectedItem >= model->rowCount())
+        return;
+
+    QString first = model->item(mSelectedItem - 1, 0)->text();
+    QString second = model->item(mSelectedItem, 0)->text();
+    model->item(mSelectedItem - 1, 0)->setText(second);
+    model->item(mSelectedItem, 0)->setText(first);
+    mSelectedItem--;
+    QItemSelectionModel *selModel = ui->tableViewSubPagesLeft->selectionModel();
+    selModel->setCurrentIndex(model->index(mSelectedItem, 0), QItemSelectionModel::ClearAndSelect);
+    setMoveButtons();
 }
 
 void TSubPageSetDialog::on_pushButtonMoveDown_clicked()
 {
+    DECL_TRACER("TSubPageSetDialog::on_pushButtonMoveDown_clicked()");
 
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesLeft->model());
+
+    if (mSelectedItem < 0 || !model || mSelectedItem >= model->rowCount())
+        return;
+
+    QString first = model->item(mSelectedItem, 0)->text();
+    QString second = model->item(mSelectedItem + 1, 0)->text();
+    model->item(mSelectedItem, 0)->setText(second);
+    model->item(mSelectedItem + 1, 0)->setText(first);
+    mSelectedItem++;
+    QItemSelectionModel *selModel = ui->tableViewSubPagesLeft->selectionModel();
+    selModel->setCurrentIndex(model->index(mSelectedItem, 0), QItemSelectionModel::ClearAndSelect);
+    setMoveButtons();
 }
 
 void TSubPageSetDialog::on_tableViewSubPageSets_clicked(const QModelIndex &index)
@@ -250,6 +299,8 @@ void TSubPageSetDialog::on_tableViewSubPageSets_clicked(const QModelIndex &index
     }
     else
         ui->pushButtonDelete->setDisabled(true);
+
+    setMoveButtons();
 }
 
 void TSubPageSetDialog::on_tableViewSubPagesLeft_clicked(const QModelIndex &index)
@@ -257,12 +308,7 @@ void TSubPageSetDialog::on_tableViewSubPagesLeft_clicked(const QModelIndex &inde
     DECL_TRACER("TSubPageSetDialog::on_tableViewSubPagesLeft_clicked(const QModelIndex &index)");
 
     mSelectedItem = index.row();
-    QItemSelectionModel *selModel = ui->tableViewSubPagesLeft->selectionModel();
-
-    if (selModel && selModel->hasSelection())
-        ui->pushButtonRemove->setEnabled(true);
-    else
-        ui->pushButtonRemove->setDisabled(true);
+    setMoveButtons();
 }
 
 void TSubPageSetDialog::on_tableViewSubPagesRight_clicked(const QModelIndex &index)
@@ -270,12 +316,7 @@ void TSubPageSetDialog::on_tableViewSubPagesRight_clicked(const QModelIndex &ind
     DECL_TRACER("TSubPageSetDialog::on_tableViewSubPagesRight_clicked(const QModelIndex &index)");
 
     mSelectedPage = index.row();
-    QItemSelectionModel *selModel = ui->tableViewSubPagesRight->selectionModel();
-
-    if (selModel && selModel->hasSelection())
-        ui->pushButtonAdd->setEnabled(true);
-    else
-        ui->pushButtonAdd->setDisabled(true);
+    setMoveButtons();
 }
 
 void TSubPageSetDialog::accept()
@@ -305,6 +346,39 @@ void TSubPageSetDialog::removeFromList(QStringList *list, const QString& term)
     }
 }
 
+void TSubPageSetDialog::removeFromList(QStringList *list, const QStringList& names)
+{
+    DECL_TRACER("TSubPageSetDialog::removeFromList(QStringList *list, const QStringList& names)");
+
+    if (!list || list->isEmpty() || names.isEmpty())
+        return;
+
+    QStringList::Iterator iter;
+    bool removed = false;
+
+    do
+    {
+        removed = false;
+
+        for (iter = list->begin(); iter != list->end(); ++iter)
+        {
+            for (QString s : names)
+            {
+                if (iter->compare(s) == 0)
+                {
+                    list->erase(iter);
+                    removed = true;
+                    break;
+                }
+            }
+
+            if (removed)
+                break;
+        }
+    }
+    while (removed);
+}
+
 void TSubPageSetDialog::appendNameToSet(const QString& name)
 {
     DECL_TRACER("TSubPageSetDialog::appendNameToSet(const QString& name)");
@@ -328,6 +402,53 @@ void TSubPageSetDialog::appendNameToSet(const QString& name)
     row = model->rowCount();
     model->removeRows(0, row);
     mBlock = false;
+}
+
+void TSubPageSetDialog::showSets(QStandardItemModel *mod)
+{
+    DECL_TRACER("TSubPageSetDialog::showSets(QStandardItemModel *mod)");
+
+    QStandardItemModel *model = nullptr;
+
+    if (mod)
+        model = mod;
+    else
+        model = static_cast<QStandardItemModel *>(ui->tableViewSubPageSets->model());
+
+    if (!model)
+        return;
+
+    if (model->rowCount() > 0)
+        model->removeRows(0, model->rowCount());
+
+    QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
+    int row = 0;
+
+    for (iter = mSubPageSet.begin(); iter != mSubPageSet.end(); ++iter)
+    {
+        QStandardItem *cell1 = new QStandardItem;
+        cell1->setEditable(false);
+        cell1->setText(iter->name);
+        model->setItem(row, 0, cell1);
+        row++;
+    }
+
+    if (mSubPageSet.size() > 0)
+    {
+        ui->tableViewSubPageSets->resizeColumnsToContents();
+        QItemSelectionModel *selModel = ui->tableViewSubPageSets->selectionModel();
+
+        if (!selModel)
+            return;
+
+        if (mSelectedSet < 0 || mSelectedSet >= model->rowCount())
+            mSelectedSet = 0;
+
+        selModel->setCurrentIndex(model->index(mSelectedSet, 0), QItemSelectionModel::ClearAndSelect);
+        ui->pushButtonDelete->setEnabled(true);
+    }
+    else
+        ui->pushButtonDelete->setDisabled(true);
 }
 
 void TSubPageSetDialog::showPages(const QStringList& pages)
@@ -375,8 +496,6 @@ void TSubPageSetDialog::showItems(const QList<ConfigMain::SUBPAGEITEMS_t>& items
 {
     DECL_TRACER("TSubPageSetDialog::showItems(const QList<ConfigMain::SUBPAGEITEMS_t>& items)");
 
-    ui->labelWidth->setNum(0);
-    ui->labelHeight->setNum(0);
     QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesLeft->model());
 
     if (!model)
@@ -407,9 +526,8 @@ void TSubPageSetDialog::setSlotSize(int width, int height)
 {
     DECL_TRACER("TSubPageSetDialog::setSlotSize(int width, int height)");
 
-    MSG_DEBUG("Slot size: " << width << " x " << height);
-    ui->labelWidth->setNum(width);
-    ui->labelHeight->setNum(height);
+    ui->lineEditWidth->setText(QString("%1").arg(width));
+    ui->lineEditHeight->setText(QString("%1").arg(height));
 }
 
 void TSubPageSetDialog::appendPageToLeft(const QString& name, int width, int height)
@@ -462,4 +580,81 @@ void TSubPageSetDialog::appendPageToRight(const QString& name)
     model->setItem(row, 2, cell3);
 
     ui->tableViewSubPagesRight->resizeColumnsToContents();
+}
+
+void TSubPageSetDialog::setMoveButtons()
+{
+    DECL_TRACER("TSubPageSetDialog::setMoveButtons()");
+
+    if (mSelectedItem >= 0)
+    {
+        ui->pushButtonRemove->setEnabled(true);
+        QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesLeft->model());
+
+        if (model && model->rowCount() > 1)
+        {
+            MSG_DEBUG("Number of items: " << model->rowCount());
+
+            if (mSelectedItem == 0)
+            {
+                ui->pushButtonMoveDown->setEnabled(true);
+                ui->pushButtonMoveUp->setDisabled(true);
+            }
+            else if (mSelectedItem == (model->rowCount() - 1))
+            {
+                ui->pushButtonMoveUp->setEnabled(true);
+                ui->pushButtonMoveDown->setDisabled(true);
+            }
+            else
+            {
+                ui->pushButtonMoveUp->setEnabled(true);
+                ui->pushButtonMoveDown->setEnabled(true);
+            }
+        }
+        else
+        {
+            ui->pushButtonMoveUp->setDisabled(true);
+            ui->pushButtonMoveDown->setDisabled(true);
+        }
+    }
+    else
+    {
+        ui->pushButtonRemove->setDisabled(true);
+        ui->pushButtonMoveUp->setDisabled(true);
+        ui->pushButtonMoveDown->setDisabled(true);
+    }
+
+    if (mSelectedPage >= 0)
+        ui->pushButtonAdd->setEnabled(true);
+    else
+        ui->pushButtonAdd->setDisabled(true);
+}
+
+QString TSubPageSetDialog::getSelectedSubPageName()
+{
+    DECL_TRACER("TSubPageSetDialog::getSelectedSubPageName()");
+
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesRight->model());
+
+    if (!model || model->rowCount() <= mSelectedPage || mSelectedPage)
+        return QString();
+
+    return model->item(mSelectedPage, 0)->text();
+}
+
+QStringList TSubPageSetDialog::getElectedPages()
+{
+    DECL_TRACER("TSubPageSetDialog::getElectedPages()");
+
+    QStandardItemModel *model = static_cast<QStandardItemModel *>(ui->tableViewSubPagesLeft->model());
+
+    if (!model || model->rowCount() == 0)
+        return QStringList();
+
+    QStringList list;
+
+    for (int row = 0; row < model->rowCount(); ++row)
+        list.append(model->item(row, 0)->text());
+
+    return list;
 }

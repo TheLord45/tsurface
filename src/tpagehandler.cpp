@@ -93,34 +93,47 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
  * @param height    The height of the page/popup
  * @param left      If it is a popup, this is the left number of pixels (x).
  * @param top       If it is a popup, this is the top number of pixels (y).
+ * @param rpage     Optional; A pointer to a page structure. If this pointer is
+ *                  set, it will be used to initialize a page with the given
+ *                  parameters.
  *
  * @return  On success the new page or popup number is returned. On error it returns 0.
  */
-int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, Page::PAGE_t *rpage)
+int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, PAGE_t *rpage)
 {
-    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, Page::PAGE_t *rpage=nullptr)");
+    DECL_TRACER("TPageHandler::createPage(QWidget *w, Page::PAGE_TYPE pt, const QString& name, int width, int height, int left, int top, PAGE_t *rpage)");
 
-    PAGE_t page;
+    PAGE_t *page = nullptr;
+
+    if (rpage)
+        page = rpage;
+    else
+        page = new PAGE_t;
 
     if (pt == PT_PAGE)
-        page.pageID = getNextPageNumber();
-    else if (pt == PT_POPUP)
-        page.pageID = getNextPopupNumber();
+        page->pageID = getNextPageNumber();
+    else if (pt == PT_POPUP || pt == Page::PT_SUBPAGE)
+        page->pageID = getNextPopupNumber();
     else
-        return 0;
+    {
+        if (!rpage)
+            delete page;
 
-    page.popupType = pt;
-    page.name = name;
-    page.width = width;
-    page.height = height;
+        return 0;
+    }
+
+    page->popupType = pt;
+    page->name = name;
+    page->width = width;
+    page->height = height;
 
     if (pt == PT_POPUP)
     {
-        page.left = left;
-        page.height = height;
+        page->left = left;
+        page->height = height;
     }
 
-    page.baseObject.widget = w;
+    page->baseObject.widget = w;
 
     QList<PAGE_t>::Iterator iter;
 
@@ -146,12 +159,13 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
         }
     }
 
-    mPages.append(page);
+    mPages.append(*page);
+    int pageID = page->pageID;
 
-    if (rpage)
-        *rpage = page;
+    if (!rpage)
+        delete page;
 
-    return page.pageID;
+    return pageID;
 }
 
 void TPageHandler::reset()

@@ -1128,7 +1128,12 @@ void TSurface::on_actionEdit_Sub_Page_Sets_triggered()
         return;
 
     TSubPageSetDialog dialog(this);
-    dialog.exec();
+
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    if (dialog.isChanged())
+        mProjectChanged = true;
 }
 
 void TSurface::on_actionEdit_Drop_Target_Groups_triggered()
@@ -2030,42 +2035,46 @@ void TSurface::onAddNewPopup()
     widget->setStyleSheet("background-color: " + popupDialog.getColorPageBackground().name() + ";color: " + popupDialog.getColorText().name()+ ";");
     QRect geom(popupDialog.getPositionLeft(), popupDialog.getPositionTop(), popupDialog.getSizeWidth(), popupDialog.getSizeHeight());
     Page::PAGE_t pg;
-    int id = TPageHandler::Current().createPage(widget, Page::PT_POPUP, popupDialog.getPopupName(), geom, &pg);
+    Page::PAGE_TYPE pgType = popupDialog.isSubPage() ? Page::PT_SUBPAGE : Page::PT_POPUP;
+    int id = TPageHandler::Current().createPage(widget, pgType, popupDialog.getPopupName(), geom, &pg);
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
     widget->setPageID(id);
+    widget->setShowGrid(m_ui->actionShow_Grid->isChecked());
+    widget->setSnapEnabled(m_ui->actionSnap_To_Grid->isChecked());
     widget->installEventFilter(mCloseEater);
 
     QMdiSubWindow *page = new QMdiSubWindow;
     page->setWidget(widget);
+    page->setFixedSize(QSize(pgSize.width(), pgSize.height()));
     page->setAttribute(Qt::WA_DeleteOnClose);
     page->installEventFilter(mCloseEater);
     page->setWindowIcon(QIcon(":images/tsurface_512.png"));
     m_ui->mdiArea->addSubWindow(page);
     widget->activateWindow();
     widget->show();
-    TPageHandler::Current().setVisible(id, true);
-    TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), "", id);
-    TWorkSpaceHandler::Current().invalidateObject();
-    TConfMain::Current().addPopup(popupDialog.getPopupName(), id);
+    TConfMain::Current().addPopup(popupDialog.getPopupName(), id);  // Adds page to list of popups
     // Here we set everyting of the page we currently know
-//    Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
-
-    if (pg.pageID <= 0)
-    {
-        MSG_ERROR("Error getting whole page!");
-        return;
-    }
-
-    pg.popupType = Page::PT_POPUP;
     pg.srPage.cf = popupDialog.getColorPageBackground();
     pg.srPage.ct = popupDialog.getColorText();
     pg.srPage.cb = popupDialog.getColorBorder();
     QFont font = popupDialog.getFont();
-    QString ffile = TFonts::getFontFile(font);
-    TFonts::addFont(font, ffile);
-    TPageHandler::Current().setPage(pg);
+    pg.srPage.ff = font.family();                       // Set the font family
+    pg.srPage.fs = font.pointSize();                    // Set the font size
+    QString ffile = TFonts::getFontFile(font);          // Get the real file name of the font
+    TFonts::addFont(font, ffile);                       // Add the font file to this project
+    TPageHandler::Current().setPage(pg);                // Sets the actual page as current
+    TPageHandler::Current().setVisible(id, true);       // Marks the page as visible
+
+    if (pgType == Page::PT_POPUP)
+        TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), popupDialog.getGroupName(), id);
+    else
+        TWorkSpaceHandler::Current().addTreeSubPage(popupDialog.getPopupName(), id);
+
+    TWorkSpaceHandler::Current().invalidateObject();    // If there was an object selected it is removed from selection
+    TWorkSpaceHandler::Current().setFocus(id);          // Activates the selection in the tree view
+    TWorkSpaceHandler::Current().setAllProperties(pg, pgType == Page::PT_POPUP ? STATE_POPUP : STATE_SUBPAGE);
 }
 
 void TSurface::onSubWindowActivated(QMdiSubWindow *window)

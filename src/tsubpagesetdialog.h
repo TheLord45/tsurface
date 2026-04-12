@@ -9,6 +9,8 @@ namespace Ui {
     class TSubPageSetDialog;
 }
 
+class QStandardItemModel;
+
 class TSubPageSetDialog : public QDialog
 {
         Q_OBJECT
@@ -36,12 +38,17 @@ class TSubPageSetDialog : public QDialog
         void accept() override;
 
         void removeFromList(QStringList *list, const QString& term);
+        void removeFromList(QStringList *list, const QStringList& names);
         void appendNameToSet(const QString& name);
+        void showSets(QStandardItemModel *model=nullptr);
         void showPages(const QStringList& pages);
         void showItems(const QList<ConfigMain::SUBPAGEITEMS_t>& items);
         void setSlotSize(int width, int height);
         void appendPageToLeft(const QString& name, int width, int height);
         void appendPageToRight(const QString& name);
+        void setMoveButtons();
+        QString getSelectedSubPageName();
+        QStringList getElectedPages();
 
     private:
         Ui::TSubPageSetDialog *ui;

@@ -55,98 +55,10 @@
       <string>Sub-Pages</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="1" colspan="5">
-       <widget class="QLineEdit" name="lineEditSetName"/>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="labelWidth">
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="locale">
-         <locale language="English" country="Anguilla"/>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Shape::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Shadow::Raised</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="6">
-       <widget class="QPushButton" name="pushButtonAdd">
-        <property name="text">
-         <string>Add</string>
-        </property>
-        <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoPrevious"/>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="6">
-       <widget class="QPushButton" name="pushButtonRemove">
-        <property name="text">
-         <string>Remove</string>
-        </property>
-        <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoNext"/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="labelX">
-        <property name="text">
-         <string>X</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="6">
-       <widget class="QPushButton" name="pushButtonMoveUp">
-        <property name="text">
-         <string>Move Up</string>
-        </property>
-        <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoUp"/>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" rowspan="4" colspan="6">
-       <widget class="QTableView" name="tableViewSubPagesLeft"/>
-      </item>
-      <item row="8" column="6">
-       <widget class="QPushButton" name="pushButtonMoveDown">
-        <property name="text">
-         <string>Move Down</string>
-        </property>
-        <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoDown"/>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="labelSetName">
         <property name="text">
          <string>Set Name:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="labelWidthText">
-        <property name="text">
-         <string>Width</string>
         </property>
        </widget>
       </item>
@@ -163,25 +75,13 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="5">
-       <widget class="QLabel" name="labelHeight">
-        <property name="minimumSize">
-         <size>
-          <width>40</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Shape::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Shadow::Raised</enum>
-        </property>
+      <item row="6" column="7">
+       <widget class="QPushButton" name="pushButtonRemove">
         <property name="text">
-         <string>0</string>
+         <string>Remove</string>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::GoNext"/>
         </property>
        </widget>
       </item>
@@ -192,8 +92,90 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="7" rowspan="9">
+      <item row="5" column="7">
+       <widget class="QPushButton" name="pushButtonAdd">
+        <property name="text">
+         <string>Add</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::GoPrevious"/>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="7">
+       <widget class="QPushButton" name="pushButtonMoveUp">
+        <property name="text">
+         <string>Move Up</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::GoUp"/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="8" rowspan="9">
        <widget class="QTableView" name="tableViewSubPagesRight"/>
+      </item>
+      <item row="8" column="7">
+       <widget class="QPushButton" name="pushButtonMoveDown">
+        <property name="text">
+         <string>Move Down</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::GoDown"/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="lineEditWidth">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLabel" name="labelX">
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" rowspan="4" colspan="7">
+       <widget class="QTableView" name="tableViewSubPagesLeft"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="labelWidthText">
+        <property name="text">
+         <string>Width</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="6">
+       <widget class="QLineEdit" name="lineEditSetName"/>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLineEdit" name="lineEditHeight">
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -212,12 +194,14 @@
   <tabstop>pushButtonDelete</tabstop>
   <tabstop>tableViewSubPageSets</tabstop>
   <tabstop>lineEditSetName</tabstop>
+  <tabstop>lineEditWidth</tabstop>
+  <tabstop>lineEditHeight</tabstop>
   <tabstop>tableViewSubPagesLeft</tabstop>
+  <tabstop>tableViewSubPagesRight</tabstop>
   <tabstop>pushButtonAdd</tabstop>
   <tabstop>pushButtonRemove</tabstop>
   <tabstop>pushButtonMoveUp</tabstop>
   <tabstop>pushButtonMoveDown</tabstop>
-  <tabstop>tableViewSubPagesRight</tabstop>
  </tabstops>
  <resources/>
  <connections>
