@@ -103,6 +103,11 @@ class TPropertiesGeneral : public QObject
         void onObjectSliderColor(const QColor& col, const QString& name);
         void onObjectSubPageSet(const QString& group, const QVariant& data, const QString& name);
         void onObjectOrientation(const QString& group, const QVariant& data, const QString& name);
+        void onObjectSpacing(int value, const QString& name);
+        void onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name);
+        void onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name);
+        void onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name);
+        void onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name);
 
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
@@ -144,6 +149,11 @@ class TPropertiesGeneral : public QObject
         TElementColorSelector *makeObjectSliderColor(const QString& name);
         TElementWidgetCombo *makeObjectSubPageSet(const QString& name);
         TElementWidgetCombo *makeObjectOrientation(const QString& name);
+        TElementSpinBox *makeObjectSpacing(const QString& name);
+        TElementWidgetCombo *makeObjectAnchorPosition(const QString& name);
+        TElementWidgetCombo *makeObjectShowSubpages(const QString& name);
+        TElementWidgetCombo *makeObjectDynamicReorder(const QString& name);
+        TElementWidgetCombo *makeObjectResetViewOnShow(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

@@ -842,6 +842,31 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
                 cell1->setText(getLabelText(TTEXT_ORIENTATION));
                 mTable->setCellWidget(i, 1, makeObjectSubPageSet("ObjectOrientation"));
             break;
+
+            case LIST_OBJECT_SPACING:
+                cell1->setText(getLabelText(TTEXT_SPACING));
+                mTable->setCellWidget(i, 1, makeObjectSpacing("ObjectSpacing"));
+            break;
+
+            case LIST_OBJECT_ANCHOR_POSITION:
+                cell1->setText(getLabelText(TTEXT_ANCHOR_POSITION));
+                mTable->setCellWidget(i, 1, makeObjectAnchorPosition("ObjectAnchorPosition"));
+            break;
+
+            case LIST_OBJECT_SHOW_SUBPAGES:
+                cell1->setText(getLabelText(TTEXT_SHOW_SUBPAGES));
+                mTable->setCellWidget(i, 1, makeObjectShowSubpages("ObjectShowSubpages"));
+            break;
+
+            case LIST_OBJECT_DYNAMIC_REORDER:
+                cell1->setText(getLabelText(TTEXT_ALLOW_DYN_REORDERING));
+                mTable->setCellWidget(i, 1, makeObjectDynamicReorder("ObjectDynamicReorder"));
+            break;
+
+            case LIST_OBJECT_RESET_VIEW_SHOW:
+                cell1->setText(getLabelText(TTEXT_RESET_VIEW_ON_SHOW));
+                mTable->setCellWidget(i, 1, makeObjectResetViewOnShow("ObjectResetViewOnShow"));
+            break;
         }
 
         cell1->setFlags(Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled);
@@ -1474,6 +1499,83 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectOrientation(const QString& na
     return combo;
 }
 
+TElementSpinBox *TPropertiesGeneral::makeObjectSpacing(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectSpacing(const QString& name)");
+
+    int value = 5;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        value = mActObject.sa;
+    }
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectSpacing);
+    return sbox;
+
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectAnchorPosition(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectAnchorPosition(const QString& name)");
+
+    QStringList items = { "left", "middle", "right" };
+    QList<QVariant> states = { "l/t", "", "r/b"};
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(states);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectAnchorPosition);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectShowSubpages(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectShowSubpages(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectShowSubpages);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectDynamicReorder(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDynamicReorder(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectDynamicReorder);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectResetViewOnShow(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectResetViewOnShow(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectResetViewOnShow);
+    return combo;
+}
+
 void TPropertiesGeneral::setWidget(QTableWidget *view)
 {
     DECL_TRACER("TPropertiesGeneral::setWidget(QTableWidget *view)");
@@ -2045,6 +2147,57 @@ void TPropertiesGeneral::onObjectOrientation(const QString& ori, const QVariant&
     markChanged();
     mChanged = true;
     requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onObjectSpacing(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectSpacing(int value, const QString& name)");
+
+    mActObject.sa = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name)");
+
+    mActObject.we = data.toString();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+    requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name)");
+
+    mActObject.sw = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name)");
+
+    mActObject.dy = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name)");
+
+    mActObject.rs = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)
