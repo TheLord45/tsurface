@@ -378,6 +378,8 @@ void TResizableWidget::endMove()
 
 void TResizableWidget::mousePressEvent(QMouseEvent* e)
 {
+    DECL_TRACER("TResizableWidget::mousePressEvent(QMouseEvent* e)");
+
     if (e->button() == Qt::LeftButton)
     {
         // If press is on a grip, let resizing handle it (grips exist only when selected)

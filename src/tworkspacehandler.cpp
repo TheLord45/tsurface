@@ -222,12 +222,7 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
         setProgrammingPage(page.pageID, false);
         TPropertiesStates::setPage(page);
     }
-/*    else if (st == STATE_POPUP || st == STATE_SUBPAGE)
-    {
-        setProgrammingPopup(page.pageID, false);
-        TPropertiesStates::setState(st);
-    }
-*/
+
     if (objectID >= 0 && objectID < page.objects.size())
     {
         TPropertiesProgramming::setObjectID(objectID);

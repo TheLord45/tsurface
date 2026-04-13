@@ -303,6 +303,7 @@ bool TPageHandler::bringToFront(int number)
     {
         page->baseObject.widget->parentWidget()->raise();
         page->baseObject.widget->parentWidget()->show();
+        page->baseObject.widget->setFocus();
         return true;
     }
 
@@ -1223,6 +1224,12 @@ void TPageHandler::parsePage(const QJsonObject& page)
     PAGE_t pg;
     pg.popupType = static_cast<PAGE_TYPE>(page.value("type").toInt(PT_UNKNOWN));
     pg.pageID = page.value("pageID").toInt(0);
+
+    if (pg.popupType == PT_PAGE && pg.pageID > mMaxPageNumber)
+        mMaxPageNumber = pg.pageID;
+    else if (pg.pageID > mMaxPopupNumber)
+        mMaxPopupNumber = pg.pageID;
+
     pg.name = page.value("name").toString();
     pg.description = page.value("description").toString();
     pg.ap = page.value("ap").toInt(setupPort);
@@ -2275,6 +2282,12 @@ int TPageHandler::parsePage(const QDomElement &page)
     }
 
     pg.pageID = page.firstChildElement("pageID").text().toInt();
+
+    if (pg.popupType == PT_PAGE && pg.pageID > mMaxPageNumber)
+        mMaxPageNumber = pg.pageID;
+    else if (pg.pageID > mMaxPopupNumber)
+        mMaxPopupNumber = pg.pageID;
+
     pg.name = page.firstChildElement("name").text();
     pg.description = page.firstChildElement("description").text();
     pg.ap = page.firstChildElement("ap").text().toInt();

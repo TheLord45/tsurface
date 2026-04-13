@@ -483,6 +483,9 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                 }
             }
 
+            if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+                mTable->setRowHidden(LIST_OBJECT_BORDER_STYLE, false);              // ObjectBorderStyle
+
             mTable->setRowHidden(LIST_OBJECT_DISABLED, false);                      // ObjectDisabled
             mTable->setRowHidden(LIST_OBJECT_HIDDEN, false);                        // ObjectHidden
 
@@ -504,6 +507,20 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 
                 // TODO: Alphabet Scrollbar
                 // TODO: Dynamic Data Source
+            }
+            else if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+            {
+                mTable->setRowHidden(LIST_OBJECT_SUB_PAGE_SET, false);              // ObjectSubPageView
+                mTable->setRowHidden(LIST_OBJECT_ORIENTATION, false);
+                mTable->setRowHidden(LIST_OBJECT_SPACING, false);
+                mTable->setRowHidden(LIST_OBJECT_ANCHOR_POSITION, false);
+                mTable->setRowHidden(LIST_OBJECT_SHOW_SUBPAGES, false);
+                mTable->setRowHidden(LIST_OBJECT_DYNAMIC_REORDER, false);
+                mTable->setRowHidden(LIST_OBJECT_RESET_VIEW_SHOW, false);
+                mTable->setRowHidden(LIST_OBJECT_SCROLLBAR, false);
+                mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
+                mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
+                mTable->setRowHidden(LIST_OBJECT_ENABLE_ANCHOR, false);
             }
             else
             {
@@ -537,41 +554,11 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
         break;
 
         case STATE_SUBPAGE:
-            if (mActObject.type != ObjHandler::SUBPAGE_VIEW)
-            {
-                mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
-                mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
-                mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
-                mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
-                mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
-            }
-            else
-            {
-                mTable->setRowHidden(LIST_BUTTON_TYPE, false);                      // ButtonType
-                mTable->setRowHidden(LIST_OBJECT_NAME, false);                      // ObjectName
-                mTable->setRowHidden(LIST_BUTTON_LOCK_NAME, false);                 // ButtonLockName
-                mTable->setRowHidden(LIST_OBJECT_DESCRIPTION, false);               // ObjectDescription
-                mTable->setRowHidden(LIST_OBJECT_LEFT, false);                      // ObjectLeft
-                mTable->setRowHidden(LIST_OBJECT_TOP, false);                       // ObjectTop
-                mTable->setRowHidden(LIST_OBJECT_WIDTH, false);                     // ObjectTop
-                mTable->setRowHidden(LIST_OBJECT_HEIGHT, false);                    // ObjectHeight
-                mTable->setRowHidden(LIST_OBJECT_Z_ORDER, false);                   // ObjectZOrder
-                mTable->setRowHidden(LIST_OBJECT_BORDER_STYLE, false);              // ObjectBorderStyle
-                mTable->setRowHidden(LIST_OBJECT_DISABLED, false);                  // ObjectDisabled
-                mTable->setRowHidden(LIST_OBJECT_HIDDEN, false);                    // ObjectHidden
-                mTable->setRowHidden(LIST_OBJECT_SUB_PAGE_SET, false);              // ObjectSubPageView
-
-                mTable->setRowHidden(LIST_OBJECT_ORIENTATION, false);
-                mTable->setRowHidden(LIST_OBJECT_SPACING, false);
-                mTable->setRowHidden(LIST_OBJECT_ANCHOR_POSITION, false);
-                mTable->setRowHidden(LIST_OBJECT_SHOW_SUBPAGES, false);
-                mTable->setRowHidden(LIST_OBJECT_DYNAMIC_REORDER, false);
-                mTable->setRowHidden(LIST_OBJECT_RESET_VIEW_SHOW, false);
-                mTable->setRowHidden(LIST_OBJECT_SCROLLBAR, false);
-                mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
-                mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
-                mTable->setRowHidden(LIST_OBJECT_ENABLE_ANCHOR, false);
-            }
+            mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
+            mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
+            mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
+            mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
+            mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
         break;
 
         default:
@@ -840,7 +827,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_OBJECT_ORIENTATION:
                 cell1->setText(getLabelText(TTEXT_ORIENTATION));
-                mTable->setCellWidget(i, 1, makeObjectSubPageSet("ObjectOrientation"));
+                mTable->setCellWidget(i, 1, makeObjectOrientation("ObjectOrientation"));
             break;
 
             case LIST_OBJECT_SPACING:
@@ -1672,7 +1659,7 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
     mChanged = true;
     setTable(STATE_POPUP);
     // TODO: Add code to move popup to subpages, if this was selected and vice versa.
-    emit pageTypeChanged(mPage.popupType, mPage.pageID);
+    pageTypeChanged(mPage.popupType, mPage.pageID);
 }
 
 void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)
@@ -1686,25 +1673,14 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
         return;
 
     mActObject = mPage.objects[mActObjectID]->getObject();
-    int type = data.toInt();
-
-    switch(type)
-    {
-        case 1: mActObject.type = ObjHandler::GENERAL; break;
-        case 2: mActObject.type = ObjHandler::MULTISTATE_GENERAL; break;
-        case 3: mActObject.type = ObjHandler::BARGRAPH; break;
-        case 4: mActObject.type = ObjHandler::MULTISTATE_BARGRAPH; break;
-        case 5: mActObject.type = ObjHandler::TEXT_INPUT; break;
-        case 6: mActObject.type = ObjHandler::SUBPAGE_VIEW; break;
-        case 7: mActObject.type = ObjHandler::LISTVIEW; break;
-    }
+    mActObject.type = static_cast<BUTTONTYPE>(data.toInt());
 
     mPage.objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
     mChanged = true;
     markChanged();
     // TODO: Add code to change the view of the object accordingly
-    emit objectTypeChanged(mActObject.type, mActObjectID);
+    objectTypeChanged(mActObject.type, mActObjectID);
 }
 
 void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVariant& data, const QString& name)

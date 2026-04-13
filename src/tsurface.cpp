@@ -1793,7 +1793,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         page->setObjectName(objName);                                           // Set the name
         page->setContentsMargins(0, 0, 0, 0);                                   // We remove the margins
         page->setWidget(widget);                                                // Add the previous created widget to the subwindow
-        page->resize(page->minimumSizeHint());                                  // This is necessary to get the correct size of the window
+        page->setFixedSize(page->minimumSizeHint());                            // This is necessary to get the correct size of the window
         page->setAttribute(Qt::WA_DeleteOnClose);                               // Request that it should be deleted automatically on close of subwindow
         page->installEventFilter(mCloseEater);                                  // Set an event filter to cache the click on the close button
         page->setWindowIcon(QIcon(":images/tsurface_512.png"));                 // Give the window an icon
