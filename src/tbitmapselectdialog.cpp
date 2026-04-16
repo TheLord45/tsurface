@@ -85,6 +85,7 @@ void TBitmapSelectDialog::init()
 
     model->sort(0);
     ui->listViewImages->setModel(model);
+    ui->listViewImages->scrollToTop();
     // Dynamic resources
     QStandardItemModel *dynModel = new QStandardItemModel(this);
     dynModel->setColumnCount(3);
@@ -127,6 +128,7 @@ void TBitmapSelectDialog::setDefaultBitmap(const QString& file)
                 return;
 
             selModel->setCurrentIndex(item->index(), QItemSelectionModel::ClearAndSelect);
+            ui->listViewImages->scrollTo(selModel->currentIndex(), QAbstractItemView::PositionAtCenter);
             break;
         }
     }

@@ -253,12 +253,13 @@ class TSurface : public QMainWindow
         void on_actionAbout_TSurface_triggered();
 
     private:
+        void initMenu();
+        void initMenuHaveProject();
         QString createTemporaryPath(const QString& name);
         bool createNewFileStructure();
         bool saveAs();
         bool saveNormal();
         bool closeRequest();
-        void enableBaseMenus();
         void initToolbar();
         void drawBackgroundColor(const Page::PAGE_t& page);
 
@@ -269,7 +270,6 @@ class TSurface : public QMainWindow
         bool mHaveProject{false};
         bool mIsSaved{false};
         bool mFromExtern{false};
-        std::vector<QWidget *> mPageWidgets;
         winCloseEater *mCloseEater{nullptr};
         QAction *mActionStateManager{nullptr};
         QAction *mActionPlay{nullptr};

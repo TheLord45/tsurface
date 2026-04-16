@@ -140,23 +140,7 @@ int TPageHandler::createPage(TCanvasWidget *w, Page::PAGE_TYPE pt, const QString
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
         if (iter->name == name)
-        {
-            iter->popupType = pt;
-            iter->name = name;
-            iter->width = width;
-            iter->height = height;
-
-            if (pt == PT_POPUP)
-            {
-                iter->left = left;
-                iter->top = top;
-            }
-
-            if (iter->baseObject.widget && iter->baseObject.widget != w)
-                iter->baseObject.widget = w;
-
-            return iter->pageID;
-        }
+            return -1;
     }
 
     mPages.append(*page);

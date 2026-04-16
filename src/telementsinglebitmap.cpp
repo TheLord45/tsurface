@@ -103,6 +103,9 @@ void TElementSingleBitmap::onPushButtonClicked()
     bmDialog.setTemporaryPath(TConfMain::Current().getPathTemporary());
     bmDialog.setSingleSelect(true);
 
+    if (!mPixmapName.isEmpty())
+        bmDialog.setDefaultBitmap(mPixmapName);
+
     if (bmDialog.exec() == QDialog::Rejected)
         return;
 

@@ -118,6 +118,7 @@ STATE_TYPE getStateFromButtonType(int bt)
 
     switch(t)
     {
+        case SUBPAGE_VIEW:
         case GENERAL:
         case MULTISTATE_GENERAL:    return STATE_BUTTON;
 
@@ -125,7 +126,7 @@ STATE_TYPE getStateFromButtonType(int bt)
         case MULTISTATE_BARGRAPH:   return STATE_BARGRAPH;
 
         case TEXT_INPUT:            return STATE_INPUT;
-        case SUBPAGE_VIEW:          return STATE_SUBPAGE;
+//        case SUBPAGE_VIEW:          return STATE_SUBPAGE;
 
         default:
             return STATE_UNKNOWN;

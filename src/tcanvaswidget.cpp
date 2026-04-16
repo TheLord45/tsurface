@@ -158,6 +158,8 @@ void TCanvasWidget::paintEvent(QPaintEvent*)
 
 void TCanvasWidget::mousePressEvent(QMouseEvent* e)
 {
+    DECL_TRACER("TCanvasWidget::mousePressEvent(QMouseEvent* e)");
+
     if (e->button() == Qt::LeftButton)
     {
         QWidget *w = childAt(e->pos());
@@ -225,7 +227,7 @@ void TCanvasWidget::toggleSelection(TResizableWidget* w)
 
 void TCanvasWidget::clearSelection()
 {
-    DECL_TRACER("TCanvasWidget::toggleSelection(TResizableWidget* w)");
+    DECL_TRACER("TCanvasWidget::clearSelection()");
 
     for (auto* s : std::as_const(mSelection))
         s->setSelected(false);

@@ -246,7 +246,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         table->setRowHidden(i, true);
 
     QFont font = TConfMain::Current().getFontBase();
-    font.setPointSize(10);
+    font.setPointSize(TConfMain::Current().getFontBaseSize());
 
     int totalHeight = 0;    // Calculate the total height of the table widget depending on the visible lines.
 

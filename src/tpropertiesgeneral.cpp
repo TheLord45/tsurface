@@ -82,8 +82,9 @@
 #define TTEXT_ALLOW_DYN_REORDERING  45
 #define TTEXT_RESET_VIEW_ON_SHOW    46
 #define TTEXT_SCROLLBAR             47
-#define TTEXT_DISABLE_TOUCH_SCROLL  48
-#define TTEXT_ENABLE_ANCHORING      49
+#define TTEXT_SCROLLBAR_OFFSET      48
+#define TTEXT_DISABLE_TOUCH_SCROLL  49
+#define TTEXT_ENABLE_ANCHORING      50
 
 #define LIST_POPUPTYPE              0
 #define LIST_BUTTON_TYPE            1
@@ -301,6 +302,7 @@ QString TPropertiesGeneral::getLabelText(int line)
         case TTEXT_ALLOW_DYN_REORDERING:return tr("Allow Dynamic Reordering"); break;
         case TTEXT_RESET_VIEW_ON_SHOW:  return tr("Reset View on Show"); break;
         case TTEXT_SCROLLBAR:           return tr("ScrollBar"); break;
+        case TTEXT_SCROLLBAR_OFFSET:    return tr("Offset of Scrollbar"); break;
         case TTEXT_DISABLE_TOUCH_SCROLL:return tr("Disable Touch Scrolling"); break;
         case TTEXT_ENABLE_ANCHORING:    return tr("Enable Anchoring"); break;
     }
@@ -362,9 +364,15 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
     if (!mInitialized || !mTable || force)
         createTable(stype);
 
+    if (!mTable)
+        return;
+
     // First hide all rows
     for (int i = 0; i < mTable->rowCount(); ++i)
         mTable->setRowHidden(i, true);
+
+    QFont font = TConfMain::Current().getFontBase();
+    font.setPointSize(TConfMain::Current().getFontBaseSize());
 
     // Now enable only the used rows
     switch(stype)
@@ -372,70 +380,106 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
         case STATE_PAGE:
             mTable->setRowHidden(LIST_PAGE_NAME, false);                            // PageName
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                     // PageDescription
+
+            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
         break;
 
         case STATE_POPUP:
             mTable->setRowHidden(LIST_POPUPTYPE, false);                            // PopupPopupType
+            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
+
             mTable->setRowHidden(LIST_PAGE_NAME, false);                            // PageName
+            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
+
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                     // PageDescription
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
 
             if (mPage.popupType == Page::PT_POPUP)
             {
                 mTable->setRowHidden(LIST_POPUP_LEFT, false);                       // PopupLeft
+                setTableWidget(LIST_POPUP_LEFT, 1, mPage.left, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_POPUP_TOP, false);                        // PopupTop
+                setTableWidget(LIST_POPUP_TOP, 1, mPage.top, W_SPINBOX, font);
             }
 
             mTable->setRowHidden(LIST_POPUP_WIDTH, false);                          // PopupWidth
+            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
             mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                         // PopupHeight
+            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
 
             if (mPage.popupType == Page::PT_POPUP)
             {
                 mTable->setRowHidden(LIST_POPUP_RESET_ON_POS, false);               // PopupResetOnPos
+                setTableWidget(LIST_POPUP_RESET_ON_POS, 1, mPage.resetPos, W_COMBO, font);
                 mTable->setRowHidden(LIST_POPUP_GROUPS, false);                     // PopupGroups
+                setTableWidget(LIST_POPUP_GROUPS, 1, mPage.group, W_COMBO, font);
                 mTable->setRowHidden(LIST_POPUP_TIMEOUT, false);                    // PopupTimeout
+                setTableWidget(LIST_POPUP_TIMEOUT, 1, mPage.timeout, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_POPUP_MODAL, false);                      // PopupModal
+                setTableWidget(LIST_POPUP_MODAL, 1, mPage.modal, W_COMBO, font);
 
                 if (mPage.collapseDirection == Page::COLDIR_NONE)
                 {
                     mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT, false);            // PopupShowEffect
+                    setTableWidget(LIST_POPUP_SHOW_EFFECT, 1, mPage.showEffect, W_COMBO, font);
 
                     if (mPage.showEffect != Page::SE_NONE)
                     {
                         mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_TIME, false);   // PopupShowEffectTime
+                        setTableWidget(LIST_POPUP_SHOW_EFFECT_TIME, 1, mPage.showTime, W_SPINBOX, font);
 
                         if (mPage.showEffect != Page::SE_FADE)
                         {
                             if (mPage.showEffect == Page::SE_SLIDE_LEFT || mPage.showEffect == Page::SE_SLIDE_LEFT_FADE||
                                 mPage.showEffect == Page::SE_SLIDE_RIGHT || mPage.showEffect == Page::SE_SLIDE_RIGHT_FADE)
+                            {
                                 mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_X, false);    // PopupShowEffectPosX
+                                setTableWidget(LIST_POPUP_SHOW_EFFECT_X, 1, mPage.showX, W_SPINBOX, font);
+                            }
                             else
+                            {
                                 mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_Y, false);    // PopupShowEffectPosY
+                                setTableWidget(LIST_POPUP_SHOW_EFFECT_Y, 1, mPage.showY, W_SPINBOX, font);
+                            }
                         }
                     }
 
                     mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT, false);            // PopupHideEffect
+                    setTableWidget(LIST_POPUP_HIDE_EFFECT, 1, mPage.hideEffect, W_COMBO, font);
 
                     if (mPage.hideEffect != Page::SE_NONE)
                     {
                         mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_TIME, false);   // PopupHideEffectTime
+                        setTableWidget(LIST_POPUP_HIDE_EFFECT_TIME, 1, mPage.hideTime, W_SPINBOX, font);
 
                         if (mPage.hideEffect != Page::SE_FADE)
                         {
                             if (mPage.hideEffect == Page::SE_SLIDE_LEFT || mPage.hideEffect == Page::SE_SLIDE_LEFT_FADE||
                                 mPage.hideEffect == Page::SE_SLIDE_RIGHT || mPage.hideEffect == Page::SE_SLIDE_RIGHT_FADE)
+                            {
                                 mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_X, false);    // PopupHideEffectPosX
+                                setTableWidget(LIST_POPUP_HIDE_EFFECT_X, 1, mPage.hideX, W_SPINBOX, font);
+                            }
                             else
+                            {
                                 mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_Y, false);    // PopupHideEffectPosY
+                                setTableWidget(LIST_POPUP_HIDE_EFFECT_Y, 1, mPage.hideY, W_SPINBOX, font);
+                            }
                         }
                     }
 
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_DIR, false);           // PopupCollapseDirection
+                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage.collapseDirection, W_COMBO, font);
                 }
                 else
                 {
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_DIR, false);           // PopupCollapseDirection
+                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage.collapseDirection, W_COMBO, font);
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_OFFSET, false);        // PopupCollapseOffest
+                    setTableWidget(LIST_POPUP_COLLAPSE_OFFSET, 1, mPage.collapseOffset, W_SPINBOX, font);
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_SHOWOP, false);        // PopupCollapseShowOpen
+                    setTableWidget(LIST_POPUP_COLLAPSE_SHOWOP, 1, mPage.collapseShowOpen, W_COMBO, font);
                 }
             }
         break;
@@ -446,48 +490,76 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                 mActObject = mPage.objects[mActObjectID]->getObject();
 
             mTable->setRowHidden(LIST_BUTTON_TYPE, false);                          // ButtonType
+            setTableWidget(LIST_BUTTON_TYPE, 1, mActObject.type, W_COMBO, font);
             mTable->setRowHidden(LIST_OBJECT_NAME, false);                          // ObjectName
+            setTableWidget(LIST_OBJECT_NAME, 1, mActObject.na, W_LINEEDIT, font);
             mTable->setRowHidden(LIST_BUTTON_LOCK_NAME, false);                     // ButtonLockName
+            setTableWidget(LIST_BUTTON_LOCK_NAME, 1, mActObject.li, W_COMBO, font);
             mTable->setRowHidden(LIST_OBJECT_DESCRIPTION, false);                   // ObjectDescription
+            setTableWidget(LIST_OBJECT_DESCRIPTION, 1, mActObject.bd, W_TEXT, font);
             mTable->setRowHidden(LIST_OBJECT_LEFT, false);                          // ObjectLeft
+            setTableWidget(LIST_OBJECT_LEFT, 1, mActObject.lt, W_SPINBOX, font);
             mTable->setRowHidden(LIST_OBJECT_TOP, false);                           // ObjectTop
-            mTable->setRowHidden(LIST_OBJECT_WIDTH, false);                         // ObjectTop
+            setTableWidget(LIST_OBJECT_TOP, 1, mActObject.tp, W_SPINBOX, font);
+            mTable->setRowHidden(LIST_OBJECT_WIDTH, false);                         // ObjectWidth
+            setTableWidget(LIST_OBJECT_WIDTH, 1, mActObject.wt, W_SPINBOX, font);
             mTable->setRowHidden(LIST_OBJECT_HEIGHT, false);                        // ObjectHeight
+            setTableWidget(LIST_OBJECT_HEIGHT, 1, mActObject.ht, W_SPINBOX, font);
             mTable->setRowHidden(LIST_OBJECT_Z_ORDER, false);                       // ObjectZOrder
+            setTableWidget(LIST_OBJECT_Z_ORDER, 1, mActObject.zo, W_LINEEDIT, font);
 
             if (mActObject.type != ObjHandler::BARGRAPH &&
                 mActObject.type != ObjHandler::MULTISTATE_BARGRAPH)
             {
                 mTable->setRowHidden(LIST_OBJECT_DRAG_DROP_TYPE, false);            // ObjectDragDropType
+                setTableWidget(LIST_OBJECT_DRAG_DROP_TYPE, 1, mActObject.ddt, W_COMBO, font);
 
                 if (mActObject.ddt == "dr")
+                {
                     mTable->setRowHidden(LIST_OBJECT_DROP_GROUP, false);            // ObjectDropGroup
+//                    setTableWidget(LIST_OBJECT_DROP_GROUP, 1, mActObject.ddt, W_COMBO, font);
+                }
 
                 mTable->setRowHidden(LIST_OBJECT_TOUCH_STYLE, false);               // ObjectTouchStyle
+                setTableWidget(LIST_OBJECT_TOUCH_STYLE, 1, mActObject.hs, W_COMBO, font);
             }
             else if (mActObject.type == ObjHandler::TEXT_INPUT)
+            {
                 mTable->setRowHidden(LIST_OBJECT_TOUCH_STYLE, false);               // ObjectTouchStyle
+                setTableWidget(LIST_OBJECT_TOUCH_STYLE, 1, mActObject.hs, W_COMBO, font);
+            }
 
             if (mActObject.type != ObjHandler::LISTVIEW)
+            {
                 mTable->setRowHidden(LIST_OBJECT_BORDER_STYLE, false);              // ObjectBorderStyle
+                setTableWidget(LIST_OBJECT_BORDER_STYLE, 1, mActObject.bs, W_BORDERNAME, font);
+            }
 
             if (mActObject.type == ObjHandler::MULTISTATE_GENERAL ||
                 mActObject.type == ObjHandler::MULTISTATE_BARGRAPH)
             {
                 mTable->setRowHidden(LIST_OBJECT_STATE_COUNT, false);               // ObjectStateCount
+                setTableWidget(LIST_OBJECT_STATE_COUNT, 1, mActObject.stateCount, W_SPINBOX, font);
 
                 if (mActObject.type != ObjHandler::MULTISTATE_BARGRAPH)
                 {
                     mTable->setRowHidden(LIST_OBJECT_ANIMATE_TIME_UP, false);       // ObjectAnimateTimeUp
+                    setTableWidget(LIST_OBJECT_ANIMATE_TIME_UP, 1, mActObject.nu, W_SPINBOX, font);
                     mTable->setRowHidden(LIST_OBJECT_ANIMATE_TIME_DN, false);       // ObjectAnimateTimeDown
+                    setTableWidget(LIST_OBJECT_ANIMATE_TIME_DN, 1, mActObject.nd, W_SPINBOX, font);
                 }
             }
 
             if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+            {
                 mTable->setRowHidden(LIST_OBJECT_BORDER_STYLE, false);              // ObjectBorderStyle
+                setTableWidget(LIST_OBJECT_BORDER_STYLE, 1, mActObject.bs, W_BORDERNAME, font);
+            }
 
             mTable->setRowHidden(LIST_OBJECT_DISABLED, false);                      // ObjectDisabled
+            setTableWidget(LIST_OBJECT_DISABLED, 1, mActObject.da, W_COMBO, font);
             mTable->setRowHidden(LIST_OBJECT_HIDDEN, false);                        // ObjectHidden
+            setTableWidget(LIST_OBJECT_HIDDEN, 1, mActObject.hd, W_COMBO, font);
 
             if (mActObject.type == ObjHandler::LISTVIEW)
             {
@@ -511,16 +583,27 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             else if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
             {
                 mTable->setRowHidden(LIST_OBJECT_SUB_PAGE_SET, false);              // ObjectSubPageView
+//                setTableWidget(LIST_OBJECT_SUB_PAGE_SET, 1, mActObject.ddt, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_ORIENTATION, false);
+                setTableWidget(LIST_OBJECT_ORIENTATION, 1, mActObject.on, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SPACING, false);
+                setTableWidget(LIST_OBJECT_SPACING, 1, mActObject.sa, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_OBJECT_ANCHOR_POSITION, false);
+                setTableWidget(LIST_OBJECT_ANCHOR_POSITION, 1, mActObject.we, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SHOW_SUBPAGES, false);
+                setTableWidget(LIST_OBJECT_SHOW_SUBPAGES, 1, mActObject.sw, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_DYNAMIC_REORDER, false);
+                setTableWidget(LIST_OBJECT_DYNAMIC_REORDER, 1, mActObject.dy, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_RESET_VIEW_SHOW, false);
+                setTableWidget(LIST_OBJECT_RESET_VIEW_SHOW, 1, mActObject.rs, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SCROLLBAR, false);
+                setTableWidget(LIST_OBJECT_SCROLLBAR, 1, mActObject.ba, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
+                setTableWidget(LIST_OBJECT_SCROLL_OFFSET, 1, mActObject.bo, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
+//                setTableWidget(LIST_OBJECT_DISABLE_TOUCHSC, 1, mActObject.on, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_ENABLE_ANCHOR, false);
+//                setTableWidget(LIST_OBJECT_ENABLE_ANCHOR, 1, mActObject.on, W_COMBO, font);
             }
             else
             {
@@ -533,15 +616,21 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                     mActObject.type == ObjHandler::MULTISTATE_BARGRAPH)
                 {
                     mTable->setRowHidden(LIST_OBJECT_VALUE_DIRECTION, false);       // ObjectValueDirection
+                    setTableWidget(LIST_OBJECT_VALUE_DIRECTION, 1, mActObject.dr, W_COMBO, font);
 
                     if (mActObject.type == ObjHandler::BARGRAPH)
                     {
-                        mTable->setRowHidden(LIST_OBJECT_VALUE_DIRECTION, false);   // ObjectSliderName
+                        mTable->setRowHidden(LIST_OBJECT_SLIDER_NAME, false);       // ObjectSliderName
+                        setTableWidget(LIST_OBJECT_SLIDER_NAME, 1, mActObject.sd, W_COMBO, font);
                         mTable->setRowHidden(LIST_OBJECT_SLIDER_COLOR, false);      // ObjectSliderColor
+                        setTableWidget(LIST_OBJECT_SLIDER_COLOR, 1, mActObject.sc, W_COLORSELECTOR, font);
                     }
                 }
                 else if (mActObject.type != ObjHandler::TEXT_INPUT)
+                {
                     mTable->setRowHidden(LIST_OBJECT_PASSWD_PROTECT, false);        // ObjectPasswordProtection
+                    setTableWidget(LIST_OBJECT_PASSWD_PROTECT, 1, mActObject.pp, W_COMBO, font);
+                }
 
                 if (mActObject.type == ObjHandler::TEXT_INPUT)
                 {
@@ -555,15 +644,86 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 
         case STATE_SUBPAGE:
             mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
+            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
             mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
+            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
             mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
+            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
             mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
+            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
         break;
 
         default:
             break;
     }
+}
+
+int TPropertiesGeneral::setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype, const QFont& font)
+{
+    DECL_TRACER("TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, const QVariant& data, ELEMENT_TYPE_t etype, const QFont& font)");
+
+    if (!mTable)
+        return 0;
+
+    QWidget *w = mTable->cellWidget(row, col);
+
+    if (!w)
+        return 0;
+
+    QSignalBlocker sigBlock(this);
+
+    switch(etype)
+    {
+        case W_COMBO:
+        {
+            TElementWidgetCombo *p = static_cast<TElementWidgetCombo *>(w);
+            p->selectItem(data);
+        }
+        break;
+
+        case W_BORDERNAME:
+        {
+            TElementBorderName *p = static_cast<TElementBorderName *>(w);
+            p->setBorder(data.toString());
+        }
+        break;
+
+        case W_LINEEDIT:
+        {
+            TElementLineEdit *p = static_cast<TElementLineEdit *>(w);
+            p->setText(data.toString());
+        }
+        break;
+
+        case W_TEXT:
+        {
+            TElementWidgetText *p = static_cast<TElementWidgetText *>(w);
+            p->setText(data.toString());
+            p->setFont(font);
+        }
+        break;
+
+        case W_COLORSELECTOR:
+        {
+            TElementColorSelector *p = static_cast<TElementColorSelector *>(w);
+            p->setColor(data.toString());
+        }
+        break;
+
+        case W_SPINBOX:
+        {
+            TElementSpinBox *p = static_cast<TElementSpinBox *>(w);
+            p->setValue(data.toInt());
+        }
+        break;
+
+        default:
+            return w->height();
+    }
+
+    return w->height();     // Return the height of 1 row.
 }
 
 void TPropertiesGeneral::createTable(STATE_TYPE stype)
@@ -853,6 +1013,26 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             case LIST_OBJECT_RESET_VIEW_SHOW:
                 cell1->setText(getLabelText(TTEXT_RESET_VIEW_ON_SHOW));
                 mTable->setCellWidget(i, 1, makeObjectResetViewOnShow("ObjectResetViewOnShow"));
+            break;
+
+            case LIST_OBJECT_SCROLLBAR:
+                cell1->setText(getLabelText(TTEXT_SCROLLBAR));
+                mTable->setCellWidget(i, 1, makeObjectScrollbar("ObjectScrollbar"));
+            break;
+
+            case LIST_OBJECT_SCROLL_OFFSET:
+                cell1->setText(getLabelText(TTEXT_SCROLLBAR_OFFSET));
+                mTable->setCellWidget(i, 1, makeObjectScrollbarOffset("ObjectScrollbarOffset"));
+            break;
+
+            case LIST_OBJECT_DISABLE_TOUCHSC:
+                cell1->setText(getLabelText(TTEXT_DISABLE_TOUCH_SCROLL));
+                mTable->setCellWidget(i, 1, makeObjectDisableTouchScroll("ObjectDisableTouchScroll"));
+            break;
+
+            case LIST_OBJECT_ENABLE_ANCHOR:
+                cell1->setText(getLabelText(TTEXT_ENABLE_ANCHORING));
+                mTable->setCellWidget(i, 1, makeObjectEnableAnchor("ObjectEnableAnchor"));
             break;
         }
 
@@ -1501,7 +1681,6 @@ TElementSpinBox *TPropertiesGeneral::makeObjectSpacing(const QString& name)
     TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
     connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectSpacing);
     return sbox;
-
 }
 
 TElementWidgetCombo *TPropertiesGeneral::makeObjectAnchorPosition(const QString& name)
@@ -1560,6 +1739,68 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectResetViewOnShow(const QString
     combo->addItems(items);
     combo->addData(data);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectResetViewOnShow);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectScrollbar(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectScrollbar(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectScrollbar);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectScrollbarOffset(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectScrollbarOffset(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    {
+        mActObject = mPage.objects[mActObjectID]->getObject();
+        value = mActObject.bo;
+    }
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectScrollbarOffset);
+    return sbox;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectDisableTouchScroll(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDisableTouchScroll(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectDisableTouchScroll);
+    return combo;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectEnableAnchor(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectEnableAnchor(const QString& name)");
+
+    QStringList items;
+    QList<QVariant> data;
+    initYesNo(items, data);
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectEnableAnchor);
     return combo;
 }
 
@@ -2174,6 +2415,48 @@ void TPropertiesGeneral::onObjectResetViewOnShow(const QString& text, const QVar
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectScrollbar(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectScrollbar(const QString& text, const QVariant& data, const QString& name)");
+
+    mActObject.ba = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)");
+
+    mActObject.bo = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectDisableTouchScroll(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectDisableTouchScroll(const QString& text, const QVariant& data, const QString& name)");
+
+    // TODO: Add field for this value
+//    mActObject.ba = data.toInt();
+//    mPage.objects[mActObjectID]->setObject(mActObject);
+//    markChanged();
+//    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectEnableAnchor(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectEnableAnchor(const QString& text, const QVariant& data, const QString& name)");
+
+    // TODO: Add field for this value
+//    mActObject.ba = data.toInt();
+//    mPage.objects[mActObjectID]->setObject(mActObject);
+//    markChanged();
+//    mChanged = true;
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)

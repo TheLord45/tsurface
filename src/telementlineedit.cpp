@@ -44,6 +44,13 @@ void TElementLineEdit::setText(const QString& text)
 
     mText = text;
     QSignalBlocker block(this);
+
+    if (!mLine)
+    {
+        MSG_ERROR("The class was not properly initialized!");
+        return;
+    }
+
     mLine->setText(text);
 }
 

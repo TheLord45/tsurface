@@ -53,6 +53,7 @@ enum STATE_TYPE
 typedef enum
 {
     W_NONE,
+    W_POPUPGROUPS,
     W_BITMAPSELECTOR,
     W_BORDERNAME,
     W_COLORSELECTOR,

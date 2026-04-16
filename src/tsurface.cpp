@@ -136,10 +136,7 @@ TSurface::TSurface(QWidget *parent)
     m_ui->tableWidgetGeneral->horizontalHeader()->hide();
     m_ui->tableWidgetGeneral->verticalHeader()->hide();
     // Disable Menu points
-    m_ui->actionResource_Manager->setDisabled(true);
-    m_ui->actionAdd_page->setDisabled(true);
-    m_ui->actionAdd_popup_page->setDisabled(true);
-    m_ui->actionAdd_Application_Window->setDisabled(true);
+    initMenu();
     // Get the last position and size of the main window and set it.
     QRect ws = TConfig::Current().getLastPosition();
     setGeometry(ws);
@@ -662,7 +659,7 @@ void TSurface::on_actionOpen_triggered()
 
         mHaveProject = true;                                                // Set mark to indicate that we've a project
         mIsSaved = true;                                                    // Set mark that there exists already a file.
-        enableBaseMenus();                                                  // Enable the menus
+        initMenu();                                                         // Initialize the menu points
     }
 }
 
@@ -715,7 +712,6 @@ void TSurface::on_actionNew_triggered()
         mHaveProject = false;                                                   // Mark the project as untached.
     }
 
-    mPageWidgets.clear();                                                       // Clear the list of widgets
     TNewProjectDialog npd(this);                                                // Show a dialog to get the base parameters of the new project
     int ret = npd.exec();                                                       // Execute the dialog and wait until it returns
 
@@ -794,7 +790,7 @@ void TSurface::on_actionNew_triggered()
     QString ffile = TFonts::getFontFile(font);
     TFonts::addFontFile(basename(ffile));
     // Enable Menus
-    enableBaseMenus();
+    initMenu();
     // Draw the window with all known data
     Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
 
@@ -870,11 +866,6 @@ void TSurface::on_actionClose_triggered()
 
     if (!closeRequest())
         return;
-
-    if (!mPageWidgets.empty())
-    {
-        mPageWidgets.clear();
-    }
 
     m_ui->mdiArea->closeAllSubWindows();
     TWorkSpaceHandler::Current().resetTree();
@@ -1975,13 +1966,23 @@ void TSurface::onAddNewPage()
     widget->setStyleSheet("background-color: " + pageDialog.getColorBackground().name() + ";color: " + pageDialog.getColorText().name()+ ";");
     Page::PAGE_t pg;
     int id = TPageHandler::Current().createPage(widget, Page::PT_PAGE, pageDialog.getPageName(), pgSize.width(), pgSize.height(), 0, 0, &pg);
+
+    if (id < 1)
+    {
+        QMessageBox::critical(this, tr("Duplicate page"), tr("There exists already a page with the name %1!").arg(pageDialog.getPageName()));
+        delete widget;
+        return;
+    }
+
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
     widget->setPageID(id);
     widget->installEventFilter(mCloseEater);
+    connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
 
     QMdiSubWindow *page = new QMdiSubWindow;
+    page->setObjectName(QString("SubWindow_%1").arg(id));           // Give it a name
     page->setWidget(widget);
     page->setAttribute(Qt::WA_DeleteOnClose);
     page->installEventFilter(mCloseEater);
@@ -1994,8 +1995,6 @@ void TSurface::onAddNewPage()
     TWorkSpaceHandler::Current().invalidateObject();
     TConfMain::Current().addPage(pageDialog.getPageName(), id);
     // Here we set everyting of the page we currently know
-//    Page::PAGE_t *pg = TPageHandler::Current().getPage(id);
-
     if (pg.pageID <= 0)
     {
         MSG_ERROR("Error getting whole page!");
@@ -2028,15 +2027,24 @@ void TSurface::onAddNewPopup()
 
     mProjectChanged = true;
     QSize pgSize = popupDialog.getPopupSize();
+    QString popupName = popupDialog.getPopupName().trimmed();
     TCanvasWidget *widget = new TCanvasWidget;
-    widget->setWindowTitle(popupDialog.getPopupName());
+    widget->setWindowTitle(popupName);
     widget->setFixedSize(QSize(pgSize.width(), pgSize.height()));
     widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     widget->setStyleSheet("background-color: " + popupDialog.getColorPageBackground().name() + ";color: " + popupDialog.getColorText().name()+ ";");
     QRect geom(popupDialog.getPositionLeft(), popupDialog.getPositionTop(), popupDialog.getSizeWidth(), popupDialog.getSizeHeight());
     Page::PAGE_t pg;
     Page::PAGE_TYPE pgType = popupDialog.isSubPage() ? Page::PT_SUBPAGE : Page::PT_POPUP;
-    int id = TPageHandler::Current().createPage(widget, pgType, popupDialog.getPopupName(), geom, &pg);
+    int id = TPageHandler::Current().createPage(widget, pgType, popupName, geom, &pg);
+
+    if (id < 1)
+    {
+        QMessageBox::critical(this, tr("Duplicate popup"), tr("There exists already a popup with the name %1!").arg(popupName));
+        delete widget;
+        return;
+    }
+
     QString objName("QWidgetMDI_");
     objName.append(QString::number(id));
     widget->setObjectName(objName);
@@ -2044,22 +2052,24 @@ void TSurface::onAddNewPopup()
     widget->setShowGrid(m_ui->actionShow_Grid->isChecked());
     widget->setSnapEnabled(m_ui->actionSnap_To_Grid->isChecked());
     widget->installEventFilter(mCloseEater);
+    connect(widget, &TCanvasWidget::failedClickAt, this, &TSurface::onFailedClickAt);
 
-    QMdiSubWindow *page = new QMdiSubWindow;
-    page->setWidget(widget);
-    page->setFixedSize(QSize(pgSize.width(), pgSize.height()));
-    page->setAttribute(Qt::WA_DeleteOnClose);
-    page->installEventFilter(mCloseEater);
-    page->setWindowIcon(QIcon(":images/tsurface_512.png"));
-    m_ui->mdiArea->addSubWindow(page);
-    widget->activateWindow();
-    widget->show();
-    TConfMain::Current().addPopup(popupDialog.getPopupName(), id);  // Adds page to list of popups
+    QMdiSubWindow *page = new QMdiSubWindow;                        // Create a new MDI subwindow
+    page->setObjectName(QString("SubWindow_%1").arg(id));           // Give it a name
+    page->setWidget(widget);                                        // Add the previous created widget
+    page->setFixedSize(QSize(pgSize.width(), pgSize.height()));     // Set the size of the window
+    page->setAttribute(Qt::WA_DeleteOnClose);                       // Make it free memory on close
+    page->installEventFilter(mCloseEater);                          // Make the window react if the X in the upper right corner is clicked
+    page->setWindowIcon(QIcon(":images/tsurface_512.png"));         // Define the icon
+    m_ui->mdiArea->addSubWindow(page);                              // Add the window to the MDI area
+    widget->activateWindow();                                       // Make sure it's activated.
+    widget->show();                                                 // Make sure it's visible
+    TConfMain::Current().addPopup(popupName, id);  // Adds page to list of popups
     // Here we set everyting of the page we currently know
     pg.srPage.cf = popupDialog.getColorPageBackground();
     pg.srPage.ct = popupDialog.getColorText();
     pg.srPage.cb = popupDialog.getColorBorder();
-    QFont font = popupDialog.getFont();
+    QFont font = popupDialog.getFont();                 // Get the selected font
     pg.srPage.ff = font.family();                       // Set the font family
     pg.srPage.fs = font.pointSize();                    // Set the font size
     QString ffile = TFonts::getFontFile(font);          // Get the real file name of the font
@@ -2068,9 +2078,9 @@ void TSurface::onAddNewPopup()
     TPageHandler::Current().setVisible(id, true);       // Marks the page as visible
 
     if (pgType == Page::PT_POPUP)
-        TWorkSpaceHandler::Current().addTreePopup(popupDialog.getPopupName(), popupDialog.getGroupName(), id);
+        TWorkSpaceHandler::Current().addTreePopup(popupName, popupDialog.getGroupName(), id);
     else
-        TWorkSpaceHandler::Current().addTreeSubPage(popupDialog.getPopupName(), id);
+        TWorkSpaceHandler::Current().addTreeSubPage(popupName, id);
 
     TWorkSpaceHandler::Current().invalidateObject();    // If there was an object selected it is removed from selection
     TWorkSpaceHandler::Current().setFocus(id);          // Activates the selection in the tree view
@@ -2338,6 +2348,144 @@ bool TSurface::closeRequest()
     return true;
 }
 
+void TSurface::initMenu()
+{
+    DECL_TRACER("TSurface::initMenu()");
+
+    // Menu: File
+    m_ui->actionClose->setDisabled(true);
+    m_ui->actionProject_properties->setDisabled(true);
+    m_ui->actionSave->setDisabled(true);
+    m_ui->actionSave_as->setDisabled(true);
+    // Menu: Edit
+    m_ui->actionSelection_tool->setDisabled(true);
+    m_ui->actionButton_draw_tool->setDisabled(true);
+    m_ui->actionPopup_draw_tool->setDisabled(true);
+    m_ui->actionGrab_Properties_Tool->setDisabled(true);
+    m_ui->actionPaint_Properties_Tool->setDisabled(true);
+    m_ui->actionShow_Grid->setDisabled(true);
+    m_ui->actionSnap_To_Grid->setDisabled(true);
+    m_ui->actionRedo->setDisabled(true);
+    m_ui->actionCut->setDisabled(true);
+    m_ui->actionCopy->setDisabled(true);
+    m_ui->actionPaste->setDisabled(true);
+    m_ui->actionReplace->setDisabled(true);
+    m_ui->actionDelete->setDisabled(true);
+    m_ui->actionRename->setDisabled(true);
+    m_ui->actionFind->setDisabled(true);
+    m_ui->actionFind_Replace->setDisabled(true);
+    m_ui->actionSelect_All->setDisabled(true);
+    m_ui->actionApply_To_All->setDisabled(true);
+    m_ui->actionEdit_Previous->setDisabled(true);
+    m_ui->actionEdit_Next->setDisabled(true);
+    // Menu: Panel
+    m_ui->actionAdd_page->setDisabled(true);
+    m_ui->actionAdd_popup_page->setDisabled(true);
+    m_ui->actionAdd_Application_Window->setDisabled(true);
+    m_ui->actionEdit_Sub_Page_Sets->setDisabled(true);
+    m_ui->actionEdit_Drop_Target_Groups->setDisabled(true);
+    m_ui->actionResource_Manager->setDisabled(true);
+    m_ui->actionRefresh_Dynamic_Images->setDisabled(true);
+    m_ui->actionEdit_Palettes->setDisabled(true);
+    m_ui->actionExport_Page_Images->setDisabled(true);
+    m_ui->actionVerify_Function_Maps->setDisabled(true);
+    m_ui->actionVerify_Event_Actions->setDisabled(true);
+    m_ui->actionSynchronize_Fonts->setDisabled(true);
+    m_ui->actionView_Conversion_Log->setDisabled(true);
+    m_ui->actionDelete_Conversion_Log->setDisabled(true);
+    // Menu: Page
+    m_ui->actionShow_Popup_Page->setDisabled(true);
+    m_ui->actionHide_Popup_Page->setDisabled(true);
+    m_ui->actionHide_All_Popup_Pages_and_Application_Windows->setDisabled(true);
+    m_ui->actionShow_Application_Window->setDisabled(true);
+    m_ui->actionHide_Application_Window->setDisabled(true);
+    m_ui->actionShow_External_Controls->setDisabled(true);
+    m_ui->actionCopy_Image_to_Clipboard->setDisabled(true);
+    // Menu: Button
+    m_ui->actionReset_Display->setDisabled(true);
+    m_ui->actionDisplay_Previous_State->setDisabled(true);
+    m_ui->actionDisplay_Next_State->setDisabled(true);
+    m_ui->actionChoose_Display_State->setDisabled(true);
+    m_ui->actionAdd_States->setDisabled(true);
+    m_ui->actionInsert_States->setDisabled(true);
+    m_ui->actionAnimation_Wizard->setDisabled(true);
+    m_ui->actionPower_Assign->setDisabled(true);
+    m_ui->actionPaste_Controls->setDisabled(true);
+    // Menu: States
+    m_ui->actionBorder_Color->setDisabled(true);
+    m_ui->actionFill_Color->setDisabled(true);
+    m_ui->actionText_Color_2->setDisabled(true);
+    m_ui->actionText_Effect_Color->setDisabled(true);
+    m_ui->actionAll_Colors->setDisabled(true);
+    m_ui->actionOverall_Opacity->setDisabled(true);
+    m_ui->actionBitmap_Position->setDisabled(true);
+    m_ui->actionText_Position->setDisabled(true);
+    m_ui->actionAll_Positions->setDisabled(true);
+    m_ui->actionText_Size->setDisabled(true);
+    // Menu: Layout
+    m_ui->actionBring_to_Front->setDisabled(true);
+    m_ui->actionSend_to_Back->setDisabled(true);
+    m_ui->actionShift_Button_Up->setDisabled(true);
+    m_ui->actionShift_Button_Down->setDisabled(true);
+    m_ui->actionSize_to_Image->setDisabled(true);
+    m_ui->actionAlignment_Sizing->setDisabled(true);
+    // Menu: Transfer
+    m_ui->actionConnect->setDisabled(true);
+    m_ui->actionDisconnect_from_Panel->setDisabled(true);
+    m_ui->actionSend_to_Panel->setDisabled(true);
+    m_ui->actionSend_File_to_Panel->setDisabled(true);
+    m_ui->actionReceive_from_Panel->setDisabled(true);
+    m_ui->actionRedo_last_Transfer->setDisabled(true);
+    m_ui->actionCancel_Transfer->setDisabled(true);
+    m_ui->actionCancel_all_Pending_Transfers->setDisabled(true);
+    m_ui->actionClear_Transfer->setDisabled(true);
+    m_ui->actionClear_All_Completed_Transfers->setDisabled(true);
+    m_ui->actionClose_Status_When_Empty->setDisabled(true);
+    // Menu: View
+    m_ui->actionProperty_Painter->setDisabled(true);
+    m_ui->actionError_Warnings_Report->setDisabled(true);
+    // Menu: Window
+    m_ui->actionZoom_Toolbar->setDisabled(true);
+
+    // Now that everything (mostly) disabled we can enable the menus avalable
+    // when a project was loaded.
+    if (mHaveProject)
+        initMenuHaveProject();
+}
+
+void TSurface::initMenuHaveProject()
+{
+    DECL_TRACER("TSurface::initMenuHaveProject()");
+
+    // Menu: File
+    m_ui->actionClose->setEnabled(true);
+    m_ui->actionProject_properties->setEnabled(true);
+    m_ui->actionSave->setEnabled(true);
+    m_ui->actionSave_as->setEnabled(true);
+    // Menu: Edit
+    m_ui->actionSelection_tool->setEnabled(true);
+    m_ui->actionButton_draw_tool->setEnabled(true);
+    m_ui->actionPopup_draw_tool->setEnabled(true);
+    m_ui->actionShow_Grid->setEnabled(true);
+    m_ui->actionSnap_To_Grid->setEnabled(true);
+    // Menu: Panel
+    m_ui->actionAdd_page->setEnabled(true);
+    m_ui->actionAdd_popup_page->setEnabled(true);
+    // m_ui->actionAdd_Application_Window->setEnabled(true);
+    m_ui->actionEdit_Sub_Page_Sets->setEnabled(true);
+    // m_ui->actionEdit_Drop_Target_Groups->setEnabled(true);
+    m_ui->actionResource_Manager->setEnabled(true);
+    // Menu: Page
+    m_ui->actionShow_Popup_Page->setEnabled(true);
+    m_ui->actionHide_Popup_Page->setEnabled(true);
+    // m_ui->actionHide_All_Popup_Pages_and_Application_Windows->setEnabled(true);
+    // m_ui->actionShow_Application_Window->setEnabled(true);
+    // m_ui->actionHide_Application_Window->setEnabled(true);
+    // m_ui->actionShow_External_Controls->setEnabled(true);
+    // m_ui->actionCopy_Image_to_Clipboard->setEnabled(true);
+
+}
+
 QString TSurface::createTemporaryPath(const QString& name)
 {
     DECL_TRACER("TSurface::createTemporaryPath(const QString& name)");
@@ -2526,14 +2674,4 @@ bool TSurface::saveNormal()
     mProjectChanged = false;
     mIsSaved = true;
     return true;
-}
-
-void TSurface::enableBaseMenus()
-{
-    DECL_TRACER("TSurface::enableBaseMenus()");
-
-    m_ui->actionResource_Manager->setDisabled(false);
-    m_ui->actionAdd_page->setDisabled(false);
-    m_ui->actionAdd_popup_page->setDisabled(false);
-    m_ui->actionAdd_Application_Window->setDisabled(false);
 }
