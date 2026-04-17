@@ -378,12 +378,15 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
     }
 
     QString path = TConfMain::Current().getPathTemporary();
-    int level = (object.rh - object.rl) / 2;
+    int range = object.rh - object.rl;
+    int level = range / 2;
+    MSG_DEBUG("Range: " << range << ", level: " << level);
 
     // Check for a chameleon image
     if (!object.sr[0].mi.isEmpty() && object.sr[0].bs.isEmpty() && !object.sr[1].bitmaps.empty())
     {
         MSG_DEBUG("Detected a chameleon image...");
+
         QPixmap bmMi, bmBm;
 
         if (!bmMi.load(path + "/images/" + object.sr[0].mi))
@@ -409,10 +412,10 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
         int startY = 0;
 
         if (object.dr == "horizontal")
-            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(range) * static_cast<double>(level));
         else
         {
-            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(range) * static_cast<double>(level));
             startY = bmMi.height() - height;
             height = bmMi.height();
         }
@@ -442,14 +445,22 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
                     pixel = baseColor(pixelRed, pixelMask);
                 }
                 else
+                {
                     pixel = Qt::transparent;
+                    pixmapMask.setPixelColor(ix, iy, pixel);
+                }
 
                 img.setPixelColor(ix, iy, pixel);
             }
         }
 
         QPainter painter(mPixmap);
+
+        if (object.sr[0].oo >= 0 && object.sr[0].oo < 255)
+            painter.setOpacity(1.0 / 255.0 * static_cast<qreal>(object.sr[0].oo));
+
         painter.drawImage(0, 0, img);
+        painter.drawImage(0, 0, pixmapMask);
         painter.end();
     }
     else if (!object.sr[0].bitmaps.empty() && !object.sr[1].bitmaps.empty())
@@ -476,10 +487,10 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
         int startY = 0;
 
         if (object.dr == "horizontal")
-            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(range) * static_cast<double>(level));
         else
         {
-            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(range) * static_cast<double>(level));
             startY = image1.height() - height;
             height = image1.height();
         }
@@ -528,10 +539,10 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
         int startY = 0;
 
         if (object.dr == "horizontal")
-            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(range) * static_cast<double>(level));
         else
         {
-            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(range) * static_cast<double>(level));
             startY = image.height() - height;
             height = image.height();
         }
@@ -570,10 +581,10 @@ void TDrawImage::drawBargraph(const TOBJECT_t& object)
         int startY = 0;
 
         if (object.dr == "horizontal")
-            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            width = static_cast<int>(static_cast<double>(width) / static_cast<double>(range) * static_cast<double>(level));
         else
         {
-            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(object.rh - object.rl) * static_cast<double>(level));
+            height = static_cast<int>(static_cast<double>(height) / static_cast<double>(range) * static_cast<double>(level));
             startY = object.ht - height;
             height = object.ht;
         }

@@ -100,10 +100,10 @@ void TDrawObject::draw(int instance)
         switch(order)
         {
             case ORD_ELEM_FILL:
-                if (object.type == BARGRAPH)
-                    buttonFill(&button, object.sr[0]);
-                else
+                if (object.type != BARGRAPH)
                     buttonFill(&button, object.sr[instance]);
+                else
+                    buttonFill(&button, object.sr[0]);
             break;
 
             case ORD_ELEM_BITMAP:
@@ -111,15 +111,25 @@ void TDrawObject::draw(int instance)
                 TDrawImage di;
                 di.setPixmap(&button);
                 di.setSize(object.wt, object.ht);
-                di.setBitmaps(object.sr[instance].bitmaps);
-                di.setOpacity(object.sr[instance].oo);
+
+                if (object.type != BARGRAPH)
+                {
+                    di.setBitmaps(object.sr[instance].bitmaps);
+                    di.setOpacity(object.sr[instance].oo);
+                }
+
                 QString border = !object.bs.isEmpty() ? object.bs : object.sr[instance].bs;
                 di.setBorder(border);
 
-                if (object.sr[instance].bs.isEmpty())
+                if (object.type != BARGRAPH && object.sr[instance].bs.isEmpty())
                 {
                     di.setChameleon(object.sr[instance].mi);
                     di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
+                }
+                else if (object.type == BARGRAPH && object.sr[0].bs.isEmpty())
+                {
+                    di.setChameleon(object.sr[0].mi);
+                    di.setChameleonColors(object.sr[0].cf, object.sr[0].cb);
                 }
 
                 if (object.type == BARGRAPH)

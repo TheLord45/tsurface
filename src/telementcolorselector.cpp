@@ -105,6 +105,7 @@ void TElementColorSelector::onButtonClicked()
     DECL_TRACER("TElementColorSelector::onButtonClicked()");
 
     QColorDialog cdialog(mColor, this);
+    cdialog.setOption(QColorDialog::ShowAlphaChannel);
 
     if (cdialog.exec() == QDialog::Rejected)
         return;

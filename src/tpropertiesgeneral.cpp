@@ -599,11 +599,16 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                 mTable->setRowHidden(LIST_OBJECT_SCROLLBAR, false);
                 setTableWidget(LIST_OBJECT_SCROLLBAR, 1, mActObject.ba, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
-                setTableWidget(LIST_OBJECT_SCROLL_OFFSET, 1, mActObject.bo, W_SPINBOX, font);
-                mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
-//                setTableWidget(LIST_OBJECT_DISABLE_TOUCHSC, 1, mActObject.on, W_COMBO, font);
+
+                if (mActObject.ba != 0)
+                {
+                    setTableWidget(LIST_OBJECT_SCROLL_OFFSET, 1, mActObject.bo, W_SPINBOX, font);
+                    mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
+                }
+
+                setTableWidget(LIST_OBJECT_DISABLE_TOUCHSC, 1, mActObject.ds, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_ENABLE_ANCHOR, false);
-//                setTableWidget(LIST_OBJECT_ENABLE_ANCHOR, 1, mActObject.on, W_COMBO, font);
+                setTableWidget(LIST_OBJECT_ENABLE_ANCHOR, 1, mActObject.sdd, W_COMBO, font);
             }
             else
             {
@@ -966,12 +971,12 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             break;
 
             case LIST_OBJECT_SLIDER_NAME:
-                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                cell1->setText(getLabelText(TTEXT_SLIDER_NAME));
                 mTable->setCellWidget(i, 1, makeObjectSliderName("ObjectSliderName"));
                 break;
 
             case LIST_OBJECT_SLIDER_COLOR:
-                cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
+                cell1->setText(getLabelText(TTEXT_SLIDER_COLOR));
                 mTable->setCellWidget(i, 1, makeObjectSliderColor("ObjectSliderColor"));
             break;
 
@@ -1002,22 +1007,22 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_OBJECT_SHOW_SUBPAGES:
                 cell1->setText(getLabelText(TTEXT_SHOW_SUBPAGES));
-                mTable->setCellWidget(i, 1, makeObjectShowSubpages("ObjectShowSubpages"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectShowSubpages"));
             break;
 
             case LIST_OBJECT_DYNAMIC_REORDER:
                 cell1->setText(getLabelText(TTEXT_ALLOW_DYN_REORDERING));
-                mTable->setCellWidget(i, 1, makeObjectDynamicReorder("ObjectDynamicReorder"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDynamicReorder"));
             break;
 
             case LIST_OBJECT_RESET_VIEW_SHOW:
                 cell1->setText(getLabelText(TTEXT_RESET_VIEW_ON_SHOW));
-                mTable->setCellWidget(i, 1, makeObjectResetViewOnShow("ObjectResetViewOnShow"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectResetViewOnShow"));
             break;
 
             case LIST_OBJECT_SCROLLBAR:
                 cell1->setText(getLabelText(TTEXT_SCROLLBAR));
-                mTable->setCellWidget(i, 1, makeObjectScrollbar("ObjectScrollbar"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectScrollbar"));
             break;
 
             case LIST_OBJECT_SCROLL_OFFSET:
@@ -1027,12 +1032,12 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_OBJECT_DISABLE_TOUCHSC:
                 cell1->setText(getLabelText(TTEXT_DISABLE_TOUCH_SCROLL));
-                mTable->setCellWidget(i, 1, makeObjectDisableTouchScroll("ObjectDisableTouchScroll"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisableTouchScroll"));
             break;
 
             case LIST_OBJECT_ENABLE_ANCHOR:
                 cell1->setText(getLabelText(TTEXT_ENABLE_ANCHORING));
-                mTable->setCellWidget(i, 1, makeObjectEnableAnchor("ObjectEnableAnchor"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectEnableAnchor"));
             break;
         }
 
@@ -1624,7 +1629,7 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectSliderName(const QString& nam
             combo->setCurrentText(mActObject.sd);
     }
 
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectYesNoSelection);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectSliderName);
     return combo;
 }
 
@@ -1697,66 +1702,6 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectAnchorPosition(const QString&
     return combo;
 }
 
-TElementWidgetCombo *TPropertiesGeneral::makeObjectShowSubpages(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectShowSubpages(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectShowSubpages);
-    return combo;
-}
-
-TElementWidgetCombo *TPropertiesGeneral::makeObjectDynamicReorder(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectDynamicReorder(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectDynamicReorder);
-    return combo;
-}
-
-TElementWidgetCombo *TPropertiesGeneral::makeObjectResetViewOnShow(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectResetViewOnShow(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectResetViewOnShow);
-    return combo;
-}
-
-TElementWidgetCombo *TPropertiesGeneral::makeObjectScrollbar(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectScrollbar(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectScrollbar);
-    return combo;
-}
-
 TElementSpinBox *TPropertiesGeneral::makeObjectScrollbarOffset(const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::makeObjectScrollbarOffset(const QString& name)");
@@ -1772,36 +1717,6 @@ TElementSpinBox *TPropertiesGeneral::makeObjectScrollbarOffset(const QString& na
     TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
     connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectScrollbarOffset);
     return sbox;
-}
-
-TElementWidgetCombo *TPropertiesGeneral::makeObjectDisableTouchScroll(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectDisableTouchScroll(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectDisableTouchScroll);
-    return combo;
-}
-
-TElementWidgetCombo *TPropertiesGeneral::makeObjectEnableAnchor(const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::makeObjectEnableAnchor(const QString& name)");
-
-    QStringList items;
-    QList<QVariant> data;
-    initYesNo(items, data);
-
-    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
-    combo->addItems(items);
-    combo->addData(data);
-    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectEnableAnchor);
-    return combo;
 }
 
 void TPropertiesGeneral::setWidget(QTableWidget *view)
@@ -2251,10 +2166,23 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
         mActObject.hd = data.toBool() ? 1 : 0;
     else if (name == "ObjectAutoRepeat")
         mActObject.ar = data.toBool() ? 1 : 0;
+    else if (name == "ObjectShowSubpages")
+        mActObject.sw = data.toInt();
+    else if (name == "ObjectDynamicReorder")
+        mActObject.dy = data.toInt();
+    else if (name == "ObjectResetViewOnShow")
+        mActObject.rs = data.toInt();
+    else if (name == "ObjectScrollbar")
+        mActObject.ba = data.toInt();
+    else if (name == "ObjectDisableTouchScroll")
+        mActObject.ds = data.toInt();
+    else if (name == "ObjectEnableAnchor")
+        mActObject.sdd = data.toInt();
 
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 
@@ -2387,46 +2315,6 @@ void TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVari
     requestRedraw(&mPage);
 }
 
-void TPropertiesGeneral::onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name)");
-
-    mActObject.sw = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
-    markChanged();
-    mChanged = true;
-}
-
-void TPropertiesGeneral::onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name)");
-
-    mActObject.dy = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
-    markChanged();
-    mChanged = true;
-}
-
-void TPropertiesGeneral::onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name)");
-
-    mActObject.rs = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
-    markChanged();
-    mChanged = true;
-}
-
-void TPropertiesGeneral::onObjectScrollbar(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectScrollbar(const QString& text, const QVariant& data, const QString& name)");
-
-    mActObject.ba = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
-    markChanged();
-    mChanged = true;
-}
-
 void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)");
@@ -2435,28 +2323,6 @@ void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-}
-
-void TPropertiesGeneral::onObjectDisableTouchScroll(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectDisableTouchScroll(const QString& text, const QVariant& data, const QString& name)");
-
-    // TODO: Add field for this value
-//    mActObject.ba = data.toInt();
-//    mPage.objects[mActObjectID]->setObject(mActObject);
-//    markChanged();
-//    mChanged = true;
-}
-
-void TPropertiesGeneral::onObjectEnableAnchor(const QString& text, const QVariant& data, const QString& name)
-{
-    DECL_TRACER("TPropertiesGeneral::onObjectEnableAnchor(const QString& text, const QVariant& data, const QString& name)");
-
-    // TODO: Add field for this value
-//    mActObject.ba = data.toInt();
-//    mPage.objects[mActObjectID]->setObject(mActObject);
-//    markChanged();
-//    mChanged = true;
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)

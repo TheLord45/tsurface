@@ -105,13 +105,7 @@ class TPropertiesGeneral : public QObject
         void onObjectOrientation(const QString& group, const QVariant& data, const QString& name);
         void onObjectSpacing(int value, const QString& name);
         void onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name);
-        void onObjectShowSubpages(const QString& text, const QVariant& data, const QString& name);
-        void onObjectDynamicReorder(const QString& text, const QVariant& data, const QString& name);
-        void onObjectResetViewOnShow(const QString& text, const QVariant& data, const QString& name);
-        void onObjectScrollbar(const QString& text, const QVariant& data, const QString& name);
         void onObjectScrollbarOffset(int value, const QString& name);
-        void onObjectDisableTouchScroll(const QString& text, const QVariant& data, const QString& name);
-        void onObjectEnableAnchor(const QString& text, const QVariant& data, const QString& name);
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
@@ -155,13 +149,7 @@ class TPropertiesGeneral : public QObject
         TElementWidgetCombo *makeObjectOrientation(const QString& name);
         TElementSpinBox *makeObjectSpacing(const QString& name);
         TElementWidgetCombo *makeObjectAnchorPosition(const QString& name);
-        TElementWidgetCombo *makeObjectShowSubpages(const QString& name);
-        TElementWidgetCombo *makeObjectDynamicReorder(const QString& name);
-        TElementWidgetCombo *makeObjectResetViewOnShow(const QString& name);
-        TElementWidgetCombo *makeObjectScrollbar(const QString& name);
         TElementSpinBox *makeObjectScrollbarOffset(const QString& name);
-        TElementWidgetCombo *makeObjectDisableTouchScroll(const QString& name);
-        TElementWidgetCombo *makeObjectEnableAnchor(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

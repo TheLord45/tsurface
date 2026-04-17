@@ -946,18 +946,20 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "mt", e.mt, 0);
         INSERTJ(bt, "dt", e.dt, "");
         INSERTJ(bt, "im", e.im, "");
-        INSERTJ(bt, "st", e.st, 0);
-        INSERTJ(bt, "ws", e.ws, 0);
-        INSERTJ(bt, "on", e.on, "");
-        INSERTJ(bt, "sa", e.sa, 0);
-        INSERTJ(bt, "dy", e.dy, 0);
-        INSERTJ(bt, "rs", e.rs, 0);
-        INSERTJ(bt, "ba", e.ba, 0);
-        INSERTJ(bt, "bo", e.bo, 0);
-        INSERTJ(bt, "sw", e.sw, 1);
-        INSERTJ(bt, "we", e.we, "");
-        INSERTJ(bt, "pc", e.pc, "");
-        INSERTJ(bt, "op", e.op, "");
+        INSERTJ(bt, "st", e.st, 0);         // SubPageView: ID of subview list
+        INSERTJ(bt, "ws", e.ws, 0);         // SubPageView: Wrap subpages; 1 = YES
+        INSERTJ(bt, "on", e.on, "");        // SubPageView: direction: vert = vertical, if empty: horizontal which is default
+        INSERTJ(bt, "sa", e.sa, 0);         // SubPageView: Percent of space between items in list
+        INSERTJ(bt, "dy", e.dy, 0);         // SubPageView: Allow dynamic reordering; 1 = YES --> A user can reorder subview pages (currently not supported)
+        INSERTJ(bt, "rs", e.rs, 0);         // SubPageView: Reset view on show; 1 = YES
+        INSERTJ(bt, "ba", e.ba, 0);         // SubPageView: 1 = Scrollbar is visible, 0 = No scrollbar visible
+        INSERTJ(bt, "bo", e.bo, 0);         // SubPageView: Scrollbar offset in pixels; Only valid if "ba" > 0
+        INSERTJ(bt, "sw", e.sw, 1);         // SubPageView: G5: Show subpages; 1 = YES (default), 0 = NO
+        INSERTJ(bt, "ds", e.ds, 0);         // SubPageView: Disable touch scrolling
+        INSERTJ(bt, "sdd", e.sdd, 1);       // SubPageView: Enable anchoring
+        INSERTJ(bt, "we", e.we, "");        // SubPageView: Anchor position: Empty = Center, "l/t" = left/top, "r/b" = right/bottom
+        INSERTJ(bt, "pc", e.pc, "");        // Password character for text area
+        INSERTJ(bt, "op", e.op, "");        // String the button send
 
         QJsonArray cm;
 
@@ -1401,7 +1403,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.ld = jo.value("ld").toInt(2);
         object.rv = jo.value("rv").toInt(0);
         object.rl = jo.value("rl").toInt(0);
-        object.rh = jo.value("rh").toInt(0);
+        object.rh = jo.value("rh").toInt(255);
         object.ri = jo.value("ri").toInt(0);
         object.ji = jo.value("ji").toInt(0);
         object.rn = jo.value("rn").toInt(0);
@@ -1427,6 +1429,8 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.ba = jo.value("ba").toInt(0);
         object.bo = jo.value("bo").toInt(0);
         object.sw = jo.value("sw").toInt(1);
+        object.ds = jo.value("ds").toInt(0);
+        object.sdd = jo.value("sdd").toInt(1);
         object.we = jo.value("we").toString();
         object.pc = jo.value("pc").toString();
         object.op = jo.value("op").toString();
@@ -2109,6 +2113,15 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
 
     if (!button.firstChildElement("bo").isNull())
         object.bo = button.firstChildElement("bo").text().toInt();
+
+    if (!button.firstChildElement("sw").isNull())
+        object.sw = button.firstChildElement("sw").text().toInt();
+
+    if (!button.firstChildElement("ds").isNull())
+        object.ds = button.firstChildElement("ds").text().toInt();
+
+    if (!button.firstChildElement("sdd").isNull())
+        object.sdd = button.firstChildElement("sdd").text().toInt();
 
     if (!button.firstChildElement("we").isNull())
         object.we = button.firstChildElement("we").text();

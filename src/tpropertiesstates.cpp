@@ -411,7 +411,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
     {
         mActObject = mPage.objects[mActObjectID]->getObject();
         mActSr = mPage.objects[mActObjectID]->getSrFromIndex(instance);
-        MSG_DEBUG("Recreating table for object " << mActObject.bi << " (" << mActObject.na.toStdString() << ") and instance " << instance);
+        MSG_DEBUG("Recreating table for object " << mActObject.bi << " (" << mActObject.na.toStdString() << ") and instance " << instance << ". Object type: " << mActObject.type);
 
         if (instance >= mActObject.sr.size())
         {
@@ -421,8 +421,11 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
-            table->setRowHidden(TTEXT_BORDER_NAME, false);
-            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME, font);
+            if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+            {
+                table->setRowHidden(TTEXT_BORDER_NAME, false);
+                totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME, font);
+            }
 
             if (mActSr.bs.isEmpty())
             {
@@ -431,10 +434,13 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             }
         }
 
-        table->setRowHidden(TTEXT_BORDER_COLOR, false);
-        table->setRowHidden(TTEXT_FILL_TYPE, false);
+        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+        {
+            table->setRowHidden(TTEXT_BORDER_COLOR, false);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR, font);
+        }
 
-        totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR, font);
+        table->setRowHidden(TTEXT_FILL_TYPE, false);
         totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mActSr.ft, W_COMBO, font);
 
         if (!mActSr.ft.isEmpty() && mActSr.ft != "solid")
@@ -461,11 +467,16 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
         table->setRowHidden(TTEXT_TEXT_COLOR, false);
         table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
-        table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
 
         totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mActSr.ct, W_COLORSELECTOR, font);
         totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR, font);
-        totalHeight += setTableWidget(table, TTEXT_OVERALL_OPACITY, 1, mActSr.oo, W_SPINBOX, font);
+
+        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+        {
+            table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
+            totalHeight += setTableWidget(table, TTEXT_OVERALL_OPACITY, 1, mActSr.oo, W_SPINBOX, font);
+        }
+
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {

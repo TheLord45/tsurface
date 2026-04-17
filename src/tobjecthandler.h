@@ -422,7 +422,7 @@ namespace ObjHandler
         int ld{2};              // Animate time down (Bargraph)
         int rv{0};              // Level control repeat time
         int rl{0};              // Range low
-        int rh{0};              // Range high
+        int rh{255};            // Range high
         int ri{0};              // Bargraph inverted (0 = normal, 1 = inverted)
         int ji{0};              // Joystick aux inverted (0 = normal, 1 = inverted)
         int rn{0};              // Bargraph: Range drag increment
@@ -448,6 +448,8 @@ namespace ObjHandler
         int ba{0};              // SubPageView: 1 = Scrollbar is visible, 0 = No scrollbar visible
         int bo{0};              // SubPageView: Scrollbar offset in pixels; Only valid if "ba" > 0
         int sw{1};              // SubPageView: G5: Show subpages; 1 = YES (default), 0 = NO
+        int ds{0};              // SubPageView: Disable touch scrolling
+        int sdd{1};             // SubPageView: Enable anchoring
         QString we;             // SubPageView: Anchor position: Empty = Center, "l/t" = left/top, "r/b" = right/bottom
         QString pc;             // Password character for text area
         QString op;             // String the button send
