@@ -80,6 +80,8 @@ namespace ConfigMain
         int batteryLevelPort{0};
         int batteryLevelCode{100};
         int marqeeSpeed{1};
+        QString fontName;
+        int fontSize{10};
     }SETUP_t;
 
     typedef struct PAGEENTRY_t
@@ -247,8 +249,8 @@ class TConfMain
         void setFileNameAuto(bool a) { mFileNameAuto = a; }
         void setColorBackground(const QColor& col) { mColorBackground = col; }
         void setColorText(const QColor& col) { mColorText = col; }
-        void setFontBase(const QFont& font) { mFontBase = font; };
-        void setFontBaseSize(int size) { mFontBaseSize = size; }
+        void setFontBase(const QFont& font);
+        void setFontBaseSize(int size);
         void setFontFileName(const QString& name);
         void setMapsFileName(const QString& name);
         void setIconFileName(const QString& name);
@@ -270,8 +272,8 @@ class TConfMain
         QList<QString> getAllPopups();
         QColor& getColorBackground() { return mColorBackground; }
         QColor& getColorText() { return mColorText; }
-        QFont& getFontBase() { return mFontBase; }
-        int getFontBaseSize() { return mFontBaseSize; }
+        QFont getFontBase();
+        int getFontBaseSize();
         QString getFontFile() { if (mConfMain) return mConfMain->fileList.fontFile; else return QString(); }
         QString getPathTemporary() { return mPathTemporary; }
         QString getMapsFile() { if (mConfMain) return mConfMain->fileList.mapFile; else return QString(); }
@@ -315,8 +317,6 @@ class TConfMain
         TPanelType::PANELTYPE_t mPanType{TPanelType::PAN_VARIA_SL50};
         QColor mColorBackground{qRgb(0xff, 0xff, 0xff)};
         QColor mColorText{qRgb(0, 0, 0)};
-        QFont mFontBase;            // The default font
-        int mFontBaseSize{10};      // The default font size
         bool mFileNameAuto{false};  // TRUE = File name is auto generated
         bool mAMX{false};           // TRUE = Read a TP4 or TP5 file.
         bool mG5{false};            // If mAMX is TRUE and this is TRUE then we read an AMX G5 file.

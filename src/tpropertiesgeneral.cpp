@@ -230,7 +230,7 @@ void TPropertiesGeneral::update()
     }
     else
     {
-        mActObjectID = object.bi - 1;
+        mActObjectID = TPageHandler::Current().getObjectIndex(mPage, object.bi);
         setTable(getStateFromButtonType(object.type), true);
     }
 }
@@ -598,14 +598,14 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                 setTableWidget(LIST_OBJECT_RESET_VIEW_SHOW, 1, mActObject.rs, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_SCROLLBAR, false);
                 setTableWidget(LIST_OBJECT_SCROLLBAR, 1, mActObject.ba, W_COMBO, font);
-                mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
 
                 if (mActObject.ba != 0)
                 {
+                    mTable->setRowHidden(LIST_OBJECT_SCROLL_OFFSET, false);
                     setTableWidget(LIST_OBJECT_SCROLL_OFFSET, 1, mActObject.bo, W_SPINBOX, font);
-                    mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
                 }
 
+                mTable->setRowHidden(LIST_OBJECT_DISABLE_TOUCHSC, false);
                 setTableWidget(LIST_OBJECT_DISABLE_TOUCHSC, 1, mActObject.ds, W_COMBO, font);
                 mTable->setRowHidden(LIST_OBJECT_ENABLE_ANCHOR, false);
                 setTableWidget(LIST_OBJECT_ENABLE_ANCHOR, 1, mActObject.sdd, W_COMBO, font);
@@ -1829,7 +1829,17 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
         return;
 
     mActObject = mPage.objects[mActObjectID]->getObject();
+    BUTTONTYPE oldType = mActObject.type;
     mActObject.type = static_cast<BUTTONTYPE>(data.toInt());
+
+    if (mActObject.type == BARGRAPH && mActObject.type != oldType)
+    {
+        if (mActObject.sr[0].cf == mActObject.sr[1].cf)
+        {
+            mActObject.sr[0].cf = qRgb(0xff, 0xa1, 0);
+            mActObject.sr[1].cf = qRgb(0x97, 0xbe, 0x0d);
+        }
+    }
 
     mPage.objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
@@ -2183,6 +2193,7 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
     markChanged();
     mChanged = true;
     requestRedraw(&mPage);
+    update();
 }
 
 

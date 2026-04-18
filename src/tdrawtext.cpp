@@ -433,7 +433,7 @@ bool TDrawText::drawObject(QPixmap *bm, int instance)
     QPainter painter(bm);
 
     QFont font = TFonts::getFont(mBtObject.sr[instance].ff);
-    font.setPointSize(mBtObject.sr[instance].fs);
+    font.setPointSize(mBtObject.sr[instance].fs > 0 ? mBtObject.sr[instance].fs : 10);
     painter.setFont(font);
     painter.setPen(mBtObject.sr[instance].ct);
 //    QRect rect(0, 0, mBtObject.wt, mBtObject.ht);

@@ -453,13 +453,11 @@ TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex, int ins
         return nullptr;
     }
 
-    int inst = instance < 0 || instance > object.sr.size() ? 0 : instance;
     QWidget* content = new QWidget(page->baseObject.widget);
     QString objName = QString("Object_%1").arg(object.bi);
     QPoint pt(object.lt, object.tp);
     MSG_DEBUG("Drawing object \"" << objName.toStdString() << "\" at position " << pt.x() << ", " << pt.y());
     content->setObjectName(objName);
-//    content->setStyleSheet(QString("background: %1").arg(object.sr[inst].cf.name(QColor::HexArgb)));
     content->setStyleSheet("background: transparent");
     page->baseObject.widget->clearSelection();
     page->baseObject.widget->setCurrentTool(mSelectedTool);
@@ -472,15 +470,12 @@ TResizableWidget *TSurface::initObject(Page::PAGE_t *page, int objIndex, int ins
     wrap->setId(object.bi);
     wrap->setPageId(page->pageID);
     wrap->setSelected(false);
-//    drawObject(page, objIndex, inst);
 
     connect(wrap, &TResizableWidget::selectChanged, this, &TSurface::onObjectSelectChanged);
     connect(wrap, &TResizableWidget::objectSizeChanged, this, &TSurface::onObjectSizeChanged);
     connect(wrap, &TResizableWidget::objectMoved, this, &TSurface::onObjectMoved);
 
     TWorkSpaceHandler::Current().setObject(pobject);
-    STATE_TYPE stype = getStateFromButtonType(object.type);
-//    TWorkSpaceHandler::Current().setAllProperties(*page, stype, objIndex);
     return wrap;
 }
 
@@ -1050,9 +1045,43 @@ void TSurface::on_actionReplace_triggered()
 
 }
 
+/**
+ * @brief TSurface::on_actionDelete_triggered
+ * This is triggered when the user pushes the menu point "delete"
+ * under "Edit". It is active at the moment an object is selected.
+ * The method deletes the selected object. If more then 1 is selected,
+ * all of them are removed.
+ */
 void TSurface::on_actionDelete_triggered()
 {
+    DECL_TRACER("TSurface::on_actionDelete_triggered()");
 
+    Page::PAGE_t page = TPageHandler::Current().getCurrentPage(m_ui->mdiArea);
+
+    if (page.pageID <= 0)
+        return;
+
+    TCanvasWidget *cwidget = TPageHandler::Current().getWidget(page.pageID);
+
+    if (!cwidget)
+        return;
+
+    if (!cwidget->hasSelected())
+    {
+        m_ui->actionDelete->setDisabled(true);
+        return;
+    }
+
+    QList<TResizableWidget *> list = cwidget->getAllSelectedWidgets();
+    QList<TResizableWidget *>::Iterator iter;
+
+    for (iter = list.begin(); iter != list.end(); ++iter)
+    {
+        TResizableWidget *w = *iter;
+        TPageHandler::Current().removeObject(page.pageID, w->getId());
+    }
+
+    cwidget->removeSelected();
 }
 
 void TSurface::on_actionRename_triggered()
@@ -1846,6 +1875,7 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
             return;
 
         TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+        m_ui->actionDelete->setEnabled(true);
     }
     else
     {
@@ -1855,7 +1885,10 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
             TResizableWidget *widget = page->baseObject.widget->currentSelectedWidget();
 
             if (!widget)
+            {
                 TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
+                m_ui->actionDelete->setDisabled(true);
+            }
             else
             {
                 TObjectHandler *object = TPageHandler::Current().getObjectHandler(widget->getPageId(), widget->getId());
@@ -1863,10 +1896,12 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
                 if (!object)
                 {
                     TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
+                    m_ui->actionDelete->setDisabled(true);
                     return;
                 }
                 // Here we have a valid object. We set the properties to reflect this.
                 TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+                m_ui->actionDelete->setEnabled(true);
             }
         }
     }

@@ -282,6 +282,34 @@ TResizableWidget *TCanvasWidget::currentSelectedWidget()
     return nullptr;
 }
 
+QList<TResizableWidget *> TCanvasWidget::getAllSelectedWidgets()
+{
+    DECL_TRACER("TCanvasWidget::getAllSelectedWidgets()");
+
+    QList<TResizableWidget *> list;
+
+    for (TResizableWidget *w : mResizableChildren())
+    {
+        if (w->isSelected())
+            list.append(w);
+    }
+
+    return list;
+}
+
+bool TCanvasWidget::hasSelected()
+{
+    DECL_TRACER("TCanvasWidget::hasSelected()");
+
+    for (TResizableWidget *w : mResizableChildren())
+    {
+        if (w->isSelected())
+            return true;
+    }
+
+    return false;
+}
+
 TResizableWidget *TCanvasWidget::getWidget(int bi)
 {
     DECL_TRACER("TCanvasWidget::getWidget(int bi)");

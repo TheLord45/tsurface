@@ -48,8 +48,6 @@ TConfMain *TConfMain::mCurrent{nullptr};
 TConfMain::TConfMain()
 {
     DECL_TRACER("TConfMain::TConfMain()");
-
-    mFontBase = QGuiApplication::font();
 }
 
 TConfMain::~TConfMain()
@@ -395,6 +393,11 @@ bool TConfMain::readProject(const QString& path)
     mConfMain->setup.batteryLevelPort = setup.value("batteryLevelPort").toInt(0);
     mConfMain->setup.batteryLevelCode = setup.value("batteryLevelCode").toInt(100);
     mConfMain->setup.marqeeSpeed = setup.value("marqeeSpeed").toInt(1);
+    mConfMain->setup.fontName = setup.value("fontName").toString();
+    mConfMain->setup.fontSize = setup.value("fontSize").toInt(10);
+
+    if (mConfMain->setup.fontName.isEmpty())
+        mConfMain->setup.fontName = TFonts::getFontName(QGuiApplication::font());
 
     QJsonArray pageList = root.value("pageList").toArray();
 
@@ -637,6 +640,26 @@ void TConfMain::setFileName(const QString& fn)
 
     mFileName = fn;
     mConfMain->fileName = basename(fn);
+}
+
+void TConfMain::setFontBase(const QFont& font)
+{
+    DECL_TRACER("TConfMain::setFontBase(const QFont& font)");
+
+    if (!mConfMain)
+        return;
+
+    mConfMain->setup.fontName = TFonts::getFontName(font);
+}
+
+void TConfMain::setFontBaseSize(int size)
+{
+    DECL_TRACER("TConfMain::setFontBaseSize(int size)");
+
+    if (!mConfMain || size <= 0)
+        return;
+
+    mConfMain->setup.fontSize = size;
 }
 
 QString TConfMain::getFileName()
@@ -924,6 +947,8 @@ void TConfMain::saveProject()
     setup.insert("batteryLevelPort", mConfMain->setup.batteryLevelPort);
     setup.insert("batteryLevelCode", mConfMain->setup.batteryLevelCode);
     setup.insert("marqeeSpeed", mConfMain->setup.marqeeSpeed);
+    setup.insert("fontName", mConfMain->setup.fontName);
+    setup.insert("fontSize", mConfMain->setup.fontSize);
     root.insert("setup", setup);
 
     QJsonArray pgList;
@@ -1138,6 +1163,37 @@ QList<QString> TConfMain::getAllPopups()
     return list;
 }
 
+QFont TConfMain::getFontBase()
+{
+    DECL_TRACER("TConfMain::getFontBase()");
+
+    QFont font;
+
+    if (!mConfMain || mConfMain->setup.fontName.isEmpty())
+    {
+        font = QGuiApplication::font();
+
+        if (font.pointSize() <= 0)
+            font.setPointSize(10);
+
+        return font;
+    }
+
+    font = TFonts::getFont(mConfMain->setup.fontName);
+    font.setPointSize(mConfMain->setup.fontSize);
+    return font;
+}
+
+int TConfMain::getFontBaseSize()
+{
+    DECL_TRACER("TConfMain::getFontBaseSize()");
+
+    if (!mConfMain)
+        return 10;
+
+    return mConfMain->setup.fontSize;
+}
+
 void TConfMain::initConfig(bool force)
 {
     DECL_TRACER("TConfMain::initConfig(bool force)");
@@ -1302,6 +1358,11 @@ void TConfMain::parsePanelSetup(const QDomElement &panelSetup)
     mConfMain->setup.startupString = panelSetup.firstChildElement("startupString").text();
     mConfMain->setup.wakeupString = panelSetup.firstChildElement("wakeupString").text();
     mConfMain->setup.sleepString = panelSetup.firstChildElement("sleepString").text();
+    // The following does not exist for AMX. Therefore we fake it.
+    // The font name is taken from the system and is always the standard font the
+    // system is using. The size will be always 10 points.
+    mConfMain->setup.fontName = TFonts::getFontName(QGuiApplication::font());
+    mConfMain->setup.fontSize = 10;
 }
 
 void TConfMain::parsePageList(const QDomElement &pageList)

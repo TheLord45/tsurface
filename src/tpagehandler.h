@@ -216,6 +216,7 @@ class TPageHandler : public QObject
         bool readAMXPages(const QStringList& list);
         ObjHandler::TOBJECT_t initNewObject(int bi, const QString& name);
         int appendObject(int pageID, TObjectHandler *object);
+        void removeObject(int pageID, int bi);
         // Getter/Setter
         Page::PAGE_t *getPage(int number);
         Page::PAGE_t getPage(const QString& name);

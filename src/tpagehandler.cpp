@@ -574,6 +574,32 @@ int TPageHandler::appendObject(int pageID, TObjectHandler *object)
     return page->objects.size() - 1;
 }
 
+void TPageHandler::removeObject(int pageID, int bi)
+{
+    DECL_TRACER("TPageHandler::removeObject(int pageID, int bi)");
+
+    if (pageID <= 0 || bi <= 0)
+        return;
+
+    PAGE_t *page = getPagePointer(pageID);
+
+    if (!page)
+        return;
+
+    QList<TObjectHandler *>::Iterator iter;
+
+    for (iter = page->objects.begin(); iter != page->objects.end(); ++iter)
+    {
+        TObjectHandler *o = *iter;
+
+        if (o->getObject().bi == bi)
+        {
+            page->objects.erase(iter);
+            break;
+        }
+    }
+}
+
 void TPageHandler::setObject(int num, ObjHandler::TOBJECT_t& object)
 {
     DECL_TRACER("TPageHandler::addObject(int num, ObjHandler::TOBJECT_t& object)");
