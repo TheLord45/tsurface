@@ -49,7 +49,7 @@ TNewProjectDialog::TNewProjectDialog(QWidget *parent)
     ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
     MSG_DEBUG("Text color: \"background-color: " << mColorText.name().toStdString() << "\"");
     mFont = parent->font();
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
     MSG_DEBUG("Current font: " << mFont.family().toStdString() << " (" << mSize << ")");
     QList<int> fSizes = QFontDatabase::pointSizes(mFont.family());
     QList<int>::Iterator iter;
@@ -114,7 +114,7 @@ void TNewProjectDialog::init()
     ui->lineEditPageName->setText(mPageName);
     ui->frameColorBackground->setStyleSheet("background-color: " + mColorBackground.name());
     ui->frameColorText->setStyleSheet("background-color: " + mColorText.name());
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
 
     for (int i = 0; i < ui->comboBoxSize->count(); ++i)
     {
@@ -299,7 +299,7 @@ void TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)
     DECL_TRACER("TNewProjectDialog::on_fontComboBox_currentFontChanged(const QFont &f)");
 
     mFont = f;
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
     int max = ui->comboBoxSize->count();
 
     for (int i = 0; i < max; ++i)
@@ -324,7 +324,7 @@ void TNewProjectDialog::on_comboBoxSize_currentIndexChanged(int index)
         return;
 
     mSize = ui->comboBoxSize->itemData(index).toInt();
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
     ui->labelFontSample->setFont(mFont);
     ui->labelFontSample->setText(TFonts::getFontName(mFont) + " AaBbCcXxYyZz");
     ui->labelFontSample->setStyleSheet(styleSheetColor());

@@ -304,7 +304,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
             totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
             font = TFonts::getFont(mPage.srPage.ff);
-            font.setPointSize(mPage.srPage.fs);
+            font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
             totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
             totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
 
@@ -387,7 +387,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
             totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
             font = TFonts::getFont(mPage.srPage.ff);
-            font.setPointSize(mPage.srPage.fs);
+            font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
             totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
             totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
 
@@ -505,7 +505,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
             font = TFonts::getFont(mActSr.ff);
-            font.setPointSize(mActSr.fs);
+            font.setPointSize(mActSr.fs > 0 ? mActSr.fs : TConfMain::Current().getFontBaseSize());
             totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT, font);
             totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO, font);
 
@@ -1411,7 +1411,7 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
             text = mPage.srPage.te;
 
         font = TFonts::getFont(mPage.srPage.ff);
-        font.setPointSize(mPage.srPage.fs);
+        font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
     }
     else
     {
@@ -1424,7 +1424,7 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
             text = mActSr.te;
 
         font = TFonts::getFont(mActSr.ff);
-        font.setPointSize(mActSr.fs);
+        font.setPointSize(mActSr.fs > 0 ? mActSr.fs : TConfMain::Current().getFontBaseSize());
     }
 
     TElementWidgetText *wtext = new TElementWidgetText(text, name, mTreeWidget);

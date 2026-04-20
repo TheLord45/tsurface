@@ -220,7 +220,7 @@ void TAddPopupDialog::on_fontComboBoxFontName_currentFontChanged(const QFont &f)
     DECL_TRACER("TAddPopupDialog::on_fontComboBoxFontName_currentFontChanged(const QFont &f)");
 
     mFont = f;
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
     int max = ui->comboBoxFontSize->count();
 
     for (int i = 0; i < max; ++i)
@@ -243,7 +243,7 @@ void TAddPopupDialog::on_comboBoxFontSize_currentIndexChanged(int index)
         return;
 
     mSize = ui->comboBoxFontSize->itemData(index).toInt();
-    mFont.setPointSize(mSize);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
     ui->labelFontSampleShow->setFont(mFont);
 }
 
@@ -293,11 +293,7 @@ void TAddPopupDialog::setFont(const QFont& font)
     DECL_TRACER("TAddPopupDialog::setFont(const QFont& font)");
 
     mFont = font;
-
-    if (mSize > 0)
-        mFont.setPointSize(mSize);
-    else
-        mFont.setPointSize(10);
+    mFont.setPointSize(mSize > 0 ? mSize : 10);
 
     ui->labelFontSampleShow->setFont(font);
     ui->fontComboBoxFontName->setCurrentFont(font);

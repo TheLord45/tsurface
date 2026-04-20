@@ -183,7 +183,6 @@ QFont TFonts::getFont(const QString& ff)
     DECL_TRACER("TFonts::getFont(const QString& ff)");
 
     QFont font;
-    QString baseName = getFontBaseName(ff);
 
     if (ff.isEmpty())
     {
@@ -192,6 +191,7 @@ QFont TFonts::getFont(const QString& ff)
         return font;
     }
 
+    QString baseName = getFontBaseName(ff);
     // Look in the table if the string is not already in the list.
     QList<PRIVFONTS_t>::Iterator iter;
 

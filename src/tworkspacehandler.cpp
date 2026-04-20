@@ -243,6 +243,7 @@ void TWorkSpaceHandler::objectTypeChanged(ObjHandler::BUTTONTYPE btype, int inde
     DECL_TRACER("TWorkSpaceHandler::objectTypeChanged(ObjHandler::BUTTONTYPE btype, int index)");
 
     TPropertiesProgramming::setObjectType(btype, index);
+    TPropertiesStates::setObjectType(btype, index);
 }
 
 void TWorkSpaceHandler::pageNameChanged(int id, const QString& name)

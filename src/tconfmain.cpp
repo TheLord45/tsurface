@@ -1180,7 +1180,7 @@ QFont TConfMain::getFontBase()
     }
 
     font = TFonts::getFont(mConfMain->setup.fontName);
-    font.setPointSize(mConfMain->setup.fontSize);
+    font.setPointSize(mConfMain->setup.fontSize <= 0 ? 10 : mConfMain->setup.fontSize);
     return font;
 }
 
@@ -1188,7 +1188,7 @@ int TConfMain::getFontBaseSize()
 {
     DECL_TRACER("TConfMain::getFontBaseSize()");
 
-    if (!mConfMain)
+    if (!mConfMain || mConfMain->setup.fontSize <= 0)
         return 10;
 
     return mConfMain->setup.fontSize;

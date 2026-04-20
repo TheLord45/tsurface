@@ -46,7 +46,8 @@ void TCharacterWidget::updateSize(const QString &fontSize)
 {
     DECL_TRACER("TCharacterWidget::updateSize(const QString &fontSize)");
 
-    mDisplayFont.setPointSize(fontSize.toInt());
+    int fsize = fontSize.toInt();
+    mDisplayFont.setPointSize(fsize > 0 ? fsize : 10);
     mSquareSize = qMax(24, QFontMetrics(mDisplayFont).xHeight() * 3);
     adjustSize();
     update();
