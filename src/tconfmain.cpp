@@ -1230,6 +1230,48 @@ QStringList TConfMain::getSubPageSets()
     return list;
 }
 
+QList<ConfigMain::SUBPAGESET_t> TConfMain::getSubPageSetList(int id)
+{
+    DECL_TRACER("TConfMain::getSubPageSetList(int id)");
+
+    if (!mConfMain)
+        return QList<ConfigMain::SUBPAGESET_t>();
+
+    if (id >= 0)
+    {
+        QList<ConfigMain::SUBPAGESET_t> list;
+        QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
+
+        for (iter = mConfMain->subPageSet.begin(); iter != mConfMain->subPageSet.end(); ++iter)
+        {
+            if (iter->id == id)
+                list.append(*iter);
+        }
+
+        return list;
+    }
+
+    return mConfMain->subPageSet;
+}
+
+int TConfMain::getSubPageID(const QString& name)
+{
+    DECL_TRACER("TConfMain::getSubPageID(const QString& name)");
+
+    if (!mConfMain)
+        return 0;
+
+    QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
+
+    for (iter = mConfMain->subPageSet.begin(); iter != mConfMain->subPageSet.end(); ++iter)
+    {
+        if (iter->name == name)
+            return iter->id;
+    }
+
+    return 0;
+}
+
 int TConfMain::getNextSubPageSetID()
 {
     DECL_TRACER("TConfMain::getNextSubPageSetID()");

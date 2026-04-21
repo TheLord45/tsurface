@@ -287,7 +287,8 @@ class TConfMain
         QString getUrl(const ConfigMain::RESOURCE_t& data);
         QString getUrl(const ConfigMain::DATASOURCE_t& data);
         QStringList getSubPageSets();
-        QList<ConfigMain::SUBPAGESET_t> getSubPageSetList() { if (mConfMain) return mConfMain->subPageSet; else return QList<ConfigMain::SUBPAGESET_t>();}
+        QList<ConfigMain::SUBPAGESET_t> getSubPageSetList(int id = -1);
+        int getSubPageID(const QString& name);
         int getNextSubPageSetID();
 
         bool haveDynamicResource(const QString& name);

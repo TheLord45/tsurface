@@ -2291,7 +2291,18 @@ void TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant
     DECL_TRACER("TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant& data, const QString& name)");
 
     Q_UNUSED(name);
-    // TODO: Set group
+    Q_UNUSED(data);
+
+    int oldID = mActObject.st;
+    mActObject.st = TConfMain::Current().getSubPageID(group);
+
+    if (oldID != mActObject.st)
+    {
+        mPage.objects[mActObjectID]->setObject(mActObject);
+        markChanged();
+        mChanged = true;
+        requestRedraw(&mPage);
+    }
 }
 
 void TPropertiesGeneral::onObjectOrientation(const QString& ori, const QVariant& data, const QString& name)

@@ -169,7 +169,33 @@ void TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)
     if (load)
         page = *TPageHandler::Current().getPage(id);
 
-    setGeneralPage(page, STATE_PAGE);
+    STATE_TYPE st = STATE_PAGE;
+    mObjectIndex = -1;
+
+    if (page.baseObject.widget && page.baseObject.widget->hasSelected())
+    {
+        QList<TResizableWidget *> list = page.baseObject.widget->getAllSelectedWidgets();
+
+        if (list.size() == 1)
+        {
+            mObject = TPageHandler::Current().getObjectHandler(page.pageID, list[0]->getId());
+            int idx = 0;
+            QList<TObjectHandler *>::Iterator iter;
+
+            for (iter = page.objects.begin(); iter != page.objects.end(); ++iter)
+            {
+                TObjectHandler *o = *iter;
+
+                if (o->getObject().bi == mObject->getButtonIndex())
+                {
+                    mObjectIndex = idx;
+                    break;
+                }
+            }
+        }
+    }
+
+    setGeneralPage(page, STATE_PAGE, mObjectIndex);
     TPropertiesProgramming::setPage(page);
     TPropertiesStates::setPage(page);
 }

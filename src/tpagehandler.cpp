@@ -1025,6 +1025,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             jsr.insert("cf", s.cf.name(QColor::HexArgb));   // Fill color
             jsr.insert("ct", s.ct.name(QColor::HexArgb));   // Text Color
             jsr.insert("ec", s.ec.name(QColor::HexArgb));   // Text effect color
+            INSERTJ(jsr, "lc", s.lc.name(QColor::HexArgb), "#ffffffff");
             INSERTJ(jsr, "bm", s.bm, "");                   // bitmap file name
             QJsonArray bitmaps;
             int idx = 0;
@@ -1492,6 +1493,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             s.cf = QColor(jsr.value("cf").toString(TConfMain::Current().getColorBackground().name(QColor::HexArgb)));      // Fill color
             s.ct = QColor(jsr.value("ct").toString(TConfMain::Current().getColorText().name(QColor::HexArgb)));      // Text color
             s.ec = QColor(jsr.value("ec").toString("#ff808080"));      // Text effect color
+            s.lc = QColor(jsr.value("lc").toString("#ffffff"));
             s.bm = jsr.value("bm").toString();
             QJsonArray bitmaps = jsr.value("bitmapEntries").toArray();
 
@@ -1737,6 +1739,11 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     lsr.cf = getColor(sr.firstChildElement("cf").text());
     lsr.ct = getColor(sr.firstChildElement("ct").text());
     lsr.ec = getColor(sr.firstChildElement("ec").text());
+
+    if (!sr.firstChildElement("lc").isNull())
+        lsr.lc = sr.firstChildElement("lc").text();
+    else
+        lsr.lc = qRgb(255, 255, 255);
 
     if (!sr.firstChildElement("mi").isNull())
         lsr.mi = sr.firstChildElement("mi").text();

@@ -16,12 +16,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QPainter>
+#include <QScrollArea>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include "tdrawobject.h"
 #include "tresizablewidget.h"
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tdrawborder.h"
+#include "tconfmain.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -166,7 +170,120 @@ void TDrawObject::draw(int instance)
             break;
 
             default:
-                break;
+                if (object.type == SUBPAGE_VIEW)
+                {
+                    if (mWidget)
+                    {
+                        // We add an area to the widget. If there is already one,
+                        // we delete it first.
+                        QScrollArea *area = nullptr;
+                        QObjectList olist = mWidget->children();
+
+                        if (olist.size() > 0)
+                        {
+                            for (QObject *obj : olist)
+                            {
+                                if (obj->objectName() == "ScrollContainer")
+                                {
+                                    obj->deleteLater();
+                                    break;
+                                }
+                            }
+                        }
+
+                        QWidget *container = new QWidget(mWidget);
+                        container->setObjectName("ScrollContainer");
+                        container->setFixedSize(mWidget->size());
+
+                        area = new QScrollArea;
+                        area->setObjectName("ScrollArea");
+//                        area->setFixedSize(mWidget->size());
+
+                        if (object.ba)      // Do we have visible scrollbars?
+                        {
+                            if (object.on == "vert")
+                            {
+                                area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+                                area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                            }
+                            else
+                            {
+                                area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+                                area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                            }
+                        }
+                        else
+                        {
+                            area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                            area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+                        }
+
+                        QLayout *layout = nullptr;
+
+                        if (object.on == "vert")
+                        {
+                            QVBoxLayout *lay = new QVBoxLayout(container);
+                            layout = static_cast<QLayout *>(lay);
+                        }
+                        else
+                        {
+                            QHBoxLayout *lay = new QHBoxLayout(container);
+                            layout = static_cast<QLayout *>(lay);
+                        }
+
+                        layout->setSpacing(10);
+                        layout->setContentsMargins(0, 0, 0, 0);
+
+                        QList<ConfigMain::SUBPAGESET_t> list = TConfMain::Current().getSubPageSetList(object.st);
+                        QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
+                        MSG_DEBUG("Having " << list.size() << " IDs.");
+                        int wh = 0;
+
+                        for (iter = list.begin(); iter != list.end(); ++iter)
+                        {
+                            QList<ConfigMain::SUBPAGEITEMS_t>::Iterator itIter;
+                            MSG_DEBUG("ID " << iter->id << " has " << iter->items.size() << " items.");
+
+                            for (itIter = iter->items.begin(); itIter != iter->items.end(); ++itIter)
+                            {
+                                MSG_DEBUG("Setting widget " << itIter->pageName.toStdString() << " to size: " << iter->pgWidth << " x " << iter->pgHeight);
+                                QWidget *w = new QWidget;
+                                w->setObjectName(QString("%1_%2").arg(itIter->pageName).arg(itIter->pageID));
+                                w->setFixedSize(iter->pgWidth, iter->pgHeight);
+//                                w->setStyleSheet("background-color: transparent");
+
+                                if (object.on == "vert")
+                                    wh += iter->pgHeight;
+                                else
+                                    wh += iter->pgWidth;
+
+                                QPainter p(w);
+                                p.setRenderHint(QPainter::Antialiasing);
+
+                                // Draw rectangle border
+                                p.setPen(object.sr[0].lc);
+                                p.setBrush(Qt::NoBrush);
+                                p.drawRect(w->rect().adjusted(0, 0, -1, -1));
+
+                                // Draw pattern inside rectangle using QBrush with Dense6Pattern
+                                QRect innerRect = w->rect().adjusted(1, 1, -1, -1);
+                                QBrush brush(object.sr[0].lc, Qt::Dense6Pattern);
+                                p.fillRect(innerRect, brush);
+                                p.end();
+                                layout->addWidget(w);
+                            }
+                        }
+
+                        if (object.on == "vert")
+                            area->resize(mWidget->width(), wh);
+                        else
+                            area->resize(wh, mWidget->height());
+
+                        area->setWidget(container);
+//                        mWidget->setContentWidget(container);
+                        area->show();
+                    }
+                }
         }
     }
 
@@ -218,7 +335,7 @@ void TDrawObject::getDrawOrder(const QString& sdo, DRAW_ORDER_t *order)
 
     for (int i = 0; i < elems; i++)
     {
-        int e = sdo.mid(i * 2, 2).toInt();
+        int e = sdo.sliced(i * 2, 2).toInt();
 
         if (e < 1 || e > 5)
         {
@@ -320,9 +437,11 @@ bool TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QColor>& grad
     if (gradients.size() == 2)
         stop = 1.0;
 
-    for (QColor col : gradients)
+    QList<QColor>::Iterator iter;
+
+    for (iter = gradients.begin(); iter != gradients.end(); ++iter)
     {
-        gstops.append(std::pair<qreal, QColor>(point, col));
+        gstops.append(std::pair<qreal, QColor>(point, *iter));
         point += stop;
     }
 
@@ -419,10 +538,11 @@ GRAD_TYPE_t TDrawObject::getGradientType(const QString& grad)
     DECL_TRACER("TDrawObject::getGradientType(const QString& grad)");
 
     int idx = 0;
+    QList<QString>::Iterator iter;
 
-    for (QString s : grTypes)
+    for (iter = grTypes.begin(); iter != grTypes.end(); ++iter)
     {
-        if (grad == s)
+        if (grad == *iter)
             return static_cast<GRAD_TYPE_t>(idx + 1);
 
         idx++;

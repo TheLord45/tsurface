@@ -234,6 +234,7 @@ namespace ObjHandler
         QColor cf;              // Fill color
         QColor ct;              // Text Color
         QColor ec;              // Text effect color
+        QColor lc;              // Sub-Page Layout color
         QString bm;             // bitmap file name
         QList<BITMAPS_t> bitmaps;   // G5 table of bitmaps. Limited to 5 max.
         QList<QColor> gradientColors;  // G5 optional gradient colors

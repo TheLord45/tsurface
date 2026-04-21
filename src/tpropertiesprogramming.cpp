@@ -103,7 +103,17 @@ void TPropertiesProgramming::setPage(const Page::PAGE_t& page)
     mChanged = false;
     mPage = Page::PAGE_t();
     mPage = page;
-    mStype = page.popupType == Page::PT_PAGE ? STATE_PAGE : STATE_POPUP;
+
+    switch (page.popupType)
+    {
+        case Page::PT_PAGE:     mStype = STATE_PAGE; break;
+        case Page::PT_POPUP:    mStype = STATE_POPUP; break;
+        case Page::PT_SUBPAGE:  mStype = STATE_SUBPAGE; break;
+
+        default:
+            mStype = STATE_UNKNOWN;
+    }
+
     setTable();
 }
 
@@ -278,25 +288,28 @@ void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
 
     MSG_DEBUG("Changed: " << (mChanged ? "YES" : "NO") << ", BI: " << object.bi << ", new ID: " << id << ", old ID: " << mActObjectID);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size() && mActObjectID != id)
+    if (id >= 0 && mActObjectID != id)
     {
-        if (mChanged)
+        if (mChanged && mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         {
             mPage.objects[mActObjectID]->setObject(mActObject);
             saveChangedData(&mPage, TBL_PROGRAM);
         }
+        // Check if the new ID is in range. If not, reload page.
+        if (id >= mPage.objects.size())
+            mPage = *TPageHandler::Current().getPage(mPage.pageID);
 
         mActObject = object;
         mActObjectID = id;
         mChanged = false;
     }
-    else if (id >= mPage.objects.size())
+    else if (id >= 0)
     {
-        TObjectHandler *obj = TPageHandler::Current().getObjectHandler(mPage.pageID, object.bi);
-        mPage.objects.append(obj);
         mActObject = object;
-        mActObjectID = mPage.objects.size() - 1;
+        mActObjectID = id;
     }
+    else
+        mActObjectID = -1;
 
     setSType();
 }
@@ -392,6 +405,8 @@ void TPropertiesProgramming::setTable(STATE_TYPE stype)
 
     if (stype != STATE_UNKNOWN)
         mStype = stype;
+
+    MSG_DEBUG("mStype: " << mStype << ", stype: " << stype);
 
     if (!mInitialized)
         createPage();
