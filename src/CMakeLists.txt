@@ -195,6 +195,7 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
+    tsubviewarea.h tsubviewarea.cpp
 )
 
 # Use the Widgets module from Qt 6.

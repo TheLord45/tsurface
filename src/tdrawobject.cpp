@@ -25,6 +25,7 @@
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tdrawborder.h"
+#include "tsubviewarea.h"
 #include "tconfmain.h"
 #include "terror.h"
 
@@ -174,114 +175,20 @@ void TDrawObject::draw(int instance)
                 {
                     if (mWidget)
                     {
-                        // We add an area to the widget. If there is already one,
-                        // we delete it first.
-                        QScrollArea *area = nullptr;
-                        QObjectList olist = mWidget->children();
-
-                        if (olist.size() > 0)
-                        {
-                            for (QObject *obj : olist)
-                            {
-                                if (obj->objectName() == "ScrollContainer")
-                                {
-                                    obj->deleteLater();
-                                    break;
-                                }
-                            }
-                        }
-
-                        QWidget *container = new QWidget(mWidget);
-                        container->setObjectName("ScrollContainer");
-                        container->setFixedSize(mWidget->size());
-
-                        area = new QScrollArea;
-                        area->setObjectName("ScrollArea");
-//                        area->setFixedSize(mWidget->size());
-
-                        if (object.ba)      // Do we have visible scrollbars?
-                        {
-                            if (object.on == "vert")
-                            {
-                                area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                                area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                            }
-                            else
-                            {
-                                area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-                                area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                            }
-                        }
-                        else
-                        {
-                            area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                            area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-                        }
-
-                        QLayout *layout = nullptr;
-
-                        if (object.on == "vert")
-                        {
-                            QVBoxLayout *lay = new QVBoxLayout(container);
-                            layout = static_cast<QLayout *>(lay);
-                        }
-                        else
-                        {
-                            QHBoxLayout *lay = new QHBoxLayout(container);
-                            layout = static_cast<QLayout *>(lay);
-                        }
-
-                        layout->setSpacing(10);
-                        layout->setContentsMargins(0, 0, 0, 0);
+                        TSubViewArea area(&button);
+                        area.setScrollbarVisible(object.ba);
+                        area.setScrollbarOffset(object.bo);
+                        area.setAnchor(object.we);
+                        area.setLayoutColor(object.sr[0].lc);
+                        area.setSpace(object.sa);
 
                         QList<ConfigMain::SUBPAGESET_t> list = TConfMain::Current().getSubPageSetList(object.st);
-                        QList<ConfigMain::SUBPAGESET_t>::Iterator iter;
-                        MSG_DEBUG("Having " << list.size() << " IDs.");
-                        int wh = 0;
 
-                        for (iter = list.begin(); iter != list.end(); ++iter)
+                        if (list.size() > 0)
                         {
-                            QList<ConfigMain::SUBPAGEITEMS_t>::Iterator itIter;
-                            MSG_DEBUG("ID " << iter->id << " has " << iter->items.size() << " items.");
-
-                            for (itIter = iter->items.begin(); itIter != iter->items.end(); ++itIter)
-                            {
-                                MSG_DEBUG("Setting widget " << itIter->pageName.toStdString() << " to size: " << iter->pgWidth << " x " << iter->pgHeight);
-                                QWidget *w = new QWidget;
-                                w->setObjectName(QString("%1_%2").arg(itIter->pageName).arg(itIter->pageID));
-                                w->setFixedSize(iter->pgWidth, iter->pgHeight);
-//                                w->setStyleSheet("background-color: transparent");
-
-                                if (object.on == "vert")
-                                    wh += iter->pgHeight;
-                                else
-                                    wh += iter->pgWidth;
-
-                                QPainter p(w);
-                                p.setRenderHint(QPainter::Antialiasing);
-
-                                // Draw rectangle border
-                                p.setPen(object.sr[0].lc);
-                                p.setBrush(Qt::NoBrush);
-                                p.drawRect(w->rect().adjusted(0, 0, -1, -1));
-
-                                // Draw pattern inside rectangle using QBrush with Dense6Pattern
-                                QRect innerRect = w->rect().adjusted(1, 1, -1, -1);
-                                QBrush brush(object.sr[0].lc, Qt::Dense6Pattern);
-                                p.fillRect(innerRect, brush);
-                                p.end();
-                                layout->addWidget(w);
-                            }
+                            area.setItemSize(list[0].pgWidth, list[0].pgHeight);
+                            area.drawSubViewMock(mWidget->width(), mWidget->height(), list[0].items.size());
                         }
-
-                        if (object.on == "vert")
-                            area->resize(mWidget->width(), wh);
-                        else
-                            area->resize(wh, mWidget->height());
-
-                        area->setWidget(container);
-//                        mWidget->setContentWidget(container);
-                        area->show();
                     }
                 }
         }

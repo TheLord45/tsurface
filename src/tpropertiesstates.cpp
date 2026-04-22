@@ -59,21 +59,22 @@ using namespace Page;
 #define TTEXT_FILL_COLOR            8
 #define TTEXT_TEXT_COLOR            9
 #define TTEXT_TEXT_EFFECT_COLOR     10
-#define TTEXT_OVERALL_OPACITY       11
-#define TTEXT_VIDEO_FILL            12
-#define TTEXT_STREAMING_SOURCE      13
-#define TTEXT_BITMAPS               14
-#define TTEXT_FONT                  15
-#define TTEXT_FONT_SIZE             16
-#define TTEXT_TEXT                  17
-#define TTEXT_TEXT_JUSTIFICATION    18
-#define TTEXT_TEXT_POSITION_X       19
-#define TTEXT_TEXT_POSITION_Y       20
-#define TTEXT_TEXT_EFFECT           21
-#define TTEXT_WORD_WRAP             22
-#define TTEXT_SOUND                 23
+#define TTEXT_SUBPAGE_LAYOUT_COLOR  11
+#define TTEXT_OVERALL_OPACITY       12
+#define TTEXT_VIDEO_FILL            13
+#define TTEXT_STREAMING_SOURCE      14
+#define TTEXT_BITMAPS               15
+#define TTEXT_FONT                  16
+#define TTEXT_FONT_SIZE             17
+#define TTEXT_TEXT                  18
+#define TTEXT_TEXT_JUSTIFICATION    19
+#define TTEXT_TEXT_POSITION_X       20
+#define TTEXT_TEXT_POSITION_Y       21
+#define TTEXT_TEXT_EFFECT           22
+#define TTEXT_WORD_WRAP             23
+#define TTEXT_SOUND                 24
 
-#define TTEXT_MAX                   24
+#define TTEXT_MAX                   25
 
 TPropertiesStates::TPropertiesStates(QTreeWidget *widget)
     : mTreeWidget(widget)
@@ -471,6 +472,12 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mActSr.ct, W_COLORSELECTOR, font);
         totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR, font);
 
+        if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
+        {
+            table->setRowHidden(TTEXT_SUBPAGE_LAYOUT_COLOR, false);
+            totalHeight += setTableWidget(table, TTEXT_SUBPAGE_LAYOUT_COLOR, 1, mActSr.lc, W_COLORSELECTOR, font);
+        }
+
         if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
         {
             table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
@@ -749,6 +756,11 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
                 table->setCellWidget(row, 1, makeColorSelector("TextEffectColor"));
             break;
 
+            case TTEXT_SUBPAGE_LAYOUT_COLOR:
+                col0->setText(getLeftColText(TTEXT_SUBPAGE_LAYOUT_COLOR));
+                table->setCellWidget(row, 1, makeColorSelector("SubPageLayoutColor"));
+            break;
+
             case TTEXT_OVERALL_OPACITY:
                 col0->setText(getLeftColText(TTEXT_OVERALL_OPACITY));
                 table->setCellWidget(row, 1, makeValueSelector("OverallOpacity", 255));
@@ -836,6 +848,7 @@ QString TPropertiesStates::getLeftColText(int line)
         case TTEXT_FILL_COLOR:          return tr("Fill Color"); break;
         case TTEXT_TEXT_COLOR:          return tr("Text Color"); break;
         case TTEXT_TEXT_EFFECT_COLOR:   return tr("Text Effect Color"); break;
+        case TTEXT_SUBPAGE_LAYOUT_COLOR:return tr("Sub-Page Layout Color"); break;
         case TTEXT_OVERALL_OPACITY:     return tr("Overall Opacity"); break;
         case TTEXT_VIDEO_FILL:          return tr("Video Fill"); break;
         case TTEXT_STREAMING_SOURCE:    return tr("Streaming Source"); break;
@@ -896,7 +909,7 @@ void TPropertiesStates::setSType()
         break;
 
         case ObjHandler::SUBPAGE_VIEW:
-            mSType = STATE_SUBPAGE;
+            mSType = STATE_SUBVIEW;
         break;
 
         default:
@@ -1230,6 +1243,8 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
 
     if (isAnyPage())
     {
+        MSG_DEBUG("Changing a page parameter ...");
+
         if (name == "BorderColor")
             col = mPage.srPage.cb;
         if (name == "FillColor")
@@ -1241,6 +1256,8 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
     }
     else if (isValidObjectIndex())
     {
+        MSG_DEBUG("Changing an object ...");
+
         if (name == "BorderColor")
             col = mActSr.cb;
         if (name == "FillColor")
@@ -1249,8 +1266,11 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
             col = mActSr.ct;
         else if (name == "TextEffectColor")
             col = mActSr.ec;
+        else if (name == "SubPageLayoutColor")
+            col = mActSr.lc;
     }
 
+    MSG_DEBUG("Using color " << col.name(QColor::HexArgb).toStdString() << " for " << name.toStdString());
     TElementColorSelector *colsel = new TElementColorSelector(name, mTreeWidget);
     colsel->setColor(col);
     colsel->setInstance(mActInstance);
@@ -1624,6 +1644,8 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
             mPage.objects[mActObjectID]->setOverallOpacity(value.toInt(), mActInstance);
         else if (name == "VideoFill")
             mPage.objects[mActObjectID]->setVideoFill(value.toString(), mActInstance);
+        else if (name == "SubPageLayoutColor")
+            mPage.objects[mActObjectID]->setSubPageLayoutColor(value.toString(), mActInstance);
 
         mActObject = mPage.objects[mActObjectID]->getObject();
     }

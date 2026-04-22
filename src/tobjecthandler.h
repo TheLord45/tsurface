@@ -596,6 +596,9 @@ class TObjectHandler
         void setStreamingSource(const QString& dv, int instance=-1);
         QString getStreamingSource(int instance=-1);
 
+        void setSubPageLayoutColor(const QColor& color, int instance=-1);
+        QColor getSubPageLayoutColor(int instance=-1);
+
     private:
         bool compareBitmaps(const QList<ObjHandler::BITMAPS_t>& bm1, const QList<ObjHandler::BITMAPS_t>& bm2);
         ObjHandler::TOBJECT_t mObject;

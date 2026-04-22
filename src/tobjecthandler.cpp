@@ -1263,8 +1263,41 @@ QString TObjectHandler::getStreamingSource(int instance)
 
         return dv;
     }
+
+    return mObject.sr[instance].dv;
+}
+
+void TObjectHandler::setSubPageLayoutColor(const QColor& color, int instance)
+{
+    DECL_TRACER("TObjectHandler::setSubPageLayoutColor(const QColor& color, int instance)");
+
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        for (int i = 0; i < mObject.sr.size(); ++i)
+            mObject.sr[i].lc = color;
+    }
     else
-        return mObject.sr[instance].dv;
+        mObject.sr[instance].lc = color;
+}
+
+QColor TObjectHandler::getSubPageLayoutColor(int instance)
+{
+    DECL_TRACER("TObjectHandler::getSubPageLayoutColor(int instance)");
+
+    if (instance < 0 || instance >= mObject.sr.size())
+    {
+        QColor lc = mObject.sr[0].lc;
+
+        for (int i = 1; i < mObject.sr.size(); ++i)
+        {
+            if (lc != mObject.sr[i].lc)
+                return Qt::white;
+        }
+
+        return lc;
+    }
+
+    return mObject.sr[instance].lc;
 }
 
 int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
