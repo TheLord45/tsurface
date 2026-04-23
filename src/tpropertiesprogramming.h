@@ -55,6 +55,7 @@ class TPropertiesProgramming : public QObject
         void setTable(STATE_TYPE stype=STATE_UNKNOWN);
         void clear();
         // Callbacks
+        void onCellActivated(int row, int column);
         void onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name);
         void onSpinAddressPort(int value, const QString& name);
         void onSpinAddressCode(int value, const QString& name);

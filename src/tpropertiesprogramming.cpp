@@ -80,6 +80,8 @@ TPropertiesProgramming::TPropertiesProgramming(QTableWidget *table)
 
     mValidatePort = new TValidatePort(this);
     mIntValidator = new QIntValidator(this);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    connect(table, &QTableWidget::cellActivated, this, &TPropertiesProgramming::onCellActivated);
 }
 
 TPropertiesProgramming::~TPropertiesProgramming()
@@ -642,6 +644,20 @@ void TPropertiesProgramming::createPage()
     }
 
     mInitialized = true;
+}
+
+void TPropertiesProgramming::onCellActivated(int row, int col)
+{
+    DECL_TRACER("TPropertiesProgramming::onCellActivated(int row, int col)");
+
+    Q_UNUSED(col);
+
+    QWidget *w = mTable->cellWidget(row, 1);
+
+    if (!w)
+        return;
+
+    w->setFocus(Qt::OtherFocusReason);
 }
 
 void TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QVariant& data, const QString& name)

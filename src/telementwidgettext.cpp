@@ -40,6 +40,7 @@ TElementWidgetText::TElementWidgetText(const QString& text, const QString& name,
     mLine = new QLineEdit;
     mLine->setObjectName(mName);
     mLine->setText(text);
+    setFocusProxy(mLine);
 
     mButton = new QPushButton;
     mButton->setText("...");

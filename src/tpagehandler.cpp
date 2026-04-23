@@ -1034,6 +1034,9 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             {
                 QJsonObject bm;
 
+                if (bitmap.fileName.isEmpty())
+                    continue;
+
                 bm.insert("index", idx);
                 bm.insert("fileName", bitmap.fileName);
                 bm.insert("dynamic", bitmap.dynamic);
@@ -1044,7 +1047,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
                 idx++;
             }
 
-            if (!s.bitmaps.empty())
+            if (!bitmaps.empty())
                 jsr.insert("bitmapEntries", bitmaps);
 
             if (!s.gradientColors.empty())
@@ -1087,6 +1090,9 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             INSERTJ(jsr, "dv", s.dv, "");
 
             sr.append(jsr);
+
+            if (e.type == ObjHandler::SUBPAGE_VIEW)
+                break;      // This type has only one entry!
         }
 
         bt.insert("sr", sr);
@@ -1775,9 +1781,13 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
 
     if (!sr.firstChildElement("ff").isNull())
         lsr.ff = TFonts::getFontNameFromFile(sr.firstChildElement("ff").text());
+    else
+        lsr.ff = TFonts::getFontName(TConfMain::Current().getFontBase().family());
 
     if (!sr.firstChildElement("fs").isNull())
         lsr.fs = sr.firstChildElement("fs").text().toInt();
+    else
+        lsr.fs = TConfMain::Current().getFontBaseSize();
 
     if (!sr.firstChildElement("fi").isNull())
         lsr.fi = sr.firstChildElement("fi").text().toInt();

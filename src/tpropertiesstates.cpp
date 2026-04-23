@@ -600,7 +600,8 @@ void TPropertiesStates::createPage(bool force)
     mTreeWidget->setItemWidget(item, 0, table);
     int totalHeight = table->height();
 
-    if (!isAnyPage() && isValidObjectIndex())
+    if (!isAnyPage() && isValidObjectIndex() &&
+            mPage.objects[mActObjectID]->getObject().type != ObjHandler::SUBPAGE_VIEW)
     {
         ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
 
@@ -643,7 +644,10 @@ QTableWidget *TPropertiesStates::createTableWidget(QWidget *parent)
     table->setShowGrid(true);
     table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     table->setColumnCount(2);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    connect(table, &QTableWidget::itemClicked, this, &TPropertiesStates::onItemClicked);
 
+    QSignalBlocker sigBlocker(table);
     createPage(table, mActInstance);
 
     table->resizeRowsToContents();
@@ -1675,6 +1679,28 @@ void TPropertiesStates::setColor(QLabel *label, QColor& color)
 }
 
 // Callbacks
+void TPropertiesStates::onItemClicked(QTableWidgetItem *item)
+{
+    DECL_TRACER("TPropertiesProgramming::itemClicked(QTableWidgetItem *item)");
+
+    QTableWidget *table = item->tableWidget();
+
+    if (!table)
+    {
+        MSG_ERROR("Item has no table!");
+        return;
+    }
+
+    QWidget *w = table->cellWidget(item->row(), 1);
+
+    if (!w)
+    {
+        MSG_DEBUG("Found no widget on row " << item->row() << "!");
+        return;
+    }
+
+    w->setFocus(Qt::OtherFocusReason);
+}
 
 void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name, int instance)
 {

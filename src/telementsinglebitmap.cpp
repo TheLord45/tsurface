@@ -62,6 +62,7 @@ void TElementSingleBitmap::init()
 
     mLine = new QLineEdit;
     mLine->setText(mPixmapName);
+    setFocusProxy(mLine);
 
     layout->addWidget(mLine, 1);
 

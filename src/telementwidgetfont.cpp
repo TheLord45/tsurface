@@ -39,6 +39,7 @@ TElementWidgetFont::TElementWidgetFont(const QFont& font, const QString& name, Q
     mLine = new QLineEdit;
     mLine->setObjectName(name);
     setFontName();
+    setFocusProxy(mLine);
 
     mButton = new QPushButton;
     mButton->setText("...");

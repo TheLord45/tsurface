@@ -181,6 +181,7 @@ void TDrawObject::draw(int instance)
                         area.setAnchor(object.we);
                         area.setLayoutColor(object.sr[0].lc);
                         area.setSpace(object.sa);
+                        area.setVertical(object.on == "vert" ? true : false);
 
                         QList<ConfigMain::SUBPAGESET_t> list = TConfMain::Current().getSubPageSetList(object.st);
 

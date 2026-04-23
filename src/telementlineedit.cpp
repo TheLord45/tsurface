@@ -31,6 +31,7 @@ TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWi
     mLine = new QLineEdit(this);
     mLine->setText(text);
     connect(mLine, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
+    setFocusProxy(mLine);
 }
 
 TElementLineEdit::~TElementLineEdit()

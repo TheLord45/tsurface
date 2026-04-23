@@ -30,6 +30,7 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QSpinBox;
+class QTableWidgetItem;
 
 class TElementBitmapSelector;
 class TElementWidgetCombo;
@@ -86,6 +87,7 @@ class TPropertiesStates : public QObject
         void clear();
 
         // Callbacks
+        void onItemClicked(QTableWidgetItem *item);
         void onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bitmaps, const QString& name, int instance);
         void onPixmapNameChanged(const QString& bm, const QString& name, int instance);
         void onOrientationChanged(const QString& text, const QVariant& data, const QString& name, int instance);

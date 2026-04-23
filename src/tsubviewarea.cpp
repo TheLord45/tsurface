@@ -21,17 +21,60 @@
 #include "tsubviewarea.h"
 #include "terror.h"
 
+/**
+ * @brief TSubViewArea::TSubViewArea
+ *
+ * Simple constructor. If there will be no assigning of a pixmap with
+ * setPixmap(), the class will assign a pixmap.
+ */
 TSubViewArea::TSubViewArea()
 {
     DECL_TRACER("TSubViewArea::TSubViewArea()");
 }
 
+/**
+ * @brief TSubViewArea::TSubViewArea
+ *
+ * Constructor which takes a pointer to a pixmap. The pixmap must be a valid one
+ * with the size of the sub-view.
+ *
+ * @param pm    A pointer to a pixmap.
+ */
 TSubViewArea::TSubViewArea(QPixmap *pm)
     : mPixmap(pm)
 {
     DECL_TRACER("TSubViewArea::TSubViewArea(QPixmap *pm)");
 }
 
+TSubViewArea::~TSubViewArea()
+{
+    DECL_TRACER("TSubViewArea::~TSubViewArea()");
+
+    if (mOwnPixmap && mPixmap)
+        delete mPixmap;
+}
+
+/**
+ * @brief TSubViewArea::drawSubViewMock
+ *
+ * This method draws a sub-view object in the correct size and the defined
+ * colors and images. The items in the sub-view are in the correct size but are
+ * only placeholders. Also the scrollbar is not real.
+ * If there was no pixmap set by the constructor or the method @b setPixmap(),
+ * the method allocates a pixmap with a transparent background. Then it returns
+ * a pointer to this pixmap. In this case, if the class is destroyed, the pixmap
+ * is deleted automatically. Otherwise it is up to the caller to delete the
+ * pixmap.
+ *
+ * @param width     The width ob the sub-view
+ * @param height    The height of the sub-view
+ * @param numItems  The number of items to display
+ *
+ * @return On success the method returns a pointer to the QPixmap containing
+ * the representation of the sub-view.
+ * If The QPixmap was set by the constructor or the method @b setPixmap(), the
+ * pointer points to the set pixmap.
+ */
 QPixmap *TSubViewArea::drawSubViewMock(int width, int height, int numItems)
 {
     DECL_TRACER("TSubViewArea::drawSubViewMock(int width, int height, int numItems)");
@@ -40,6 +83,7 @@ QPixmap *TSubViewArea::drawSubViewMock(int width, int height, int numItems)
     {
         mPixmap = new QPixmap(width, height);
         mPixmap->fill(Qt::transparent);
+        mOwnPixmap = true;
     }
 
     // Calculate start position
@@ -86,12 +130,10 @@ QPixmap *TSubViewArea::drawSubViewMock(int width, int height, int numItems)
         }
     }
 
-    MSG_DEBUG("Using layout color: " << mLayoutColor.name(QColor::HexArgb).toStdString());
     QPainter p(mPixmap);
 
     if (mScrollbarVisible)
     {
-        MSG_DEBUG("Drawing scrollbar mock ...");
         p.setPen(Qt::black);
 
         if (mVertical)
@@ -114,13 +156,10 @@ QPixmap *TSubViewArea::drawSubViewMock(int width, int height, int numItems)
     p.setPen(pen);
     p.setBrush(brush);
     p.setBackground(Qt::transparent);
-    int spacePixel = static_cast<int>(static_cast<double>(mVertical ? height : width) / 100.0 * static_cast<double>(mSpace));
-    MSG_DEBUG("Drawing " << numItems << " items with a space of " << spacePixel << " pixel.");
+    int spacePixel = static_cast<int>(static_cast<double>(mVertical ? mItemSize.height() : mItemSize.width()) / 100.0 * static_cast<double>(mSpace));
 
     for (int i = 0; i < numItems; ++i)
     {
-        MSG_DEBUG("Next item: " << startX << ", " << startY << ", " << mItemSize.width() << ", " << mItemSize.height());
-
         if (mVertical && startY >= height)
             break;
         else if (!mVertical && startX >= width)
@@ -139,6 +178,13 @@ QPixmap *TSubViewArea::drawSubViewMock(int width, int height, int numItems)
     return mPixmap;
 }
 
+/**
+ * @brief TSubViewArea::setAnchor
+ * This defines the anchor. The anchor defines the start of the first item.
+ *
+ * @param we    This can be "l/t" (left, top), "r/b" (right, bottom) or empty
+ * for center. Everything not "l/t" or "r/b" is treated as center.
+ */
 void TSubViewArea::setAnchor(const QString& we)
 {
     DECL_TRACER("TSubViewArea::setAnchor(const QString& we)");
@@ -149,4 +195,30 @@ void TSubViewArea::setAnchor(const QString& we)
         mAnchor = ANCHOR_RIGHT_BOTTOM;
     else
         mAnchor = ANCHOR_CENTER;
+}
+
+/**
+ * @brief TSubViewArea::setPixmap
+ *
+ * Assigns a pixmap. It is up to the caller to assign a valid pixmap with the
+ * correct size.
+ * If the parameter @b pm is a @a nullptr the method ignores it and does
+ * nothing. If there was already a pixmap assigned by the constructor, the
+ * pointer to it is overwritten. If the pixmap was assigned by the class, it is
+ * deleted and then the new pointer is assigned.
+ *
+ * @param pm    A pointer to a valid pixmap.
+ */
+void TSubViewArea::setPixmap(QPixmap *pm)
+{
+    DECL_TRACER("TSubViewArea::setPixmap(QPixmap *pm)");
+
+    if (!pm)
+        return;
+
+    if (mOwnPixmap && mPixmap)
+        delete mPixmap;
+
+    mPixmap = pm;
+    mOwnPixmap = false;
 }

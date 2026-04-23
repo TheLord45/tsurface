@@ -54,12 +54,6 @@ class TPropertiesGeneral : public QObject
         void update();
 
     protected:
-        typedef struct ACTIVE_t
-        {
-            int row{0};
-            int col{0};
-        }ACTIVE_t;
-
         // Interface methods
         virtual void pageNameChanged(int id, const QString& name) = 0;
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
@@ -153,11 +147,11 @@ class TPropertiesGeneral : public QObject
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);
+        void setCellWidget(int row, int col, QWidget *w);
 
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};
         bool mConnected{false};
-        ACTIVE_t mCellActive;
         Page::PAGE_t mPage;
         ObjHandler::TOBJECT_t mActObject;
         QLineEdit *mLineDescription{nullptr};

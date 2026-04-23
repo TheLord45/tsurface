@@ -20,12 +20,12 @@
 #include "telementspinbox.h"
 #include "terror.h"
 
-TElementSpinBox::TElementSpinBox(int value, const QString& name, QWidget * parent)
+TElementSpinBox::TElementSpinBox(int value, const QString& name, QWidget *parent)
     : QWidget(parent),
       mName(name),
       mValue(value)
 {
-    DECL_TRACER("TElementSpinBox::TElementSpinBox(int value, const QString& name, QWidget * parent)");
+    DECL_TRACER("TElementSpinBox::TElementSpinBox(int value, const QString& name, QWidget *parent)");
 
     init();
 }
@@ -56,6 +56,7 @@ void TElementSpinBox::init()
     mSpinBox->setRange(mMinValue, mMaxValue);
     mSpinBox->setValue(mValue);
     connect(mSpinBox, &QSpinBox::valueChanged, this, &TElementSpinBox::onValueChanged);
+    setFocusProxy(mSpinBox);
 }
 
 void TElementSpinBox::setValue(int value)

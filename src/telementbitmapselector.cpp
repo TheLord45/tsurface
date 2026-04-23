@@ -81,6 +81,7 @@ void TElementBitmapSelector::init()
     layout->setSpacing(2);
 
     mLine = new QLineEdit;
+    setFocusProxy(mLine);
 
     if (!mBitmaps.empty())
         mLine->setText(mBitmaps[0].fileName);

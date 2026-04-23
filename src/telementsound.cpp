@@ -59,6 +59,7 @@ void TElementSound::init()
     layout->addWidget(mLine, 1);
 
     mButton = new QToolButton;
+    mButton->setText("...");
     layout->addWidget(mButton);
 
     connect(mButton, &QToolButton::clicked, this, &TElementSound::onPushButtonClicked);
