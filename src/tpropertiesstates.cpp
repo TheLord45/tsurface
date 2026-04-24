@@ -422,20 +422,24 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
         if (mActObject.type != ObjHandler::LISTVIEW)
         {
-            if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+            if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) ||
+                (instance != 1 && mActObject.type == ObjHandler::BARGRAPH) ||
+                (instance == 1 && mActObject.type == ObjHandler::TEXT_INPUT))
             {
                 table->setRowHidden(TTEXT_BORDER_NAME, false);
                 totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mActSr.bs, W_BORDERNAME, font);
             }
 
-            if (mActSr.bs.isEmpty())
+            if (mActObject.type != ObjHandler::TEXT_INPUT && mActSr.bs.isEmpty())
             {
                 table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
                 totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mActSr.mi, W_BITMAPSELECTOR, font);
             }
         }
 
-        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) ||
+            (instance != 1 && mActObject.type == ObjHandler::BARGRAPH) ||
+            (instance == 1 && mActObject.type == ObjHandler::TEXT_INPUT))
         {
             table->setRowHidden(TTEXT_BORDER_COLOR, false);
             totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mActSr.cb, W_COLORSELECTOR, font);
@@ -467,10 +471,13 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
         }
 
         table->setRowHidden(TTEXT_TEXT_COLOR, false);
-        table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
-
         totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mActSr.ct, W_COLORSELECTOR, font);
-        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR, font);
+
+        if (mActObject.type != ObjHandler::TEXT_INPUT || (mActObject.type == ObjHandler::TEXT_INPUT && instance < 1))
+        {
+            table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mActSr.ec, W_COLORSELECTOR, font);
+        }
 
         if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
         {
@@ -478,14 +485,16 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             totalHeight += setTableWidget(table, TTEXT_SUBPAGE_LAYOUT_COLOR, 1, mActSr.lc, W_COLORSELECTOR, font);
         }
 
-        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) || (instance != 1 && mActObject.type == ObjHandler::BARGRAPH))
+        if ((instance != 1 && mActObject.type != ObjHandler::BARGRAPH) ||
+            (instance != 1 && mActObject.type == ObjHandler::BARGRAPH) ||
+            (instance == 1 && mActObject.type == ObjHandler::TEXT_INPUT))
         {
             table->setRowHidden(TTEXT_OVERALL_OPACITY, false);
             totalHeight += setTableWidget(table, TTEXT_OVERALL_OPACITY, 1, mActSr.oo, W_SPINBOX, font);
         }
 
-
-        if (mActObject.type != ObjHandler::LISTVIEW)
+        if (mActObject.type != ObjHandler::LISTVIEW &&
+            mActObject.type != ObjHandler::TEXT_INPUT)
         {
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
             totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mActSr.vf, W_COMBO, font);
@@ -500,42 +509,53 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mActSr.bitmaps, W_BITMAPSELECTOR);
         }
 
-        table->setRowHidden(TTEXT_FONT, false);
-        table->setRowHidden(TTEXT_FONT_SIZE, false);
-
-        totalHeight += setTableWidget(table, TTEXT_FONT, 1, mActSr.ff, W_FONT, font);
-        totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mActSr.fs, W_SPINBOX, font);
-
-        if (mActObject.type != ObjHandler::LISTVIEW)
+        if (mActObject.type != ObjHandler::TEXT_INPUT || (mActObject.type == ObjHandler::TEXT_INPUT && instance < 1))
         {
-            table->setRowHidden(TTEXT_TEXT, false);
-            table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+            table->setRowHidden(TTEXT_FONT, false);
+            table->setRowHidden(TTEXT_FONT_SIZE, false);
 
-            font = TFonts::getFont(mActSr.ff);
-            font.setPointSize(mActSr.fs > 0 ? mActSr.fs : TConfMain::Current().getFontBaseSize());
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT, font);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mActSr.ff, W_FONT, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mActSr.fs, W_SPINBOX, font);
 
-            if (mActSr.jt == ObjHandler::ORI_ABSOLUT)
+            if (mActObject.type != ObjHandler::LISTVIEW)
             {
-                table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
-                table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+                table->setRowHidden(TTEXT_TEXT, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mActSr.tx, W_SPINBOX, font);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mActSr.ty, W_SPINBOX, font);
+                if (mActObject.type != ObjHandler::TEXT_INPUT)
+                {
+                    table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
+
+                    font = TFonts::getFont(mActSr.ff);
+                    font.setPointSize(mActSr.fs > 0 ? mActSr.fs : TConfMain::Current().getFontBaseSize());
+                    totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mActSr.te, W_TEXT, font);
+                    totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mActSr.jt, W_COMBO, font);
+
+                    if (mActSr.jt == ObjHandler::ORI_ABSOLUT)
+                    {
+                        table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
+                        table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
+
+                        totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mActSr.tx, W_SPINBOX, font);
+                        totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mActSr.ty, W_SPINBOX, font);
+                    }
+                }
             }
+
+            table->setRowHidden(TTEXT_TEXT_EFFECT, false);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mActSr.et, W_TEXTEFFECT, font);
         }
 
-        table->setRowHidden(TTEXT_TEXT_EFFECT, false);
-        totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mActSr.et, W_TEXTEFFECT, font);
-
-        if (mActObject.type != ObjHandler::LISTVIEW)
+        if (mActObject.type != ObjHandler::LISTVIEW &&
+            mActObject.type != ObjHandler::TEXT_INPUT)
         {
             table->setRowHidden(TTEXT_WORD_WRAP, false);
-            table->setRowHidden(TTEXT_SOUND, false);
-
             totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mActSr.ty, W_COMBO, font);
-            totalHeight += setTableWidget(table, TTEXT_SOUND, 1, mActSr.sd, W_SOUND, font);
+
+            if (mActObject.type != ObjHandler::BARGRAPH)
+            {
+                table->setRowHidden(TTEXT_SOUND, false);
+                totalHeight += setTableWidget(table, TTEXT_SOUND, 1, mActSr.sd, W_SOUND, font);
+            }
         }
     }
 

@@ -439,6 +439,7 @@ namespace ObjHandler
         QColor cc;              // Color of cursor (for joystick)
         int mt{0};              // Length of text area (0 = 2000)
         QString dt;             // "multiple" textarea has multiple lines, else single line
+        int inputType{1};       // G5 Text input type: 1 = alpha-numeric, 2 = numeric, 3 = telephone, 4 = date/time
         QString im;             // Input mask of a text area
         int st{0};              // SubPageView: ID of subview list
         int ws{0};              // SubPageView: Wrap subpages; 1 = YES

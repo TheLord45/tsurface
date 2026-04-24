@@ -85,6 +85,11 @@
 #define TTEXT_SCROLLBAR_OFFSET      48
 #define TTEXT_DISABLE_TOUCH_SCROLL  49
 #define TTEXT_ENABLE_ANCHORING      50
+#define TTEXT_INPUT_TYPE            51
+#define TTEXT_PASSWORD_CHARACTER    52
+#define TTEXT_DISPLAY_TYPE          53
+#define TTEXT_MAX_TEXT_LENGTH       54
+#define TTEXT_INPUT_MASK            55
 
 #define LIST_POPUPTYPE              0
 #define LIST_BUTTON_TYPE            1
@@ -127,24 +132,29 @@
 #define LIST_OBJECT_AUTOREPEAT      38
 #define LIST_OBJECT_DISABLED        39
 #define LIST_OBJECT_HIDDEN          40
-#define LIST_OBJECT_VALUE_DIRECTION 41
-#define LIST_OBJECT_SLIDER_NAME     42
-#define LIST_OBJECT_SLIDER_COLOR    43
-#define LIST_OBJECT_PASSWD_PROTECT  44
-#define LIST_OBJECT_SUB_PAGE_SET    45
+#define LIST_OBJECT_INPUT_TYPE      41
+#define LIST_OBJECT_PASSWORD_CHAR   42
+#define LIST_OBJECT_DISPLAY_TYPE    43
+#define LIST_OBJECT_MAX_TEXT_LENGTH 44
+#define LIST_OBJECT_INPUT_MASK      45
+#define LIST_OBJECT_VALUE_DIRECTION 46
+#define LIST_OBJECT_SLIDER_NAME     47
+#define LIST_OBJECT_SLIDER_COLOR    48
+#define LIST_OBJECT_PASSWD_PROTECT  49
+#define LIST_OBJECT_SUB_PAGE_SET    50
 
-#define LIST_OBJECT_ORIENTATION     46
-#define LIST_OBJECT_SPACING         47
-#define LIST_OBJECT_ANCHOR_POSITION 48
-#define LIST_OBJECT_SHOW_SUBPAGES   49
-#define LIST_OBJECT_DYNAMIC_REORDER 50
-#define LIST_OBJECT_RESET_VIEW_SHOW 51
-#define LIST_OBJECT_SCROLLBAR       52
-#define LIST_OBJECT_SCROLL_OFFSET   53
-#define LIST_OBJECT_DISABLE_TOUCHSC 54
-#define LIST_OBJECT_ENABLE_ANCHOR   55
+#define LIST_OBJECT_ORIENTATION     51
+#define LIST_OBJECT_SPACING         52
+#define LIST_OBJECT_ANCHOR_POSITION 53
+#define LIST_OBJECT_SHOW_SUBPAGES   54
+#define LIST_OBJECT_DYNAMIC_REORDER 55
+#define LIST_OBJECT_RESET_VIEW_SHOW 56
+#define LIST_OBJECT_SCROLLBAR       57
+#define LIST_OBJECT_SCROLL_OFFSET   58
+#define LIST_OBJECT_DISABLE_TOUCHSC 59
+#define LIST_OBJECT_ENABLE_ANCHOR   60
 
-#define LIST_MAX_ROWS               56
+#define LIST_MAX_ROWS               61
 
 using namespace ObjHandler;
 
@@ -306,6 +316,11 @@ QString TPropertiesGeneral::getLabelText(int line)
         case TTEXT_SCROLLBAR_OFFSET:    return tr("Offset of Scrollbar"); break;
         case TTEXT_DISABLE_TOUCH_SCROLL:return tr("Disable Touch Scrolling"); break;
         case TTEXT_ENABLE_ANCHORING:    return tr("Enable Anchoring"); break;
+        case TTEXT_INPUT_TYPE:          return tr("Input Type"); break;
+        case TTEXT_PASSWORD_CHARACTER:  return tr("Password Character"); break;
+        case TTEXT_DISPLAY_TYPE:        return tr("Display Type"); break;
+        case TTEXT_MAX_TEXT_LENGTH:     return tr("Max Text Length"); break;
+        case TTEXT_INPUT_MASK:          return tr("Input Mask"); break;
     }
 
     return QString();
@@ -487,6 +502,7 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 
         case STATE_BUTTON:
         case STATE_BARGRAPH:
+        case STATE_INPUT:
             if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
                 mActObject = mPage.objects[mActObjectID]->getObject();
 
@@ -510,7 +526,8 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             setTableWidget(LIST_OBJECT_Z_ORDER, 1, mActObject.zo, W_LINEEDIT, font);
 
             if (mActObject.type != ObjHandler::BARGRAPH &&
-                mActObject.type != ObjHandler::MULTISTATE_BARGRAPH)
+                mActObject.type != ObjHandler::MULTISTATE_BARGRAPH &&
+                mActObject.type != ObjHandler::TEXT_INPUT)
             {
                 mTable->setRowHidden(LIST_OBJECT_DRAG_DROP_TYPE, false);            // ObjectDragDropType
                 setTableWidget(LIST_OBJECT_DRAG_DROP_TYPE, 1, mActObject.ddt, W_COMBO, font);
@@ -615,7 +632,8 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             {
                 if (mActObject.type == ObjHandler::TEXT_INPUT)
                 {
-                    // TODO: Input type
+                    mTable->setRowHidden(LIST_OBJECT_INPUT_TYPE, false);
+                    setTableWidget(LIST_OBJECT_INPUT_TYPE, 1, mActObject.inputType, W_COMBO, font);
                 }
 
                 if (mActObject.type == ObjHandler::BARGRAPH ||
@@ -640,10 +658,20 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 
                 if (mActObject.type == ObjHandler::TEXT_INPUT)
                 {
-                    // TODO: Password Character
-                    // TODO: Display Type
-                    // TODO: Max Text Length
-                    // TODO: Input Mask
+                    mTable->setRowHidden(LIST_OBJECT_PASSWORD_CHAR, false);
+                    setTableWidget(LIST_OBJECT_PASSWORD_CHAR, 1, mActObject.pc, W_LINEEDIT, font);
+
+                    mTable->setRowHidden(LIST_OBJECT_DISPLAY_TYPE, false);
+                    setTableWidget(LIST_OBJECT_DISPLAY_TYPE, 1, mActObject.dt, W_COMBO, font);
+
+                    mTable->setRowHidden(LIST_OBJECT_MAX_TEXT_LENGTH, false);
+                    setTableWidget(LIST_OBJECT_MAX_TEXT_LENGTH, 1, mActObject.mt, W_SPINBOX, font);
+
+                    if (mActObject.dt.isEmpty())
+                    {
+                        mTable->setRowHidden(LIST_OBJECT_INPUT_MASK, false);
+                        setTableWidget(LIST_OBJECT_INPUT_MASK, 1, mActObject.im, W_LINEEDIT, font);
+                    }
                 }
             }
         break;
@@ -989,6 +1017,31 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
             case LIST_OBJECT_HIDDEN:
                 cell1->setText(getLabelText(TTEXT_HIDDEN));
                 setCellWidget(i, 1, makeObjectYesNoSelect("ObjectHidden"));
+            break;
+
+            case LIST_OBJECT_INPUT_TYPE:
+                cell1->setText(getLabelText(TTEXT_INPUT_TYPE));
+                setCellWidget(i, 1, makeObjectInputType("ObjectInputType"));
+            break;
+
+            case LIST_OBJECT_PASSWORD_CHAR:
+                cell1->setText(getLabelText(TTEXT_PASSWORD_CHARACTER));
+                setCellWidget(i, 1, makeObjectPasswordCharacter("ObjectPasswordCharacter"));
+            break;
+
+            case LIST_OBJECT_DISPLAY_TYPE:
+                cell1->setText(getLabelText(TTEXT_DISPLAY_TYPE));
+                setCellWidget(i, 1, makeObjectDisplayType("ObjectDisplayType"));
+            break;
+
+            case LIST_OBJECT_MAX_TEXT_LENGTH:
+                cell1->setText(getLabelText(TTEXT_MAX_TEXT_LENGTH));
+                setCellWidget(i, 1, makeObjectMaxTextLength("ObjectMaxTextLength"));
+            break;
+
+            case LIST_OBJECT_INPUT_MASK:
+                cell1->setText(getLabelText(TTEXT_INPUT_MASK));
+                setCellWidget(i, 1, makeObjectInputMask("ObjectInputMask"));
             break;
 
             case LIST_OBJECT_VALUE_DIRECTION:
@@ -1745,6 +1798,67 @@ TElementSpinBox *TPropertiesGeneral::makeObjectScrollbarOffset(const QString& na
     return sbox;
 }
 
+TElementWidgetCombo *TPropertiesGeneral::makeObjectInputType(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectInputType(const QString& name)");
+
+    QStringList items = { "alpha-numeric", "numeric", "telephone", "date/time" };
+    QList<QVariant> states = { 1, 2, 3, 4 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(states);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectInputType);
+    return combo;
+}
+
+TElementLineEdit *TPropertiesGeneral::makeObjectPasswordCharacter(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectPasswordCharacter(const QString& name)");
+
+    TElementLineEdit *line = new TElementLineEdit(mActObject.pc, name, mTable);
+    line->setMaxCharacters(1);
+    connect(line, &TElementLineEdit::inputTextChanged, this, &TPropertiesGeneral::onObjectPasswordCharacter);
+    return line;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeObjectDisplayType(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDisplayType(const QString& name)");
+
+    QStringList items = { tr("single line"), tr("multiple lines") };
+    QList<QVariant> states { "", "multiple" };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(states);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectDisplayType);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectMaxTextLength(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectMaxTextLength(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.mt;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectScrollbarOffset);
+    return sbox;
+}
+
+TElementLineEdit *TPropertiesGeneral::makeObjectInputMask(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectInputMask(const QString& name)");
+
+    TElementLineEdit *line = new TElementLineEdit(mActObject.im, name, mTable);
+    connect(line, &TElementLineEdit::inputTextChanged, this, &TPropertiesGeneral::onObjectInputMask);
+    return line;
+}
+
 void TPropertiesGeneral::setWidget(QTableWidget *view)
 {
     DECL_TRACER("TPropertiesGeneral::setWidget(QTableWidget *view)");
@@ -2381,6 +2495,69 @@ void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.bo = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectInputType(const QString& group, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectInputType(const QString& group, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(group);
+    Q_UNUSED(name);
+
+    mActObject.inputType = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectPasswordCharacter(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectPasswordCharacter(const QString& text, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.pc = text[0];
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectDisplayType(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectDisplayType(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.dt = data.toString();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+    setTable(STATE_INPUT);
+}
+
+void TPropertiesGeneral::onObjectMaxTextLength(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectMaxTextLength(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.mt = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectInputMask(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectInputMask(const QString& text, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.im = text;
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;

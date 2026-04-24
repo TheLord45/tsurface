@@ -972,6 +972,7 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "mt", e.mt, 0);
         INSERTJ(bt, "dt", e.dt, "");
         INSERTJ(bt, "im", e.im, "");
+        INSERTJ(bt, "inputType", e.inputType, 1);   // G5 Text Input Type
         INSERTJ(bt, "st", e.st, 0);         // SubPageView: ID of subview list
         INSERTJ(bt, "ws", e.ws, 0);         // SubPageView: Wrap subpages; 1 = YES
         INSERTJ(bt, "on", e.on, "");        // SubPageView: direction: vert = vertical, if empty: horizontal which is default
@@ -1406,6 +1407,7 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.tg = jo.value("tg").toInt(0);
         object.so = jo.value("so").toInt(1);
         object.co = jo.value("co").toInt(1);
+        object.inputType = jo.value("inputType").toInt(1);  // G5 Text input
         object.lvc = jo.value("lvc").toInt(0);      // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
         object.lvh = jo.value("lvh").toInt(48);     // G5 Listbox: Item height
         object.lvl = jo.value("lvl").toInt(1);      // G5 Listbox: Listview columns
@@ -2026,6 +2028,9 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
 
     if (!button.firstChildElement("ddt").isNull())
         object.ddt = button.firstChildElement("ddt").text();
+
+    if (!button.firstChildElement("inputType").isNull())
+        object.inputType = button.firstChildElement("inputType").text().toInt();
 
     if (!button.firstChildElement("lv").isNull())
         object.lv = button.firstChildElement("lv").text().toInt();

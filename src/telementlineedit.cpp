@@ -63,3 +63,13 @@ void TElementLineEdit::onTextChanged(const QString& text)
     emit inputTextChanged(text, mName);
     emit inputTextChangedInst(text, mName, mInstance);
 }
+
+void TElementLineEdit::setMaxCharacters(int max)
+{
+    DECL_TRACER("TElementLineEdit::setMaxCharacters(int max)");
+
+    if (max < 1)
+        return;
+
+    mLine->setMaxLength(max);
+}

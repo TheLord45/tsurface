@@ -100,6 +100,11 @@ class TPropertiesGeneral : public QObject
         void onObjectSpacing(int value, const QString& name);
         void onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name);
         void onObjectScrollbarOffset(int value, const QString& name);
+        void onObjectInputType(const QString& group, const QVariant& data, const QString& name);
+        void onObjectPasswordCharacter(const QString& text, const QString& name);
+        void onObjectDisplayType(const QString& text, const QVariant& data, const QString& name);
+        void onObjectMaxTextLength(int value, const QString& name);
+        void onObjectInputMask(const QString& text, const QString& name);
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
@@ -144,6 +149,11 @@ class TPropertiesGeneral : public QObject
         TElementSpinBox *makeObjectSpacing(const QString& name);
         TElementWidgetCombo *makeObjectAnchorPosition(const QString& name);
         TElementSpinBox *makeObjectScrollbarOffset(const QString& name);
+        TElementWidgetCombo *makeObjectInputType(const QString& name);
+        TElementLineEdit *makeObjectPasswordCharacter(const QString& name);
+        TElementWidgetCombo *makeObjectDisplayType(const QString& name);
+        TElementSpinBox *makeObjectMaxTextLength(const QString& name);
+        TElementLineEdit *makeObjectInputMask(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);

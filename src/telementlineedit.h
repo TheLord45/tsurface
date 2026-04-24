@@ -34,6 +34,7 @@ class TElementLineEdit : public QWidget
         void setText(const QString& text);
         void setInstance(int inst) { mInstance = inst; }
         int getInstance() { return mInstance; }
+        void setMaxCharacters(int max);
 
     signals:
         void inputTextChanged(const QString& text, const QString& name);
