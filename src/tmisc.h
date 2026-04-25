@@ -65,7 +65,8 @@ typedef enum
     W_COMBO,
     W_FONT,
     W_TEXT,
-    W_SOUND
+    W_SOUND,
+    W_LVCOMPONETS
 }ELEMENT_TYPE_t;
 
 class QPixmap;

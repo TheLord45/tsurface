@@ -339,6 +339,36 @@ bool TMaps::removeSound(const QString& file)
     return false;
 }
 
+MAP_DDSM_T TMaps::getListviewByName(const QString& name)
+{
+    DECL_TRACER("TMaps::getListviewByName(const QString& name)");
+
+    vector<MAP_DDSM_T>::iterator iter;
+
+    for (iter = mMap.map_ddsm.begin(); iter != mMap.map_ddsm.end(); ++iter)
+    {
+        if (iter->ddmn == name)
+            return *iter;
+    }
+
+    return MAP_DDSM_T();
+}
+
+MAP_DDSM_T TMaps::getListviewByNumbers(int bt, int page)
+{
+    DECL_TRACER("TMaps::getListviewByNumbers(int bt, int page)");
+
+    vector<MAP_DDSM_T>::iterator iter;
+
+    for (iter = mMap.map_ddsm.begin(); iter != mMap.map_ddsm.end(); ++iter)
+    {
+        if (iter->bt == bt && iter->pg == page)
+            return *iter;
+    }
+
+    return MAP_DDSM_T();
+}
+
 MAP_T TMaps::getButtonByNumber(int num, int page)
 {
     DECL_TRACER("TMaps::getButtonByNumber(int num)");
@@ -504,7 +534,7 @@ bool TMaps::writeMaps(const QString& path, const QString& file)
     DECL_TRACER("TMaps::writeMaps(const QString& path, const QString& file)");
 
     QJsonObject root;
-    QJsonArray cm, am, lm;
+    QJsonArray cm, am, lm, ddsm;
 
     vector<MAP_T>::iterator iter;
 
@@ -610,6 +640,23 @@ bool TMaps::writeMaps(const QString& path, const QString& file)
 
     root.insert("sm", sm);
 
+    if (!mMap.map_ddsm.empty())     // Listviews
+    {
+        vector<MAP_DDSM_T>::iterator ddIter;
+
+        for (ddIter = mMap.map_ddsm.begin(); ddIter != mMap.map_ddsm.end(); ++ddIter)
+        {
+            QJsonObject me;
+            me.insert("ddmt", ddIter->ddmt);
+            me.insert("pg", ddIter->pg);
+            me.insert("bt", ddIter->bt);
+            me.insert("dds", ddIter->dds);
+            me.insert("ddmn", ddIter->ddmn);
+            ddsm.append(me);
+        }
+
+        root.insert("ddsm", ddsm);
+    }
     // TODO: Add code to write system resources (do we need them?)
 
     // TODO: Add code to write G5 evpf structure (what is it for?)
@@ -663,7 +710,7 @@ bool TMaps::parseAMXMaps(const QString& xmlFilePath)
     }
 
     // Parse <cm>, <am>, <lm>, <bm>, <cmdm>, <evpf>, <evaw>, <spvm> sections if present
-    QStringList sections = {"cm", "am", "lm", "bm", "sm", "pm", "cmdm", "strm", "evpf", "evaw", "spvm"};
+    QStringList sections = {"cm", "am", "lm", "bm", "sm", "pm", "cmdm", "strm", "evpf", "evaw", "spvm", "ddsm"};
 
     for (const QString &sectionName : sections)
     {
@@ -706,6 +753,8 @@ void TMaps::parseMeElement(const QDomElement &me, const QString& sectionName)
     QString t;
     QString si;
     QString src;
+    QString dds;
+    QString ddmn;
 
     // Optional elements
     if (!me.firstChildElement("ax").isNull())
@@ -744,6 +793,12 @@ void TMaps::parseMeElement(const QDomElement &me, const QString& sectionName)
     if (!me.firstChildElement("src").isNull())
         src = me.firstChildElement("src").text();
 
+    if (!me.firstChildElement("dds").isNull())
+        dds = me.firstChildElement("dds").text();
+
+    if (!me.firstChildElement("ddmn").isNull())
+        ddmn = me.firstChildElement("ddmn").text();
+
     // Parse <ais> if present (list of <ai>)
     QDomElement ais = me.firstChildElement("ais");
     QList<int> aisList;
@@ -776,6 +831,20 @@ void TMaps::parseMeElement(const QDomElement &me, const QString& sectionName)
             mMap.map_lm.push_back(cm);
         else if (sectionName == "strm")
             mMap.map_strm.push_back(cm);
+    }
+    else if (sectionName == "ddsm")     // Listview
+    {
+        MAP_DDSM_T listview;
+
+        if (me.hasAttribute("ddmt"))
+            listview.ddmt = me.attribute("ddmt");
+
+        listview.pg = pg;
+        listview.bt = bt;
+        listview.dds = dds;
+        listview.ddmn = ddmn;
+
+        mMap.map_ddsm.push_back(listview);
     }
     else if (sectionName == "bm")
     {

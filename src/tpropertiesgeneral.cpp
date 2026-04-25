@@ -31,6 +31,7 @@
 #include "telementlineedit.h"
 #include "telementspinbox.h"
 #include "telementcolorselector.h"
+#include "telementlistviewcomponents.h"
 #include "tgraphics.h"
 #include "tconfmain.h"
 #include "terror.h"
@@ -90,6 +91,16 @@
 #define TTEXT_DISPLAY_TYPE          53
 #define TTEXT_MAX_TEXT_LENGTH       54
 #define TTEXT_INPUT_MASK            55
+#define TTEXT_LISTVIEW_COMPONENTS   56
+#define TTEXT_ITEM_HEIGHT           57
+#define TTEXT_LISTVIEW_COLUMNS      58
+#define TTEXT_LISTVIEW_ITEM_LAYOUT  59
+#define TTEXT_PRIMARY_PARTIOTION    60
+#define TTEXT_SECONDARY_PARTITION   61
+#define TTEXT_FILTER_ENABLED        62
+#define TTEXT_FILTER_HEIGHT         63
+#define TTEXT_ALPHABET_SCROLLBAR    64
+#define TTEXT_DYNAMIC_DATA_SOURCE   65
 
 #define LIST_POPUPTYPE              0
 #define LIST_BUTTON_TYPE            1
@@ -154,7 +165,18 @@
 #define LIST_OBJECT_DISABLE_TOUCHSC 59
 #define LIST_OBJECT_ENABLE_ANCHOR   60
 
-#define LIST_MAX_ROWS               61
+#define LIST_LISTVIEW_COMPONENTS    61
+#define LIST_ITEM_HEIGHT            62
+#define LIST_LISTVIEW_COLUMNS       63
+#define LIST_LISTVIEW_ITEM_LAYOUT   64
+#define LIST_PRIMARY_PARTITION      65
+#define LIST_SECONDARY_PARTITION    66
+#define LIST_FILTER_ENABLED         67
+#define LIST_FILTER_HEIGHT          68
+#define LIST_ALPHABET_SCROLLBAR     69
+#define LIST_DYNAMIC_DATA_SOURCE    70
+
+#define LIST_MAX_ROWS               71
 
 using namespace ObjHandler;
 
@@ -321,6 +343,16 @@ QString TPropertiesGeneral::getLabelText(int line)
         case TTEXT_DISPLAY_TYPE:        return tr("Display Type"); break;
         case TTEXT_MAX_TEXT_LENGTH:     return tr("Max Text Length"); break;
         case TTEXT_INPUT_MASK:          return tr("Input Mask"); break;
+        case TTEXT_LISTVIEW_COMPONENTS: return tr("Listview Components"); break;
+        case TTEXT_ITEM_HEIGHT:         return tr("Item Height"); break;
+        case TTEXT_LISTVIEW_COLUMNS:    return tr("Listview Columns"); break;
+        case TTEXT_LISTVIEW_ITEM_LAYOUT:return tr("Listview Item Layout"); break;
+        case TTEXT_PRIMARY_PARTIOTION:  return tr("Primary Partition (%)"); break;
+        case TTEXT_SECONDARY_PARTITION: return tr("Secondary Partition (%)"); break;
+        case TTEXT_FILTER_ENABLED:      return tr("Filter Enabled"); break;
+        case TTEXT_FILTER_HEIGHT:       return tr("Filter Height"); break;
+        case TTEXT_ALPHABET_SCROLLBAR:  return tr("Alphabet Scrollbar"); break;
+        case TTEXT_DYNAMIC_DATA_SOURCE: return tr("Dynamic Data Source"); break;
     }
 
     return QString();
@@ -500,9 +532,20 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             }
         break;
 
-        case STATE_BUTTON:
-        case STATE_BARGRAPH:
-        case STATE_INPUT:
+        case STATE_SUBPAGE:
+            mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
+            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
+            mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
+            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
+            mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
+            mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
+            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
+            mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
+            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
+        break;
+
+        default:
             if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
                 mActObject = mPage.objects[mActObjectID]->getObject();
 
@@ -581,22 +624,41 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
 
             if (mActObject.type == ObjHandler::LISTVIEW)
             {
-                // TODO: Listview Components (Primary Text, Secondary Text, Image)
-                // TODO: Item Hight
-                // TODO: Listview Columns
-                // TODO: Listview Item Layout
-                // TODO: Primary Partition (%)
+                mTable->setRowHidden(LIST_LISTVIEW_COMPONENTS, false);
+                setTableWidget(LIST_LISTVIEW_COMPONENTS, 1, mActObject.lvc, W_LVCOMPONETS, font);
 
-//                if ((mActObject.lvc & 0x004) > 0)
-                    // TODO: Secondary Partition (%)
+                mTable->setRowHidden(LIST_ITEM_HEIGHT, false);
+                setTableWidget(LIST_ITEM_HEIGHT, 1, mActObject.lvh, W_SPINBOX, font);
 
-                // TODO: Filter Enabled
+                mTable->setRowHidden(LIST_LISTVIEW_COLUMNS, false);
+                setTableWidget(LIST_LISTVIEW_COLUMNS, 1, mActObject.lvg, W_SPINBOX, font);
 
-//                if (mActObject.lvs != 0)    // Filter enabled?
-                    // TODO: Filter Height
+                mTable->setRowHidden(LIST_LISTVIEW_ITEM_LAYOUT, false);
+                setTableWidget(LIST_LISTVIEW_ITEM_LAYOUT, 1, mActObject.lvl, W_COMBO, font);
 
-                // TODO: Alphabet Scrollbar
-                // TODO: Dynamic Data Source
+                mTable->setRowHidden(LIST_PRIMARY_PARTITION, false);
+                setTableWidget(LIST_PRIMARY_PARTITION, 1, mActObject.lhp, W_SPINBOX, font);
+
+                if ((mActObject.lvc & 0x004) > 0)
+                {
+                    mTable->setRowHidden(LIST_SECONDARY_PARTITION, false);
+                    setTableWidget(LIST_SECONDARY_PARTITION, 1, mActObject.lvp, W_SPINBOX, font);
+                }
+
+                mTable->setRowHidden(LIST_FILTER_ENABLED, false);
+                setTableWidget(LIST_FILTER_ENABLED, 1, mActObject.lvs, W_COMBO, font);
+
+                if (mActObject.lvs != 0)    // Filter enabled?
+                {
+                    mTable->setRowHidden(LIST_FILTER_HEIGHT, false);
+                    setTableWidget(LIST_FILTER_HEIGHT, 1, mActObject.lsh, W_SPINBOX, font);
+                }
+
+                mTable->setRowHidden(LIST_ALPHABET_SCROLLBAR, false);
+                setTableWidget(LIST_ALPHABET_SCROLLBAR, 1, mActObject.lva, W_COMBO, font);
+
+                mTable->setRowHidden(LIST_DYNAMIC_DATA_SOURCE, false);
+                setTableWidget(LIST_DYNAMIC_DATA_SOURCE, 1, mActObject.lds, W_LINEEDIT, font);
             }
             else if (mActObject.type == ObjHandler::SUBPAGE_VIEW)
             {
@@ -674,23 +736,6 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
                     }
                 }
             }
-        break;
-
-        case STATE_SUBPAGE:
-            mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
-            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
-            mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
-            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
-            mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
-            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
-            mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
-            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
-            mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
-            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
-        break;
-
-        default:
-            break;
     }
 }
 
@@ -778,6 +823,13 @@ int TPropertiesGeneral::setTableWidget(int row, int col, const QVariant& data, E
         }
         break;
 
+        case W_LVCOMPONETS:
+        {
+            TElementListviewComponents *p = static_cast<TElementListviewComponents *>(w);
+            p->setProperty(mActObject.lvc);
+        }
+        break;
+
         default:
             return w->height();
     }
@@ -809,17 +861,17 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
         {
             case LIST_POPUPTYPE:
                 cell1->setText(getLabelText(TTEXT_POPUPTYPE));
-                setCellWidget(i, 1, makePopupType("PopupPopupType"));
+                mTable->setCellWidget(i, 1, makePopupType("PopupPopupType"));
             break;
 
             case LIST_BUTTON_TYPE:
                 cell1->setText(getLabelText(TTEXT_TYPE));
-                setCellWidget(i, 1, makeButtonType("ButtonType"));
+                mTable->setCellWidget(i, 1, makeButtonType("ButtonType"));
             break;
 
             case LIST_PAGE_NAME:
                 cell1->setText(getLabelText(TTEXT_NAME));
-                setCellWidget(i, 1, makeObjectName(mPage.name, "PageName"));
+                mTable->setCellWidget(i, 1, makeObjectName(mPage.name, "PageName"));
             break;
 
             case LIST_OBJECT_NAME:
@@ -830,293 +882,343 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
                 if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
                     name = mPage.objects[mActObjectID]->getButtonName();
 
-                setCellWidget(i, 1, makeObjectName(name, "ObjectName"));
+                mTable->setCellWidget(i, 1, makeObjectName(name, "ObjectName"));
             }
             break;
 
             case LIST_BUTTON_LOCK_NAME:
                 cell1->setText(getLabelText(TTEXT_LOCK_BUTTON_NAME));
-                setCellWidget(i, 1, makeButtonLockName("ButtonLockName"));
+                mTable->setCellWidget(i, 1, makeButtonLockName("ButtonLockName"));
             break;
 
             case LIST_PAGE_DESCRIPTION:
                 cell1->setText(getLabelText(TTEXT_DESCRIPTION));
-                setCellWidget(i, 1, makeDescription("PageDescription"));
+                mTable->setCellWidget(i, 1, makeDescription("PageDescription"));
             break;
 
             case LIST_OBJECT_DESCRIPTION:
                 cell1->setText(getLabelText(TTEXT_DESCRIPTION));
-                setCellWidget(i, 1, makeDescription("ObjectDescription"));
+                mTable->setCellWidget(i, 1, makeDescription("ObjectDescription"));
             break;
 
             case LIST_POPUP_LEFT:
                 cell1->setText(getLabelText(TTEXT_LEFT));
-                setCellWidget(i, 1, makeSpinGeometry("PopupLeft"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("PopupLeft"));
             break;
 
             case LIST_OBJECT_LEFT:
                 cell1->setText(getLabelText(TTEXT_LEFT));
-                setCellWidget(i, 1, makeSpinGeometry("ObjectLeft"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectLeft"));
             break;
 
             case LIST_POPUP_TOP:
                 cell1->setText(getLabelText(TTEXT_TOP));
-                setCellWidget(i, 1, makeSpinGeometry("PopupTop"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("PopupTop"));
             break;
 
             case LIST_OBJECT_TOP:
                 cell1->setText(getLabelText(TTEXT_TOP));
-                setCellWidget(i, 1, makeSpinGeometry("ObjectTop"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectTop"));
             break;
 
             case LIST_POPUP_WIDTH:
                 cell1->setText(getLabelText(TTEXT_WIDTH));
-                setCellWidget(i, 1, makeSpinGeometry("PopupWidth"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("PopupWidth"));
             break;
 
             case LIST_OBJECT_WIDTH:
                 cell1->setText(getLabelText(TTEXT_WIDTH));
-                setCellWidget(i, 1, makeSpinGeometry("ObjectWidth"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectWidth"));
             break;
 
             case LIST_POPUP_HEIGHT:
                 cell1->setText(getLabelText(TTEXT_HEIGHT));
-                setCellWidget(i, 1, makeSpinGeometry("PopupHeight"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("PopupHeight"));
             break;
 
             case LIST_OBJECT_HEIGHT:
                 cell1->setText(getLabelText(TTEXT_HEIGHT));
-                setCellWidget(i, 1, makeSpinGeometry("ObjectHeight"));
+                mTable->setCellWidget(i, 1, makeSpinGeometry("ObjectHeight"));
             break;
 
             case LIST_POPUP_RESET_ON_POS:
                 cell1->setText(getLabelText(TTEXT_RESET_POS_ON_SHOW));
-                setCellWidget(i, 1, makePopupResetOnPos("PopupResetOnPos"));
+                mTable->setCellWidget(i, 1, makePopupResetOnPos("PopupResetOnPos"));
             break;
 
             case LIST_OBJECT_Z_ORDER:
                 cell1->setText(getLabelText(TTEXT_ZORDER));
-                setCellWidget(i, 1, makeObjectZOrder("ObjectZOrder"));
+                mTable->setCellWidget(i, 1, makeObjectZOrder("ObjectZOrder"));
             break;
 
             case LIST_POPUP_GROUPS:
                 cell1->setText(getLabelText(TTEXT_GROUP));
-                setCellWidget(i, 1, makePopupGroups("PopupGroups"));
+                mTable->setCellWidget(i, 1, makePopupGroups("PopupGroups"));
             break;
 
             case LIST_POPUP_TIMEOUT:
                 cell1->setText(getLabelText(TTEXT_TIMEOUT));
-                setCellWidget(i, 1, makePopupTimeout("PopupTimeout"));
+                mTable->setCellWidget(i, 1, makePopupTimeout("PopupTimeout"));
             break;
 
             case LIST_POPUP_MODAL:
                 cell1->setText(getLabelText(TTEXT_MODAL));
-                setCellWidget(i, 1, makePopupModal("PopupModal"));
+                mTable->setCellWidget(i, 1, makePopupModal("PopupModal"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT));
-                setCellWidget(i, 1, makePopupShowEffect("PopupShowEffect"));
+                mTable->setCellWidget(i, 1, makePopupShowEffect("PopupShowEffect"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT_TIME:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_TIME));
-                setCellWidget(i, 1, makePopupEffectTime(mPage.showTime, "PopupShowEffectTime"));
+                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage.showTime, "PopupShowEffectTime"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT_X:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_X_POS));
-                setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosX"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosX"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT_Y:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_Y_POS));
-                setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosY"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosY"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT));
-                setCellWidget(i, 1, makePopupHideEffect("PopupHideEffect"));
+                mTable->setCellWidget(i, 1, makePopupHideEffect("PopupHideEffect"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT_TIME:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_TIME));
-                setCellWidget(i, 1, makePopupEffectTime(mPage.hideTime, "PopupHideEffectTime"));
+                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage.hideTime, "PopupHideEffectTime"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT_X:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_X_POS));
-                setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosX"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosX"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT_Y:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_Y_POS));
-                setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosY"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosY"));
             break;
 
             case LIST_POPUP_COLLAPSE_DIR:
                 cell1->setText(getLabelText(TTEXT_COLLAPSE_DIRECTION));
-                setCellWidget(i, 1, makePopupCollapseDir("PopupCollapseDirection"));
+                mTable->setCellWidget(i, 1, makePopupCollapseDir("PopupCollapseDirection"));
             break;
 
             case LIST_POPUP_COLLAPSE_OFFSET:
                 cell1->setText(getLabelText(TTEXT_COLLAPSE_OFFSET));
-                setCellWidget(i, 1, makePopupCollapseOffset("PopupCollapseOffest"));
+                mTable->setCellWidget(i, 1, makePopupCollapseOffset("PopupCollapseOffest"));
             break;
 
             case LIST_POPUP_COLLAPSE_SHOWOP:
                 cell1->setText(getLabelText(TTEXT_COLLAPSE_SHOW_OPEN));
-                setCellWidget(i, 1, makePopupCollapseShowOpen("PopupCollapseShowOpen"));
+                mTable->setCellWidget(i, 1, makePopupCollapseShowOpen("PopupCollapseShowOpen"));
             break;
 
             case LIST_OBJECT_DRAG_DROP_TYPE:
                 cell1->setText(getLabelText(TTEXT_DRAGDROP_TYPE));
-                setCellWidget(i, 1, makeObjectDragDropType("ObjectDragDropType"));
+                mTable->setCellWidget(i, 1, makeObjectDragDropType("ObjectDragDropType"));
             break;
 
             case LIST_OBJECT_DROP_GROUP:
                 cell1->setText(getLabelText(TTEXT_DROP_GROUP));
-                setCellWidget(i, 1, makeObjectDropGroup("ObjectDropGroup"));
+                mTable->setCellWidget(i, 1, makeObjectDropGroup("ObjectDropGroup"));
             break;
 
             case LIST_OBJECT_TOUCH_STYLE:
                 cell1->setText(getLabelText(TTEXT_TOUCH_STYLE));
-                setCellWidget(i, 1, makeObjectTouchStyle("ObjectTouchStyle"));
+                mTable->setCellWidget(i, 1, makeObjectTouchStyle("ObjectTouchStyle"));
             break;
 
             case LIST_OBJECT_BORDER_STYLE:
                 cell1->setText(getLabelText(TTEXT_BORDER_STYLE));
-                setCellWidget(i, 1, makeObjectBorderStyle("ObjectBorderStyle"));
+                mTable->setCellWidget(i, 1, makeObjectBorderStyle("ObjectBorderStyle"));
             break;
 
             case LIST_OBJECT_STATE_COUNT:
                 cell1->setText(getLabelText(TTEXT_STATE_COUNT));
-                setCellWidget(i, 1, makeObjectStateCount("ObjectStateCount"));
+                mTable->setCellWidget(i, 1, makeObjectStateCount("ObjectStateCount"));
             break;
 
             case LIST_OBJECT_ANIMATE_TIME_UP:
                 cell1->setText(getLabelText(TTEXT_ANIMATE_TIME_UP));
-                setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeUp"));
+                mTable->setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeUp"));
             break;
 
             case LIST_OBJECT_ANIMATE_TIME_DN:
                 cell1->setText(getLabelText(TTEXT_ANIMATE_TIME_DOWN));
-                setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeDown"));
+                mTable->setCellWidget(i, 1, makeObjectAnimateTime("ObjectAnimateTimeDown"));
             break;
 
             case LIST_OBJECT_AUTOREPEAT:
                 cell1->setText(getLabelText(TTEXT_AUTO_REPEAT));
-                setCellWidget(i, 1, makeObjectAutoRepeat("ObjectAutoRepeat"));
+                mTable->setCellWidget(i, 1, makeObjectAutoRepeat("ObjectAutoRepeat"));
             break;
 
             case LIST_OBJECT_DISABLED:
                 cell1->setText(getLabelText(TTEXT_DISABLED));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisabled"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisabled"));
             break;
 
             case LIST_OBJECT_HIDDEN:
                 cell1->setText(getLabelText(TTEXT_HIDDEN));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectHidden"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectHidden"));
             break;
 
             case LIST_OBJECT_INPUT_TYPE:
                 cell1->setText(getLabelText(TTEXT_INPUT_TYPE));
-                setCellWidget(i, 1, makeObjectInputType("ObjectInputType"));
+                mTable->setCellWidget(i, 1, makeObjectInputType("ObjectInputType"));
             break;
 
             case LIST_OBJECT_PASSWORD_CHAR:
                 cell1->setText(getLabelText(TTEXT_PASSWORD_CHARACTER));
-                setCellWidget(i, 1, makeObjectPasswordCharacter("ObjectPasswordCharacter"));
+                mTable->setCellWidget(i, 1, makeObjectPasswordCharacter("ObjectPasswordCharacter"));
             break;
 
             case LIST_OBJECT_DISPLAY_TYPE:
                 cell1->setText(getLabelText(TTEXT_DISPLAY_TYPE));
-                setCellWidget(i, 1, makeObjectDisplayType("ObjectDisplayType"));
+                mTable->setCellWidget(i, 1, makeObjectDisplayType("ObjectDisplayType"));
             break;
 
             case LIST_OBJECT_MAX_TEXT_LENGTH:
                 cell1->setText(getLabelText(TTEXT_MAX_TEXT_LENGTH));
-                setCellWidget(i, 1, makeObjectMaxTextLength("ObjectMaxTextLength"));
+                mTable->setCellWidget(i, 1, makeObjectMaxTextLength("ObjectMaxTextLength"));
             break;
 
             case LIST_OBJECT_INPUT_MASK:
                 cell1->setText(getLabelText(TTEXT_INPUT_MASK));
-                setCellWidget(i, 1, makeObjectInputMask("ObjectInputMask"));
+                mTable->setCellWidget(i, 1, makeObjectInputMask("ObjectInputMask"));
             break;
 
             case LIST_OBJECT_VALUE_DIRECTION:
                 cell1->setText(getLabelText(TTEXT_VALUE_DIRECTION));
-                setCellWidget(i, 1, makeObjectValueDirection("ObjectValueDirection"));
+                mTable->setCellWidget(i, 1, makeObjectValueDirection("ObjectValueDirection"));
             break;
 
             case LIST_OBJECT_SLIDER_NAME:
                 cell1->setText(getLabelText(TTEXT_SLIDER_NAME));
-                setCellWidget(i, 1, makeObjectSliderName("ObjectSliderName"));
+                mTable->setCellWidget(i, 1, makeObjectSliderName("ObjectSliderName"));
                 break;
 
             case LIST_OBJECT_SLIDER_COLOR:
                 cell1->setText(getLabelText(TTEXT_SLIDER_COLOR));
-                setCellWidget(i, 1, makeObjectSliderColor("ObjectSliderColor"));
+                mTable->setCellWidget(i, 1, makeObjectSliderColor("ObjectSliderColor"));
             break;
 
             case LIST_OBJECT_PASSWD_PROTECT:
                 cell1->setText(getLabelText(TTEXT_PASSWORD_PROTECTION));
-                setCellWidget(i, 1, makeObjectPasswordProtected("ObjectPasswordProtection"));
+                mTable->setCellWidget(i, 1, makeObjectPasswordProtected("ObjectPasswordProtection"));
             break;
 
             case LIST_OBJECT_SUB_PAGE_SET:
                 cell1->setText(getLabelText(TTEXT_SUBPAGE_SET));
-                setCellWidget(i, 1, makeObjectSubPageSet("ObjectSubPageSet"));
+                mTable->setCellWidget(i, 1, makeObjectSubPageSet("ObjectSubPageSet"));
             break;
 
             case LIST_OBJECT_ORIENTATION:
                 cell1->setText(getLabelText(TTEXT_ORIENTATION));
-                setCellWidget(i, 1, makeObjectOrientation("ObjectOrientation"));
+                mTable->setCellWidget(i, 1, makeObjectOrientation("ObjectOrientation"));
             break;
 
             case LIST_OBJECT_SPACING:
                 cell1->setText(getLabelText(TTEXT_SPACING));
-                setCellWidget(i, 1, makeObjectSpacing("ObjectSpacing"));
+                mTable->setCellWidget(i, 1, makeObjectSpacing("ObjectSpacing"));
             break;
 
             case LIST_OBJECT_ANCHOR_POSITION:
                 cell1->setText(getLabelText(TTEXT_ANCHOR_POSITION));
-                setCellWidget(i, 1, makeObjectAnchorPosition("ObjectAnchorPosition"));
+                mTable->setCellWidget(i, 1, makeObjectAnchorPosition("ObjectAnchorPosition"));
             break;
 
             case LIST_OBJECT_SHOW_SUBPAGES:
                 cell1->setText(getLabelText(TTEXT_SHOW_SUBPAGES));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectShowSubpages"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectShowSubpages"));
             break;
 
             case LIST_OBJECT_DYNAMIC_REORDER:
                 cell1->setText(getLabelText(TTEXT_ALLOW_DYN_REORDERING));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDynamicReorder"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDynamicReorder"));
             break;
 
             case LIST_OBJECT_RESET_VIEW_SHOW:
                 cell1->setText(getLabelText(TTEXT_RESET_VIEW_ON_SHOW));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectResetViewOnShow"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectResetViewOnShow"));
             break;
 
             case LIST_OBJECT_SCROLLBAR:
                 cell1->setText(getLabelText(TTEXT_SCROLLBAR));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectScrollbar"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectScrollbar"));
             break;
 
             case LIST_OBJECT_SCROLL_OFFSET:
                 cell1->setText(getLabelText(TTEXT_SCROLLBAR_OFFSET));
-                setCellWidget(i, 1, makeObjectScrollbarOffset("ObjectScrollbarOffset"));
+                mTable->setCellWidget(i, 1, makeObjectScrollbarOffset("ObjectScrollbarOffset"));
             break;
 
             case LIST_OBJECT_DISABLE_TOUCHSC:
                 cell1->setText(getLabelText(TTEXT_DISABLE_TOUCH_SCROLL));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisableTouchScroll"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectDisableTouchScroll"));
             break;
 
             case LIST_OBJECT_ENABLE_ANCHOR:
                 cell1->setText(getLabelText(TTEXT_ENABLE_ANCHORING));
-                setCellWidget(i, 1, makeObjectYesNoSelect("ObjectEnableAnchor"));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectEnableAnchor"));
+            break;
+
+            case LIST_LISTVIEW_COMPONENTS:
+                cell1->setText(getLabelText(TTEXT_LISTVIEW_COMPONENTS));
+                mTable->setCellWidget(i, 1, makeListviewComponents("ObjectListviewComponents"));
+            break;
+
+            case LIST_ITEM_HEIGHT:
+                cell1->setText(getLabelText(TTEXT_ITEM_HEIGHT));
+                mTable->setCellWidget(i, 1, makeObjectItemHeight("ObjectItemHeight"));
+            break;
+
+            case LIST_LISTVIEW_COLUMNS:
+                cell1->setText(getLabelText(TTEXT_LISTVIEW_COLUMNS));
+                mTable->setCellWidget(i, 1, makeListviewColumns("ObjectListviewColumns"));
+            break;
+
+            case LIST_LISTVIEW_ITEM_LAYOUT:
+                cell1->setText(getLabelText(TTEXT_LISTVIEW_ITEM_LAYOUT));
+                mTable->setCellWidget(i, 1, makeListviewItemLayout("ObjectListviewItemLayout"));
+            break;
+
+            case LIST_PRIMARY_PARTITION:
+                cell1->setText(getLabelText(TTEXT_PRIMARY_PARTIOTION));
+                mTable->setCellWidget(i, 1, makeObjectPrimaryPartition("ObjectPrimaryPartition"));
+            break;
+
+            case LIST_SECONDARY_PARTITION:
+                cell1->setText(getLabelText(TTEXT_SECONDARY_PARTITION));
+                mTable->setCellWidget(i, 1, makeObjectSecondaryPartition("ObjectSecondaryPartition"));
+            break;
+
+            case LIST_FILTER_ENABLED:
+                cell1->setText(getLabelText(TTEXT_FILTER_ENABLED));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectFilterEnabled"));
+            break;
+
+            case LIST_FILTER_HEIGHT:
+                cell1->setText(getLabelText(TTEXT_FILTER_HEIGHT));
+                mTable->setCellWidget(i, 1, makeObjectFilterHeight("ObjectFilterHeight"));
+            break;
+
+            case LIST_ALPHABET_SCROLLBAR:
+                cell1->setText(getLabelText(TTEXT_ALPHABET_SCROLLBAR));
+                mTable->setCellWidget(i, 1, makeObjectYesNoSelect("ObjectAlphabetScrollbar"));
+            break;
+
+            case LIST_DYNAMIC_DATA_SOURCE:
+                cell1->setText(getLabelText(TTEXT_DYNAMIC_DATA_SOURCE));
+                mTable->setCellWidget(i, 1, makeObjectDynamicDataSource("ObjectDynamnicDataSource"));
             break;
         }
 
@@ -1582,6 +1684,10 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectYesNoSelect(const QString& na
             combo->setCurrentIndex(mActObject.da);
         else if (name == "ObjectHidden")
             combo->setCurrentIndex(mActObject.hd);
+        else if (name == "ObjectFilterEnabled")
+            combo->setCurrentIndex(mActObject.lvs);
+        else if (name == "ObjectAlphabetScrollbar")
+            combo->setCurrentIndex(mActObject.lva);
     }
 
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onObjectYesNoSelection);
@@ -1856,6 +1962,108 @@ TElementLineEdit *TPropertiesGeneral::makeObjectInputMask(const QString& name)
 
     TElementLineEdit *line = new TElementLineEdit(mActObject.im, name, mTable);
     connect(line, &TElementLineEdit::inputTextChanged, this, &TPropertiesGeneral::onObjectInputMask);
+    return line;
+}
+
+TElementListviewComponents *TPropertiesGeneral::makeListviewComponents(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeListviewComponents(const QString& name)");
+
+    TElementListviewComponents *comp = new TElementListviewComponents(mActObject.lvc, name, mTable);
+    connect(comp, &TElementListviewComponents::componentChanged, this, &TPropertiesGeneral::onListviewComponents);
+    return comp;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectItemHeight(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectItemHeight(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.lvh;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectItemHeight);
+    return sbox;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeListviewColumns(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeListviewColumns(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.lvg;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onListviewColumns);
+    return sbox;
+}
+
+TElementWidgetCombo *TPropertiesGeneral::makeListviewItemLayout(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeListviewItemLayout(const QString& name)");
+
+    QStringList items = { "horizontal - image left", "horizontal - image right", "vertical - image top" };
+    QList<QVariant> data = { 1, 2, 4 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onListviewItemLayout);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectPrimaryPartition(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectPrimaryPartition(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.lhp;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
+    return sbox;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectSecondaryPartition(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectSecondaryPartition(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.lvp;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
+    return sbox;
+}
+
+TElementSpinBox *TPropertiesGeneral::makeObjectFilterHeight(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectFilterHeight(const QString& name)");
+
+    int value = 0;
+
+    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        value = mActObject.lsh;
+
+    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
+    return sbox;
+}
+
+TElementLineEdit *TPropertiesGeneral::makeObjectDynamicDataSource(const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::makeObjectDynamicDataSource(const QString& name)");
+
+    TElementLineEdit *line = new TElementLineEdit(mActObject.lds, name, mTable);
+    connect(line, &TElementLineEdit::inputTextChanged, this, &TPropertiesGeneral::onObjectDynamicDataSource);
     return line;
 }
 
@@ -2329,6 +2537,10 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
         mActObject.ds = data.toInt();
     else if (name == "ObjectEnableAnchor")
         mActObject.sdd = data.toInt();
+    else if (name == "ObjectFilterEnabled")
+        mActObject.lvs = data.toInt();
+    else if (name == "ObjectAlphabetScrollbar")
+        mActObject.lva = data.toInt();
 
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
@@ -2563,11 +2775,104 @@ void TPropertiesGeneral::onObjectInputMask(const QString& text, const QString& n
     mChanged = true;
 }
 
-void TPropertiesGeneral::setCellWidget(int row, int col, QWidget *w)
+void TPropertiesGeneral::onListviewComponents(int components, const QString& name)
 {
-//    DECL_TRACER("TPropertiesGeneral::setCellWidget(int row, int col, QWidget *w)");
+    DECL_TRACER("TPropertiesGeneral::onListviewComponents(int components, const QString& name)");
 
-    mTable->setCellWidget(row, col, w);
+    Q_UNUSED(name);
+
+    mActObject.lvc = components;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+    requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onObjectItemHeight(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectItemHeight(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lvh = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+    requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onListviewColumns(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onListviewColumns(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lvg = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+    requestRedraw(&mPage);
+}
+
+void TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.lvl = data.toInt();
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lhp = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lvp = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lsh = value;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
+}
+
+void TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QString& name)
+{
+    DECL_TRACER("TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.lds = text;
+    mPage.objects[mActObjectID]->setObject(mActObject);
+    markChanged();
+    mChanged = true;
 }
 
 void TPropertiesGeneral::initYesNo(QStringList& list, QList<QVariant>& data)

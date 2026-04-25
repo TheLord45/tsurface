@@ -144,6 +144,9 @@ qt_add_executable(tsurface
     tsubpagesetdialog.cpp
     tsubpagesetdialog.h
     tsubpagesetdialog.ui
+    tlistviewcomponentsdialog.cpp
+    tlistviewcomponentsdialog.h
+    tlistviewcomponentsdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp
@@ -168,6 +171,8 @@ qt_add_executable(tsurface
     telementsinglebitmap.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
+    tsubviewarea.cpp
+    tsubviewarea.h
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h
@@ -195,7 +200,7 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    tsubviewarea.h tsubviewarea.cpp
+    telementlistviewcomponents.h telementlistviewcomponents.cpp
 )
 
 # Use the Widgets module from Qt 6.

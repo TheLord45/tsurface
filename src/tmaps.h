@@ -76,6 +76,15 @@ namespace Maps
         int ai{0};
     }MAP_EVPF_T;
 
+    typedef struct MAP_DDSM_T
+    {
+        QString ddmt;       // (lv) ...
+        int pg{0};          // page number
+        int bt{0};          // button number
+        QString dds;        // Name of dynamic listview source
+        QString ddmn;       // Internal unique name of listview
+    }MAP_DDSM_T;
+
     typedef struct MAPS_T
     {
         std::vector<MAP_T> map_cm;
@@ -86,6 +95,7 @@ namespace Maps
         std::vector<MAP_T> map_strm;        // System resources
         std::vector<MAP_PM_T> map_pm;       // Button -> text
         std::vector<MAP_EVPF_T> map_evpf;   // Only G5
+        std::vector<MAP_DDSM_T> map_ddsm;   // G5: Listview
     }MAPS_T;
 };
 
@@ -109,6 +119,8 @@ class TMaps
         QStringList getAllSoundFiles();
         bool removeSound(const QString& file);
         void setPathTemporary(const QString& path) { mPathTemporary = path; }
+        Maps::MAP_DDSM_T getListviewByName(const QString& name);
+        Maps::MAP_DDSM_T getListviewByNumbers(int bt, int page);
 
         bool readMaps(const QString& path, const QString& file);
         bool writeMaps(const QString& path, const QString& file);

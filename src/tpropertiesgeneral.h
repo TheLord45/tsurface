@@ -33,6 +33,7 @@ class TElementWidgetText;
 class TElementSpinBox;
 class TElementBorderName;
 class TElementColorSelector;
+class TElementListviewComponents;
 
 class TPropertiesGeneral : public QObject
 {
@@ -105,6 +106,14 @@ class TPropertiesGeneral : public QObject
         void onObjectDisplayType(const QString& text, const QVariant& data, const QString& name);
         void onObjectMaxTextLength(int value, const QString& name);
         void onObjectInputMask(const QString& text, const QString& name);
+        void onListviewComponents(int components, const QString& name);
+        void onObjectItemHeight(int value, const QString& name);
+        void onListviewColumns(int value, const QString& name);
+        void onListviewItemLayout(const QString& text, const QVariant& data, const QString& name);
+        void onObjectPrimaryPartition(int value, const QString& name);
+        void onObjectSecondaryPartition(int value, const QString& name);
+        void onObjectFilterHeight(int value, const QString& name);
+        void onObjectDynamicDataSource(const QString& text, const QString& name);
         // Internal methods
         void setParent(QWidget *parent) { mParent = parent; };
         void setWidget(QTableWidget *view);
@@ -154,10 +163,17 @@ class TPropertiesGeneral : public QObject
         TElementWidgetCombo *makeObjectDisplayType(const QString& name);
         TElementSpinBox *makeObjectMaxTextLength(const QString& name);
         TElementLineEdit *makeObjectInputMask(const QString& name);
+        TElementListviewComponents *makeListviewComponents(const QString& name);
+        TElementSpinBox *makeObjectItemHeight(const QString& name);
+        TElementSpinBox *makeListviewColumns(const QString& name);
+        TElementWidgetCombo *makeListviewItemLayout(const QString& name);
+        TElementSpinBox *makeObjectPrimaryPartition(const QString& name);
+        TElementSpinBox *makeObjectSecondaryPartition(const QString& name);
+        TElementSpinBox *makeObjectFilterHeight(const QString& name);
+        TElementLineEdit *makeObjectDynamicDataSource(const QString& name);
 
     private:
         void initYesNo(QStringList& list, QList<QVariant>& data);
-        void setCellWidget(int row, int col, QWidget *w);
 
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};

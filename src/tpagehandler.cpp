@@ -933,7 +933,8 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         {
             INSERTJ(bt, "lvc", e.lvc, 0);   // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
             INSERTJ(bt, "lvh", e.lvh, 0);   // G5 Listbox: Item height
-            INSERTJ(bt, "lvl", e.lvl, 0);   // G5 Listbox: Listview columns
+            INSERTJ(bt, "lvl", e.lvl, 0);   // G5 Listbox: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
+            INSERTJ(bt, "lvg", e.lvg, 1);   // G5 Listbox: Number of columns
             INSERTJ(bt, "lhp", e.lhp, 0);   // G5 Listbox: Primary Partition (%)
             INSERTJ(bt, "lvp", e.lvp, 0);   // G5 Listbox: Secondary Partition (%)
             INSERTJ(bt, "lvs", e.lvs, 0);   // G5 Listbox: Filter enabled; 1 = TRUE
@@ -1410,7 +1411,8 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.inputType = jo.value("inputType").toInt(1);  // G5 Text input
         object.lvc = jo.value("lvc").toInt(0);      // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
         object.lvh = jo.value("lvh").toInt(48);     // G5 Listbox: Item height
-        object.lvl = jo.value("lvl").toInt(1);      // G5 Listbox: Listview columns
+        object.lvl = jo.value("lvl").toInt(1);      // G5 Listbox: Item Layout
+        object.lvg = jo.value("lvg").toInt(1);      // G5 Listbox: Number of columns
         object.lhp = jo.value("lhp").toInt(5);      // G5 Listbox: Primary Partition (%)
         object.lvp = jo.value("lvp").toInt(95);     // G5 Listbox: Secondary Partition (%)
         object.lvs = jo.value("lvs").toInt(0);      // G5 Listbox: Filter enabled; 1 = TRUE
@@ -2004,6 +2006,9 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
 
     if (!button.firstChildElement("lvl").isNull())
         object.lvl = button.firstChildElement("lvl").text().toInt();
+
+    if (!button.firstChildElement("lvg").isNull())
+        object.lvg = button.firstChildElement("lvg").text().toInt();
 
     if (!button.firstChildElement("lhp").isNull())
         object.lhp = button.firstChildElement("lhp").text().toInt();
