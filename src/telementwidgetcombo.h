@@ -58,7 +58,8 @@ class TElementWidgetCombo : public QComboBox
         QString mName;
         int mActIndex{0};
         bool mHaveData{false};
-        int mInstance{-1};
+        int mInstance{-2};
+        bool mBlock{false};
 };
 
 #endif // TELEMENTWIDGETCOMBO_H

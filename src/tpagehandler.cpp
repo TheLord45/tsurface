@@ -916,14 +916,14 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         INSERTJ(bt, "cp", e.cp, 1);
         INSERTJ(bt, "lp", e.lp, setupPort);
         INSERTJ(bt, "lv", e.lv, setupPort);
-        INSERTJ(bt, "ta", e.ta, 0);
-        INSERTJ(bt, "ti", e.ti, 0);
-        INSERTJ(bt, "tr", e.tr, 0);
-        INSERTJ(bt, "tc", e.tc, 0);
-        INSERTJ(bt, "tj", e.tj, 0);
-        INSERTJ(bt, "tk", e.tk, 0);
-        INSERTJ(bt, "of", e.of, 0);
-        INSERTJ(bt, "tg", e.tg, 0);
+//        INSERTJ(bt, "ta", e.ta, 0);       // G4 Listbox
+//        INSERTJ(bt, "ti", e.ti, 0);       // G4 Listbox
+//        INSERTJ(bt, "tr", e.tr, 0);       // G4 Listbox
+//        INSERTJ(bt, "tc", e.tc, 0);       // G4 Listbox
+//        INSERTJ(bt, "tj", e.tj, 0);       // G4 Listbox
+//        INSERTJ(bt, "tk", e.tk, 0);       // G4 Listbox
+//        INSERTJ(bt, "of", e.of, 0);       // G4 Listbox
+//        INSERTJ(bt, "tg", e.tg, 0);       // G4 Listbox
         INSERTJ(bt, "so", e.so, 1);
         INSERTJ(bt, "co", e.co, 1);
         INSERTJ(bt, "dr", e.dr, "");
@@ -931,17 +931,17 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
 
         if (e.type == ObjHandler::LISTVIEW)
         {
-            INSERTJ(bt, "lvc", e.lvc, 0);   // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
-            INSERTJ(bt, "lvh", e.lvh, 0);   // G5 Listbox: Item height
-            INSERTJ(bt, "lvl", e.lvl, 0);   // G5 Listbox: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
-            INSERTJ(bt, "lvg", e.lvg, 1);   // G5 Listbox: Number of columns
-            INSERTJ(bt, "lhp", e.lhp, 0);   // G5 Listbox: Primary Partition (%)
-            INSERTJ(bt, "lvp", e.lvp, 0);   // G5 Listbox: Secondary Partition (%)
-            INSERTJ(bt, "lvs", e.lvs, 0);   // G5 Listbox: Filter enabled; 1 = TRUE
-            INSERTJ(bt, "lsh", e.lsh, 0);   // G5 Listbox: Filter height
-            INSERTJ(bt, "lva", e.lva, 0);   // G5 Listbox: Alphabet scrollbar; 1 = TRUE
-            INSERTJ(bt, "lds", e.lds, "");  // G5 Listbox: Dynamic data source
-            bt.insert("ldm", e.ldm);        // G5 Listbox: Internal distinct name?
+            INSERTJ(bt, "lvc", e.lvc, 0);   // G5 Listview: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+            INSERTJ(bt, "lvh", e.lvh, 0);   // G5 Listview: Item height
+            INSERTJ(bt, "lvl", e.lvl, 0);   // G5 Listview: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
+            INSERTJ(bt, "lvg", e.lvg, 1);   // G5 Listview: Number of columns
+            INSERTJ(bt, "lhp", e.lhp, 0);   // G5 Listview: Primary Partition (%)
+            INSERTJ(bt, "lvp", e.lvp, 0);   // G5 Listview: Secondary Partition (%)
+            INSERTJ(bt, "lvs", e.lvs, 0);   // G5 Listview: Filter enabled; 1 = TRUE
+            INSERTJ(bt, "lsh", e.lsh, 0);   // G5 Listview: Filter height
+            INSERTJ(bt, "lva", e.lva, 0);   // G5 Listview: Alphabet scrollbar; 1 = TRUE
+            INSERTJ(bt, "lds", e.lds, "");  // G5 Listview: Dynamic data source
+            bt.insert("ldm", e.ldm);        // G5 Listview: Internal distinct name?
         }
 
         INSERTJ(bt, "stateCount", e.stateCount, 0);
@@ -1398,29 +1398,31 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.cp = jo.value("cp").toInt(1);
         object.lp = jo.value("lp").toInt(1);
         object.lv = jo.value("lv").toInt(setupPort);
-        object.ta = jo.value("ta").toInt(0);
-        object.ti = jo.value("ti").toInt(0);
-        object.tr = jo.value("tr").toInt(0);
-        object.tc = jo.value("tc").toInt(0);
-        object.tj = jo.value("tj").toInt(0);
-        object.tk = jo.value("tk").toInt(0);
-        object.of = jo.value("of").toInt(0);
-        object.tg = jo.value("tg").toInt(0);
-        object.so = jo.value("so").toInt(1);
-        object.co = jo.value("co").toInt(1);
         object.inputType = jo.value("inputType").toInt(1);  // G5 Text input
-        object.lvc = jo.value("lvc").toInt(0);      // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
-        object.lvh = jo.value("lvh").toInt(48);     // G5 Listbox: Item height
-        object.lvl = jo.value("lvl").toInt(1);      // G5 Listbox: Item Layout
-        object.lvg = jo.value("lvg").toInt(1);      // G5 Listbox: Number of columns
-        object.lhp = jo.value("lhp").toInt(5);      // G5 Listbox: Primary Partition (%)
-        object.lvp = jo.value("lvp").toInt(95);     // G5 Listbox: Secondary Partition (%)
-        object.lvs = jo.value("lvs").toInt(0);      // G5 Listbox: Filter enabled; 1 = TRUE
-        object.lsh = jo.value("lsh").toInt(24);     // G5 Listbox: Filter height
-        object.lva = jo.value("lva").toInt(0);      // G5 Listbox: Alphabet scrollbar; 1 = TRUE
-        object.lds = jo.value("lds").toString();    // G5 Listbox: Dynamic data source
-        object.ldm = jo.value("ldm").toString();    // G5 Listbox: Internal distinct name?
-        object.ddt = jo.value("ddt").toString();
+        // Allthough we read the parameters of the old G4 Listboxes, they're not
+        // supported. Instead the G5 Listview is supported.
+        object.ta = jo.value("ta").toInt(0);        // G4 Listbox table channel
+        object.ti = jo.value("ti").toInt(0);        // G4 Listbox table index number of rows (all rows have this number in "cp")
+        object.tr = jo.value("tr").toInt(0);        // G4 Listbox number of rows
+        object.tc = jo.value("tc").toInt(0);        // G4 Listbox number of columns
+        object.tj = jo.value("tj").toInt(0);        // G4 Listbox row height
+        object.tk = jo.value("tk").toInt(0);        // G4 Listbox preferred row height
+        object.of = jo.value("of").toInt(0);        // G4 Listbox list offset: 0=disabled/1=enabled
+        object.tg = jo.value("tg").toInt(0);        // G4 Listbox managed: 0=no/1=yes
+        object.lvc = jo.value("lvc").toInt(0);      // G5 Listview: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+        object.lvh = jo.value("lvh").toInt(48);     // G5 Listview: Item height
+        object.lvl = jo.value("lvl").toInt(1);      // G5 Listview: Item Layout
+        object.lvg = jo.value("lvg").toInt(1);      // G5 Listview: Number of columns
+        object.lhp = jo.value("lhp").toInt(5);      // G5 Listview: Primary Partition (%)
+        object.lvp = jo.value("lvp").toInt(95);     // G5 Listview: Secondary Partition (%)
+        object.lvs = jo.value("lvs").toInt(0);      // G5 Listview: Filter enabled; 1 = TRUE
+        object.lsh = jo.value("lsh").toInt(24);     // G5 Listview: Filter height
+        object.lva = jo.value("lva").toInt(0);      // G5 Listview: Alphabet scrollbar; 1 = TRUE
+        object.lds = jo.value("lds").toString();    // G5 Listview: Dynamic data source
+        object.ldm = jo.value("ldm").toString();    // G5 Listview: Internal distinct name?
+        object.ddt = jo.value("ddt").toString();    // G5: Drag/Drop type (dr = draggable, dt = drop target)
+        object.so = jo.value("so").toInt(1);        // String output port
+        object.co = jo.value("co").toInt(1);        // Command port
 
         QJsonArray cm = jo.value("cm").toArray();
 
@@ -2439,18 +2441,18 @@ ObjHandler::BUTTONTYPE TPageHandler::getButtonType(const QString& bt)
         return ObjHandler::BARGRAPH;
     else if (bt.compare("multi-state bargraph", Qt::CaseInsensitive) == 0 || bt.compare("multiBargraph", Qt::CaseInsensitive) == 0)
         return ObjHandler::MULTISTATE_BARGRAPH;
-    else if (bt.compare("joystick", Qt::CaseInsensitive) == 0)
+    else if (bt.compare("joystick", Qt::CaseInsensitive) == 0)          // G4 only!
         return ObjHandler::JOYSTICK;
     else if (bt.compare("text input", Qt::CaseInsensitive) == 0 || bt.compare("textArea", Qt::CaseInsensitive) == 0)
         return ObjHandler::TEXT_INPUT;
-    else if (bt.compare("computer control", Qt::CaseInsensitive) == 0)
+    else if (bt.compare("computer control", Qt::CaseInsensitive) == 0)  // G4 only
         return ObjHandler::COMPUTER_CONTROL;
-    else if (bt.compare("take note", Qt::CaseInsensitive) == 0)
+    else if (bt.compare("take note", Qt::CaseInsensitive) == 0)         // G4 only
         return ObjHandler::TAKE_NOTE;
     else if (bt.compare("sub-page view", Qt::CaseInsensitive) == 0 || bt.compare("subPageView", Qt::CaseInsensitive) == 0)
         return ObjHandler::SUBPAGE_VIEW;
-    else if (bt.compare("listBox", Qt::CaseInsensitive) == 0)
-        return ObjHandler::LISTBOX;
+    else if (bt.compare("listView", Qt::CaseInsensitive) == 0 || bt.compare("listBox", Qt::CaseInsensitive) == 0)
+        return ObjHandler::LISTVIEW;
 
     return ObjHandler::NONE;
 }

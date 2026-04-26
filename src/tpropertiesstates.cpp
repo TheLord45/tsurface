@@ -561,7 +561,8 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
     MSG_DEBUG("Table has minimum height " << totalHeight);
     table->setMinimumHeight(totalHeight);
-    mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
+//    mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
+    mTreeWidget->setMinimumHeight(totalHeight + mTreeWidget->height());
 }
 
 /**

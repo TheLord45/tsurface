@@ -54,5 +54,7 @@
         <file>images/snap-bounding-box-corners.svg</file>
         <file>images/videostream.png</file>
         <file>images/debug-file.svg</file>
+        <file>images/system-search.svg</file>
+        <file>images/user-mowgli.svg</file>
     </qresource>
 </RCC>

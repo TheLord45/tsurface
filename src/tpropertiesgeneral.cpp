@@ -1983,7 +1983,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectItemHeight(const QString& name)
     if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         value = mActObject.lvh;
 
-    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
+    TElementSpinBox *sbox = new TElementSpinBox(value, 48, 1000, name, mTable);
     connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectItemHeight);
     return sbox;
 }
@@ -2025,7 +2025,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectPrimaryPartition(const QString& n
     if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         value = mActObject.lhp;
 
-    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
+    TElementSpinBox *sbox = new TElementSpinBox(value, 5, 95, name, mTable);
     connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
     return sbox;
 }
@@ -2039,8 +2039,8 @@ TElementSpinBox *TPropertiesGeneral::makeObjectSecondaryPartition(const QString&
     if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         value = mActObject.lvp;
 
-    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 100, name, mTable);
-    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
+    TElementSpinBox *sbox = new TElementSpinBox(value, 5, 95, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectSecondaryPartition);
     return sbox;
 }
 
@@ -2053,8 +2053,8 @@ TElementSpinBox *TPropertiesGeneral::makeObjectFilterHeight(const QString& name)
     if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
         value = mActObject.lsh;
 
-    TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
-    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectPrimaryPartition);
+    TElementSpinBox *sbox = new TElementSpinBox(value, 24, 1000, name, mTable);
+    connect(sbox, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onObjectFilterHeight);
     return sbox;
 }
 
@@ -2163,7 +2163,7 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
 
     mChanged = true;
     setTable(STATE_POPUP);
-    // TODO: Add code to move popup to subpages, if this was selected and vice versa.
+    // Move popup to subpages, if this was selected and vice versa.
     pageTypeChanged(mPage.popupType, mPage.pageID);
 }
 
@@ -2822,9 +2822,11 @@ void TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVarian
     Q_UNUSED(name);
 
     mActObject.lvl = data.toInt();
+    MSG_DEBUG("Listview Item Layout: " << mActObject.lvl);
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name)
@@ -2837,6 +2839,7 @@ void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& name)
@@ -2849,6 +2852,7 @@ void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& na
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
@@ -2861,6 +2865,7 @@ void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
     mPage.objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
+    requestRedraw(&mPage);
 }
 
 void TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QString& name)

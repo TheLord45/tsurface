@@ -169,10 +169,14 @@ qt_add_executable(tsurface
     telementsound.h
     telementsinglebitmap.cpp
     telementsinglebitmap.h
+    telementlistviewcomponents.cpp
+    telementlistviewcomponents.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
     tsubviewarea.cpp
     tsubviewarea.h
+    tlistviewmock.cpp
+    tlistviewmock.h
     tdrawobject.cpp
     tdrawobject.h
     tdrawtext.h
@@ -200,7 +204,6 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    telementlistviewcomponents.h telementlistviewcomponents.cpp
 )
 
 # Use the Widgets module from Qt 6.

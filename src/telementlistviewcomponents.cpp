@@ -87,7 +87,7 @@ void TElementListviewComponents::onButtonClicked()
     if (setting > 0)
     {
         setProperty(setting);
-        componentChanged(setting, mName);
+        emit componentChanged(setting, mName);
     }
 }
 

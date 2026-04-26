@@ -58,7 +58,7 @@ void TElementWidgetCombo::addData(const QList<QVariant>& data)
     if (data.size() < count())
         return;
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = 0;
 
     for (QVariant d : data)
@@ -68,79 +68,93 @@ void TElementWidgetCombo::addData(const QList<QVariant>& data)
     }
 
     mHaveData = true;
+    mBlock = false;
 }
 
 void TElementWidgetCombo::setDefaultData(const QVariant& data)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultData(const QVariant& data)");
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = findData(data);
 
     if (idx >= 0)
         setCurrentIndex(idx);
+
+    mBlock = false;
 }
 
 void TElementWidgetCombo::setDefaultText(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text)");
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = findText(text);
 
     if (idx >= 0)
     {
         setCurrentIndex(idx);
+        mBlock = false;
         return;
     }
 
     insertItem(0, text);
     setCurrentIndex(0);
+    mBlock = false;
 }
 
 void TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& data)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& data)");
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = findText(text);
 
     if (idx >= 0)
     {
         setCurrentIndex(idx);
         setItemData(idx, data);
+        mBlock = false;
         return;
     }
 
     insertItem(0, text, data);
     setCurrentIndex(0);
+    mBlock = false;
 }
 
 void TElementWidgetCombo::selectItem(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::selectItem(const QString& text)");
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = findText(text);
 
     if (idx >= 0)
         setCurrentIndex(idx);
+
+    mBlock = false;
 }
 
 void TElementWidgetCombo::selectItem(const QVariant& data)
 {
     DECL_TRACER("TElementWidgetCombo::selectItem(const QVariant& data)");
 
-    QSignalBlocker sigBlock(this);
+    mBlock = true;
     int idx = findData(data);
 
     if (idx >= 0)
         setCurrentIndex(idx);
+
+    mBlock = false;
 }
 
 void TElementWidgetCombo::onCurrentTextChanged(const QString &text)
 {
     DECL_TRACER("TElementWidgetCombo::onCurrentTextChanged(const QString &text)");
+
+    if (mBlock || mActText == text)
+        return;
 
     mActText = text;
     int idx = findText(text);
@@ -151,15 +165,22 @@ void TElementWidgetCombo::onCurrentTextChanged(const QString &text)
         mActData = itemData(0);
 
     emit selectionChanged(text, mActData, mName);
-    emit selectionChangedInst(text, mActData, mName, mInstance);
+
+    if (mInstance != -2)
+        emit selectionChangedInst(text, mActData, mName, mInstance);
 }
 
 void TElementWidgetCombo::onCurrentIndexChanged(int index)
 {
     DECL_TRACER("TElementWidgetCombo::onCurrentIndexChanged(int index)");
 
+    if (mBlock)
+        return;
+
     mActText = itemText(index);
     mActData = itemData(index);
     emit selectionChanged(mActText, mActData, mName);
-    emit selectionChangedInst(mActText, mActData, mName, mInstance);
+
+    if (mInstance != -2)
+        emit selectionChangedInst(mActText, mActData, mName, mInstance);
 }

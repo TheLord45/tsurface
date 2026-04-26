@@ -26,6 +26,8 @@
 #include "tdrawtext.h"
 #include "tdrawborder.h"
 #include "tsubviewarea.h"
+#include "tlistviewmock.h"
+#include "tfonts.h"
 #include "tconfmain.h"
 #include "terror.h"
 
@@ -53,7 +55,7 @@ TDrawObject::TDrawObject(TObjectHandler *object, TResizableWidget *widget)
     : mObject(object),
       mWidget(widget)
 {
-    DECL_TRACER("TDrawObject::TDrawObject(QWidget *widget)");
+    DECL_TRACER("TDrawObject::TDrawObject(TObjectHandler *object, TResizableWidget *widget)");
 }
 
 /**
@@ -191,6 +193,25 @@ void TDrawObject::draw(int instance)
                             area.drawSubViewMock(mWidget->width(), mWidget->height(), list[0].items.size());
                         }
                     }
+                }
+                else if (object.type == LISTVIEW)
+                {
+                    TListViewMock lv(object.wt, object.ht, &button);
+                    lv.setFillColor1(object.sr[0].cf);
+                    lv.setFillColor2(object.sr[1].cf);
+                    lv.setFont(TFonts::getFont(object.sr[0].ff));
+                    lv.setFontSize(object.sr[0].fs);
+                    lv.setTextColor(object.sr[0].ct);
+                    lv.setLhp(object.lhp);
+                    lv.setLsh(object.lsh);
+                    lv.setLva(object.lva);
+                    lv.setLvc(object.lvc);
+                    lv.setLvg(object.lvg);
+                    lv.setLvh(object.lvh);
+                    lv.setLvl(object.lvl);
+                    lv.setLvp(object.lvp);
+                    lv.setLvs(object.lvs);
+                    lv.drawListview();
                 }
         }
     }

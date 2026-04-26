@@ -187,11 +187,10 @@ namespace ObjHandler
         MULTISTATE_BARGRAPH,
         JOYSTICK,
         TEXT_INPUT,
-        LISTBOX,
+        LISTVIEW,
         COMPUTER_CONTROL,
         TAKE_NOTE,
-        SUBPAGE_VIEW,
-        LISTVIEW
+        SUBPAGE_VIEW
     } BUTTONTYPE;
 
     /**
@@ -397,17 +396,17 @@ namespace ObjHandler
         int tk{0};              // G4 Listbox preferred row height
         int of{0};              // G4 Listbox list offset: 0=disabled/1=enabled
         int tg{0};              // G4 Listbox managed: 0=no/1=yes
-        int lvc{0};             // G5 Listbox: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
-        int lvh{48};            // G5 Listbox: Item height
-        int lvl{1};             // G5 Listbox: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
-        int lvg{0};             // G5 Listbox: Listview columns
-        int lhp{5};             // G5 Listbox: Primary Partition (%)
-        int lvp{95};            // G5 Listbox: Secondary Partition (%)
-        int lvs{0};             // G5 Listbox: Filter enabled; 1 = TRUE --> Search input line with magnifying glass on top
-        int lsh{24};            // G5 Listbox: Filter height
-        int lva{0};             // G5 Listbox: Alphabet scrollbar; 1 = TRUE
-        QString lds;            // G5 Listbox: Dynamic data source
-        QString ldm;            // G5 Listbox: Internal distinct name?
+        int lvc{0};             // G5 Listview: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
+        int lvh{48};            // G5 Listview: Item height
+        int lvl{1};             // G5 Listview: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
+        int lvg{0};             // G5 Listview: Listview columns
+        int lhp{5};             // G5 Listview: Primary Partition (%)
+        int lvp{95};            // G5 Listview: Secondary Partition (%)
+        int lvs{0};             // G5 Listview: Filter enabled; 1 = TRUE --> Search input line with magnifying glass on top
+        int lsh{24};            // G5 Listview: Filter height; Max: 25% of listview height
+        int lva{0};             // G5 Listview: Alphabet scrollbar; 1 = TRUE
+        QString lds;            // G5 Listview: Dynamic data source
+        QString ldm;            // G5 Listview: Internal distinct name?
         int so{1};              // String output port
         int co{1};              // Command port
         QList<QString> cm;      // Commands to send on each button hit
