@@ -604,6 +604,36 @@ void TSurface::on_actionOpen_triggered()
 {
     DECL_TRACER("TSurface::on_actionOpen_triggered()");
 
+    // Save actual project if there is one.
+    if (mHaveProject)      // Actual project?
+    {
+        int button = QMessageBox::Yes;
+
+        if (!mIsSaved || mProjectChanged)
+            button = QMessageBox::question(this, tr("Save Project"), tr("There were changes on the actual open project!<br>Do you want to save the project?"));
+
+
+        if (button == QMessageBox::Yes)
+        {
+            if (!mIsSaved)
+                saveAs();
+            else if (mProjectChanged)
+                saveNormal();
+
+            m_ui->mdiArea->closeAllSubWindows();                                    // Close all subwindows
+            TWorkSpaceHandler::Current().clear();                                   // Reset the properties
+            TPageHandler::Current().reset();                                        // Remove the pages from memory
+            std::error_code ec;                                                     // Used to get the error code. This avoids the need of an exception.
+            fs::remove_all(mPathTemporary.toStdString(), ec);                       // Delete all temporary files and directories.
+            TConfMain::Current().reset();                                           // Reset the configuration settings
+            mProjectChanged = false;                                                // Mark the project as untached.
+            mHaveProject = false;
+            mIsSaved = false;
+        }
+        else
+            return;
+    }
+
     mLastOpenPath = TConfig::Current().getLastDirectory();
     QString file = QFileDialog::getOpenFileName(this, tr("Open TSurface file"), mLastOpenPath, tr("TSurface (*.tsf);;AMX (*.TP4 *.TP5);;All (*)"));
     TConfig::Current().setLastDirectory(pathname(file));
@@ -617,7 +647,7 @@ void TSurface::on_actionOpen_triggered()
     {
         mLastOpenPath = pathname(file);                                     // The path from where the file was opened
         mPathTemporary = createTemporaryPath(basename(file));               // The path of the temporary directory with all files
-        // TODO: Call import for AMX format.
+        // Call import for AMX format.
         TFsfReader reader;
 
         if (!reader.unpack(file.toStdString(), mPathTemporary.toStdString()))
