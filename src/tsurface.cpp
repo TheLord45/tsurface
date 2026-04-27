@@ -339,6 +339,51 @@ void TSurface::drawBackgroundColor(const Page::PAGE_t& page)
     page.baseObject.widget->setLinearGradient(linear);
 }
 
+void TSurface::setWindowSize(const QSize& size, QWidget *widget)
+{
+    DECL_TRACER("TSurface::setWindowSize(const QSize& size, QWidget *widget)");
+
+    setWindowSize(size.width(), size.height(), widget);
+}
+
+void TSurface::setWindowSize(int width, int height, QWidget *widget)
+{
+    DECL_TRACER("TSurface::setWindowSize(int width, int height, QWidget *widget)");
+
+    if (!widget)
+        return;
+
+    QSize frame = calcOutherWindowSize(widget);
+
+    if (frame.width() == 0 && frame.height() == 0)
+    {
+        widget->setMinimumSize(width, height);
+        widget->setMaximumSize(width + 10, height + 40);
+    }
+    else
+        widget->setFixedSize(width + frame.width(), height + frame.height());
+}
+
+QSize TSurface::calcOutherWindowSize(QWidget *widget)
+{
+    DECL_TRACER("TSurface::calcOutherWindowSize(QWidget *widget)");
+
+    if (parent())
+        MSG_DEBUG("Have parent!");
+
+    QSize inner = size();
+    QSize outher = frameSize();
+
+    int frameW = outher.width() - inner.width();
+    int frameH = outher.height() - inner.height();
+    MSG_DEBUG("geom: " << inner.width() << " x " << inner.height() << ", outher: " << outher.width() << " x " << outher.height());
+
+    if (frameW >= 0 && frameH >= 0)
+        return QSize(frameW, frameH);
+
+    return QSize(0, 0);
+}
+
 void TSurface::updateGridFromUI(TCanvasWidget *widget)
 {
     DECL_TRACER("TSurface::updateGridFromUI(TCanvasWidget *widget)");
@@ -1798,7 +1843,8 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
 
         widget = new TCanvasWidget(this);                                       // Create a new canvas widget --> subwindow in Mdi
         widget->setWindowTitle(name);                                           // Set the title of the window
-        widget->setFixedSize(QSize(pg->width, pg->height));                     // Set the size
+        QSize wsize(pg->width, pg->height);                                     // Define the window size
+        widget->setFixedSize(wsize);                                            // Assign the size
         MSG_DEBUG("Window was set to size: " << pg->width << " x " << pg->height);
         widget->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);    // Frame decorations
         widget->setStyleSheet("background-color: " + pg->srPage.cf.name() + ";color: " + pg->srPage.ct.name()+ ";");  // Set the background color
@@ -1811,9 +1857,10 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         QMdiSubWindow *page = new QMdiSubWindow;                                // Create a new subwindow in the QMdiArea
         objName = QString("SubWindow_%1").arg(pg->pageID);                      // Create a name for the object
         page->setObjectName(objName);                                           // Set the name
+        page->setStyleSheet(QString("background-color: %1").arg(TConfig::Current().getGutterColor().name(QColor::HexArgb)));
         page->setContentsMargins(0, 0, 0, 0);                                   // We remove the margins
         page->setWidget(widget);                                                // Add the previous created widget to the subwindow
-        page->setFixedSize(page->minimumSizeHint());                            // This is necessary to get the correct size of the window
+        setWindowSize(wsize, page);                                             // This is necessary to get the correct size of the window
         page->setAttribute(Qt::WA_DeleteOnClose);                               // Request that it should be deleted automatically on close of subwindow
         page->installEventFilter(mCloseEater);                                  // Set an event filter to cache the click on the close button
         page->setWindowIcon(QIcon(":images/tsurface_512.png"));                 // Give the window an icon

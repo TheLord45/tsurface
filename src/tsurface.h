@@ -262,6 +262,9 @@ class TSurface : public QMainWindow
         bool closeRequest();
         void initToolbar();
         void drawBackgroundColor(const Page::PAGE_t& page);
+        void setWindowSize(const QSize& size, QWidget *widget);
+        void setWindowSize(int width, int height, QWidget *widget);
+        QSize calcOutherWindowSize(QWidget *widget);
 
         const std::unique_ptr<Ui::tsurface> m_ui;
         bool mForceClose{false};

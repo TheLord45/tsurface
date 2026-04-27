@@ -399,7 +399,7 @@ namespace ObjHandler
         int lvc{0};             // G5 Listview: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
         int lvh{48};            // G5 Listview: Item height
         int lvl{1};             // G5 Listview: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
-        int lvg{0};             // G5 Listview: Listview columns
+        int lvg{1};             // G5 Listview: Listview columns
         int lhp{5};             // G5 Listview: Primary Partition (%)
         int lvp{95};            // G5 Listview: Secondary Partition (%)
         int lvs{0};             // G5 Listview: Filter enabled; 1 = TRUE --> Search input line with magnifying glass on top

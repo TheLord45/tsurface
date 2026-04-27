@@ -79,7 +79,7 @@ class TListViewMock
         int mLvc{0};             // G5 Listview: Listview components? [ ORed values: (2 = Primary Text; 4 = Primary+Secondary Text; 1 = Image only)]
         int mLvh{48};            // G5 Listview: Item height
         int mLvl{1};             // G5 Listview: Item layout --> 4 = vertical, image top; 2 = horizontal, image right; 1 = horizontal, image left
-        int mLvg{0};             // G5 Listview: Listview columns
+        int mLvg{1};             // G5 Listview: Listview columns
         int mLhp{5};             // G5 Listview: Primary Partition (%)
         int mLvp{95};            // G5 Listview: Secondary Partition (%)
         int mLvs{0};             // G5 Listview: Filter enabled; 1 = TRUE --> Search input line with magnifying glass on top
