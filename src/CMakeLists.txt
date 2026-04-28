@@ -30,6 +30,12 @@ if(APPLE)
     set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
 endif(APPLE)
 
+# Add the source directory to the automatically included directories.
+# This is needed to solve the directory path for the customized widgets included
+# some dialogs.
+message(STATUS "Including directory: ${PROJECT_SOURCE_DIR}/")
+include_directories(${PROJECT_SOURCE_DIR}/)
+
 find_package(OpenSSL REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(Fontconfig REQUIRED)
@@ -113,6 +119,8 @@ qt_add_executable(tsurface
     tpropertiesprogramming.h
     tpropertiesstates.cpp
     tpropertiesstates.h
+    tpropertiesevents.h
+    tpropertiesevents.cpp
     tworkspacehandler.cpp
     tworkspacehandler.h
     ttexteditdialog.cpp
@@ -147,6 +155,9 @@ qt_add_executable(tsurface
     tlistviewcomponentsdialog.cpp
     tlistviewcomponentsdialog.h
     tlistviewcomponentsdialog.ui
+    teventactionsdialog.cpp
+    teventactionsdialog.h
+    teventactionsdialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp
@@ -171,6 +182,8 @@ qt_add_executable(tsurface
     telementsinglebitmap.h
     telementlistviewcomponents.cpp
     telementlistviewcomponents.h
+    telementevent.cpp
+    telementevent.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
     tsubviewarea.cpp
@@ -191,6 +204,8 @@ qt_add_executable(tsurface
     tconvertcolors.h
     tcustomitem.cpp
     tcustomitem.h
+    tcombobutton.cpp
+    tcombobutton.h
     tfsfreader.cpp
     tfsfreader.h
     readtp4.cpp

@@ -241,18 +241,18 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
             st = STATE_SUBPAGE;
     }
 
-    setGeneralPage(page, st, objectID);
+    setGeneralPage(page, st, objectID);             // General properties
 
     if (st == STATE_PAGE || st == STATE_POPUP || st == STATE_SUBPAGE)
     {
-        setProgrammingPage(page.pageID, false);
-        TPropertiesStates::setPage(page);
+        setProgrammingPage(page.pageID, false);     // Programming properties
+        TPropertiesStates::setPage(page);           // State properties
     }
 
     if (objectID >= 0 && objectID < page.objects.size())
     {
-        TPropertiesProgramming::setObjectID(objectID);
-        TPropertiesStates::setActualObject(objectID, st);
+        TPropertiesProgramming::setObjectID(objectID);      // Programming properties objects
+        TPropertiesStates::setActualObject(objectID, st);   // State properties objects
     }
 }
 

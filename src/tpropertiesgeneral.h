@@ -187,18 +187,18 @@ class TPropertiesGeneral : public QObject
         int mActObjectID{-1};
         bool mSignalBlocked{false};
 
-        QComboBox *mComboPopupType{nullptr};
-        QSpinBox *mSpinLeft{nullptr};
-        QSpinBox *mSpinTop{nullptr};
-        QSpinBox *mSpinWidth{nullptr};
-        QSpinBox *mSpinHeight{nullptr};
-        QComboBox *mComboResetPos{nullptr};
-        QComboBox *mComboGroupText{nullptr};
-        QSpinBox *mSpinTimeout{nullptr};
-        QComboBox *mComboModal{nullptr};
-        QComboBox *mComboShow{nullptr};
-        QComboBox *mComboHide{nullptr};
-        QComboBox *mComboColapse{nullptr};
+//        QComboBox *mComboPopupType{nullptr};
+//        QSpinBox *mSpinLeft{nullptr};
+//        QSpinBox *mSpinTop{nullptr};
+//        QSpinBox *mSpinWidth{nullptr};
+//        QSpinBox *mSpinHeight{nullptr};
+//        QComboBox *mComboResetPos{nullptr};
+//        QComboBox *mComboGroupText{nullptr};
+//        QSpinBox *mSpinTimeout{nullptr};
+//        QComboBox *mComboModal{nullptr};
+//        QComboBox *mComboShow{nullptr};
+//        QComboBox *mComboHide{nullptr};
+//        QComboBox *mComboColapse{nullptr};
 };
 
 #endif // TPROPERTIESGENERAL_H

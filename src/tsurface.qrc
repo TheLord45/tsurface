@@ -56,5 +56,7 @@
         <file>images/debug-file.svg</file>
         <file>images/system-search.svg</file>
         <file>images/user-mowgli.svg</file>
+        <file>images/pan-down.svg</file>
+        <file>images/pan-down_white.svg</file>
     </qresource>
 </RCC>

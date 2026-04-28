@@ -145,7 +145,6 @@ void TListViewMock::drawListview()
         for (char ch = 'A'; ch <= 'Z'; ++ch)            // Loop through the alphabet
         {
             QString letter(ch);                         // Make a string out of the character
-            MSG_DEBUG("Draw letter " << letter.toStdString() << " in rect: " << (mWidth - 13) << ", " << yPos << ", " << (mWidth - 1) << ", " << (yPos + aHeight));
             QRect clip(mWidth - 13, yPos, 13, aHeight);
             painter.drawText(clip, letter, tOption);
             yPos += aHeight + 2;                        // Increase the Y for the next line
@@ -197,17 +196,17 @@ int TListViewMock::drawItem(int start, QPainter *painter)
     painter->setPen(frame);
     painter->setFont(font);
     MSG_DEBUG("mLvc: " << mLvc << ", mLvg: " << mLvg);
-    int totalWidth = mWidth;
-    int cellWidth = mWidth;
+    int totalWidth = mWidth;        // The total width of the listview
+    int cellWidth = mWidth;         // The width of 1 cell
 
     if (mLva)   // Alphabet scrollbar?
     {
-        totalWidth -= 15;
+        totalWidth -= 15;           // We reserve 15 pixels for the alphabet scrollbar
         cellWidth = totalWidth;
     }
 
-    if (mLvg > 1)
-        cellWidth /= mLvg;
+    if (mLvg > 1)                   // More than 1 column?
+        cellWidth /= mLvg;          // Calculate the width of 1 cell
 
     // Draw the lower separator line
     if ((start + mLvh) < mHeight)
@@ -224,16 +223,16 @@ int TListViewMock::drawItem(int start, QPainter *painter)
             int height1 = static_cast<double>(mLvh) / 100.0 * static_cast<double>(mLvp);
             int startY = start + 2;
 
-            if (mLvc & LIST_IMAGE_CELL)
+            if (mLvc & LIST_IMAGE_CELL)         // Should we draw an image?
             {
-                if (mLvl & LAYOUT_IMAGE_LEFT)
+                if (mLvl & LAYOUT_IMAGE_LEFT)   // Image left?
                 {
                     l = (static_cast<double>(cellWidth) / 100.0 * static_cast<double>(mLhp)) + static_cast<double>(startX);
                     cellLeft -= static_cast<double>(cellWidth) / 100.0 * static_cast<double>(mLhp);
                 }
-                else if (mLvl & LAYOUT_IMAGE_RIGHT)
+                else if (mLvl & LAYOUT_IMAGE_RIGHT) // Image right?
                     cellLeft -= static_cast<double>(cellWidth) / 100.0 * static_cast<double>(mLhp);
-                else if (mLvl & LAYOUT_IMAGE_TOP)
+                else if (mLvl & LAYOUT_IMAGE_TOP)   // Image on top?
                 {
                     int image = static_cast<double>(mLvh) / 100.0 * static_cast<double>(mLhp);
 
@@ -246,8 +245,9 @@ int TListViewMock::drawItem(int start, QPainter *painter)
                     startY += image;
                 }
             }
+            else
+                cellLeft = 0;       // We use the whole width of the cell
 
-            MSG_DEBUG("Drawing 1st text in rect: " << l << ", " << startY << ", " << (cellWidth - cellLeft) << ", " << height1);
             QTextOption tOption(Qt::AlignLeft | Qt::AlignVCenter);
             tOption.setWrapMode(QTextOption::NoWrap);
             painter->setPen(text);
@@ -267,7 +267,6 @@ int TListViewMock::drawItem(int start, QPainter *painter)
                     height2 = mLvh - image - height1;
                 }
 
-                MSG_DEBUG("Drawing 2nd text in rect: " << l << ", " << (startY + height1) << ", " << (cellWidth - cellLeft) << ", " << height2);
                 painter->drawText(QRect(l, startY + height1, cellWidth - cellLeft, height2), "Secondary Text", tOption);
             }
         }
@@ -301,7 +300,6 @@ int TListViewMock::drawItem(int start, QPainter *painter)
                 iArea = QRect(startX + ((cellWidth - px.width()) / 2), start + 1, px.width(), px.height());
             }
 
-            MSG_DEBUG("Start: " << start << ", mLvl: " << mLvl << ", cellWidth: " << cellWidth << ", iArea: " << iArea.x() << ", " << iArea.y() << ", " << iArea.width() << ", " << iArea.height());
             painter->drawPixmap(iArea, px);
         }
 

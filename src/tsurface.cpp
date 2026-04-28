@@ -359,6 +359,7 @@ void TSurface::setWindowSize(int width, int height, QWidget *widget)
     {
         widget->setMinimumSize(width, height);
         widget->setMaximumSize(width + 10, height + 40);
+        widget->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
     }
     else
         widget->setFixedSize(width + frame.width(), height + frame.height());

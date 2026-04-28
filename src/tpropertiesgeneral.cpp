@@ -845,7 +845,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
         return;
 
     Q_UNUSED(stype);
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(mTable);
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(LIST_MAX_ROWS);
