@@ -9,6 +9,7 @@ Some years ago I started to develop the application [TPanel](https://github.com/
 **Tsurface** will be able to encrypt the contents of the file. It is planned to encrypt the JSON files only. The user can select in the preferences dialog a password. The files will then be encrypted with an AES algorithm. This means, that the file is lost once the password is lost 🤷.
 
 # Implementation matrix
+
 Currently the program is under heavy development and in an early state. At the moment it is not usable because too much is missing. The following matrix shows what is already implemented and what is still missing.
 
 |Part|Fully functional|Partly implemented|Missing|Priority|Comment|
