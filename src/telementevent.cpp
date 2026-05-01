@@ -23,10 +23,30 @@
 #include "teventactionsdialog.h"
 #include "terror.h"
 
-TElementEvent::TElementEvent(QWidget *widget)
-    : QWidget(widget)
+TElementEvent::TElementEvent(const QString& name, int instance, QWidget *widget)
+    : QWidget(widget),
+      mName(name),
+      mInstance(instance)
 {
-    DECL_TRACER("TElementEvent::TElementEvent(QWidget *widget)");
+    DECL_TRACER("TElementEvent::TElementEvent(const QString& name, int instance, QWidget *widget)");
+
+    init();
+}
+
+TElementEvent::TElementEvent(ObjHandler::BUTTON_EVENT_t event, const QString& name, int instance, QWidget *widget)
+    : QWidget(widget),
+      mName(name),
+      mInstance(instance),
+      mEventType(event)
+{
+    DECL_TRACER("TElementEvent::TElementEvent(ObjHandler::BUTTON_EVENT_t event, const QString& name, int instance, QWidget *widget)");
+
+    init();
+}
+
+void TElementEvent::init()
+{
+    DECL_TRACER("TElementEvent::init()");
 
     mLine = new QLineEdit;
     mLine->setReadOnly(true);
@@ -45,5 +65,12 @@ void TElementEvent::onClicked()
 {
     DECL_TRACER("TElementEvent::onClicked()");
 
+    TEventActionsDialog dlg(this);
+    dlg.setFuncs(mFuncs);
 
+    if (dlg.exec() == QDialog::Rejected)
+        return;
+
+    mFuncs = dlg.getFuncs();
+    emit eventChanged(mFuncs, mName, mInstance);
 }

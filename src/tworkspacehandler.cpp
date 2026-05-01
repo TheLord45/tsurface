@@ -30,17 +30,19 @@ TWorkSpaceHandler::TWorkSpaceHandler()
     DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler()");
 }
 
-TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)
+TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QTableWidget *events, QWidget *parent)
     : TPageTree(tree, parent),
       TPropertiesGeneral(general),
       TPropertiesProgramming(prog),
-      TPropertiesStates(states)
+      TPropertiesStates(states),
+      TPropertiesEvents(events)
 {
     DECL_TRACER("TWorkSpaceHandler::TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)");
 
     TPropertiesGeneral::setParent(parent);
     TPropertiesProgramming::setParent(parent);
     TPropertiesStates::setParent(parent);
+    TPropertiesEvents::setParent(parent);
 }
 
 TWorkSpaceHandler::~TWorkSpaceHandler()
@@ -53,17 +55,17 @@ TWorkSpaceHandler& TWorkSpaceHandler::Current()
 //    DECL_TRACER("TWorkSpaceHandler::Current()");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr, nullptr);
+        mCurrent = new TWorkSpaceHandler(nullptr, nullptr, nullptr, nullptr, nullptr);
 
     return *mCurrent;
 }
 
-TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)
+TWorkSpaceHandler& TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QTableWidget *events, QWidget *parent)
 {
-    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent)");
+    DECL_TRACER("TWorkSpaceHandler::Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QTableWidgets *events, QWidget *parent)");
 
     if (!mCurrent)
-        mCurrent = new TWorkSpaceHandler(tree, general, prog, states, parent);
+        mCurrent = new TWorkSpaceHandler(tree, general, prog, states, events, parent);
 
     return *mCurrent;
 }
@@ -111,6 +113,7 @@ void TWorkSpaceHandler::setStateType(STATE_TYPE state)
     TPropertiesGeneral::setTable(state);
     TPropertiesProgramming::setTable(state);
     TPropertiesStates::setState(state);
+    TPropertiesEvents::setState(state);
 }
 
 void TWorkSpaceHandler::setObjectGeometry(int pageID, int bi, const QRect& geom)
@@ -141,6 +144,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
     TPropertiesGeneral::setGeneralObjectID(index);
     TPropertiesProgramming::setObject(object->getObject(), index);
     TPropertiesStates::setObject(object, index);
+    TPropertiesEvents::setObjectIndex(index);
 }
 
 void TWorkSpaceHandler::clear()
@@ -150,39 +154,43 @@ void TWorkSpaceHandler::clear()
     TPropertiesGeneral::clear();
     TPropertiesProgramming::clear();
     TPropertiesStates::clear();
+    TPropertiesEvents::reset();
 }
 
 void TWorkSpaceHandler::setPage(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPage(const QString& name)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(name);
-    setPage(page.pageID, false, page);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
+    setPage(page->pageID, false, page);
 }
 
-void TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)
+void TWorkSpaceHandler::setPage(int id, bool load, Page::PAGE_t *rpage)
 {
-    DECL_TRACER("TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)");
+    DECL_TRACER("TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t *rpage)");
 
-    Page::PAGE_t page = rpage;
+    Page::PAGE_t *page = rpage;
 
     if (load)
-        page = *TPageHandler::Current().getPage(id);
+        page = TPageHandler::Current().getPage(id);
+
+    if (!page)
+        return;
 
     STATE_TYPE st = STATE_PAGE;
     mObjectIndex = -1;
 
-    if (page.baseObject.widget && page.baseObject.widget->hasSelected())
+    if (page->baseObject.widget && page->baseObject.widget->hasSelected())
     {
-        QList<TResizableWidget *> list = page.baseObject.widget->getAllSelectedWidgets();
+        QList<TResizableWidget *> list = page->baseObject.widget->getAllSelectedWidgets();
 
         if (list.size() == 1)
         {
-            mObject = TPageHandler::Current().getObjectHandler(page.pageID, list[0]->getId());
+            mObject = TPageHandler::Current().getObjectHandler(page->pageID, list[0]->getId());
             int idx = 0;
             QList<TObjectHandler *>::Iterator iter;
 
-            for (iter = page.objects.begin(); iter != page.objects.end(); ++iter)
+            for (iter = page->objects.begin(); iter != page->objects.end(); ++iter)
             {
                 TObjectHandler *o = *iter;
 
@@ -197,47 +205,56 @@ void TWorkSpaceHandler::setPage(int id, bool load, const Page::PAGE_t& rpage)
 
     setGeneralPage(page, STATE_PAGE, mObjectIndex);
     TPropertiesProgramming::setPage(page);
-    TPropertiesStates::setPage(page);
+    TPropertiesStates::setPage(*page);
+    TPropertiesEvents::setPage(page, mObjectIndex);
 }
 
 void TWorkSpaceHandler::setPopup(const QString& name)
 {
     DECL_TRACER("TWorkSpaceHandler::setPopup(const QString& name)");
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(name);
-    setPopup(page.pageID, false, page);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
+
+    if (!page)
+        return;
+
+    setPopup(page->pageID, false, page);
 }
 
-void TWorkSpaceHandler::setPopup(int id, bool load, const Page::PAGE_t& rpage)
+void TWorkSpaceHandler::setPopup(int id, bool load, Page::PAGE_t *rpage)
 {
-    DECL_TRACER("TWorkSpaceHandler::setPopup(int id, bool load, const Page::PAGE_t& rpage)");
+    DECL_TRACER("TWorkSpaceHandler::setPopup(int id, bool load, Page::PAGE_t& rpage)");
 
-    Page::PAGE_t page = rpage;
+    Page::PAGE_t *page = rpage;
 
     if (load)
-        page = *TPageHandler::Current().getPage(id);
+        page = TPageHandler::Current().getPage(id);
+
+    if (!page)
+        return;
 
     setGeneralPage(page, STATE_POPUP);
     TPropertiesProgramming::setPage(page);
-    TPropertiesStates::setPage(page);
+    TPropertiesStates::setPage(*page);
+    TPropertiesEvents::setPage(page);
 }
 
-void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID)
+void TWorkSpaceHandler::setAllProperties(Page::PAGE_t *page, STATE_TYPE stype, int objectID)
 {
-    DECL_TRACER("TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID)");
+    DECL_TRACER("TWorkSpaceHandler::setAllProperties(Page::PAGE_t *page, STATE_TYPE stype, int objectID)");
 
-    if (page.pageID <= 0)
+    if (!page || page->pageID <= 0)
         return;
 
     STATE_TYPE st = stype;
 
     if (stype == STATE_UNKNOWN)
     {
-        if (page.popupType == Page::PT_PAGE)
+        if (page->popupType == Page::PT_PAGE)
             st = STATE_PAGE;
-        else if (page.popupType == Page::PT_POPUP)
+        else if (page->popupType == Page::PT_POPUP)
             st = STATE_POPUP;
-        else if (page.popupType == Page::PT_SUBPAGE)
+        else if (page->popupType == Page::PT_SUBPAGE)
             st = STATE_SUBPAGE;
     }
 
@@ -245,14 +262,17 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, i
 
     if (st == STATE_PAGE || st == STATE_POPUP || st == STATE_SUBPAGE)
     {
-        setProgrammingPage(page.pageID, false);     // Programming properties
-        TPropertiesStates::setPage(page);           // State properties
+        setProgrammingPage(page->pageID, false);     // Programming properties
+        TPropertiesStates::setPage(*page);           // State properties
+        TPropertiesEvents::setPage(page);
     }
 
-    if (objectID >= 0 && objectID < page.objects.size())
+    if (objectID >= 0 && objectID < page->objects.size())
     {
         TPropertiesProgramming::setObjectID(objectID);      // Programming properties objects
         TPropertiesStates::setActualObject(objectID, st);   // State properties objects
+        TPropertiesEvents::setObjectIndex(objectID);
+        TPropertiesEvents::setState(st);
     }
 }
 
@@ -312,6 +332,9 @@ void TWorkSpaceHandler::setPosition(const QRect& rect, Page::PAGE_t page, int id
 void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
 {
     DECL_TRACER("TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)");
+
+    if (!page)
+        return;
 
     Page::PAGE_t *pg = TPageHandler::Current().getPage(page->pageID);
 

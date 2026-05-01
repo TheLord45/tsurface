@@ -52,24 +52,42 @@ TEventActionsDialog::~TEventActionsDialog()
     delete ui;
 }
 
-void TEventActionsDialog::on_comboBoxAddPageFlip_currentIndexChanged(int index)
+void TEventActionsDialog::on_comboButtonAddPageFlip_currentIndexChanged(int index)
 {
-    DECL_TRACER("TEventActionsDialog::on_comboBoxAddPageFlip_currentIndexChanged(int index)");
+    DECL_TRACER("TEventActionsDialog::on_comboButtonAddPageFlip_currentIndexChanged(int index)");
+
+    ObjHandler::PUSH_FUNC_T func;
+    func.ID = mFuncs.size();
+    func.action = ObjHandler::BT_ACTION_PGFLIP;
+    func.event = mEventType;
+
+    switch (index)
+    {
+        case 0: func.pfType = "Stan"; break;    // standard page?
+        case 1: func.pfType = "Prev"; break;    // previous page?
+        case 2: func.pfType = "sShow"; break;   // show popup
+        case 3: func.pfType = "sHide"; break;   // hide popup
+        case 4: func.pfType = "sToggle"; break; // toggle popup
+        case 5: func.pfType = "ClearG"; break;  // hide popup group?
+        case 6: func.pfType = "scPage"; break;  // hide popup on page
+        case 7: func.pfType = "scPanel"; break; // hide all popups
+    }
+
+    QStringList popups = TPageHandler::Current().getPopups();
+    // TODO: Add code to add an entry in the list
+}
+
+
+void TEventActionsDialog::on_comboButtonAddLaunchOption_currentIndexChanged(int index)
+{
 
 }
 
 
-void TEventActionsDialog::on_comboBoxAddLaunchAction_currentIndexChanged(int index)
+void TEventActionsDialog::on_comboButtonAddAction_currentIndexChanged(int index)
 {
 
 }
-
-
-void TEventActionsDialog::on_comboBoxAddAction_currentIndexChanged(int index)
-{
-
-}
-
 
 void TEventActionsDialog::on_pushButtonDelete_clicked()
 {
@@ -135,4 +153,3 @@ void TEventActionsDialog::on_tableWidgetActions_cellActivated(int row, int colum
 {
 
 }
-

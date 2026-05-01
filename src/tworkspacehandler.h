@@ -26,6 +26,7 @@
 #include "tpropertiesgeneral.h"
 #include "tpropertiesprogramming.h"
 #include "tpropertiesstates.h"
+#include "tpropertiesevents.h"
 #include "tobjecthandler.h"
 #include "tmisc.h"
 
@@ -37,21 +38,22 @@ class TWorkSpaceHandler
     : public TPageTree,
       public TPropertiesGeneral,
       public TPropertiesProgramming,
-      public TPropertiesStates
+      public TPropertiesStates,
+      public TPropertiesEvents
 {
     public:
         TWorkSpaceHandler();
-        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent=nullptr);
+        TWorkSpaceHandler(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QTableWidget *events, QWidget *parent=nullptr);
         ~TWorkSpaceHandler();
 
         static TWorkSpaceHandler& Current();
-        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QWidget *parent=nullptr);
+        static TWorkSpaceHandler& Current(QTreeView *tree, QTableWidget *general, QTableWidget *prog, QTreeWidget *states, QTableWidget *events, QWidget *parent=nullptr);
 
         void setParent(QWidget *widget);
         void setWorkspacePagesWidget(QTreeView *tree);
         void setPropertiesGeneralWidget(QTableWidget *widget);
         bool isChanged();
-        Page::PAGE_t& getActualPage() { return TPropertiesGeneral::getActualPage(); }
+        Page::PAGE_t *getActualPage() { return TPropertiesGeneral::getActualPage(); }
         void setStateType(STATE_TYPE st);
         void setObjectGeometry(int pageID, int bi, const QRect& geom);
         void setActualObject(TObjectHandler *object, int index=-1);
@@ -59,10 +61,10 @@ class TWorkSpaceHandler
         void invalidateObject() { mObject = nullptr; }
 
         void setPage(const QString& name);
-        void setPage(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
+        void setPage(int id, bool load=true, Page::PAGE_t *page=nullptr);
         void setPopup(const QString& name);
-        void setPopup(int id, bool load=true, const Page::PAGE_t& page=Page::PAGE_t());
-        void setAllProperties(Page::PAGE_t& page, STATE_TYPE stype, int objectID=-1);
+        void setPopup(int id, bool load=true, Page::PAGE_t *page=nullptr);
+        void setAllProperties(Page::PAGE_t *page, STATE_TYPE stype, int objectID=-1);
         void setObject(TObjectHandler *obj) { mObject = obj; }
 
         // Callbacks

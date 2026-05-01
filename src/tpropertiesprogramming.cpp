@@ -92,21 +92,20 @@ TPropertiesProgramming::~TPropertiesProgramming()
     delete mIntValidator;
 }
 
-void TPropertiesProgramming::setPage(const Page::PAGE_t& page)
+void TPropertiesProgramming::setPage(Page::PAGE_t *page)
 {
-    DECL_TRACER("TPropertiesProgramming::setPage(const Page::PAGE_t& page)");
+    DECL_TRACER("TPropertiesProgramming::setPage(Page::PAGE_t *page)");
 
-    if (page.pageID == mPage.pageID)
+    if (!page || !mPage || page->pageID == mPage->pageID)
         return;
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
-    mPage = Page::PAGE_t();
     mPage = page;
 
-    switch (page.popupType)
+    switch (page->popupType)
     {
         case Page::PT_PAGE:     mStype = STATE_PAGE; break;
         case Page::PT_POPUP:    mStype = STATE_POPUP; break;
@@ -129,18 +128,17 @@ void TPropertiesProgramming::setProgrammingPage(const QString& name)
         return;
     }
 
-    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
 
-    if (page.pageID == mPage.pageID)
+    if (!page || page->pageID == mPage->pageID)
         return;
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
-    mPage = Page::PAGE_t();
     mPage = page;
-    setProgrammingPage(mPage.pageID, true);
+    setProgrammingPage(mPage->pageID, true);
 }
 
 void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
@@ -153,26 +151,29 @@ void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
         return;
     }
 
-    Page::PAGE_t page;
+    Page::PAGE_t *page = nullptr;
     bool equal = false;
 
     if (!loaded)
     {
-        page = *TPageHandler::Current().getPage(id);
+        page = TPageHandler::Current().getPage(id);
 
-        if (page.pageID == mPage.pageID)
+        if (!page)
+            return;
+
+        if (mPage && page->pageID == mPage->pageID)
             equal = true;
     }
 
-    if (!loaded && !equal && mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (mPage && !loaded && !equal && mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
 
-    if (page.pageID > 0)
+    if (page->pageID > 0)
         mPage = page;
 
-    if (mPage.pageID <= 0)
+    if (!mPage || mPage->pageID <= 0)
         return;
 
     mStype = STATE_PAGE;
@@ -190,17 +191,20 @@ void TPropertiesProgramming::setProgrammingPopup(const QString& name)
     }
 
     bool equal = false;
-    Page::PAGE_t page = TPageHandler::Current().getPage(name);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
 
-    if (page.pageID == mPage.pageID)
+    if (!page || !mPage)
+        return;
+
+    if (page->pageID == mPage->pageID)
         equal = true;
 
-    if (!equal && mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (!equal && mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
     mPage = page;
-    setProgrammingPopup(mPage.pageID, true);
+    setProgrammingPopup(mPage->pageID, true);
 }
 
 void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
@@ -213,26 +217,29 @@ void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
         return;
     }
 
-    Page::PAGE_t page;
+    Page::PAGE_t *page = nullptr;
     bool equal = false;
 
     if (!loaded)
     {
-        page = *TPageHandler::Current().getPage(id);
+        page = TPageHandler::Current().getPage(id);
 
-        if (page.pageID == mPage.pageID)
+        if (!page)
+            return;
+
+        if (page->pageID == mPage->pageID)
             equal = true;
     }
 
-    if (!loaded && !equal && mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (mPage && !loaded && !equal && mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
 
-    if (page.pageID > 0)
+    if (page->pageID > 0)
         mPage = page;
 
-    if (mPage.pageID <= 0)
+    if (!mPage || mPage->pageID <= 0)
         return;
 
     mStype = STATE_POPUP;
@@ -243,9 +250,12 @@ void TPropertiesProgramming::setObjectID(int id)
 {
     DECL_TRACER("TPropertiesProgramming::setObjectID(int id)");
 
-    if (id < 0 || id >= mPage.objects.size())
+    if (!mPage)
+        return;
+
+    if (id < 0 || id >= mPage->objects.size())
     {
-        MSG_WARNING("Invalid object ID: " << id << ", Number objects: " << mPage.objects.size());
+        MSG_WARNING("Invalid object ID: " << id << ", Number objects: " << mPage->objects.size());
         return;
     }
 
@@ -254,10 +264,10 @@ void TPropertiesProgramming::setObjectID(int id)
     if (mActObjectID != id)
     {
         if (mChanged)
-            mPage.objects[mActObjectID]->setObject(mActObject);
+            mPage->objects[mActObjectID]->setObject(mActObject);
 
         mActObjectID = id;
-        mActObject = mPage.objects[id]->getObject();
+        mActObject = mPage->objects[id]->getObject();
         mChanged = false;
     }
 
@@ -268,19 +278,19 @@ void TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int ind
 {
     DECL_TRACER("TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");
 
-    if (index < 0 || index >= mPage.objects.size())
+    if (!mPage || index < 0 || index >= mPage->objects.size())
         return;
 
     if (index != mActObjectID)
     {
         MSG_WARNING("Type of a not loaded object changed! Loaded ID: " << mActObjectID << ". Object type to change: " << index);
-        mPage.objects[index]->setObjectType(btype);
+        mPage->objects[index]->setObjectType(btype);
         return;
     }
 
     mActObject.type = btype;
     setSType();
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
     mChanged = true;
 }
 
@@ -290,16 +300,19 @@ void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
 
     MSG_DEBUG("Changed: " << (mChanged ? "YES" : "NO") << ", BI: " << object.bi << ", new ID: " << id << ", old ID: " << mActObjectID);
 
+    if (!mPage)
+        return;
+
     if (id >= 0 && mActObjectID != id)
     {
-        if (mChanged && mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        if (mChanged && mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         {
-            mPage.objects[mActObjectID]->setObject(mActObject);
-            saveChangedData(&mPage, TBL_PROGRAM);
+            mPage->objects[mActObjectID]->setObject(mActObject);
+            saveChangedData(mPage, TBL_PROGRAM);
         }
         // Check if the new ID is in range. If not, reload page.
-        if (id >= mPage.objects.size())
-            mPage = *TPageHandler::Current().getPage(mPage.pageID);
+        if (id >= mPage->objects.size())
+            mPage = TPageHandler::Current().getPage(mPage->pageID);
 
         mActObject = object;
         mActObjectID = id;
@@ -320,7 +333,7 @@ void TPropertiesProgramming::setSType()
 {
     DECL_TRACER("TPropertiesProgramming::setSType()");
 
-    if (mActObject.bi <= 0 || mActObjectID < 0 || mActObjectID >= mPage.objects.size())
+    if (!mPage || mActObject.bi <= 0 || mActObjectID < 0 || mActObjectID >= mPage->objects.size())
         return;
 
     switch(mActObject.type)
@@ -391,11 +404,14 @@ void TPropertiesProgramming::clear()
 {
     DECL_TRACER("TPropertiesProgramming::clear()");
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_PROGRAM);
+    if (!mPage)
+        return;
+
+    if (mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
-    mPage = Page::PAGE_t();
+    mPage = nullptr;
     mTable->clear();
     mTable->setRowCount(0);
     mTable->setColumnCount(0);
@@ -404,6 +420,9 @@ void TPropertiesProgramming::clear()
 void TPropertiesProgramming::setTable(STATE_TYPE stype)
 {
     DECL_TRACER("TPropertiesProgramming::setTable()");
+
+    if (!mPage)
+        return;
 
     if (stype != STATE_UNKNOWN)
         mStype = stype;
@@ -425,18 +444,18 @@ void TPropertiesProgramming::setTable(STATE_TYPE stype)
         mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
         mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
 
-        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage.ap, W_SPINBOX);
-        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage.ad, W_SPINBOX);
-        setTableWidget(TTEXT_CHANNEL_PORT, 1, mPage.cp, W_SPINBOX);
-        setTableWidget(TTEXT_CHANNEL_CODE, 1, mPage.ch, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage->ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage->ad, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_PORT, 1, mPage->cp, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_CODE, 1, mPage->ch, W_SPINBOX);
     }
     else if (mStype == STATE_SUBPAGE)
     {
         mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
         mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
 
-        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage.ap, W_SPINBOX);
-        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage.ad, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mPage->ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mPage->ad, W_SPINBOX);
     }
     else if (mStype == STATE_BUTTON)
     {
@@ -680,7 +699,7 @@ void TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)
     Q_UNUSED(name);
 
     if (isAnyPage())
-        mPage.ap = value;
+        mPage->ap = value;
     else
         mActObject.ap = value;
 
@@ -695,7 +714,7 @@ void TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)
     Q_UNUSED(name);
 
     if (isAnyPage())
-        mPage.ad = value;
+        mPage->ad = value;
     else
         mActObject.ad = value;
 
@@ -710,7 +729,7 @@ void TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)
     Q_UNUSED(name);
 
     if (isAnyPage())
-        mPage.cp = value;
+        mPage->cp = value;
     else
         mActObject.cp = value;
 
@@ -725,7 +744,7 @@ void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
     Q_UNUSED(name);
 
     if (isAnyPage())
-        mPage.ch = value;
+        mPage->ch = value;
     else
         mActObject.ch = value;
 
@@ -874,7 +893,7 @@ TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& n
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         combo->setCurrentIndex(mActObject.fb);
 
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onComboObjectFeedback);
@@ -888,7 +907,7 @@ TElementSpinBox *TPropertiesProgramming::makeAddressPort(const QString& name)
     int value = 0;
 
     if (name.startsWith("Page") || name.startsWith("Popup"))
-        value = mPage.ap;
+        value = mPage->ap;
     else
         value = mActObject.ap;
 
@@ -904,7 +923,7 @@ TElementSpinBox *TPropertiesProgramming::makeAddressCode(const QString& name)
     int value = 0;
 
     if (name.startsWith("Page") || name.startsWith("Popup"))
-        value = mPage.ad;
+        value = mPage->ad;
     else
         value = mActObject.ad;
 
@@ -920,7 +939,7 @@ TElementSpinBox *TPropertiesProgramming::makeChannelPort(const QString& name)
     int value = 0;
 
     if (name.startsWith("Page") || name.startsWith("Popup"))
-        value = mPage.cp;
+        value = mPage->cp;
     else
         value = mActObject.cp;
 
@@ -936,7 +955,7 @@ TElementSpinBox *TPropertiesProgramming::makeChannelCode(const QString& name)
     int value = 0;
 
     if (name.startsWith("Page") || name.startsWith("Popup"))
-        value = mPage.ch;
+        value = mPage->ch;
     else
         value = mActObject.ch;
 

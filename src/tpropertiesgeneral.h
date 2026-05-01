@@ -44,10 +44,10 @@ class TPropertiesGeneral : public QObject
         TPropertiesGeneral(QTableWidget *view);
         ~TPropertiesGeneral();
 
-        void setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid=-1);
+        void setGeneralPage(Page::PAGE_t *page, STATE_TYPE stype, int objid=-1);
         void setGeneralObjectID(int index);
         bool isChanged() { return mChanged; }
-        Page::PAGE_t& getActualPage() { return mPage; }
+        Page::PAGE_t *getActualPage() { return mPage; }
         int getActObjectIndex() { return mActObjectID; }
         ObjHandler::TOBJECT_t& getActObject() { return mActObject; }
         void setGeometryPopup(const QRect& geom, bool block=false);
@@ -178,7 +178,7 @@ class TPropertiesGeneral : public QObject
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};
         bool mConnected{false};
-        Page::PAGE_t mPage;
+        Page::PAGE_t *mPage{nullptr};
         ObjHandler::TOBJECT_t mActObject;
         QLineEdit *mLineDescription{nullptr};
         bool mChanged{false};
@@ -186,19 +186,6 @@ class TPropertiesGeneral : public QObject
         void loadPage(int pageID);
         int mActObjectID{-1};
         bool mSignalBlocked{false};
-
-//        QComboBox *mComboPopupType{nullptr};
-//        QSpinBox *mSpinLeft{nullptr};
-//        QSpinBox *mSpinTop{nullptr};
-//        QSpinBox *mSpinWidth{nullptr};
-//        QSpinBox *mSpinHeight{nullptr};
-//        QComboBox *mComboResetPos{nullptr};
-//        QComboBox *mComboGroupText{nullptr};
-//        QSpinBox *mSpinTimeout{nullptr};
-//        QComboBox *mComboModal{nullptr};
-//        QComboBox *mComboShow{nullptr};
-//        QComboBox *mComboHide{nullptr};
-//        QComboBox *mComboColapse{nullptr};
 };
 
 #endif // TPROPERTIESGENERAL_H

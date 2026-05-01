@@ -85,7 +85,6 @@ void TElementSound::onPushButtonClicked()
 {
     DECL_TRACER("TElementSound::onPushButtonClicked()");
 
-    // TODO: Call sound select dialog
     TSoundSelectDialog ss(this);
 
     if (ss.exec() == QDialog::Rejected)

@@ -340,6 +340,44 @@ QList<int> TPageHandler::getPageNumbers()
     return list;
 }
 
+QStringList TPageHandler::getPages()
+{
+    DECL_TRACER("TPageHandler::getPages()");
+
+    if (mPages.empty())
+        return QStringList();
+
+    QStringList list;
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == PT_PAGE)
+            list.append(iter->name);
+    }
+
+    return list;
+}
+
+QStringList TPageHandler::getPopups()
+{
+    DECL_TRACER("TPageHandler::getPopups()");
+
+    if (mPages.empty())
+        return QStringList();
+
+    QStringList list;
+    QList<PAGE_t>::Iterator iter;
+
+    for (iter = mPages.begin(); iter != mPages.end(); ++iter)
+    {
+        if (iter->popupType == PT_POPUP)
+            list.append(iter->name);
+    }
+
+    return list;
+}
+
 PAGE_t *TPageHandler::getPage(int number)
 {
     DECL_TRACER("TPageHandler::getPage(int number)");
@@ -358,76 +396,76 @@ PAGE_t *TPageHandler::getPage(int number)
     return getPagePointer(number);
 }
 
-PAGE_t TPageHandler::getPage(const QString& name)
+PAGE_t *TPageHandler::getPage(const QString& name)
 {
     DECL_TRACER("TPageHandler::getPage(const QString& name)");
 
     if (name.isEmpty())
     {
         MSG_ERROR("No page name!");
-        return PAGE_t();
+        return nullptr;
     }
 
     if (mPages.empty())
-        return PAGE_t();
+        return nullptr;
 
     QList<PAGE_t>::Iterator iter;
 
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
         if (iter->popupType == PT_PAGE && iter->name == name)
-            return *iter;
+            return &*iter;
     }
 
-    return PAGE_t();
+    return nullptr;
 }
 
-PAGE_t TPageHandler::getPopup(const QString& name)
+PAGE_t *TPageHandler::getPopup(const QString& name)
 {
     DECL_TRACER("TPageHandler::getPopup(const QString& name)");
 
     if (name.isEmpty())
     {
         MSG_ERROR("No popup name!");
-        return PAGE_t();
+        return nullptr;
     }
 
     if (mPages.empty())
-        return PAGE_t();
+        return nullptr;
 
     QList<PAGE_t>::Iterator iter;
 
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
         if (iter->popupType == PT_POPUP && iter->name == name)
-            return *iter;
+            return &*iter;
     }
 
-    return PAGE_t();
+    return nullptr;
 }
 
-PAGE_t TPageHandler::getSubPage(const QString& name)
+PAGE_t *TPageHandler::getSubPage(const QString& name)
 {
     DECL_TRACER("TPageHandler::getSubPage(const QString& name)");
 
     if (name.isEmpty())
     {
         MSG_ERROR("No subpage name!");
-        return PAGE_t();
+        return nullptr;
     }
 
     if (mPages.empty())
-        return PAGE_t();
+        return nullptr;
 
     QList<PAGE_t>::Iterator iter;
 
     for (iter = mPages.begin(); iter != mPages.end(); ++iter)
     {
         if (iter->popupType == PT_SUBPAGE && iter->name == name)
-            return *iter;
+            return &*iter;
     }
 
-    return PAGE_t();
+    return nullptr;
 }
 
 void TPageHandler::setPage(PAGE_t& page)
@@ -781,6 +819,8 @@ bool TPageHandler::savePage(const PAGE_t& page)
     QJsonArray objects = getObjects(page.objects);
     root.insert("objects", objects);
 
+    saveEvents(page, &root);
+
     QJsonDocument doc;
     doc.setObject(root);
     QString metaFile = mPathTemporary + "/" + page.name + ".json";
@@ -824,45 +864,7 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     root.insert("hideX", popup.hideX);
     root.insert("hideY", popup.hideY);
 
-    if (!popup.eventShow.empty())
-    {
-        QJsonArray eventShow;
-        QList<EVENT_t>::ConstIterator iter;
-
-        for (iter = popup.eventShow.constBegin(); iter != popup.eventShow.constEnd(); ++iter)
-        {
-            QJsonObject entry;
-            entry.insert("evType", iter->evType);
-            entry.insert("item", iter->item);
-            entry.insert("evAction", iter->evAction);
-            entry.insert("name", iter->name);
-            entry.insert("ID", iter->ID);
-            entry.insert("port", iter->port);
-            eventShow.append(entry);
-        }
-
-        root.insert("eventShow", eventShow);
-    }
-
-    if (!popup.eventHide.empty())
-    {
-        QJsonArray eventHide;
-        QList<EVENT_t>::ConstIterator iter;
-
-        for (iter = popup.eventHide.constBegin(); iter != popup.eventHide.constEnd(); ++iter)
-        {
-            QJsonObject entry;
-            entry.insert("evType", iter->evType);
-            entry.insert("item", iter->item);
-            entry.insert("evAction", iter->evAction);
-            entry.insert("name", iter->name);
-            entry.insert("ID", iter->ID);
-            entry.insert("port", iter->port);
-            eventHide.append(entry);
-        }
-
-        root.insert("eventHide", eventHide);
-    }
+    saveEvents(popup, &root);
 
     root.insert("objects", getObjects(popup.objects));
 
@@ -883,6 +885,84 @@ bool TPageHandler::savePopup(const PAGE_t& popup)
     file.write(doc.toJson(QJsonDocument::Indented));
     file.close();
     return true;
+}
+
+void TPageHandler::saveEvents(const Page::PAGE_t& page, QJsonObject *root)
+{
+    DECL_TRACER("TPageHandler::saveEvents(const Page::PAGE_t& page, QJsonObject *root)");
+
+    QStringList events = { "eventShow", "eventHide", "gestureAny", "gestureUp",
+                           "gestureDown", "gestureRight", "gestureLeft",
+                           "gestureDblTap", "gesture2FUp", "gesture2FDn",
+                           "gesture2FRt", "gesture2FLt" };
+
+    for (QString event: events)
+    {
+        QList<EVENT_t> ev;
+
+        if (event == "eventShow" && !page.eventShow.empty())
+            ev = page.eventShow;
+        if (event == "eventHide" && !page.eventHide.empty())
+            ev = page.eventHide;
+        if (event == "gestureAny" && !page.guestureAny.empty())
+            ev = page.guestureAny;
+        if (event == "gestureUp" && !page.guestureUp.empty())
+            ev = page.guestureUp;
+        if (event == "gestureDown" && !page.guestureDown.empty())
+            ev = page.guestureDown;
+        if (event == "gestureRight" && !page.guestureRight.empty())
+            ev = page.guestureRight;
+        if (event == "gestureLeft" && !page.guestureLeft.empty())
+            ev = page.guestureLeft;
+        if (event == "gestureDblTap" && !page.guestureDblTab.empty())
+            ev = page.guestureDblTab;
+        if (event == "gesture2FUp" && !page.guesture2FUp.empty())
+            ev = page.guesture2FUp;
+        if (event == "gesture2FDn" && !page.guesture2FDn.empty())
+            ev = page.guesture2FDn;
+        if (event == "gesture2FRt" && !page.guesture2Frt.empty())
+            ev = page.guesture2Frt;
+        if (event == "gesture2FLt" && !page.guesture2FLt.empty())
+            ev = page.guesture2FLt;
+
+        if (!ev.empty())
+        {
+            QJsonArray eventShow;
+            QList<EVENT_t>::ConstIterator iter;
+
+            for (iter = ev.constBegin(); iter != ev.constEnd(); ++iter)
+            {
+                QJsonObject entry;
+                entry.insert("evType", iter->evCommand);
+                entry.insert("item", iter->item);
+                entry.insert("evAction", iter->evAction);
+                INSERTJ(entry, "content", iter->content, "");
+
+                if (iter->evAction == ObjHandler::BT_ACTION_LAUNCH || iter->evAction == ObjHandler::BT_ACTION_CUSTOM)
+                    INSERTJ(entry, "id", iter->ID, 0);
+
+                if (iter->evAction == ObjHandler::BT_ACTION_COMMAND || iter->evAction == ObjHandler::BT_ACTION_STRING)
+                    INSERTJ(entry, "port", iter->port, 0);
+
+                if (iter->evAction == ObjHandler::BT_ACTION_CUSTOM)
+                {
+                    INSERTJ(entry, "key", iter->key, 0);
+                    INSERTJ(entry, "name", iter->name, "");
+                    INSERTJ(entry, "type", iter->type, 0);
+                    INSERTJ(entry, "flag", iter->flag, 0);
+                    INSERTJ(entry, "value1", iter->value1, 0);
+                    INSERTJ(entry, "value2", iter->value2, 0);
+                    INSERTJ(entry, "value3", iter->value3, 0);
+                    INSERTJ(entry, "text", iter->text, "");
+                    INSERTJ(entry, "encode", iter->encode, "");
+                }
+
+                eventShow.append(entry);
+            }
+
+            root->insert(event, eventShow);
+        }
+    }
 }
 
 QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
@@ -1335,34 +1415,61 @@ void TPageHandler::parsePage(const QJsonObject& page)
     pg.srPage.et = srPage.value("et").toInt(0);
     pg.srPage.oo = srPage.value("oo").toInt(255);
 
-    QJsonArray eventShow = page.value("eventShow").toArray();
+    QStringList events = { "eventShow", "eventHide", "gestureAny", "gestureUp",
+                           "gestureDown", "gestureRight", "gestureLeft",
+                           "gestureDblTap", "gesture2FUp", "gesture2FDn",
+                           "gesture2FRt", "gesture2FLt" };
 
-    for (int i = 0; i < eventShow.count(); ++i)
+    for (QString event : events)
     {
-        QJsonObject entry = eventShow[i].toObject();
-        EVENT_t event;
-        event.evType = static_cast<EVENT_TYPE_t>(entry.value("evType").toInt(EV_NONE));
-        event.item = entry.value("item").toInt(0);
-        event.evAction = entry.value("evAction").toString();
-        event.name = entry.value("name").toString();
-        event.ID = entry.value("ID").toInt(0);
-        event.port = entry.value("port").toInt(0);
-        pg.eventShow.append(event);
-    }
+        QJsonArray eventShow = page.value(event).toArray();
 
-    QJsonArray eventHide = page.value("eventHide").toArray();
+        for (int i = 0; i < eventShow.count(); ++i)
+        {
+            QJsonObject entry = eventShow[i].toObject();
+            EVENT_t ev;
+            ev.evCommand = static_cast<EVENT_TYPE_t>(entry.value("evType").toInt(EV_CMD_NONE));
+            ev.evAction = static_cast<ObjHandler::BUTTON_ACTION_t>(entry.value("evAction").toInt());
+            ev.content = entry.value("content").toString();
+            ev.item = entry.value("item").toInt(0);
+            ev.name = entry.value("name").toString();
+            ev.ID = entry.value("ID").toInt(0);
+            ev.action = entry.value("action").toString();
+            ev.port = entry.value("port").toInt(0);
+            ev.key = entry.value("key").toInt();
+            ev.type = entry.value("type").toInt();
+            ev.flag = entry.value("flag").toInt();
+            ev.value1 = entry.value("value1").toInt();
+            ev.value2 = entry.value("value2").toInt();
+            ev.value3 = entry.value("value3").toInt();
+            ev.text = entry.value("text").toString();
+            ev.encode = entry.value("encode").toString();
 
-    for (int i = 0; i < eventHide.count(); ++i)
-    {
-        QJsonObject entry = eventHide[i].toObject();
-        EVENT_t event;
-        event.evType = static_cast<EVENT_TYPE_t>(entry.value("evType").toInt(EV_NONE));
-        event.item = entry.value("item").toInt(0);
-        event.evAction = entry.value("evAction").toString();
-        event.name = entry.value("name").toString();
-        event.ID = entry.value("ID").toInt(0);
-        event.port = entry.value("port").toInt(0);
-        pg.eventHide.append(event);
+            if (event == "eventShow")
+                pg.eventShow.append(ev);
+            else if (event == "eventHide")
+                pg.eventHide.append(ev);
+            else if (event == "gestureAny")
+                pg.guestureAny.append(ev);
+            else if (event == "gestureUp")
+                pg.guestureUp.append(ev);
+            else if (event == "gestureDown")
+                pg.guestureDown.append(ev);
+            else if (event == "gestureRight")
+                pg.guestureRight.append(ev);
+            else if (event == "gestureLeft")
+                pg.guestureLeft.append(ev);
+            else if (event == "gestureDblTap")
+                pg.guestureDblTab.append(ev);
+            else if (event == "gesture2FUp")
+                pg.guesture2FUp.append(ev);
+            else if (event == "gesture2FDn")
+                pg.guesture2FDn.append(ev);
+            else if (event == "gesture2FRt")
+                pg.guesture2Frt.append(ev);
+            else if (event == "gesture2FLt")
+                pg.guesture2FLt.append(ev);
+        }
     }
 
     parseObjects(&pg, page.value("objects").toArray());
@@ -1914,10 +2021,119 @@ void TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf,
             pushFunc.pfAction = pf.attribute("action");
     }
 
-    if (ba == ObjHandler::BT_ACTION_COMMAND && pf.hasAttribute("port"))
-        pushFunc.ID = pf.attribute("port").toInt();
+    if ((ba == ObjHandler::BT_ACTION_COMMAND || ba == ObjHandler::BT_ACTION_STRING) && pf.hasAttribute("port"))
+        pushFunc.port = pf.attribute("port").toInt();
+    if (ba == ObjHandler::BT_ACTION_CUSTOM)
+    {
+        if (pf.hasAttribute("key"))
+            pushFunc.key = pf.attribute("key").toInt();
 
+        if (pf.hasAttribute("name"))
+            pushFunc.name = pf.attribute("name");
+
+        if (pf.hasAttribute("id"))
+            pushFunc.ID = pf.attribute("id").toInt();
+
+        if (pf.hasAttribute("flag"))
+            pushFunc.flag = pf.attribute("flag").toInt();
+
+        if (pf.hasAttribute("value1"))
+            pushFunc.value1 = pf.attribute("value1").toInt();
+
+        if (pf.hasAttribute("value2"))
+            pushFunc.value2 = pf.attribute("value2").toInt();
+
+        if (pf.hasAttribute("value3"))
+            pushFunc.value3 = pf.attribute("value3").toInt();
+
+        if (pf.hasAttribute("text"))
+            pushFunc.text = pf.attribute("text");
+
+        if (pf.hasAttribute("encode"))
+            pushFunc.encode = pf.attribute("encode");
+
+    }
     object->pushFunc.push_back(pushFunc);
+}
+
+void TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba)
+{
+    DECL_TRACER("TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba)");
+
+    EVENT_t event;
+    event.content = pf.text();
+    // For G5
+    event.evAction = ba;
+    QString nodeName = pf.parentNode().nodeName();
+
+    if (pf.hasAttribute("item"))
+        event.item = pf.attribute("item").toInt();
+
+    if (ba == ObjHandler::BT_ACTION_LAUNCH)
+    {
+        if (pf.hasAttribute("id"))
+            event.ID = pf.attribute("id").toInt();
+
+        if (pf.hasAttribute("action"))
+            event.action = pf.attribute("action");
+    }
+
+    if ((ba == ObjHandler::BT_ACTION_COMMAND || ba == ObjHandler::BT_ACTION_STRING) && pf.hasAttribute("port"))
+        event.port = pf.attribute("port").toInt();
+    if (ba == ObjHandler::BT_ACTION_CUSTOM)
+    {
+        if (pf.hasAttribute("key"))
+            event.key = pf.attribute("key").toInt();
+
+        if (pf.hasAttribute("name"))
+            event.name = pf.attribute("name");
+
+        if (pf.hasAttribute("id"))
+            event.ID = pf.attribute("id").toInt();
+
+        if (pf.hasAttribute("flag"))
+            event.flag = pf.attribute("flag").toInt();
+
+        if (pf.hasAttribute("value1"))
+            event.value1 = pf.attribute("value1").toInt();
+
+        if (pf.hasAttribute("value2"))
+            event.value2 = pf.attribute("value2").toInt();
+
+        if (pf.hasAttribute("value3"))
+            event.value3 = pf.attribute("value3").toInt();
+
+        if (pf.hasAttribute("text"))
+            event.text = pf.attribute("text");
+
+        if (pf.hasAttribute("encode"))
+            event.encode = pf.attribute("encode");
+    }
+
+    if (nodeName == "eventShow")
+        page->eventShow.append(event);
+    else if (nodeName == "eventHide")
+        page->eventHide.append(event);
+    else if (nodeName == "gestureAny")
+        page->guestureAny.append(event);
+    else if (nodeName == "gestureUp")
+        page->guestureUp.append(event);
+    else if (nodeName == "gestureDown")
+        page->guestureDown.append(event);
+    else if (nodeName == "gestureRight")
+        page->guestureRight.append(event);
+    else if (nodeName == "gestureLeft")
+        page->guestureLeft.append(event);
+    else if (nodeName == "gestureDblTap")
+        page->guestureDblTab.append(event);
+    else if (nodeName == "gesture2FUp")
+        page->guesture2FUp.append(event);
+    else if (nodeName == "gesture2FDn")
+        page->guesture2FDn.append(event);
+    else if (nodeName == "gesture2FRt")
+        page->guesture2Frt.append(event);
+    else if (nodeName == "gesture2FLt")
+        page->guesture2FLt.append(event);
 }
 
 void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
@@ -2190,7 +2406,7 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
     if (!button.firstChildElement("on").isNull())
         object.on = button.firstChildElement("on").text();
 
-    // Insert "pushFunc"
+    // Insert "pushFunc" (G4)
     QDomNodeList pfList = button.elementsByTagName("pf");
 
     for (int i = 0; i < pfList.count(); ++i)
@@ -2199,82 +2415,53 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
         parsePF(&object, pf, ObjHandler::BT_ACTION_PGFLIP);
     }
 
-    if (!button.firstChildElement("ep").isNull())
+    // G5
+    QStringList events = { "ep", "er", "ga", "gu", "gd", "gr", "gl", "gt", "tu", "td", "tr", "tl" };
+
+    for (QString event : events)
     {
-        QDomElement ep = button.firstChildElement("ep");
-        QDomNodeList epList = ep.elementsByTagName("pgFlip");
-
-        for (int i = 0; i < epList.count(); ++i)
+        if (!button.firstChildElement(event).isNull())
         {
-            QDomElement ep = epList.at(i).toElement();
-            parsePF(&object, ep, ObjHandler::BT_ACTION_PGFLIP);
-        }
+            QDomElement ep = button.firstChildElement(event);
+            QDomNodeList epList = ep.elementsByTagName("pgFlip");
 
-        epList = ep.elementsByTagName("launch");
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parsePF(&object, ep, ObjHandler::BT_ACTION_PGFLIP);
+            }
 
-        for (int i = 0; i < epList.count(); ++i)
-        {
-            QDomElement ep = epList.at(i).toElement();
-            parsePF(&object, ep, ObjHandler::BT_ACTION_LAUNCH);
-        }
+            epList = ep.elementsByTagName("launch");
 
-        epList = ep.elementsByTagName("command");
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parsePF(&object, ep, ObjHandler::BT_ACTION_LAUNCH);
+            }
 
-        for (int i = 0; i < epList.count(); ++i)
-        {
-            QDomElement ep = epList.at(i).toElement();
-            parsePF(&object, ep, ObjHandler::BT_ACTION_COMMAND);
-        }
-    }
+            epList = ep.elementsByTagName("command");
 
-    if (!button.firstChildElement("er").isNull())
-    {
-        QDomElement er = button.firstChildElement("er");
-        QDomNodeList erList = er.elementsByTagName("pgFlip");
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parsePF(&object, ep, ObjHandler::BT_ACTION_COMMAND);
+            }
 
-        for (int i = 0; i < erList.count(); ++i)
-        {
-            QDomElement er = erList.at(i).toElement();
-            parsePF(&object, er, ObjHandler::BT_ACTION_PGFLIP);
-        }
+            epList = ep.elementsByTagName("string");
 
-        erList = er.elementsByTagName("launch");
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parsePF(&object, ep, ObjHandler::BT_ACTION_STRING);
+            }
 
-        for (int i = 0; i < erList.count(); ++i)
-        {
-            QDomElement er = erList.at(i).toElement();
-            parsePF(&object, er, ObjHandler::BT_ACTION_LAUNCH);
-        }
+            epList = ep.elementsByTagName("custom");
 
-        erList = er.elementsByTagName("command");
-
-        for (int i = 0; i < erList.count(); ++i)
-        {
-            QDomElement er = erList.at(i).toElement();
-            parsePF(&object, er, ObjHandler::BT_ACTION_COMMAND);
-        }
-    }
-
-    QStringList guestures = { "ga", "gu", "gd", "gr", "gl", "gt", "tu", "td", "tr", "tl" };
-    QStringList::Iterator guIter;
-
-    for (guIter = guestures.begin(); guIter != guestures.end(); ++guIter)
-    {
-        QDomElement g = button.firstChildElement(*guIter);
-        QDomNodeList gList = g.elementsByTagName("pgFlip");
-
-        for (int i = 0; i < gList.count(); ++i)
-        {
-            QDomElement gu = gList.at(i).toElement();
-            parsePF(&object, gu, ObjHandler::BT_ACTION_PGFLIP);
-        }
-
-        gList = g.elementsByTagName("launch");
-
-        for (int i = 0; i < gList.count(); ++i)
-        {
-            QDomElement gu = gList.at(i).toElement();
-            parsePF(&object, gu, ObjHandler::BT_ACTION_LAUNCH);
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parsePF(&object, ep, ObjHandler::BT_ACTION_CUSTOM);
+            }
         }
     }
 
@@ -2425,6 +2612,59 @@ int TPageHandler::parsePage(const QDomElement &page)
         }
     }
 
+    // G5
+    QStringList events = { "eventShow", "eventHide", "gestureAny", "gestureUp",
+                           "gestureDown", "gestureRight", "gestureLeft",
+                           "gestureDblTap", "gesture2FUp", "gesture2FDn",
+                           "gesture2FRt", "gesture2FLt" };
+
+    for (QString event : events)
+    {
+        if (!page.firstChildElement(event).isNull())
+        {
+            QDomElement ep = page.firstChildElement(event);
+            QDomNodeList epList = ep.elementsByTagName("pgFlip");
+
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parseEvent(&pg, ep, ObjHandler::BT_ACTION_PGFLIP);
+            }
+
+            epList = ep.elementsByTagName("launch");
+
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parseEvent(&pg, ep, ObjHandler::BT_ACTION_LAUNCH);
+            }
+
+            epList = ep.elementsByTagName("command");
+
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parseEvent(&pg, ep, ObjHandler::BT_ACTION_COMMAND);
+            }
+
+            epList = ep.elementsByTagName("string");
+
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parseEvent(&pg, ep, ObjHandler::BT_ACTION_STRING);
+            }
+
+            epList = ep.elementsByTagName("custom");
+
+            for (int i = 0; i < epList.count(); ++i)
+            {
+                QDomElement ep = epList.at(i).toElement();
+                parseEvent(&pg, ep, ObjHandler::BT_ACTION_CUSTOM);
+            }
+        }
+    }
+
     mPages.append(pg);
     return pg.pageID;
 }
@@ -2511,4 +2751,26 @@ ObjHandler::BUTTON_EVENT_t TPageHandler::getButtonEvent(const QString& token)
         return ObjHandler::EVENT_GUESTURE_2FLT;
 
     return ObjHandler::EVENT_NONE;
+}
+
+ObjHandler::BUTTON_ACTION_t TPageHandler::getEventType(const QString& name)
+{
+    DECL_TRACER("TPageHandler::getEventType(const QString& name)");
+
+    if (name == "pgFlip")
+        return ObjHandler::BT_ACTION_PGFLIP;
+
+    if (name == "launch")
+        return ObjHandler::BT_ACTION_LAUNCH;
+
+    if (name == "command")
+        return ObjHandler::BT_ACTION_COMMAND;
+
+    if (name == "string")
+        return ObjHandler::BT_ACTION_STRING;
+
+    if (name == "custom")
+        return ObjHandler::BT_ACTION_CUSTOM;
+
+    return ObjHandler::BT_ACTION_PGFLIP;
 }

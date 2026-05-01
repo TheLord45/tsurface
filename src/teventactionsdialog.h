@@ -19,6 +19,7 @@
 #define TEVENTACTIONSDIALOG_H
 
 #include <QDialog>
+#include "tobjecthandler.h"
 
 namespace Ui {
     class TEventActionsDialog;
@@ -34,10 +35,16 @@ class TEventActionsDialog : public QDialog
         explicit TEventActionsDialog(QWidget *parent = nullptr);
         ~TEventActionsDialog();
 
+        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs) { mFuncs = funcs; }
+        QList<ObjHandler::PUSH_FUNC_T> getFuncs() { return mFuncs; }
+        void setEventType(ObjHandler::BUTTON_EVENT_t event) { mEventType = event; }
+        ObjHandler::BUTTON_EVENT_t getEventType() { return mEventType; }
+
     private slots:
-        void on_comboBoxAddPageFlip_currentIndexChanged(int index);
-        void on_comboBoxAddLaunchAction_currentIndexChanged(int index);
-        void on_comboBoxAddAction_currentIndexChanged(int index);
+        void on_comboButtonAddPageFlip_currentIndexChanged(int index);
+        void on_comboButtonAddLaunchOption_currentIndexChanged(int index);
+        void on_comboButtonAddAction_currentIndexChanged(int index);
+
         void on_pushButtonDelete_clicked();
         void on_pushButtonClearAll_clicked();
         void on_pushButtonMoveUp_clicked();
@@ -52,6 +59,8 @@ class TEventActionsDialog : public QDialog
 
     private:
         Ui::TEventActionsDialog *ui;
+        QList<ObjHandler::PUSH_FUNC_T> mFuncs;
+        ObjHandler::BUTTON_EVENT_t mEventType;
 };
 
 #endif // TEVENTACTIONSDIALOG_H

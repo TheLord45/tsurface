@@ -139,7 +139,9 @@ namespace ObjHandler
     {
         BT_ACTION_LAUNCH,
         BT_ACTION_PGFLIP,
-        BT_ACTION_COMMAND
+        BT_ACTION_COMMAND,
+        BT_ACTION_STRING,
+        BT_ACTION_CUSTOM
     }BUTTON_ACTION_t;
 
     /**
@@ -151,6 +153,8 @@ namespace ObjHandler
         EVENT_NONE,                 // No event
         EVENT_PRESS,                // Event on button press
         EVENT_RELEASE,              // Event on button release
+        EVENT_SHOW,                 // Event on page show
+        EVENT_HIDE,                 // Event on page hide
         EVENT_GUESTURE_ANY,         // Event on any guesture
         EVENT_GUESTURE_UP,          // Event on 1 finger up guesture
         EVENT_GUESTURE_DOWN,        // Event on 1 finger down guesture
@@ -160,7 +164,10 @@ namespace ObjHandler
         EVENT_GUESTURE_2FUP,        // Event on 2 finger up guesture
         EVENT_GUESTURE_2FDN,        // Event on 2 finger down guesture
         EVENT_GUESTURE_2FLT,        // Event on 2 finger left guesture
-        EVENT_GUESTURE_2FRT         // Event on 2 finger right guesture
+        EVENT_GUESTURE_2FRT,        // Event on 2 finger right guesture
+        EVENT_ITEM_SELECTED,
+        EVENT_SCROLLBAR_BEGIN,
+        EVENT_SCROLLBAR_END
     }BUTTON_EVENT_t;
 
     typedef enum
@@ -273,38 +280,47 @@ namespace ObjHandler
     {
         BUTTONTYPE type;
         int bi{0};              // button ID
-        QString na;         // name
+        QString na;             // name
         int lt{0};              // pixel from left
         int tp{0};              // pixel from top
         int wt{0};              // width
         int ht{0};              // height
         int zo{0};              // Z-Order
-        QString hs;         // bounding, ...
-        QString bs;         // Border style (circle, ...)
-        FEEDBACK_t fb{FB_NONE};   // Feedback type (momentary, ...)
+        QString hs;             // bounding, ...
+        QString bs;             // Border style (circle, ...)
+        FEEDBACK_t fb{FB_NONE}; // Feedback type (momentary, ...)
         int ap{1};              // Address port (default: 1)
         int ad{0};              // Address channel
         int lp{1};              // Level port (default: 1)
         int lv{0};              // Level code
-        QString dr;         // Level "horizontal" or "vertical"
+        QString dr;             // Level "horizontal" or "vertical"
         int lu{0};              // Animate time up (Bargraph)
         int ld{0};              // Animate time down (Bargraph)
         int rl{0};              // Range low
         int rh{0};              // Range high
         int rn{0};              // Bargraph: Range drag increment
-        QString sc;         // Color of slider (for bargraph)
+        QString sc;             // Color of slider (for bargraph)
         QList<SR_T> sr;
     }EXTBUTTON_t;
 
     typedef struct PUSH_FUNC
     {
         int item{0};            // G5: Item number
-        QString pfType;     // command to execute when button was pushed
-        QString pfAction;   // G5: Action; Used for launching external apps
-        QString pfName;     // Name of popup
+        QString pfType;         // command to execute when button was pushed
+        QString pfAction;       // G5: Action; Used for launching external apps
+        QString pfName;         // Name of popup
         BUTTON_ACTION_t action{BT_ACTION_PGFLIP};   // G5: Button action (page flip, ...)
         int ID{0};              // G5: An ID for launch buttons
         BUTTON_EVENT_t event{EVENT_NONE};   // G5: Type of event
+        int port{0};            // G5: port number if action == COMMAND or action == STRING
+        int key{0};             // G5: action == CUSTOM
+        QString name;           // G5: action == CUSTOM
+        int flag{0};            // G5: action == CUSTOM
+        int value1{0};          // G5: action == CUSTOM
+        int value2{0};          // G5: action == CUSTOM
+        int value3{0};          // G5: action == CUSTOM
+        QString text;           // G5: action == CUSTOM
+        QString encode;         // G5: action == CUSTOM
     }PUSH_FUNC_T;
 
     typedef enum CENTER_CODE

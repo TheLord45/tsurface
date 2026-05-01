@@ -20,6 +20,8 @@
 
 #include <QWidget>
 
+#include "tobjecthandler.h"
+
 class QLineEdit;
 class QToolButton;
 
@@ -28,14 +30,28 @@ class TElementEvent : public QWidget
     Q_OBJECT
 
     public:
-        TElementEvent(QWidget *widget = nullptr);
+        TElementEvent(const QString& name, int instance, QWidget *widget = nullptr);
+        TElementEvent(ObjHandler::BUTTON_EVENT_t event, const QString& name, int instance, QWidget *widget = nullptr);
+
+        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs) { mFuncs = funcs; }
+        void setEventType(ObjHandler::BUTTON_EVENT_t event) { mEventType = event; }
+        ObjHandler::BUTTON_EVENT_t getEventType() { return mEventType; }
+
+    signals:
+        void eventChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs, const QString& name, int instance);
 
     protected:
         void onClicked();
 
     private:
+        void init();
+
         QLineEdit *mLine;
         QToolButton *mButton;
+        QString mName;
+        int mInstance{-1};
+        ObjHandler::BUTTON_EVENT_t mEventType{ObjHandler::EVENT_NONE};
+        QList<ObjHandler::PUSH_FUNC_T> mFuncs;
 };
 
 #endif // TELEMENTEVENT_H

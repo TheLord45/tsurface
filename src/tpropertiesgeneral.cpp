@@ -215,7 +215,7 @@ void TPropertiesGeneral::setGeometryPopup(const QRect& geom, bool block)
 {
     DECL_TRACER("TPropertiesGeneral::setGeometry(const QRect& geom, bool block)");
 
-    if (!mTable || mPage.popupType != Page::PT_POPUP)
+    if (!mPage || !mTable || mPage->popupType != Page::PT_POPUP)
         return;
 
     mSignalBlocked = block;
@@ -250,20 +250,23 @@ void TPropertiesGeneral::update()
 {
     DECL_TRACER("TPropertiesGeneral::update()");
 
-    ObjHandler::TOBJECT_t object = getActualObject(mPage);
-    MSG_DEBUG("Updating object " << object.bi << " on page " << mPage.pageID);
+    if (!mPage)
+        return;
+
+    ObjHandler::TOBJECT_t object = getActualObject(*mPage);
+    MSG_DEBUG("Updating object " << object.bi << " on page " << mPage->pageID);
     // If the object ID (bi) is less or equal 0, then we must show the
     // data for a page or a popup.
     if (object.bi <= 0)
     {
-        if (mPage.popupType == Page::PT_PAGE)
+        if (mPage->popupType == Page::PT_PAGE)
             setTable(STATE_PAGE);
-        else if (mPage.popupType == Page::PT_POPUP)
+        else if (mPage->popupType == Page::PT_POPUP)
             setTable(STATE_POPUP);
     }
     else
     {
-        mActObjectID = TPageHandler::Current().getObjectIndex(mPage, object.bi);
+        mActObjectID = TPageHandler::Current().getObjectIndex(*mPage, object.bi);
         setTable(getStateFromButtonType(object.type), true);
     }
 }
@@ -272,10 +275,10 @@ void TPropertiesGeneral::clear()
 {
     DECL_TRACER("TPropertiesGeneral::clear()");
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_GENERAL);
+    if (!mPage || (mPage->pageID > 0 && mChanged))
+        saveChangedData(mPage, TBL_GENERAL);
 
-    mPage = Page::PAGE_t();
+    mPage = nullptr;
     mChanged = false;
     mTable->clear();
     mTable->setRowCount(0);
@@ -362,22 +365,22 @@ void TPropertiesGeneral::loadPage(int pageID)
 {
     DECL_TRACER("TPropertiesGeneral::loadPage(int pageID)");
 
-    if (pageID == mPage.pageID)
+    if (!mPage || pageID == mPage->pageID)
         return;
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_GENERAL);
+    if (mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_GENERAL);
 
-    mPage = *TPageHandler::Current().getPage(pageID);
+    mPage = TPageHandler::Current().getPage(pageID);
     mChanged = false;
     mInitialized = false;
 }
 
-void TPropertiesGeneral::setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid)
+void TPropertiesGeneral::setGeneralPage(Page::PAGE_t *page, STATE_TYPE stype, int objid)
 {
-    DECL_TRACER("TPropertiesGeneral::setGeneralPage(Page::PAGE_t& page, STATE_TYPE stype, int objid)");
+    DECL_TRACER("TPropertiesGeneral::setGeneralPage(Page::PAGE_t *page, STATE_TYPE stype, int objid)");
 
-    if (page.pageID <= 0)
+    if (!page || page->pageID <= 0)
         return;
 
     mInitialized = false;   // This ensures that the changes are visible
@@ -392,13 +395,16 @@ void TPropertiesGeneral::setGeneralObjectID(int index)
 {
     DECL_TRACER("TPropertiesGeneral::setGeneralObjectID(int index)");
 
-    if (index < 0 || index >= mPage.objects.size())
+    if (!mPage)
+        return;
+
+    if (index < 0 || index >= mPage->objects.size())
     {
         MSG_WARNING("Got wrong index (" << index << ")!");
         return;
     }
 
-    mActObject = mPage.objects[index]->getObject();
+    mActObject = mPage->objects[index]->getObject();
     mActObjectID = index;
     setTable(getStateFromButtonType(mActObject.type), true);
 }
@@ -412,7 +418,7 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
     if (!mInitialized || !mTable || force)
         createTable(stype);
 
-    if (!mTable)
+    if (!mTable || !mPage)
         return;
 
     // First hide all rows
@@ -429,125 +435,125 @@ void TPropertiesGeneral::setTable(STATE_TYPE stype, bool force)
             mTable->setRowHidden(LIST_PAGE_NAME, false);                            // PageName
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                     // PageDescription
 
-            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
-            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
+            setTableWidget(LIST_PAGE_NAME, 1, mPage->name, W_LINEEDIT, font);
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage->description, W_TEXT, font);
         break;
 
         case STATE_POPUP:
             mTable->setRowHidden(LIST_POPUPTYPE, false);                            // PopupPopupType
-            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
+            setTableWidget(LIST_POPUPTYPE, 1, mPage->popupType, W_COMBO, font);
 
             mTable->setRowHidden(LIST_PAGE_NAME, false);                            // PageName
-            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
+            setTableWidget(LIST_PAGE_NAME, 1, mPage->name, W_LINEEDIT, font);
 
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                     // PageDescription
-            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage->description, W_TEXT, font);
 
-            if (mPage.popupType == Page::PT_POPUP)
+            if (mPage->popupType == Page::PT_POPUP)
             {
                 mTable->setRowHidden(LIST_POPUP_LEFT, false);                       // PopupLeft
-                setTableWidget(LIST_POPUP_LEFT, 1, mPage.left, W_SPINBOX, font);
+                setTableWidget(LIST_POPUP_LEFT, 1, mPage->left, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_POPUP_TOP, false);                        // PopupTop
-                setTableWidget(LIST_POPUP_TOP, 1, mPage.top, W_SPINBOX, font);
+                setTableWidget(LIST_POPUP_TOP, 1, mPage->top, W_SPINBOX, font);
             }
 
             mTable->setRowHidden(LIST_POPUP_WIDTH, false);                          // PopupWidth
-            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
+            setTableWidget(LIST_POPUP_WIDTH, 1, mPage->width, W_SPINBOX, font);
             mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                         // PopupHeight
-            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
+            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage->height, W_SPINBOX, font);
 
-            if (mPage.popupType == Page::PT_POPUP)
+            if (mPage->popupType == Page::PT_POPUP)
             {
                 mTable->setRowHidden(LIST_POPUP_RESET_ON_POS, false);               // PopupResetOnPos
-                setTableWidget(LIST_POPUP_RESET_ON_POS, 1, mPage.resetPos, W_COMBO, font);
+                setTableWidget(LIST_POPUP_RESET_ON_POS, 1, mPage->resetPos, W_COMBO, font);
                 mTable->setRowHidden(LIST_POPUP_GROUPS, false);                     // PopupGroups
-                setTableWidget(LIST_POPUP_GROUPS, 1, mPage.group, W_COMBO, font);
+                setTableWidget(LIST_POPUP_GROUPS, 1, mPage->group, W_COMBO, font);
                 mTable->setRowHidden(LIST_POPUP_TIMEOUT, false);                    // PopupTimeout
-                setTableWidget(LIST_POPUP_TIMEOUT, 1, mPage.timeout, W_SPINBOX, font);
+                setTableWidget(LIST_POPUP_TIMEOUT, 1, mPage->timeout, W_SPINBOX, font);
                 mTable->setRowHidden(LIST_POPUP_MODAL, false);                      // PopupModal
-                setTableWidget(LIST_POPUP_MODAL, 1, mPage.modal, W_COMBO, font);
+                setTableWidget(LIST_POPUP_MODAL, 1, mPage->modal, W_COMBO, font);
 
-                if (mPage.collapseDirection == Page::COLDIR_NONE)
+                if (mPage->collapseDirection == Page::COLDIR_NONE)
                 {
                     mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT, false);            // PopupShowEffect
-                    setTableWidget(LIST_POPUP_SHOW_EFFECT, 1, mPage.showEffect, W_COMBO, font);
+                    setTableWidget(LIST_POPUP_SHOW_EFFECT, 1, mPage->showEffect, W_COMBO, font);
 
-                    if (mPage.showEffect != Page::SE_NONE)
+                    if (mPage->showEffect != Page::SE_NONE)
                     {
                         mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_TIME, false);   // PopupShowEffectTime
-                        setTableWidget(LIST_POPUP_SHOW_EFFECT_TIME, 1, mPage.showTime, W_SPINBOX, font);
+                        setTableWidget(LIST_POPUP_SHOW_EFFECT_TIME, 1, mPage->showTime, W_SPINBOX, font);
 
-                        if (mPage.showEffect != Page::SE_FADE)
+                        if (mPage->showEffect != Page::SE_FADE)
                         {
-                            if (mPage.showEffect == Page::SE_SLIDE_LEFT || mPage.showEffect == Page::SE_SLIDE_LEFT_FADE||
-                                mPage.showEffect == Page::SE_SLIDE_RIGHT || mPage.showEffect == Page::SE_SLIDE_RIGHT_FADE)
+                            if (mPage->showEffect == Page::SE_SLIDE_LEFT || mPage->showEffect == Page::SE_SLIDE_LEFT_FADE||
+                                mPage->showEffect == Page::SE_SLIDE_RIGHT || mPage->showEffect == Page::SE_SLIDE_RIGHT_FADE)
                             {
                                 mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_X, false);    // PopupShowEffectPosX
-                                setTableWidget(LIST_POPUP_SHOW_EFFECT_X, 1, mPage.showX, W_SPINBOX, font);
+                                setTableWidget(LIST_POPUP_SHOW_EFFECT_X, 1, mPage->showX, W_SPINBOX, font);
                             }
                             else
                             {
                                 mTable->setRowHidden(LIST_POPUP_SHOW_EFFECT_Y, false);    // PopupShowEffectPosY
-                                setTableWidget(LIST_POPUP_SHOW_EFFECT_Y, 1, mPage.showY, W_SPINBOX, font);
+                                setTableWidget(LIST_POPUP_SHOW_EFFECT_Y, 1, mPage->showY, W_SPINBOX, font);
                             }
                         }
                     }
 
                     mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT, false);            // PopupHideEffect
-                    setTableWidget(LIST_POPUP_HIDE_EFFECT, 1, mPage.hideEffect, W_COMBO, font);
+                    setTableWidget(LIST_POPUP_HIDE_EFFECT, 1, mPage->hideEffect, W_COMBO, font);
 
-                    if (mPage.hideEffect != Page::SE_NONE)
+                    if (mPage->hideEffect != Page::SE_NONE)
                     {
                         mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_TIME, false);   // PopupHideEffectTime
-                        setTableWidget(LIST_POPUP_HIDE_EFFECT_TIME, 1, mPage.hideTime, W_SPINBOX, font);
+                        setTableWidget(LIST_POPUP_HIDE_EFFECT_TIME, 1, mPage->hideTime, W_SPINBOX, font);
 
-                        if (mPage.hideEffect != Page::SE_FADE)
+                        if (mPage->hideEffect != Page::SE_FADE)
                         {
-                            if (mPage.hideEffect == Page::SE_SLIDE_LEFT || mPage.hideEffect == Page::SE_SLIDE_LEFT_FADE||
-                                mPage.hideEffect == Page::SE_SLIDE_RIGHT || mPage.hideEffect == Page::SE_SLIDE_RIGHT_FADE)
+                            if (mPage->hideEffect == Page::SE_SLIDE_LEFT || mPage->hideEffect == Page::SE_SLIDE_LEFT_FADE||
+                                mPage->hideEffect == Page::SE_SLIDE_RIGHT || mPage->hideEffect == Page::SE_SLIDE_RIGHT_FADE)
                             {
                                 mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_X, false);    // PopupHideEffectPosX
-                                setTableWidget(LIST_POPUP_HIDE_EFFECT_X, 1, mPage.hideX, W_SPINBOX, font);
+                                setTableWidget(LIST_POPUP_HIDE_EFFECT_X, 1, mPage->hideX, W_SPINBOX, font);
                             }
                             else
                             {
                                 mTable->setRowHidden(LIST_POPUP_HIDE_EFFECT_Y, false);    // PopupHideEffectPosY
-                                setTableWidget(LIST_POPUP_HIDE_EFFECT_Y, 1, mPage.hideY, W_SPINBOX, font);
+                                setTableWidget(LIST_POPUP_HIDE_EFFECT_Y, 1, mPage->hideY, W_SPINBOX, font);
                             }
                         }
                     }
 
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_DIR, false);           // PopupCollapseDirection
-                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage.collapseDirection, W_COMBO, font);
+                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage->collapseDirection, W_COMBO, font);
                 }
                 else
                 {
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_DIR, false);           // PopupCollapseDirection
-                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage.collapseDirection, W_COMBO, font);
+                    setTableWidget(LIST_POPUP_COLLAPSE_DIR, 1, mPage->collapseDirection, W_COMBO, font);
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_OFFSET, false);        // PopupCollapseOffest
-                    setTableWidget(LIST_POPUP_COLLAPSE_OFFSET, 1, mPage.collapseOffset, W_SPINBOX, font);
+                    setTableWidget(LIST_POPUP_COLLAPSE_OFFSET, 1, mPage->collapseOffset, W_SPINBOX, font);
                     mTable->setRowHidden(LIST_POPUP_COLLAPSE_SHOWOP, false);        // PopupCollapseShowOpen
-                    setTableWidget(LIST_POPUP_COLLAPSE_SHOWOP, 1, mPage.collapseShowOpen, W_COMBO, font);
+                    setTableWidget(LIST_POPUP_COLLAPSE_SHOWOP, 1, mPage->collapseShowOpen, W_COMBO, font);
                 }
             }
         break;
 
         case STATE_SUBPAGE:
             mTable->setRowHidden(LIST_POPUPTYPE, false);                        // PopupType
-            setTableWidget(LIST_POPUPTYPE, 1, mPage.popupType, W_COMBO, font);
+            setTableWidget(LIST_POPUPTYPE, 1, mPage->popupType, W_COMBO, font);
             mTable->setRowHidden(LIST_PAGE_NAME, false);                        // PageName
-            setTableWidget(LIST_PAGE_NAME, 1, mPage.name, W_LINEEDIT, font);
+            setTableWidget(LIST_PAGE_NAME, 1, mPage->name, W_LINEEDIT, font);
             mTable->setRowHidden(LIST_PAGE_DESCRIPTION, false);                 // PageDescription
-            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage.description, W_TEXT, font);
+            setTableWidget(LIST_PAGE_DESCRIPTION, 1, mPage->description, W_TEXT, font);
             mTable->setRowHidden(LIST_POPUP_WIDTH, false);                      // PopupWidth
-            setTableWidget(LIST_POPUP_WIDTH, 1, mPage.width, W_SPINBOX, font);
+            setTableWidget(LIST_POPUP_WIDTH, 1, mPage->width, W_SPINBOX, font);
             mTable->setRowHidden(LIST_POPUP_HEIGHT, false);                     // PopupHeight
-            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage.height, W_SPINBOX, font);
+            setTableWidget(LIST_POPUP_HEIGHT, 1, mPage->height, W_SPINBOX, font);
         break;
 
         default:
-            if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
-                mActObject = mPage.objects[mActObjectID]->getObject();
+            if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
+                mActObject = mPage->objects[mActObjectID]->getObject();
 
             mTable->setRowHidden(LIST_BUTTON_TYPE, false);                          // ButtonType
             setTableWidget(LIST_BUTTON_TYPE, 1, mActObject.type, W_COMBO, font);
@@ -871,7 +877,7 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_PAGE_NAME:
                 cell1->setText(getLabelText(TTEXT_NAME));
-                mTable->setCellWidget(i, 1, makeObjectName(mPage.name, "PageName"));
+                mTable->setCellWidget(i, 1, makeObjectName(mPage->name, "PageName"));
             break;
 
             case LIST_OBJECT_NAME:
@@ -879,8 +885,8 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
                 cell1->setText(getLabelText(TTEXT_NAME));
                 QString name;
 
-                if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
-                    name = mPage.objects[mActObjectID]->getButtonName();
+                if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
+                    name = mPage->objects[mActObjectID]->getButtonName();
 
                 mTable->setCellWidget(i, 1, makeObjectName(name, "ObjectName"));
             }
@@ -973,17 +979,17 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_POPUP_SHOW_EFFECT_TIME:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_TIME));
-                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage.showTime, "PopupShowEffectTime"));
+                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage->showTime, "PopupShowEffectTime"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT_X:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_X_POS));
-                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosX"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage->showEffect, "PopupShowEffectPosX"));
             break;
 
             case LIST_POPUP_SHOW_EFFECT_Y:
                 cell1->setText(getLabelText(TTEXT_SHOW_EFFECT_Y_POS));
-                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.showEffect, "PopupShowEffectPosY"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage->showEffect, "PopupShowEffectPosY"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT:
@@ -993,17 +999,17 @@ void TPropertiesGeneral::createTable(STATE_TYPE stype)
 
             case LIST_POPUP_HIDE_EFFECT_TIME:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_TIME));
-                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage.hideTime, "PopupHideEffectTime"));
+                mTable->setCellWidget(i, 1, makePopupEffectTime(mPage->hideTime, "PopupHideEffectTime"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT_X:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_X_POS));
-                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosX"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage->hideEffect, "PopupHideEffectPosX"));
             break;
 
             case LIST_POPUP_HIDE_EFFECT_Y:
                 cell1->setText(getLabelText(TTEXT_HIDE_EFFECT_Y_POS));
-                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage.hideEffect, "PopupHideEffectPosY"));
+                mTable->setCellWidget(i, 1, makePopupEffectPos(mPage->hideEffect, "PopupHideEffectPosY"));
             break;
 
             case LIST_POPUP_COLLAPSE_DIR:
@@ -1246,7 +1252,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupType(const QString& name)
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.popupType == Page::PT_POPUP ? 0 : 1);
+    combo->setCurrentIndex(mPage->popupType == Page::PT_POPUP ? 0 : 1);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboPopupTypeChanged);
     return combo;
 }
@@ -1265,7 +1271,7 @@ TElementWidgetCombo *TPropertiesGeneral::makeButtonType(const QString& name)
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size() && mActObject.bi > 0)
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size() && mActObject.bi > 0)
         combo->setCurrentIndex(TObjectHandler::getButtonTypeIndex(mActObject.type));
     else
         combo->setCurrentIndex(0);
@@ -1295,7 +1301,7 @@ TElementWidgetCombo *TPropertiesGeneral::makeButtonLockName(const QString& name)
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size() && mActObject.bi > 0)
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size() && mActObject.bi > 0)
         combo->setCurrentIndex(mActObject.li ? 1 : 0);
 
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboLockButtonName);
@@ -1309,15 +1315,15 @@ TElementWidgetText *TPropertiesGeneral::makeDescription(const QString& name)
     QString text;
 
     if (name == "PageDescription")
-        text = mPage.description;
+        text = mPage->description;
     else
     {
         if (mActObject.bi == (mActObjectID + 1))
             text = mActObject.bd;
         else // We have no valid object. Maybe we can load it
         {
-            if (mActObjectID >= 0 && mPage.objects.size() > mActObjectID)
-                text = mPage.objects[mActObjectID]->getObject().bd;
+            if (mActObjectID >= 0 && mPage->objects.size() > mActObjectID)
+                text = mPage->objects[mActObjectID]->getObject().bd;
         }
     }
 
@@ -1335,19 +1341,19 @@ TElementSpinBox *TPropertiesGeneral::makeSpinGeometry(const QString& name)
     if (name.startsWith("Popup"))
     {
         if (name.endsWith("Left"))
-            value = mPage.left;
+            value = mPage->left;
         else if (name.endsWith("Top"))
-            value = mPage.top;
+            value = mPage->top;
         else if (name.endsWith("Width"))
-            value = mPage.width;
+            value = mPage->width;
         else if (name.endsWith("Height"))
-            value = mPage.height;
+            value = mPage->height;
     }
     else
     {
-        if (mActObjectID >= 0 && mPage.objects.size() > mActObjectID)
+        if (mActObjectID >= 0 && mPage->objects.size() > mActObjectID)
         {
-            mActObject = mPage.objects[mActObjectID]->getObject();
+            mActObject = mPage->objects[mActObjectID]->getObject();
 
             if (name.endsWith("Left"))
                 value = mActObject.lt;
@@ -1380,7 +1386,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupResetOnPos(const QString& name
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.resetPos);
+    combo->setCurrentIndex(mPage->resetPos);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboLockButtonName);
     return combo;
 }
@@ -1391,9 +1397,9 @@ TElementLineEdit *TPropertiesGeneral::makeObjectZOrder(const QString& name)
 
     QString value("0");
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
         if (mActObject.zo > 0)
             value = QString("%1").arg(mActObject.zo);
@@ -1415,7 +1421,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupGroups(const QString& name)
     QStringList groups = TPageHandler::Current().getGroupNames();
     groups.insert(0, "none");
     combo->addItems(groups);
-    combo->setCurrentText(mPage.group);
+    combo->setCurrentText(mPage->group);
 
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboPopupGroupChanged);
     return combo;
@@ -1425,7 +1431,7 @@ TElementSpinBox *TPropertiesGeneral::makePopupTimeout(const QString& name)
 {
     DECL_TRACER("TPropertiesGeneral::makePopupTimeout(const QString& name)");
 
-    TElementSpinBox *sb = new TElementSpinBox(mPage.timeout, 0, 10000, name);
+    TElementSpinBox *sb = new TElementSpinBox(mPage->timeout, 0, 10000, name);
     connect(sb, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinTimeoutValue);
     return sb;
 }
@@ -1441,7 +1447,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupModal(const QString& name)
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.modal);
+    combo->setCurrentIndex(mPage->modal);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onPopupModalChanged);
     return combo;
 }
@@ -1461,7 +1467,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupShowEffect(const QString& name
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.showEffect);
+    combo->setCurrentIndex(mPage->showEffect);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onPopupShowEffectChanged);
     return combo;
 }
@@ -1481,7 +1487,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupHideEffect(const QString& name
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.hideEffect);
+    combo->setCurrentIndex(mPage->hideEffect);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onPopupHideEffectChanged);
     return combo;
 }
@@ -1522,25 +1528,25 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupEffectPos(Page::SHOWEFFECT eff
 
     if (name == "PopupShowEffectPosX")
     {
-        start = mPage.showX <= 0 ? mPage.width : mPage.showX;
+        start = mPage->showX <= 0 ? mPage->width : mPage->showX;
         items = { "screen left", "screen right" };
         data = { 0, start };
     }
     else if (name == "PopupShowEffectPosY")
     {
-        start = mPage.showY <= 0 ? mPage.height : mPage.showY;
+        start = mPage->showY <= 0 ? mPage->height : mPage->showY;
         items = { "screen top", "screen bottom" };
         data = { 0, start };
     }
     else if (name == "PopupHideEffectPosX")
     {
-        start = mPage.hideX <= 0 ? mPage.width : mPage.hideX;
+        start = mPage->hideX <= 0 ? mPage->width : mPage->hideX;
         items = { "screen left", "screen right" };
         data = { 0, start };
     }
     else if (name == "PopupHideEffectPosY")
     {
-        start = mPage.hideY <= 0 ? mPage.height : mPage.hideY;
+        start = mPage->hideY <= 0 ? mPage->height : mPage->hideY;
         items = { "screen top", "screen bottom" };
         data = { 0, start };
     }
@@ -1560,7 +1566,7 @@ TElementSpinBox *TPropertiesGeneral::makePopupCollapseOffset(const QString& name
 {
     DECL_TRACER("TPropertiesGeneral::makePopupCollapseOffset(const QString& name)");
 
-    TElementSpinBox *spin = new TElementSpinBox(mPage.collapseOffset, 0, 10000, name, mTable);
+    TElementSpinBox *spin = new TElementSpinBox(mPage->collapseOffset, 0, 10000, name, mTable);
     connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesGeneral::onSpinCollapseOffset);
     return spin;
 }
@@ -1576,7 +1582,7 @@ TElementWidgetCombo *TPropertiesGeneral::makePopupCollapseShowOpen(const QString
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
     combo->addData(data);
-    combo->setCurrentIndex(mPage.collapseShowOpen ? 1 : 0);
+    combo->setCurrentIndex(mPage->collapseShowOpen ? 1 : 0);
     connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesGeneral::onComboCollapseShowOpen);
     return combo;
 }
@@ -1592,9 +1598,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectDragDropType(const QString& n
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         int idx = 0;
 
         if (mActObject.ddt == "dr")
@@ -1630,9 +1636,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectTouchStyle(const QString& nam
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         int idx = 0;
 
         if (mActObject.hs == "bounding")
@@ -1653,9 +1659,9 @@ TElementBorderName *TPropertiesGeneral::makeObjectBorderStyle(const QString& nam
 
     QString border;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         border = mActObject.bs;
     }
 
@@ -1676,9 +1682,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectYesNoSelect(const QString& na
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
         if (name == "ObjectDisabled")
             combo->setCurrentIndex(mActObject.da);
@@ -1705,9 +1711,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectPasswordProtected(const QStri
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         combo->setCurrentIndex(mActObject.pp);
     }
 
@@ -1721,9 +1727,9 @@ TElementSpinBox *TPropertiesGeneral::makeObjectStateCount(const QString& name)
 
     int value = 2;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         value = mActObject.stateCount;
     }
 
@@ -1738,9 +1744,9 @@ TElementSpinBox *TPropertiesGeneral::makeObjectAnimateTime(const QString& name)
 
     int value = 2;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
         if (name == "ObjectAnimateTimeUp")
             value = mActObject.nu;
@@ -1765,9 +1771,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectAutoRepeat(const QString& nam
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         combo->setCurrentIndex(mActObject.ar);
     }
 
@@ -1786,9 +1792,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectValueDirection(const QString&
     combo->addItems(items);
     combo->addData(data);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         int index = mActObject.dr == "vertical" || mActObject.dr.isEmpty() ? 0 : 1;
         combo->setCurrentIndex(index);
     }
@@ -1806,9 +1812,9 @@ TElementWidgetCombo *TPropertiesGeneral::makeObjectSliderName(const QString& nam
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
         if (!mActObject.sd.isEmpty() && mActObject.sd != "none")
             combo->setCurrentText(mActObject.sd);
@@ -1822,8 +1828,8 @@ TElementColorSelector *TPropertiesGeneral::makeObjectSliderColor(const QString& 
 {
     DECL_TRACER("TPropertiesGeneral::makeObjectSliderColor(const QString& name)");
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
-        mActObject = mPage.objects[mActObjectID]->getObject();
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
     TElementColorSelector *colsel = new TElementColorSelector(mActObject.sc, name, mTable);
     connect(colsel, &TElementColorSelector::colorChanged, this, &TPropertiesGeneral::onObjectSliderColor);
@@ -1862,9 +1868,9 @@ TElementSpinBox *TPropertiesGeneral::makeObjectSpacing(const QString& name)
 
     int value = 5;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         value = mActObject.sa;
     }
 
@@ -1893,9 +1899,9 @@ TElementSpinBox *TPropertiesGeneral::makeObjectScrollbarOffset(const QString& na
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         value = mActObject.bo;
     }
 
@@ -1948,7 +1954,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectMaxTextLength(const QString& name
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.mt;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 0, 10000, name, mTable);
@@ -1980,7 +1986,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectItemHeight(const QString& name)
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.lvh;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 48, 1000, name, mTable);
@@ -1994,7 +2000,7 @@ TElementSpinBox *TPropertiesGeneral::makeListviewColumns(const QString& name)
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.lvg;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 0, 1000, name, mTable);
@@ -2022,7 +2028,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectPrimaryPartition(const QString& n
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.lhp;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 5, 95, name, mTable);
@@ -2036,7 +2042,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectSecondaryPartition(const QString&
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.lvp;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 5, 95, name, mTable);
@@ -2050,7 +2056,7 @@ TElementSpinBox *TPropertiesGeneral::makeObjectFilterHeight(const QString& name)
 
     int value = 0;
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         value = mActObject.lsh;
 
     TElementSpinBox *sbox = new TElementSpinBox(value, 24, 1000, name, mTable);
@@ -2101,19 +2107,19 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
     if (column != 1)
         return;
 
-    if (mPage.popupType == Page::PT_PAGE)
+    if (mPage->popupType == Page::PT_PAGE)
     {
         QTableWidgetItem *item = mTable->item(row, column);
 
         if (item && item->data(Qt::UserRole).toInt() == 0)  // Page name
         {
-            mPage.name = item->text();
-            pageNameChanged(mPage.pageID, mPage.name);
+            mPage->name = item->text();
+            pageNameChanged(mPage->pageID, mPage->name);
             markChanged();
             mChanged = true;
         }
     }
-    else if (mPage.popupType == Page::PT_POPUP)
+    else if (mPage->popupType == Page::PT_POPUP)
     {
         QTableWidgetItem *item = mTable->item(row, column);
 
@@ -2122,8 +2128,8 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
 
         if (row ==  1) // Name of poup
         {
-            mPage.name = item->text();
-            pageNameChanged(mPage.pageID, mPage.name);
+            mPage->name = item->text();
+            pageNameChanged(mPage->pageID, mPage->name);
             markChanged();
             mChanged = true;
         }
@@ -2157,14 +2163,14 @@ void TPropertiesGeneral::onComboPopupTypeChanged(const QString& text, const QVar
     int type = data.toInt();
 
     if (type == Page::PT_POPUP)
-        mPage.popupType = Page::PT_POPUP;
+        mPage->popupType = Page::PT_POPUP;
     else
-        mPage.popupType = Page::PT_SUBPAGE;
+        mPage->popupType = Page::PT_SUBPAGE;
 
     mChanged = true;
     setTable(STATE_POPUP);
     // Move popup to subpages, if this was selected and vice versa.
-    pageTypeChanged(mPage.popupType, mPage.pageID);
+    pageTypeChanged(mPage->popupType, mPage->pageID);
 }
 
 void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVariant& data, const QString& name)
@@ -2174,10 +2180,10 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+    if (mActObjectID < 0 || mPage->objects.size() <= mActObjectID)
         return;
 
-    mActObject = mPage.objects[mActObjectID]->getObject();
+    mActObject = mPage->objects[mActObjectID]->getObject();
     BUTTONTYPE oldType = mActObject.type;
     mActObject.type = static_cast<BUTTONTYPE>(data.toInt());
 
@@ -2190,7 +2196,7 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
         }
     }
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
     mChanged = true;
     markChanged();
@@ -2202,15 +2208,15 @@ void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVaria
 {
     DECL_TRACER("TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVariant& data, const QString& name)");
 
-    if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+    if (mActObjectID < 0 || mPage->objects.size() <= mActObjectID)
         return;
 
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mActObject = mPage.objects[mActObjectID]->getObject();
+    mActObject = mPage->objects[mActObjectID]->getObject();
     mActObject.li = data.toBool();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     mChanged = true;
     markChanged();
 }
@@ -2221,17 +2227,17 @@ void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString&
 
     if (name.startsWith("Page"))
     {
-        mPage.name = text;
-        pageNameChanged(mPage.pageID, text);
+        mPage->name = text;
+        pageNameChanged(mPage->pageID, text);
     }
     else
     {
-        if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+        if (mActObjectID < 0 || mPage->objects.size() <= mActObjectID)
             return;
 
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         mActObject.na = text;
-        mPage.objects[mActObjectID]->setObject(mActObject);
+        mPage->objects[mActObjectID]->setObject(mActObject);
     }
 
     mChanged = true;
@@ -2243,15 +2249,15 @@ void TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString
     DECL_TRACER("TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString& name)");
 
     if (name.startsWith("Page"))
-        mPage.description = text;
+        mPage->description = text;
     else
     {
-        if (mActObjectID < 0 || mPage.objects.size() <= mActObjectID)
+        if (mActObjectID < 0 || mPage->objects.size() <= mActObjectID)
             return;
 
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
         mActObject.bd = text;
-        mPage.objects[mActObjectID]->setObject(mActObject);
+        mPage->objects[mActObjectID]->setObject(mActObject);
     }
 
     mChanged = true;
@@ -2265,20 +2271,20 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
     if (name.startsWith("Popup"))
     {
         if (name.endsWith("Left"))
-            mPage.left = value;
+            mPage->left = value;
         else if (name.endsWith("Top"))
-            mPage.top = value;
+            mPage->top = value;
         else if (name.endsWith("Width"))
-            mPage.width = value;
+            mPage->width = value;
         else if (name.endsWith("Height"))
-            mPage.height = value;
+            mPage->height = value;
 
         if (!mSignalBlocked)
-            setPosition(QRect(mPage.left, mPage.top, mPage.width, mPage.height), mPage, 0, STATE_POPUP);
+            setPosition(QRect(mPage->left, mPage->top, mPage->width, mPage->height), *mPage, 0, STATE_POPUP);
     }
     else
     {
-        if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+        if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         {
             if (name.endsWith("Left"))
                 mActObject.lt = value;
@@ -2289,15 +2295,15 @@ void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
             else if (name.endsWith("Height"))
                 mActObject.ht = value;
 
-            mPage.objects[mActObjectID]->setObject(mActObject);
+            mPage->objects[mActObjectID]->setObject(mActObject);
 
             if (!mSignalBlocked)
-                setPosition(QRect(mActObject.lt, mActObject.tp, mActObject.wt, mActObject.ht), mPage, mActObject.bi, STATE_BUTTON);
+                setPosition(QRect(mActObject.lt, mActObject.tp, mActObject.wt, mActObject.ht), *mPage, mActObject.bi, STATE_BUTTON);
         }
     }
 
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVariant& data, const QString& name)
@@ -2308,12 +2314,12 @@ void TPropertiesGeneral::onComboPopupGroupChanged(const QString& text, const QVa
     Q_UNUSED(name);
 
     if (text.isEmpty() || text == "none")
-        mPage.group = QString();
+        mPage->group = QString();
     else
-        mPage.group = text;
+        mPage->group = text;
 
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     // TODO: Add code to change group in page tree widget
 }
 
@@ -2323,9 +2329,9 @@ void TPropertiesGeneral::onPopupTimeout(int value, const QString& name)
 
     Q_UNUSED(name);
 
-    mPage.timeout = value;
+    mPage->timeout = value;
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
 }
 
 void TPropertiesGeneral::onPopupModalChanged(const QString& text, const QVariant& data, const QString& name)
@@ -2335,9 +2341,9 @@ void TPropertiesGeneral::onPopupModalChanged(const QString& text, const QVariant
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mPage.modal = (data.toBool() ? 1 : 0);
+    mPage->modal = (data.toBool() ? 1 : 0);
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
 }
 
 void TPropertiesGeneral::onPopupShowEffectChanged(const QString& text, const QVariant& data, const QString& name)
@@ -2347,9 +2353,9 @@ void TPropertiesGeneral::onPopupShowEffectChanged(const QString& text, const QVa
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mPage.showEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
+    mPage->showEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     setTable(STATE_POPUP);
 }
 
@@ -2360,9 +2366,9 @@ void TPropertiesGeneral::onPopupHideEffectChanged(const QString& text, const QVa
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mPage.hideEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
+    mPage->hideEffect = static_cast<Page::SHOWEFFECT>(data.toInt());
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     setTable(STATE_POPUP);
 }
 
@@ -2373,9 +2379,9 @@ void TPropertiesGeneral::onPopupCollapseDirChanged(const QString& text, const QV
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mPage.collapseDirection = static_cast<Page::COLDIR_t>(data.toInt());
+    mPage->collapseDirection = static_cast<Page::COLDIR_t>(data.toInt());
     mChanged = true;
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     setTable(STATE_POPUP);
 }
 
@@ -2385,8 +2391,8 @@ void TPropertiesGeneral::onSpinTimeoutValue(int value, const QString& name)
 
     Q_UNUSED(name);
 
-    mPage.timeout = value;
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage->timeout = value;
+    saveChangedData(mPage, TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2395,11 +2401,11 @@ void TPropertiesGeneral::onSpinPopupEffectTimeChnaged(int value, const QString& 
     DECL_TRACER("TPropertiesGeneral::onSpinPopupEffectTimeChnaged(int value, const QString& name)");
 
     if (name.endsWith("ShowEffectTime"))
-        mPage.showTime = value;
+        mPage->showTime = value;
     else
-        mPage.hideTime = value;
+        mPage->hideTime = value;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2414,15 +2420,15 @@ void TPropertiesGeneral::onComboPopupEffectPos(const QString& text, const QVaria
         num = data.toInt();
 
     if (name == "PopupShowEffectPosX")
-        mPage.showX = num;
+        mPage->showX = num;
     else if (name == "PopupShowEffectPosY")
-        mPage.showY = num;
+        mPage->showY = num;
     else if (name == "PopupHideEffectPosX")
-        mPage.hideX = num;
+        mPage->hideX = num;
     else if (name == "PopupHideEffectPosY")
-        mPage.hideY = num;
+        mPage->hideY = num;
 
-    saveChangedData(&mPage, TBL_GENERAL);
+    saveChangedData(mPage, TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2432,8 +2438,8 @@ void TPropertiesGeneral::onSpinCollapseOffset(int value, const QString& name)
 
     Q_UNUSED(name);
 
-    mPage.collapseOffset = value;
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage->collapseOffset = value;
+    saveChangedData(mPage, TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2444,8 +2450,8 @@ void TPropertiesGeneral::onComboCollapseShowOpen(const QString& text, const QVar
     Q_UNUSED(text);
     Q_UNUSED(name);
 
-    mPage.collapseShowOpen = data.toBool();
-    saveChangedData(&mPage, TBL_GENERAL);
+    mPage->collapseShowOpen = data.toBool();
+    saveChangedData(mPage, TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2461,7 +2467,7 @@ void TPropertiesGeneral::onComboObjectDragDropType(const QString& text, const QV
     else
         mActObject.ddt = data.toString();
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
     setTable(STATE_BUTTON);
@@ -2491,7 +2497,7 @@ void TPropertiesGeneral::onComboObjectTouchStyle(const QString& text, const QVar
     else
         mActObject.hs = val;
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2507,10 +2513,10 @@ void TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QStrin
     else
         mActObject.bs = border;
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVariant& data, const QString& name)
@@ -2542,10 +2548,10 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
     else if (name == "ObjectAlphabetScrollbar")
         mActObject.lva = data.toInt();
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
     update();
 }
 
@@ -2558,7 +2564,7 @@ void TPropertiesGeneral::onObjectPasswordProtection(const QString& text, const Q
     Q_UNUSED(name);
 
     mActObject.pp = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2571,7 +2577,7 @@ void TPropertiesGeneral::onObjectStateCount(int value, const QString& name)
 
     mActObject.stateCount = value;
     mActObject.rm = value;          // Yes, this exists twice!
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2591,7 +2597,7 @@ void TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)
         mActObject.rd = value;
     }
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2604,7 +2610,7 @@ void TPropertiesGeneral::onObjectValueDirection(const QString& text, const QVari
     Q_UNUSED(name);
 
     mActObject.dr = data.toString();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2621,7 +2627,7 @@ void TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant&
     else
         mActObject.sd = text;
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2633,10 +2639,10 @@ void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& n
     Q_UNUSED(name);
     mActObject.sc = col;
 
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant& data, const QString& name)
@@ -2651,10 +2657,10 @@ void TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant
 
     if (oldID != mActObject.st)
     {
-        mPage.objects[mActObjectID]->setObject(mActObject);
+        mPage->objects[mActObjectID]->setObject(mActObject);
         markChanged();
         mChanged = true;
-        requestRedraw(&mPage);
+        requestRedraw(mPage);
     }
 }
 
@@ -2666,11 +2672,11 @@ void TPropertiesGeneral::onObjectOrientation(const QString& ori, const QVariant&
     Q_UNUSED(name);
 
     mActObject.on = data.toString();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectSpacing(int value, const QString& name)
@@ -2680,10 +2686,10 @@ void TPropertiesGeneral::onObjectSpacing(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.sa = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVariant& data, const QString& name)
@@ -2694,10 +2700,10 @@ void TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVari
     Q_UNUSED(name);
 
     mActObject.we = data.toString();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
@@ -2707,7 +2713,7 @@ void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.bo = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2720,7 +2726,7 @@ void TPropertiesGeneral::onObjectInputType(const QString& group, const QVariant&
     Q_UNUSED(name);
 
     mActObject.inputType = data.toInt();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2732,7 +2738,7 @@ void TPropertiesGeneral::onObjectPasswordCharacter(const QString& text, const QS
     Q_UNUSED(name);
 
     mActObject.pc = text[0];
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2745,7 +2751,7 @@ void TPropertiesGeneral::onObjectDisplayType(const QString& text, const QVariant
     Q_UNUSED(name);
 
     mActObject.dt = data.toString();
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
     setTable(STATE_INPUT);
@@ -2758,7 +2764,7 @@ void TPropertiesGeneral::onObjectMaxTextLength(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.mt = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2770,7 +2776,7 @@ void TPropertiesGeneral::onObjectInputMask(const QString& text, const QString& n
     Q_UNUSED(name);
 
     mActObject.im = text;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }
@@ -2782,10 +2788,10 @@ void TPropertiesGeneral::onListviewComponents(int components, const QString& nam
     Q_UNUSED(name);
 
     mActObject.lvc = components;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectItemHeight(int value, const QString& name)
@@ -2795,10 +2801,10 @@ void TPropertiesGeneral::onObjectItemHeight(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.lvh = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onListviewColumns(int value, const QString& name)
@@ -2808,10 +2814,10 @@ void TPropertiesGeneral::onListviewColumns(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.lvg = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVariant& data, const QString& name)
@@ -2823,10 +2829,10 @@ void TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVarian
 
     mActObject.lvl = data.toInt();
     MSG_DEBUG("Listview Item Layout: " << mActObject.lvl);
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name)
@@ -2836,10 +2842,10 @@ void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name
     Q_UNUSED(name);
 
     mActObject.lhp = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& name)
@@ -2849,10 +2855,10 @@ void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& na
     Q_UNUSED(name);
 
     mActObject.lvp = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
@@ -2862,10 +2868,10 @@ void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.lsh = value;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
-    requestRedraw(&mPage);
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QString& name)
@@ -2875,7 +2881,7 @@ void TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QS
     Q_UNUSED(name);
 
     mActObject.lds = text;
-    mPage.objects[mActObjectID]->setObject(mActObject);
+    mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged();
     mChanged = true;
 }

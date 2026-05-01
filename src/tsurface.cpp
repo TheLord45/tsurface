@@ -126,6 +126,7 @@ TSurface::TSurface(QWidget *parent)
                                m_ui->tableWidgetGeneral,
                                m_ui->tableWidgetProgramming,
                                m_ui->treeWidgetStates,
+                               m_ui->tableWidgetEvents,
                                this);
 
     int splitt = TConfig::Current().getSplitterPosition();
@@ -464,7 +465,7 @@ void TSurface::addObject(int id, QPoint pt)
     o->setSize(wrap->geometry());
     int index = TPageHandler::Current().appendObject(page->pageID, o);
     TWorkSpaceHandler::Current().setObject(o);
-    TWorkSpaceHandler::Current().setAllProperties(*page, STATE_BUTTON, index);
+    TWorkSpaceHandler::Current().setAllProperties(page, STATE_BUTTON, index);
     // Draw the new object
     onRedrawObject(object, page->pageID);
     mProjectChanged = true;
@@ -1199,7 +1200,6 @@ void TSurface::on_actionPreferences_triggered()
 {
     DECL_TRACER("TSurface::on_actionPreferences_triggered()");
 
-    // TODO add preferences dialog
     TPreferencesDialog dialog(this);
 
     if (dialog.exec() == QDialog::Rejected)
@@ -1207,7 +1207,6 @@ void TSurface::on_actionPreferences_triggered()
 
     TConfig::Current().setLastDirectory(TConfig::Current().getFilesPanels());
     TConfig::Current().saveConfig();
-    // TODO: Apply settings
     mLastOpenPath = TConfig::Current().getLastDirectory();
 }
 
@@ -1909,7 +1908,7 @@ void TSurface::onClickedPageTree(const TPageTree::WINTYPE_t wt, int num, const Q
         onActionSnapToGrid(TPageHandler::Current().isSnapToGrid(pg->pageID));   // Activate or deactivate snap to grid. This is independable from the visibility of the grid.
 
         // Draw all objects
-        TWorkSpaceHandler::Current().setAllProperties(*pg, STATE_UNKNOWN);
+        TWorkSpaceHandler::Current().setAllProperties(pg, STATE_UNKNOWN);
         onRedrawRequest(pg);                                                    // Draw the components of the page
     }
 }
@@ -1964,7 +1963,7 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 
             if (!widget)
             {
-                TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
+                TWorkSpaceHandler::Current().setAllProperties(page, STATE_UNKNOWN);    // Set properties for a page/popup
                 m_ui->actionDelete->setDisabled(true);
             }
             else
@@ -1973,7 +1972,7 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
 
                 if (!object)
                 {
-                    TWorkSpaceHandler::Current().setAllProperties(*page, STATE_UNKNOWN);    // Set properties for a page/popup
+                    TWorkSpaceHandler::Current().setAllProperties(page, STATE_UNKNOWN);    // Set properties for a page/popup
                     m_ui->actionDelete->setDisabled(true);
                     return;
                 }
@@ -2197,7 +2196,7 @@ void TSurface::onAddNewPopup()
 
     TWorkSpaceHandler::Current().invalidateObject();    // If there was an object selected it is removed from selection
     TWorkSpaceHandler::Current().setFocus(id);          // Activates the selection in the tree view
-    TWorkSpaceHandler::Current().setAllProperties(pg, pgType == Page::PT_POPUP ? STATE_POPUP : STATE_SUBPAGE);
+    TWorkSpaceHandler::Current().setAllProperties(&pg, pgType == Page::PT_POPUP ? STATE_POPUP : STATE_SUBPAGE);
 }
 
 void TSurface::onSubWindowActivated(QMdiSubWindow *window)
@@ -2227,9 +2226,9 @@ void TSurface::onSubWindowActivated(QMdiSubWindow *window)
     TPageHandler::Current().setVisible(id, true);
 
     if (page->popupType == Page::PT_PAGE)
-        TWorkSpaceHandler::Current().setPage(id, false, *page);     // Show properties for page
+        TWorkSpaceHandler::Current().setPage(id, false, page);     // Show properties for page
     else
-        TWorkSpaceHandler::Current().setPopup(id, false, *page);    // Show properties for popup/subpage
+        TWorkSpaceHandler::Current().setPopup(id, false, page);    // Show properties for popup/subpage
 
     TWorkSpaceHandler::Current().setFocus(page->pageID);            // Set the focus on the active page/popup in the tree view
     // Check for a selected object. If there is
@@ -2408,8 +2407,8 @@ bool TSurface::closeRequest()
     {
         if (changed)
         {
-            Page::PAGE_t pg = TWorkSpaceHandler::Current().getActualPage();
-            TPageHandler::Current().setPage(pg);
+            Page::PAGE_t *pg = TWorkSpaceHandler::Current().getActualPage();
+            TPageHandler::Current().setPage(*pg);
         }
 
         int ret = QMessageBox::question(this, tr("TSurface"), tr("There are unsaved changes in the current project!<br>Do you want to save the project?"));

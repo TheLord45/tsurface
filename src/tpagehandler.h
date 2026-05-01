@@ -59,20 +59,33 @@ namespace Page
     // The following enum is for G5 only
     typedef enum
     {
-        EV_NONE,                        // Invalid event
-        EV_PGFLIP,                      // Do a page flip
-        EV_COMMAND,                     // Execute a command (can be a self feed command)
-        EV_LAUNCH                       // Launch an external application.
+        EV_CMD_NONE,
+        EV_CMD_SHOW,                // sShow
+        EV_CMD_HIDE,                // sHide
+        EV_CMD_TOGGLE,              // sToggle
+        EV_CMD_PAGE,                // scPage
+        EV_CMD_PANEL,               // scPanel
+        EV_CMD_CLOSE_ALL            // close_all
     }EVENT_TYPE_t;
 
     typedef struct EVENT_t
     {
-        EVENT_TYPE_t evType{EV_NONE};
+        EVENT_TYPE_t evCommand{EV_CMD_NONE};   // The type of the event
+        ObjHandler::BUTTON_ACTION_t evAction{ObjHandler::BT_ACTION_PGFLIP};
+        QString content;                // A content like a page or popup name
         int item{0};                    // The position; Lines are sorted by this number
-        QString evAction;               // The action to take on type EV_PGFLIP (sShow, ...).
         QString name;                   // The page/program to take the action on if type is EV_PGFLIP or EV_LAUNCH
         int ID{0};                      // The ID of an application to launch
+        QString action;                 // EV_LAUNCH
         int port{0};                    // The port number if the type is EV_COMMAND.
+        int key{0};                     // EV_CUSTOM
+        int type{0};                    // EV_CUSTOM
+        int flag{0};                    // EV_CUSTOM
+        int value1{0};                  // EV_CUSTOM
+        int value2{0};                  // EV_CUSTOM
+        int value3{0};                  // EV_CUSTOM
+        QString text;                   // EV_CUSTOM
+        QString encode;                 // EV_CUSTOM
     }EVENT_t;
 
     typedef enum
@@ -178,6 +191,16 @@ namespace Page
         SR_t srPage;                            // The configuration for the page itself
         QList<EVENT_t> eventShow;               // G5: Events to start showing
         QList<EVENT_t> eventHide;               // G5: Events to start hiding
+        QList<EVENT_t> guestureAny;             // G5: Events
+        QList<EVENT_t> guestureUp;              // G5: Events
+        QList<EVENT_t> guestureDown;            // G5: Events
+        QList<EVENT_t> guestureLeft;            // G5: Events
+        QList<EVENT_t> guestureRight;           // G5: Events
+        QList<EVENT_t> guestureDblTab;          // G5: Events
+        QList<EVENT_t> guesture2FUp;            // G5: Events
+        QList<EVENT_t> guesture2FDn;            // G5: Events
+        QList<EVENT_t> guesture2Frt;            // G5: Events
+        QList<EVENT_t> guesture2FLt;            // G5: Events
         QList<TObjectHandler *> objects;        // The objects belonging to the page/popup
     }PAGE_t;
 }
@@ -219,10 +242,12 @@ class TPageHandler : public QObject
         void removeObject(int pageID, int bi);
         // Getter/Setter
         Page::PAGE_t *getPage(int number);
-        Page::PAGE_t getPage(const QString& name);
-        Page::PAGE_t getPopup(const QString& name);
-        Page::PAGE_t getSubPage(const QString& name);
+        Page::PAGE_t *getPage(const QString& name);
+        Page::PAGE_t *getPopup(const QString& name);
+        Page::PAGE_t *getSubPage(const QString& name);
         QList<int> getPageNumbers();
+        QStringList getPages();
+        QStringList getPopups();
         void setPage(Page::PAGE_t& page);
         void setPageBgColor(int number, QColor& col);
         void setPageTextColor(int number, QColor& col);
@@ -245,6 +270,7 @@ class TPageHandler : public QObject
     protected:
         bool savePage(const Page::PAGE_t& page);
         bool savePopup(const Page::PAGE_t& popup);
+        void saveEvents(const Page::PAGE_t& page, QJsonObject *root);
         QJsonObject getSr(Page::PAGE_TYPE pt, const Page::SR_t& sr, int number=0);
         void parsePage(const QJsonObject& page);
         void parseObjects(Page::PAGE_t *page, const QJsonArray& obj);
@@ -254,12 +280,14 @@ class TPageHandler : public QObject
         void parseButton(Page::PAGE_t *page, const QDomElement &button);
         void parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr);
         void parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba);
+        void parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHandler::BUTTON_ACTION_t ba);
         void parseBitmapEntry(ObjHandler::SR_T *sr, const QDomNodeList& bitmapEntry);
         void parseGradientColors(QList<QColor> *gradientColors, const QDomNodeList& gradColors);
         ObjHandler::BUTTONTYPE getButtonType(const QString& bt);
         ObjHandler::FEEDBACK_t getButtonFeedback(const QString& fb);
         QColor getColor(const QString& name);
         ObjHandler::BUTTON_EVENT_t getButtonEvent(const QString& token);
+        ObjHandler::BUTTON_ACTION_t getEventType(const QString& name);
 
     private:
         static TPageHandler *mCurrent;

@@ -166,28 +166,28 @@ void TSubPageSetDialog::on_pushButtonAdd_clicked()
     if (pageName.isEmpty())
         return;
 
-    Page::PAGE_t page = TPageHandler::Current().getSubPage(pageName);
+    Page::PAGE_t *page = TPageHandler::Current().getSubPage(pageName);
 
-    if (page.pageID <= 0)
+    if (!page || page->pageID <= 0)
     {
         MSG_ERROR("Page \"" << pageName.toStdString() << "\" not found!");
         return;
     }
 
     MSG_DEBUG("Selected page: " << mSelectedPage << ", Name: " << pageName.toStdString());
-    appendPageToLeft(pageName, page.width, page.height);
+    appendPageToLeft(pageName, page->width, page->height);
 
-    if (page.width > mSubPageSet[mSelectedSet].pgWidth)
-        mSubPageSet[mSelectedSet].pgWidth = page.width;
+    if (page->width > mSubPageSet[mSelectedSet].pgWidth)
+        mSubPageSet[mSelectedSet].pgWidth = page->width;
 
-    if (page.height > mSubPageSet[mSelectedSet].pgHeight)
-        mSubPageSet[mSelectedSet].pgHeight = page.height;
+    if (page->height > mSubPageSet[mSelectedSet].pgHeight)
+        mSubPageSet[mSelectedSet].pgHeight = page->height;
 
     QStringList leftPages = mSubPageNames;
     QStringList electedPages = getElectedPages();
     removeFromList(&leftPages, electedPages);
     ConfigMain::SUBPAGEITEMS_t item;
-    item.pageID = page.pageID;
+    item.pageID = page->pageID;
     item.pageName = pageName;
     item.index = mSubPageSet[mSelectedSet].items.size();
     mSubPageSet[mSelectedSet].items.append(item);
@@ -466,7 +466,7 @@ void TSubPageSetDialog::showPages(const QStringList& pages)
 
     for (itPages = pages.cbegin(); itPages != pages.cend(); ++itPages)
     {
-        Page::PAGE_t pg = TPageHandler::Current().getSubPage(*itPages);
+        Page::PAGE_t pg = *TPageHandler::Current().getSubPage(*itPages);
         QStandardItem *cell1 = new QStandardItem;
         QStandardItem *cell2 = new QStandardItem;
         QStandardItem *cell3 = new QStandardItem;
@@ -557,7 +557,7 @@ void TSubPageSetDialog::appendPageToRight(const QString& name)
     if (!model)
         return;
 
-    Page::PAGE_t pg = TPageHandler::Current().getSubPage(name);
+    Page::PAGE_t pg = *TPageHandler::Current().getSubPage(name);
     QStandardItem *cell1 = new QStandardItem;
     QStandardItem *cell2 = new QStandardItem;
     QStandardItem *cell3 = new QStandardItem;

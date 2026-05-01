@@ -40,7 +40,7 @@ class TPropertiesProgramming : public QObject
         ~TPropertiesProgramming();
 
         void setParent(QWidget *parent) { mParent = parent; };
-        void setPage(const Page::PAGE_t& page);
+        void setPage(Page::PAGE_t *page);
         void setProgrammingPage(const QString& name);
         void setProgrammingPage(int id, bool loaded=false);
         void setProgrammingPopup(const QString& name);
@@ -49,7 +49,7 @@ class TPropertiesProgramming : public QObject
         void setObjectID(int id);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         bool isChanged() { return mChanged; }
-        Page::PAGE_t& getActualPage() { return mPage; }
+        Page::PAGE_t *getActualPage() { return mPage; }
 
     protected:
         void setTable(STATE_TYPE stype=STATE_UNKNOWN);
@@ -102,7 +102,7 @@ class TPropertiesProgramming : public QObject
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};
         bool mChanged{false};
-        Page::PAGE_t mPage;
+        Page::PAGE_t *mPage{nullptr};
         bool mInitialized{false};
         TValidatePort *mValidatePort{nullptr};
         QIntValidator *mIntValidator{nullptr};
