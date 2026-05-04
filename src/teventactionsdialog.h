@@ -35,10 +35,13 @@ class TEventActionsDialog : public QDialog
         explicit TEventActionsDialog(QWidget *parent = nullptr);
         ~TEventActionsDialog();
 
-        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs) { mFuncs = funcs; }
+        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs);
         QList<ObjHandler::PUSH_FUNC_T> getFuncs() { return mFuncs; }
         void setEventType(ObjHandler::BUTTON_EVENT_t event) { mEventType = event; }
         ObjHandler::BUTTON_EVENT_t getEventType() { return mEventType; }
+
+    protected:
+        void onPageFlipSelectionChanged(const QString& text, const QVariant& data, const QString& name);
 
     private slots:
         void on_comboButtonAddPageFlip_currentIndexChanged(int index);
@@ -58,9 +61,23 @@ class TEventActionsDialog : public QDialog
         void on_tableWidgetActions_cellActivated(int row, int column);
 
     private:
+        typedef struct LINE_EVENT_t
+        {
+            int line{0};
+            ObjHandler::PUSH_FUNC_T pf;
+        }LINE_EVENT_t;
+
+        void addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const QString& name);
+
         Ui::TEventActionsDialog *ui;
         QList<ObjHandler::PUSH_FUNC_T> mFuncs;
         ObjHandler::BUTTON_EVENT_t mEventType;
+        QList<LINE_EVENT_t> mLines;
+        QStringList mList1;
+        QStringList mList2;
+        QStringList mList3;
+        QStringList mCommands;
+        bool mBlock{false};
 };
 
 #endif // TEVENTACTIONSDIALOG_H

@@ -55,6 +55,7 @@ void TElementEvent::init()
     mButton->setText("...");
 
     QHBoxLayout *layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(mLine);
     layout->addWidget(mButton);
 
@@ -72,5 +73,9 @@ void TElementEvent::onClicked()
         return;
 
     mFuncs = dlg.getFuncs();
-    emit eventChanged(mFuncs, mName, mInstance);
+
+    if (!mFuncs.empty())
+        mLine->setText(QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName));
+
+    emit eventChanged(mFuncs, mEventType, mName, mInstance);
 }

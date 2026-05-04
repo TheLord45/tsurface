@@ -47,14 +47,21 @@ class TPropertiesEvents : public QObject
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
         // Callbacks
         void onCellActivated(int row, int column);
+        void onEventsChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs, ObjHandler::BUTTON_EVENT_t evt, const QString& name, int instance);
 
     private:
         void doConnect(QTableWidget *table);
         QString getLabelText(int line);
         void createTable();
+        void setTable(bool force=false);
+        void enableCommon();
+        void setTableWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf);
         TElementEvent *makeEvent(ObjHandler::BUTTON_EVENT_t type);
         QList<ObjHandler::PUSH_FUNC_T> collectEvents();
-        void assignEvent(Page::EVENT_t& pEvent, ObjHandler::BUTTON_EVENT_t ev, ObjHandler::PUSH_FUNC_T *pf);
+        void assignAllEvent(const QList<Page::EVENT_t>& pEvent, ObjHandler::BUTTON_EVENT_t ev, QList<ObjHandler::PUSH_FUNC_T> *pf);
+        void assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUTTON_EVENT_t ev, ObjHandler::PUSH_FUNC_T *pf);
+        Page::EVENT_t eventFromPushFunc(const ObjHandler::PUSH_FUNC_T& pf);
+        QList<ObjHandler::PUSH_FUNC_T> filterEventType(ObjHandler::BUTTON_EVENT_t ev);
 
         QTableWidget *mTable{nullptr};
         bool mConnected{false};

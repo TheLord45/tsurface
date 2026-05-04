@@ -4,6 +4,7 @@
 #include <QPushButton>
 
 class QListWidget;
+class QListWidgetItem;
 
 class TComboButton : public QPushButton
 {
@@ -33,6 +34,7 @@ class TComboButton : public QPushButton
     protected:
         void resizeEvent(QResizeEvent* e) override;
         bool eventFilter(QObject* obj, QEvent* ev) override;
+        void onItemSelected(QListWidgetItem* item);
 
     private:
         void init();
@@ -43,7 +45,6 @@ class TComboButton : public QPushButton
         QListWidget *mList = nullptr;   // non-modal, top-level list
         int mCurrentIndex = -1;
         QStringList mItems;
-        QList<QVariant> mData;
         QList<int> mDisabled;
         QString mText;
 };

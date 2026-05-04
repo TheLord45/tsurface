@@ -38,7 +38,7 @@ class TElementEvent : public QWidget
         ObjHandler::BUTTON_EVENT_t getEventType() { return mEventType; }
 
     signals:
-        void eventChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs, const QString& name, int instance);
+        void eventChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs, ObjHandler::BUTTON_EVENT_t evt, const QString& name, int instance);
 
     protected:
         void onClicked();

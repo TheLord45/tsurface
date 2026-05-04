@@ -59,25 +59,14 @@ void TComboButton::init()
     setIconSize(QSize(18, 18));
 
     // Non-modal popup list (top-level, frameless, stays on top)
-    mList = new QListWidget; // no parent -> top-level
+    mList = new QListWidget(parentWidget());
     mList->setWindowFlags(Qt::FramelessWindowHint | Qt::Window | Qt::WindowStaysOnTopHint);
     mList->setSelectionMode(QAbstractItemView::SingleSelection);
     mList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Hide on focus out/deactivate (extra safety)
     mList->installEventFilter(this);
-
-    connect(mList, &QListWidget::itemClicked, this, [this](QListWidgetItem* item) {
-        if (!(item->flags() & Qt::ItemIsEnabled))
-            return; // ignore disabled
-
-        const int idx = mList->row(item);
-        mCurrentIndex = idx;
-        setText(item->text());
-        emit currentIndexChanged(idx);
-        emit currentTextChanged(item->text());
-        hidePopup();
-    });
+    connect(mList, &QListWidget::itemClicked, this, &TComboButton::onItemSelected);
 
     // Toggle popup on press: if visible -> close (no selection), else open.
     connect(this, &QPushButton::pressed, this, [this] {
@@ -86,6 +75,20 @@ void TComboButton::init()
         else
             showPopup();
     });
+}
+
+void TComboButton::onItemSelected(QListWidgetItem* item)
+{
+    DECL_TRACER("TComboButton::onItemSelected(QListWidgetItem* item)");
+
+    if (!(item->flags() & Qt::ItemIsEnabled))
+        return; // ignore disabled
+
+    const int idx = mList->row(item);
+    mCurrentIndex = idx;
+    emit currentIndexChanged(idx);
+    emit currentTextChanged(item->text());
+    hidePopup();
 }
 
 void TComboButton::setItems(const QStringList& items)
@@ -119,6 +122,21 @@ void TComboButton::setItems(const QStringList& items)
     }
 }
 
+/**
+ * @brief TComboButton::enableItem
+ *
+ * Enables or disables an item in the drop down list. If the parameter @b state
+ * is TRUE, the item will be enabled an can be selected then. Otherwise it will
+ * be disabled an can no longer be selected.
+ *
+ * In case the item had already the wanted state, nothing happens.
+ *
+ * @param index     The index number of the item to enable/disable. This must
+ * be a valid number between 0 and the number of entries in the listbox.
+ *
+ * @param state     TRUE: The item is enabled in case it was not already.
+ * FALSE: The item is disabled in case it was not already.
+ */
 void TComboButton::enableItem(int index, bool state)
 {
     DECL_TRACER("TComboButton::enableItem(int index, bool state)");
@@ -126,6 +144,20 @@ void TComboButton::enableItem(int index, bool state)
     disableItem(index, !state);
 }
 
+/**
+ * @brief TComboButton::disableItem
+ *
+ * Disables or enables an item in the drop down list. If the parameter @b state
+ * is TRUE, the item will be disabled an can not be selected anymore. Otherwise
+ * it will be enabled an can be selected.
+ *
+ * In case the item had already the wanted state, nothing happens.
+ *
+ * @param index     The index number of the item to enable/disable. This must
+ * be a valid number between 0 and the number of entries in the listbox.
+ * @param state     TRUE: The item is disabled in case it was not already.
+ * FALSE: The item is enabled in case it was not already.
+ */
 void TComboButton::disableItem(int index, bool state)
 {
     DECL_TRACER("TComboButton::disableItem(int index, bool state)");
@@ -135,26 +167,30 @@ void TComboButton::disableItem(int index, bool state)
 
     int idx = mDisabled.indexOf(index);
 
-    if (!state && idx >= 0)
+    if (!state && idx >= 0)         // Enable the item?
     {
-        mDisabled.remove(idx, 1);
+        mDisabled.remove(idx, 1);   // Remove it from the list of disabled items
         QListWidgetItem* it = mList->item(index);
 
         if (!it)
             return;
-
-        it->setFlags(it->flags() & ~(Qt::ItemIsEnabled | Qt::ItemIsSelectable));
-        return;
+        // Enable the item realy
+        it->setFlags(it->flags() & (Qt::ItemIsEnabled | Qt::ItemIsSelectable));
+        return;                     // All done, return.
     }
+    else if (!state)                // Already enabled?
+        return;                     // Yes, then return
 
-    mDisabled.append(index);
-    mDisabled.remove(idx, 1);
-    QListWidgetItem* it = mList->item(index);
+    // Disable the item:
+    if (idx < 0)                    // Is the item in the list?
+        mDisabled.append(index);    // No, then add it
 
-    if (!it)
-        return;
+    QListWidgetItem* it = mList->item(index);   // Get the item
 
-    it->setFlags(it->flags() & (Qt::ItemIsEnabled | Qt::ItemIsSelectable));
+    if (!it)                        // Do we have one?
+        return;                     // No, then return
+    // Disable it.
+    it->setFlags(it->flags() & ~(Qt::ItemIsEnabled | Qt::ItemIsSelectable));
 }
 
 void TComboButton::setData(const QList<QVariant>& data)
@@ -174,17 +210,16 @@ void TComboButton::setCurrentIndex(int index)
 {
     DECL_TRACER("TComboButton::setCurrentIndex(int index)");
 
-    if (index < 0 || index >= mList->count())
+    if (index < 0 || index >= mList->count() || index == mCurrentIndex)
         return;
 
-    auto* item = mList->item(index);
+    QListWidgetItem* item = mList->item(index);
 
     if (!(item->flags() & Qt::ItemIsEnabled))
         return;
 
     mCurrentIndex = index;
     mList->setCurrentItem(item);
-    setText(item->text());
     emit currentIndexChanged(index);
     emit currentTextChanged(item->text());
 }
@@ -298,7 +333,7 @@ bool TComboButton::eventFilter(QObject* obj, QEvent* ev)
             // If click is outside both the list and the button, close (let event propagate).
             QPoint globalPos;
 
-            if (auto* me = dynamic_cast<QMouseEvent*>(ev))
+            if (QMouseEvent* me = dynamic_cast<QMouseEvent*>(ev))
                 globalPos = me->globalPosition().toPoint();
             else
                 globalPos = QCursor::pos();
@@ -319,17 +354,15 @@ bool TComboButton::eventFilter(QObject* obj, QEvent* ev)
         break;
 
         case QEvent::KeyPress:
-        {
             if (obj == mList)
             {
-                auto* ke = static_cast<QKeyEvent*>(ev);
+                QKeyEvent* ke = static_cast<QKeyEvent*>(ev);
 
                 if (ke->key() == Qt::Key_Escape)
                     hidePopup();
             }
 
-            break;
-        }
+        break;
 
         default:
             break;

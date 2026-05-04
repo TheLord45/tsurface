@@ -84,6 +84,9 @@
       </property>
       <item>
        <widget class="TComboButton" name="comboButtonAddPageFlip">
+        <property name="locale">
+         <locale language="English" country="Anguilla"/>
+        </property>
         <property name="text">
          <string>Add Page Flip</string>
         </property>
