@@ -83,6 +83,7 @@ QPixmap sizeImage(const QSize& size, const QString& file, QSize *ori=nullptr);
 QString convertToUTF8(const QString& file, bool fake=false);
 QString getStrLogLevel(int level);
 int getLogLevelFromString(const QString& level);
+long getRandomNumber(long min, long max);
 
 enum class OS { Linux, MacOS, Unknown };
 OS detectOS();

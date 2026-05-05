@@ -252,6 +252,22 @@ int getLogLevelFromString(const QString& level)
     return l;
 }
 
+long getRandomNumber(long min, long max)
+{
+    if (min > max || min == max)
+        return random();
+
+    long number = 0;
+
+    do
+    {
+        number = random();
+    }
+    while (number < min || number > max);
+
+    return number;
+}
+
 OS detectOS()
 {
 #if defined(__APPLE__) && defined(__MACH__)

@@ -946,13 +946,13 @@ void TPageHandler::saveEvents(const Page::PAGE_t& page, QJsonObject *root)
 
                 if (iter->evAction == ObjHandler::BT_ACTION_CUSTOM)
                 {
-                    INSERTJ(entry, "key", iter->key, 0);
+                    INSERTJ(entry, "key", static_cast<qint64>(iter->key), 0L);
                     INSERTJ(entry, "name", iter->name, "");
                     INSERTJ(entry, "type", iter->type, 0);
                     INSERTJ(entry, "flag", iter->flag, 0);
-                    INSERTJ(entry, "value1", iter->value1, 0);
-                    INSERTJ(entry, "value2", iter->value2, 0);
-                    INSERTJ(entry, "value3", iter->value3, 0);
+                    INSERTJ(entry, "value1", iter->value1, "");
+                    INSERTJ(entry, "value2", iter->value2, "");
+                    INSERTJ(entry, "value3", iter->value3, "");
                     INSERTJ(entry, "text", iter->text, "");
                     INSERTJ(entry, "encode", iter->encode, "");
                 }
@@ -1082,12 +1082,22 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
         {
             QJsonObject pf;
             pf.insert("item", f.item);
-            pf.insert("pfType", f.pfType);
-            pf.insert("pfAction", f.pfAction);
+            INSERTJ(pf, "pfType", f.pfType, "");
+            INSERTJ(pf, "pfAction", f.pfAction, "");
             pf.insert("pfName", f.pfName);
             pf.insert("action", f.action);
-            pf.insert("id", f.ID);
-            pf.insert("event", f.event);
+            INSERTJ(pf, "id", f.ID, 0);
+            INSERTJ(pf, "event", f.event, ObjHandler::EVENT_NONE);
+            INSERTJ(pf, "port", f.port, 1);
+            INSERTJ(pf, "key", static_cast<qint64>(f.key), 0);
+            INSERTJ(pf, "name", f.name, "");
+            INSERTJ(pf, "type", f.type, 0);
+            INSERTJ(pf, "flag", f.flag, 0);
+            INSERTJ(pf, "value1", f.value1, "");
+            INSERTJ(pf, "value2", f.value2, "");
+            INSERTJ(pf, "value3", f.value3, "");
+            INSERTJ(pf, "text", f.text, "");
+            INSERTJ(pf, "encode", f.encode, "");
             pushFunc.append(pf);
         }
 
@@ -1436,12 +1446,12 @@ void TPageHandler::parsePage(const QJsonObject& page)
             ev.ID = entry.value("ID").toInt(0);
             ev.action = entry.value("action").toString();
             ev.port = entry.value("port").toInt(0);
-            ev.key = entry.value("key").toInt();
+            ev.key = entry.value("key").toInteger();
             ev.type = entry.value("type").toInt();
             ev.flag = entry.value("flag").toInt();
-            ev.value1 = entry.value("value1").toInt();
-            ev.value2 = entry.value("value2").toInt();
-            ev.value3 = entry.value("value3").toInt();
+            ev.value1 = entry.value("value1").toString();
+            ev.value2 = entry.value("value2").toString();
+            ev.value3 = entry.value("value3").toString();
             ev.text = entry.value("text").toString();
             ev.encode = entry.value("encode").toString();
 
@@ -1591,9 +1601,19 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
             pf.pfType = jpf.value("pfType").toString();
             pf.pfAction = jpf.value("pfAction").toString();
             pf.pfName = jpf.value("pfName").toString();
-            pf.action = static_cast<ObjHandler::BUTTON_ACTION_t>(jpf.value("action").toInt(ObjHandler::BUTTON_ACTION_t::BT_ACTION_PGFLIP));
+            pf.action = static_cast<ObjHandler::BUTTON_ACTION_t>(jpf.value("action").toInt(ObjHandler::BT_ACTION_PGFLIP));
             pf.ID = jpf.value("id").toInt(0);
-            pf.event = static_cast<ObjHandler::BUTTON_EVENT_t>(jpf.value("event").toInt(ObjHandler::BUTTON_EVENT_t::EVENT_NONE));
+            pf.event = static_cast<ObjHandler::BUTTON_EVENT_t>(jpf.value("event").toInt(ObjHandler::EVENT_NONE));
+            pf.port = jpf.value("port").toInt(1);
+            pf.key = jpf.value("key").toInteger();
+            pf.name = jpf.value("name").toString();
+            pf.type = jpf.value("type").toInt();
+            pf.flag = jpf.value("flag").toInt();
+            pf.value1 = jpf.value("value1").toString();
+            pf.value2 = jpf.value("value2").toString();
+            pf.value3 = jpf.value("value3").toString();
+            pf.text = jpf.value("text").toString();
+            pf.encode = jpf.value("encode").toString();
             object.pushFunc.push_back(pf);
         }
 
@@ -1991,26 +2011,26 @@ void TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf,
 
     ObjHandler::PUSH_FUNC_T pushFunc;
     pushFunc.pfName = pf.text();
-    pushFunc.pfType = pf.attribute("type");
+
+    if (ba == ObjHandler::BT_ACTION_PGFLIP)
+        pushFunc.pfType = pf.attribute("type");
     // For G5
     pushFunc.action = ba;
+    pushFunc.event = getButtonEvent(pf.parentNode().nodeName());
 
-    if (pf.parentNode().nodeName() == "ep")
-        pushFunc.event = ObjHandler::EVENT_PRESS;
-    else if (pf.parentNode().nodeName() == "er")
-        pushFunc.event = ObjHandler::EVENT_RELEASE;
-    else
+    if (pushFunc.event == ObjHandler::EVENT_NONE)
     {
-        pushFunc.event = getButtonEvent(pf.parentNode().nodeName());
-
-        if (pushFunc.event == ObjHandler::EVENT_NONE)
-        {
-            MSG_WARNING("Unknown node name " << pf.parentNode().nodeName().toStdString() << "!");
-        }
+        MSG_WARNING("Unknown node name " << pf.parentNode().nodeName().toStdString() << "!");
     }
 
     if (pf.hasAttribute("item"))
         pushFunc.item = pf.attribute("item").toInt();
+
+    MSG_DEBUG("item: " << pushFunc.item <<
+              ", pfType: " << pushFunc.pfType.toStdString() <<
+              ", action: " << pushFunc.action <<
+              ", event: " << pushFunc.event <<
+              ", content: " << pushFunc.pfName.toStdString());
 
     if (ba == ObjHandler::BT_ACTION_LAUNCH)
     {
@@ -2023,10 +2043,11 @@ void TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf,
 
     if ((ba == ObjHandler::BT_ACTION_COMMAND || ba == ObjHandler::BT_ACTION_STRING) && pf.hasAttribute("port"))
         pushFunc.port = pf.attribute("port").toInt();
+
     if (ba == ObjHandler::BT_ACTION_CUSTOM)
     {
         if (pf.hasAttribute("key"))
-            pushFunc.key = pf.attribute("key").toInt();
+            pushFunc.key = pf.attribute("key").toLong();
 
         if (pf.hasAttribute("name"))
             pushFunc.name = pf.attribute("name");
@@ -2037,22 +2058,25 @@ void TPageHandler::parsePF(ObjHandler::TOBJECT_t *object, const QDomElement &pf,
         if (pf.hasAttribute("flag"))
             pushFunc.flag = pf.attribute("flag").toInt();
 
+        if (pf.hasAttribute("type"))
+            pushFunc.type = pf.attribute("type").toInt();
+
         if (pf.hasAttribute("value1"))
-            pushFunc.value1 = pf.attribute("value1").toInt();
+            pushFunc.value1 = pf.attribute("value1");
 
         if (pf.hasAttribute("value2"))
-            pushFunc.value2 = pf.attribute("value2").toInt();
+            pushFunc.value2 = pf.attribute("value2");
 
         if (pf.hasAttribute("value3"))
-            pushFunc.value3 = pf.attribute("value3").toInt();
+            pushFunc.value3 = pf.attribute("value3");
 
         if (pf.hasAttribute("text"))
             pushFunc.text = pf.attribute("text");
 
         if (pf.hasAttribute("encode"))
             pushFunc.encode = pf.attribute("encode");
-
     }
+
     object->pushFunc.push_back(pushFunc);
 }
 
@@ -2083,7 +2107,7 @@ void TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHand
     if (ba == ObjHandler::BT_ACTION_CUSTOM)
     {
         if (pf.hasAttribute("key"))
-            event.key = pf.attribute("key").toInt();
+            event.key = pf.attribute("key").toLong();
 
         if (pf.hasAttribute("name"))
             event.name = pf.attribute("name");
@@ -2094,14 +2118,17 @@ void TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHand
         if (pf.hasAttribute("flag"))
             event.flag = pf.attribute("flag").toInt();
 
+        if (pf.hasAttribute("type"))
+            event.type = pf.attribute("type").toInt();
+
         if (pf.hasAttribute("value1"))
-            event.value1 = pf.attribute("value1").toInt();
+            event.value1 = pf.attribute("value1");
 
         if (pf.hasAttribute("value2"))
-            event.value2 = pf.attribute("value2").toInt();
+            event.value2 = pf.attribute("value2");
 
         if (pf.hasAttribute("value3"))
-            event.value3 = pf.attribute("value3").toInt();
+            event.value3 = pf.attribute("value3");
 
         if (pf.hasAttribute("text"))
             event.text = pf.attribute("text");
@@ -2417,51 +2444,38 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
 
     // G5
     QStringList events = { "ep", "er", "ga", "gu", "gd", "gr", "gl", "gt", "tu", "td", "tr", "tl" };
+    QStringList cmdType = { "pgFlip", "launch", "command", "string", "custom" };
+
+    QList<ObjHandler::BUTTON_ACTION_t> bAction = {
+        ObjHandler::BT_ACTION_PGFLIP,
+        ObjHandler::BT_ACTION_LAUNCH,
+        ObjHandler::BT_ACTION_COMMAND,
+        ObjHandler::BT_ACTION_STRING,
+        ObjHandler::BT_ACTION_CUSTOM
+    };
 
     for (QString event : events)
     {
-        if (!button.firstChildElement(event).isNull())
+        QDomElement ep = button.namedItem(event).toElement();
+        int loop = 0;
+
+        for (QString cmd : cmdType)
         {
-            QDomElement ep = button.firstChildElement(event);
-            QDomNodeList epList = ep.elementsByTagName("pgFlip");
+            QDomNodeList epList = ep.elementsByTagName(cmd);
+
+            if (epList.count() == 0)
+            {
+                loop++;
+                continue;
+            }
 
             for (int i = 0; i < epList.count(); ++i)
             {
-                QDomElement ep = epList.at(i).toElement();
-                parsePF(&object, ep, ObjHandler::BT_ACTION_PGFLIP);
+                QDomElement epl = epList.at(i).toElement();
+                parsePF(&object, epl, bAction[loop]);
             }
 
-            epList = ep.elementsByTagName("launch");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parsePF(&object, ep, ObjHandler::BT_ACTION_LAUNCH);
-            }
-
-            epList = ep.elementsByTagName("command");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parsePF(&object, ep, ObjHandler::BT_ACTION_COMMAND);
-            }
-
-            epList = ep.elementsByTagName("string");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parsePF(&object, ep, ObjHandler::BT_ACTION_STRING);
-            }
-
-            epList = ep.elementsByTagName("custom");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parsePF(&object, ep, ObjHandler::BT_ACTION_CUSTOM);
-            }
+            loop++;
         }
     }
 
@@ -2618,50 +2632,38 @@ int TPageHandler::parsePage(const QDomElement &page)
                            "gestureDblTap", "gesture2FUp", "gesture2FDn",
                            "gesture2FRt", "gesture2FLt" };
 
+    QStringList cmdType = { "pgFlip", "launch", "command", "string", "custom" };
+
+    QList<ObjHandler::BUTTON_ACTION_t> bAction = {
+        ObjHandler::BT_ACTION_PGFLIP,
+        ObjHandler::BT_ACTION_LAUNCH,
+        ObjHandler::BT_ACTION_COMMAND,
+        ObjHandler::BT_ACTION_STRING,
+        ObjHandler::BT_ACTION_CUSTOM
+    };
+
     for (QString event : events)
     {
-        if (!page.firstChildElement(event).isNull())
+        QDomElement ep = page.namedItem(event).toElement();
+        int loop = 0;
+
+        for (QString cmd : cmdType)
         {
-            QDomElement ep = page.firstChildElement(event);
-            QDomNodeList epList = ep.elementsByTagName("pgFlip");
+            QDomNodeList epList = ep.elementsByTagName(cmd);
+
+            if (epList.count() == 0)
+            {
+                loop++;
+                continue;
+            }
 
             for (int i = 0; i < epList.count(); ++i)
             {
-                QDomElement ep = epList.at(i).toElement();
-                parseEvent(&pg, ep, ObjHandler::BT_ACTION_PGFLIP);
+                QDomElement epl = epList.at(i).toElement();
+                parseEvent(&pg, epl, bAction[loop]);
             }
 
-            epList = ep.elementsByTagName("launch");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parseEvent(&pg, ep, ObjHandler::BT_ACTION_LAUNCH);
-            }
-
-            epList = ep.elementsByTagName("command");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parseEvent(&pg, ep, ObjHandler::BT_ACTION_COMMAND);
-            }
-
-            epList = ep.elementsByTagName("string");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parseEvent(&pg, ep, ObjHandler::BT_ACTION_STRING);
-            }
-
-            epList = ep.elementsByTagName("custom");
-
-            for (int i = 0; i < epList.count(); ++i)
-            {
-                QDomElement ep = epList.at(i).toElement();
-                parseEvent(&pg, ep, ObjHandler::BT_ACTION_CUSTOM);
-            }
+            loop++;
         }
     }
 
@@ -2729,7 +2731,11 @@ ObjHandler::BUTTON_EVENT_t TPageHandler::getButtonEvent(const QString& token)
 {
     DECL_TRACER("TPageHandler::getButtonEvent(const QString& token)");
 
-    if (token == "ga")
+    if (token == "ep")
+        return ObjHandler::EVENT_PRESS;
+    else if (token == "er")
+        return ObjHandler::EVENT_RELEASE;
+    else if (token == "ga")
         return ObjHandler::EVENT_GUESTURE_ANY;
     else if (token == "gu")
         return ObjHandler::EVENT_GUESTURE_UP;

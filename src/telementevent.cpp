@@ -62,6 +62,31 @@ void TElementEvent::init()
     connect(mButton, &QToolButton::clicked, this, &TElementEvent::onClicked);
 }
 
+void TElementEvent::setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs)
+{
+    DECL_TRACER("TElementEvent::setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs)");
+
+    mFuncs = funcs;
+    setTextLine();
+}
+
+void TElementEvent::setTextLine()
+{
+    DECL_TRACER("TElementEvent::setTextLine()");
+
+    if (mFuncs.size() > 0)
+    {
+        QString text = QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName);
+
+        if (mFuncs.size() > 1)
+            text.append(" +");
+
+        mLine->setText(text);
+    }
+    else
+        mLine->clear();
+}
+
 void TElementEvent::onClicked()
 {
     DECL_TRACER("TElementEvent::onClicked()");
@@ -73,9 +98,7 @@ void TElementEvent::onClicked()
         return;
 
     mFuncs = dlg.getFuncs();
-
-    if (!mFuncs.empty())
-        mLine->setText(QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName));
+    setTextLine();
 
     emit eventChanged(mFuncs, mEventType, mName, mInstance);
 }

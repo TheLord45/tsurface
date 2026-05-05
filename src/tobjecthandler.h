@@ -308,17 +308,18 @@ namespace ObjHandler
         int item{0};            // G5: Item number
         QString pfType;         // command to execute when button was pushed
         QString pfAction;       // G5: Action; Used for launching external apps
-        QString pfName;         // Name of popup
+        QString pfName;         // Name of popup/page
         BUTTON_ACTION_t action{BT_ACTION_PGFLIP};   // G5: Button action (page flip, ...)
         int ID{0};              // G5: An ID for launch buttons
         BUTTON_EVENT_t event{EVENT_NONE};   // G5: Type of event
-        int port{0};            // G5: port number if action == COMMAND or action == STRING
-        int key{0};             // G5: action == CUSTOM
+        int port{1};            // G5: port number if action == COMMAND or action == STRING
+        long key{0};            // G5: action == CUSTOM
         QString name;           // G5: action == CUSTOM
+        int type{0};            // G5: action == CUSTOM
         int flag{0};            // G5: action == CUSTOM
-        int value1{0};          // G5: action == CUSTOM
-        int value2{0};          // G5: action == CUSTOM
-        int value3{0};          // G5: action == CUSTOM
+        QString value1;         // G5: action == CUSTOM
+        QString value2;         // G5: action == CUSTOM
+        QString value3;         // G5: action == CUSTOM
         QString text;           // G5: action == CUSTOM
         QString encode;         // G5: action == CUSTOM
     }PUSH_FUNC_T;

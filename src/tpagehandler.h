@@ -77,13 +77,13 @@ namespace Page
         QString name;                   // The page/program to take the action on if type is EV_PGFLIP or EV_LAUNCH
         int ID{0};                      // The ID of an application to launch
         QString action;                 // EV_LAUNCH
-        int port{0};                    // The port number if the type is EV_COMMAND.
-        int key{0};                     // EV_CUSTOM
+        int port{1};                    // The port number if the type is EV_COMMAND.
+        long key{0};                    // EV_CUSTOM
         int type{0};                    // EV_CUSTOM
         int flag{0};                    // EV_CUSTOM
-        int value1{0};                  // EV_CUSTOM
-        int value2{0};                  // EV_CUSTOM
-        int value3{0};                  // EV_CUSTOM
+        QString value1;                 // EV_CUSTOM
+        QString value2;                 // EV_CUSTOM
+        QString value3;                 // EV_CUSTOM
         QString text;                   // EV_CUSTOM
         QString encode;                 // EV_CUSTOM
     }EVENT_t;

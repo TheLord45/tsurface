@@ -33,7 +33,7 @@ class TElementEvent : public QWidget
         TElementEvent(const QString& name, int instance, QWidget *widget = nullptr);
         TElementEvent(ObjHandler::BUTTON_EVENT_t event, const QString& name, int instance, QWidget *widget = nullptr);
 
-        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs) { mFuncs = funcs; }
+        void setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs);
         void setEventType(ObjHandler::BUTTON_EVENT_t event) { mEventType = event; }
         ObjHandler::BUTTON_EVENT_t getEventType() { return mEventType; }
 
@@ -45,6 +45,7 @@ class TElementEvent : public QWidget
 
     private:
         void init();
+        void setTextLine();
 
         QLineEdit *mLine;
         QToolButton *mButton;

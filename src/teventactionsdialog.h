@@ -42,6 +42,8 @@ class TEventActionsDialog : public QDialog
 
     protected:
         void onPageFlipSelectionChanged(const QString& text, const QVariant& data, const QString& name);
+        void onLaunchOptionChanged(int port, const QString& text, const QString& name);
+        void onActionChanged(const ObjHandler::PUSH_FUNC_T& pf, const QString& name);
 
     private slots:
         void on_comboButtonAddPageFlip_currentIndexChanged(int index);
@@ -59,6 +61,7 @@ class TEventActionsDialog : public QDialog
         void on_radioButtonBottom_clicked();
         void on_spinBoxDuration_valueChanged(int arg1);
         void on_tableWidgetActions_cellActivated(int row, int column);
+        void on_tableWidgetActions_itemSelectionChanged();
 
     private:
         typedef struct LINE_EVENT_t
@@ -68,6 +71,9 @@ class TEventActionsDialog : public QDialog
         }LINE_EVENT_t;
 
         void addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const QString& name);
+        void addLaunchOption(const ObjHandler::PUSH_FUNC_T& pf, const QString& name);
+        void addAction(const ObjHandler::PUSH_FUNC_T& pf, const QString& name);
+        void setNavButtons();
 
         Ui::TEventActionsDialog *ui;
         QList<ObjHandler::PUSH_FUNC_T> mFuncs;
@@ -76,7 +82,9 @@ class TEventActionsDialog : public QDialog
         QStringList mList1;
         QStringList mList2;
         QStringList mList3;
-        QStringList mCommands;
+        QStringList mCommands1;
+        QStringList mCommands2;
+        QStringList mCommands3;
         bool mBlock{false};
 };
 

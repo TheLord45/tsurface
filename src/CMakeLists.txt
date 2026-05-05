@@ -219,6 +219,9 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
+    tcustomactiondialog.h tcustomactiondialog.cpp tcustomactiondialog.ui
+    telementspintext.h telementspintext.cpp
+    telementspincustom.h telementspincustom.cpp
 )
 
 # Use the Widgets module from Qt 6.

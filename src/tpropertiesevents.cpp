@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QTableWidget>
+#include <QHeaderView>
 
 #include "tpropertiesevents.h"
 #include "telementevent.h"
@@ -88,7 +89,13 @@ void TPropertiesEvents::setTableWidget(QTableWidget *table)
     DECL_TRACER("TPropertiesEvents::setTableWidget(QTableWidget *table)");
 
     if (table && table != mTable)
+    {
+        if (mTable && mConnected)
+            disconnect(mTable, &QTableWidget::cellActivated, this, &TPropertiesEvents::onCellActivated);
+
+        mConnected = false;
         mTable = table;
+    }
     else
         return;
 
@@ -108,7 +115,7 @@ void TPropertiesEvents::setPage(Page::PAGE_t *page, int oIndex)
     if (oIndex >= 0 && oIndex < page->objects.size())
         mObject = page->objects[oIndex]->getObject();
 
-    // TODO: Add code to create and handle the table
+    // Create and handle the table
     setTable();
 }
 
@@ -142,6 +149,11 @@ void TPropertiesEvents::doConnect(QTableWidget *table)
 
     if ((table && table != mTable) || (table && !mConnected))
     {
+        table->verticalHeader()->setVisible(false);
+        table->horizontalHeader()->setVisible(false);
+        table->setShowGrid(true);
+        table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+        table->setColumnCount(2);
         table->setSelectionBehavior(QAbstractItemView::SelectRows);
         connect(table, &QTableWidget::cellActivated, this, &TPropertiesEvents::onCellActivated);
         mConnected = true;
@@ -196,6 +208,7 @@ void TPropertiesEvents::setTable(bool force)
     for (int i = 0; i < mTable->rowCount(); ++i)
         mTable->setRowHidden(i, true);
 
+    collectEvents();
     bool haveEvents = false;
     QList<ObjHandler::PUSH_FUNC_T> list;
     // Enable only the rows needed for the actual selection
@@ -208,31 +221,31 @@ void TPropertiesEvents::setTable(bool force)
                 mTable->setRowHidden(LIST_HIDE_PAGE, false);
 
                 assignAllEvent(mPage->eventShow, ObjHandler::EVENT_SHOW, &list);
-                setTableWidget(LIST_SHOW_PAGE, 1, list);
+                setTableWidget(LIST_SHOW_PAGE, 1, filterEventType(ObjHandler::EVENT_SHOW));
 
                 assignAllEvent(mPage->eventHide, ObjHandler::EVENT_HIDE, &list);
-                setTableWidget(LIST_HIDE_PAGE, 1, list);
+                setTableWidget(LIST_HIDE_PAGE, 1, filterEventType(ObjHandler::EVENT_HIDE));
 
                 assignAllEvent(mPage->guestureAny, ObjHandler::EVENT_GUESTURE_ANY, &list);
-                setTableWidget(LIST_GESTURE_ANY, 1, list);
+                setTableWidget(LIST_GESTURE_ANY, 1, filterEventType(ObjHandler::EVENT_GUESTURE_ANY));
                 assignAllEvent(mPage->guestureUp, ObjHandler::EVENT_GUESTURE_UP, &list);
-                setTableWidget(LIST_GESTURE_UP, 1, list);
+                setTableWidget(LIST_GESTURE_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_UP));
                 assignAllEvent(mPage->guestureDown, ObjHandler::EVENT_GUESTURE_DOWN, &list);
-                setTableWidget(LIST_GESTURE_DOWN, 1, list);
+                setTableWidget(LIST_GESTURE_DOWN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DOWN));
                 assignAllEvent(mPage->guestureLeft, ObjHandler::EVENT_GUESTURE_LEFT, &list);
-                setTableWidget(LIST_GESTURE_LEFT, 1, list);
+                setTableWidget(LIST_GESTURE_LEFT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_LEFT));
                 assignAllEvent(mPage->guestureRight, ObjHandler::EVENT_GUESTURE_RIGHT, &list);
-                setTableWidget(LIST_GESTURE_RIGHT, 1, list);
+                setTableWidget(LIST_GESTURE_RIGHT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
                 assignAllEvent(mPage->guestureDblTab, ObjHandler::EVENT_GUESTURE_DBLTAP, &list);
-                setTableWidget(LIST_GESTURE_DBL_TAP, 1, list);
+                setTableWidget(LIST_GESTURE_DBL_TAP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
                 assignAllEvent(mPage->guesture2FUp, ObjHandler::EVENT_GUESTURE_2FUP, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_UP, 1, list);
+                setTableWidget(LIST_GESTURE_2FINGER_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FUP));
                 assignAllEvent(mPage->guesture2FDn, ObjHandler::EVENT_GUESTURE_2FDN, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_DN, 1, list);
+                setTableWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FDN));
                 assignAllEvent(mPage->guesture2FLt, ObjHandler::EVENT_GUESTURE_2FLT, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_LT, 1, list);
+                setTableWidget(LIST_GESTURE_2FINGER_LT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FLT));
                 assignAllEvent(mPage->guesture2Frt, ObjHandler::EVENT_GUESTURE_2FRT, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_RT, 1, list);
+                setTableWidget(LIST_GESTURE_2FINGER_RT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FRT));
 
                 haveEvents = true;
             }
@@ -472,6 +485,7 @@ QList<ObjHandler::PUSH_FUNC_T> TPropertiesEvents::collectEvents()
     {
         mObject = mPage->objects[mObjectIndex]->getObject();
         mPageEvents = mObject.pushFunc;
+        MSG_DEBUG("Object " << mObject.bi << " has " << mPageEvents.size() << " push functions.");
         return mObject.pushFunc;
     }
 
@@ -522,6 +536,7 @@ QList<ObjHandler::PUSH_FUNC_T> TPropertiesEvents::collectEvents()
         }
     }
 
+    MSG_DEBUG("Page " << mPage->pageID << " has " << mPageEvents.size() << " push functions.");
     return mPageEvents;
 }
 
@@ -552,6 +567,7 @@ void TPropertiesEvents::assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUT
 
     pf->event = ev;
     pf->item = pEvent.item;
+    pf->action = pEvent.evAction;
 
     switch(pEvent.evCommand)
     {
@@ -566,8 +582,15 @@ void TPropertiesEvents::assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUT
         break;
     }
 
+    switch(pEvent.evAction)
+    {
+        case ObjHandler::BT_ACTION_PGFLIP:  pf->pfAction = "pgFlip"; break;
+        case ObjHandler::BT_ACTION_LAUNCH:  pf->pfAction = "launch"; break;
+        case ObjHandler::BT_ACTION_COMMAND: pf->pfAction = "command"; break;
+        case ObjHandler::BT_ACTION_STRING:  pf->pfAction = "string"; break;
+        case ObjHandler::BT_ACTION_CUSTOM:  pf->pfAction = "custom"; break;
+    }
 
-//    pf->pfAction = pEvent.evAction;
     pf->pfName = pEvent.content;
     pf->ID = pEvent.ID;
     pf->action = pEvent.evAction;
@@ -620,10 +643,35 @@ QList<ObjHandler::PUSH_FUNC_T> TPropertiesEvents::filterEventType(ObjHandler::BU
 {
     DECL_TRACER("TPropertiesEvents::filterEventType(ObjHandler::BUTTON_EVENT_t ev)");
 
-    if (!mPage || mObjectIndex < 0 || mObjectIndex >= mPage->objects.size())
+    if (!mPage)
         return QList<ObjHandler::PUSH_FUNC_T>();
 
     QList<ObjHandler::PUSH_FUNC_T> list;
+
+    if (mObjectIndex < 0 || mObjectIndex >= mPage->objects.size())  // Is it a page?
+    {
+        switch(ev)
+        {
+            case ObjHandler::EVENT_SHOW:            assignAllEvent(mPage->eventShow, ev, &list); break;
+            case ObjHandler::EVENT_HIDE:            assignAllEvent(mPage->eventHide, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_ANY:    assignAllEvent(mPage->guestureAny, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_UP:     assignAllEvent(mPage->guestureUp, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_DOWN:   assignAllEvent(mPage->guestureDown, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_LEFT:   assignAllEvent(mPage->guestureLeft, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_RIGHT:  assignAllEvent(mPage->guestureRight, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_DBLTAP: assignAllEvent(mPage->guestureDblTab, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_2FUP:   assignAllEvent(mPage->guesture2FUp, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_2FDN:   assignAllEvent(mPage->guesture2FDn, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_2FLT:   assignAllEvent(mPage->guesture2FLt, ev, &list); break;
+            case ObjHandler::EVENT_GUESTURE_2FRT:   assignAllEvent(mPage->guesture2Frt, ev, &list); break;
+
+            default:
+            break;
+        }
+
+        return list;
+    }
+
     QList<ObjHandler::PUSH_FUNC_T>::Iterator iter;
 
     for (iter = mObject.pushFunc.begin(); iter != mObject.pushFunc.end(); ++iter)
@@ -639,7 +687,19 @@ QList<ObjHandler::PUSH_FUNC_T> TPropertiesEvents::filterEventType(ObjHandler::BU
 
 void TPropertiesEvents::onCellActivated(int row, int column)
 {
+    DECL_TRACER("TPropertiesEvents::onCellActivated(int row, int column)");
 
+    Q_UNUSED(column);
+
+    if (!mInitialized)
+        return;
+
+    QWidget *w = mTable->cellWidget(row, 1);
+
+    if (!w)
+        return;
+
+    w->setFocus(Qt::OtherFocusReason);
 }
 
 void TPropertiesEvents::onEventsChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs, ObjHandler::BUTTON_EVENT_t evt, const QString& name, int instance)
