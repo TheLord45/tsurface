@@ -93,6 +93,7 @@ void TElementEvent::onClicked()
 
     TEventActionsDialog dlg(this);
     dlg.setFuncs(mFuncs);
+    dlg.setEventType(mEventType);
 
     if (dlg.exec() == QDialog::Rejected)
         return;

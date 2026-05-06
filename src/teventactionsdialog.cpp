@@ -59,6 +59,13 @@ TEventActionsDialog::TEventActionsDialog(QWidget *parent)
 
     mList3 = { "command", "string", "custom" };
 
+    mPopups = TPageHandler::Current().getPopups();
+    mPages = TPageHandler::Current().getPages();
+    mGroups = TPageHandler::Current().getGroupNames();
+
+    if (!mGroups.empty())
+        disabled1.remove(2);
+
     mBlock = true;
     ui->comboButtonAddPageFlip->setItems(mList1);
 
@@ -106,9 +113,58 @@ void TEventActionsDialog::setFuncs(const QList<ObjHandler::PUSH_FUNC_T>& funcs)
             if (idx >= 0)
                 addPageFlip(*iter, mList1[idx]);
         }
+        else if (mCommands2.contains(iter->pfAction))
+        {
+            int idx = mCommands2.indexOf(iter->pfAction);
+
+            if (idx >= 0)
+                addLaunchOption(*iter, mList2[idx]);
+        }
+        else
+        {
+            addAction(*iter, iter->pfAction);
+        }
     }
 
     setNavButtons();
+}
+
+void TEventActionsDialog::setDuration(int dur)
+{
+    DECL_TRACER("TEventActionsDialog::setDuration(int dur)");
+
+    mDuration = dur;
+    QSignalBlocker sig(ui->spinBoxDuration);
+    ui->spinBoxDuration->setValue(dur);
+}
+
+void TEventActionsDialog::setAnimationFlip(AnimFlip_t flip)
+{
+    DECL_TRACER("TEventActionsDialog::setAnimationFlip(AnimFlip_t flip)");
+
+    QSignalBlocker sigBlock(ui->listWidgetAnimations);
+    ui->listWidgetAnimations->setCurrentRow(flip);
+}
+
+void TEventActionsDialog::setAnimationOrigin(AnimOrigin_t origin)
+{
+    DECL_TRACER("TEventActionsDialog::setAnimationOrigin(AnimOrigin_t origin)");
+
+    mBlock = true;
+    ui->radioButtonLeft->setChecked(false);
+    ui->radioButtonRight->setChecked(false);
+    ui->radioButtonTop->setChecked(false);
+    ui->radioButtonBottom->setChecked(false);
+
+    switch(origin)
+    {
+        case AnimLeft:      ui->radioButtonLeft->setChecked(true); break;
+        case AnimRight:     ui->radioButtonRight->setChecked(true); break;
+        case AnimTop:       ui->radioButtonTop->setChecked(true); break;
+        case AnimBottom:    ui->radioButtonBottom->setChecked(true); break;
+    }
+
+    mBlock = false;
 }
 
 void TEventActionsDialog::addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const QString& name)
@@ -116,14 +172,9 @@ void TEventActionsDialog::addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const Q
     DECL_TRACER("TEventActionsDialog::addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const QString& name)");
 
     LINE_EVENT_t lev;
-    QStringList popups = TPageHandler::Current().getPopups();
 
     lev.line = ui->tableWidgetActions->rowCount();
     lev.pf = pf;
-
-    if (!popups.empty() && pf.pfName.isEmpty())
-        lev.pf.pfName = popups[0];
-
     mLines.append(lev);
 
     ui->tableWidgetActions->setRowCount(lev.line + 1);
@@ -135,19 +186,29 @@ void TEventActionsDialog::addPageFlip(const ObjHandler::PUSH_FUNC_T& pf, const Q
     {
         QString cName = QString("PageFlip_%1").arg(lev.line);
         TElementWidgetCombo *combo = new TElementWidgetCombo(cName, ui->tableWidgetActions);
+        int idx = -1;
 
         if (pf.pfType == mCommands1[CMD_HIDE_POPUP_ON_PAGE])
-            combo->addItems(TPageHandler::Current().getPages());
+        {
+            combo->addItems(mPages);
+            idx = mPages.indexOf(lev.pf.pfName);
+        }
         else if (pf.pfType == mCommands1[CMD_HIDE_ALL_POUPS])
         {
             lev.pf.pfName = "n/a";
             combo->addItem(lev.pf.pfName);
             combo->setDisabled(true);
         }
+        else if (pf.pfType == mCommands1[CMD_HIDE_POPUP_GROUP])
+        {
+            combo->addItems(mGroups);
+            idx = mGroups.indexOf(lev.pf.pfName);
+        }
         else
-            combo->addItems(popups);
-
-        int idx = popups.indexOf(lev.pf.pfName);
+        {
+            combo->addItems(mPopups);
+            idx = mPopups.indexOf(lev.pf.pfName);
+        }
 
         if (idx >= 0)
             combo->setCurrentIndex(idx);
@@ -240,9 +301,9 @@ void TEventActionsDialog::setNavButtons()
         return;                     // We're already done.
     }
     // Get the selected row, if there is any.
-    QList<QTableWidgetItem *> selected = ui->tableWidgetActions->selectedItems();
+    int row = getSelectedRow();
 
-    if (!selected.empty())          // Do we have a selected row?
+    if (row >= 0)                   // Do we have a selected row?
         ui->pushButtonDelete->setEnabled(true);
     else                            // No, then disable the delete button.
         ui->pushButtonDelete->setDisabled(true);
@@ -251,17 +312,12 @@ void TEventActionsDialog::setNavButtons()
 
     if (mFuncs.size() > 1)          // Do we have more than 1 entry in the table?
     {                               // Yes ...
-        int row = -1;
-
-        if (selected.empty())       // Are there no rows selected?
-        {                           // No, then disable the Uo/Down buttons
+        if (row < 0)                // Are there no rows selected?
+        {                           // No, then disable the Up/Down buttons
             ui->pushButtonMoveUp->setDisabled(true);
             ui->pushButtonMoveDown->setDisabled(true);
         }
-        else                        // else get the selected row
-            row = selected[0]->row();
-
-        if (row == 0)               // Is the 1st row selected?
+        else if (row == 0)          // Is the 1st row selected?
         {                           // Yes, then enable only the Down button
             ui->pushButtonMoveUp->setDisabled(true);
             ui->pushButtonMoveDown->setEnabled(true);
@@ -298,6 +354,14 @@ void TEventActionsDialog::on_comboButtonAddPageFlip_currentIndexChanged(int inde
     func.action = ObjHandler::BT_ACTION_PGFLIP;
     func.event = mEventType;
     func.pfType = mCommands1[index];
+
+    if (index == CMD_HIDE_POPUP_ON_PAGE)
+        func.pfName = mPages.empty() ? "" : mPages[0];
+    else if (index == CMD_HIDE_POPUP_GROUP)
+        func.pfName = mGroups.empty() ? "" : mGroups[0];
+    else
+        func.pfName = mPopups.empty() ? "" : mPopups[0];
+
     mFuncs.append(func);
     // Add an entry to the list
     addPageFlip(func, mList1[index]);
@@ -313,7 +377,7 @@ void TEventActionsDialog::on_comboButtonAddLaunchOption_currentIndexChanged(int 
         return;
 
     ObjHandler::PUSH_FUNC_T func;
-    func.ID = mFuncs.size();
+    func.ID = 0;
     func.action = ObjHandler::BT_ACTION_LAUNCH;
     func.pfAction = mCommands2[index];
     func.event = mEventType;
@@ -333,7 +397,6 @@ void TEventActionsDialog::on_comboButtonAddAction_currentIndexChanged(int index)
         return;
 
     ObjHandler::PUSH_FUNC_T func;
-    func.ID = mFuncs.size();
 
     switch(index)
     {
@@ -357,6 +420,7 @@ void TEventActionsDialog::on_comboButtonAddAction_currentIndexChanged(int index)
     func.pfAction = mList3[index];
     func.event = mEventType;
     func.pfName = "n/a";
+    func.ID = func.type = 1;
     mFuncs.append(func);
     // Add an entry to the list
     addAction(func, mList3[index]);
@@ -365,61 +429,126 @@ void TEventActionsDialog::on_comboButtonAddAction_currentIndexChanged(int index)
 
 void TEventActionsDialog::on_pushButtonDelete_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_pushButtonDelete_clicked()");
 
+    int row = getSelectedRow();
+
+    mLines.removeAt(row);
+    ui->tableWidgetActions->removeRow(row);
 }
-
 
 void TEventActionsDialog::on_pushButtonClearAll_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_pushButtonClearAll_clicked()");
 
+    if (mLines.empty())
+        return;
+
+    mLines.clear();
+    ui->tableWidgetActions->clear();
 }
-
 
 void TEventActionsDialog::on_pushButtonMoveUp_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_pushButtonMoveUp_clicked()");
 
+    int row = getSelectedRow();
+
+    if (row == 0)
+    {
+        ui->pushButtonMoveUp->setDisabled(true);
+        return;
+    }
+
+    QSignalBlocker sigBlock(ui->tableWidgetActions);
+    moveRow(row, row - 1);
+    mLines.move(row, row-1);
+    setNavButtons();
+    renumberLines();
 }
 
 
 void TEventActionsDialog::on_pushButtonMoveDown_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_pushButtonMoveDown_clicked()");
 
+    int row = getSelectedRow();
+
+    if (row == (ui->tableWidgetActions->rowCount() - 1))
+    {
+        ui->pushButtonMoveDown->setDisabled(true);
+        return;
+    }
+
+    QSignalBlocker sigBlock(ui->tableWidgetActions);
+    moveRow(row, row+1);
+    mLines.move(row, row+1);
+    setNavButtons();
+    renumberLines();
 }
 
 
 void TEventActionsDialog::on_listWidgetAnimations_itemClicked(QListWidgetItem *item)
 {
+    DECL_TRACER("TEventActionsDialog::on_listWidgetAnimations_itemClicked(QListWidgetItem *item)");
 
+    int flip = ui->listWidgetAnimations->row(item);
+    mAnimFlip = static_cast<AnimFlip_t>(flip);
 }
 
 
 void TEventActionsDialog::on_radioButtonLeft_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_radioButtonLeft_clicked()");
 
+    if (mBlock)
+        return;
+
+    mAnimOrigin = AnimLeft;
 }
 
 
 void TEventActionsDialog::on_radioButtonRight_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_radioButtonRight_clicked()");
 
+    if (mBlock)
+        return;
+
+    mAnimOrigin = AnimRight;
 }
 
 
 void TEventActionsDialog::on_radioButtonTop_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_radioButtonTop_clicked()");
 
+    if (mBlock)
+        return;
+
+    mAnimOrigin = AnimTop;
 }
 
 
 void TEventActionsDialog::on_radioButtonBottom_clicked()
 {
+    DECL_TRACER("TEventActionsDialog::on_radioButtonBottom_clicked()");
 
+    if (mBlock)
+        return;
+
+    mAnimOrigin = AnimBottom;
 }
 
 
 void TEventActionsDialog::on_spinBoxDuration_valueChanged(int arg1)
 {
+    DECL_TRACER("TEventActionsDialog::on_spinBoxDuration_valueChanged(int arg1)");
 
+    if (mBlock)
+        return;
+
+    mDuration = arg1;
 }
 
 
@@ -478,4 +607,158 @@ void TEventActionsDialog::onActionChanged(const ObjHandler::PUSH_FUNC_T& pf, con
 
     if (line >= 0 && line < mLines.size())
         mLines[line].pf = pf;
+}
+
+int TEventActionsDialog::getSelectedRow()
+{
+    DECL_TRACER("TEventActionsDialog::getSelectedRow()");
+
+    QItemSelectionModel *selModel = ui->tableWidgetActions->selectionModel();
+
+    if (!selModel || !selModel->hasSelection())
+    {
+        MSG_WARNING("Got no selection model from table or have no selected row!");
+        return -1;
+    }
+
+    QModelIndexList list = selModel->selectedRows();
+
+    if (list.empty())   // Should never be true, but who knows
+        return -1;
+
+    int row = list[0].row();
+
+    if (row < 0 || row >= mLines.size())
+    {
+        MSG_WARNING("Row " << row << " is out of range!");
+        return -1;
+    }
+
+    return row;
+}
+
+TEventActionsDialog::RowData TEventActionsDialog::captureRow(int r) const
+{
+    DECL_TRACER("TEventActionsDialog::captureRow(int r)");
+
+    RowData d;
+    QTableWidget *table = ui->tableWidgetActions;
+
+    if (QTableWidgetItem *it = table->item(r, 0))
+        d.item0 = *it;
+
+    if (QWidget *w = table->cellWidget(r, 1))
+    {
+        d.row = r;
+        d.pf = mLines[r].pf;
+    }
+
+    MSG_DEBUG("pfType: " << d.pf.pfType.toStdString() << ", pfAction: " << d.pf.pfAction.toStdString() << ", action: " << d.pf.action << ", pfName: " << d.pf.pfName.toStdString());
+    return d;
+}
+
+void TEventActionsDialog::populateRow(int r, const RowData& d)
+{
+    DECL_TRACER("TEventActionsDialog::populateRow(int r, const RowData& d)");
+
+    QTableWidget *table = ui->tableWidgetActions;
+    table->setItem(r, 0, new QTableWidgetItem(d.item0));
+
+    if (d.pf.action == ObjHandler::BT_ACTION_PGFLIP)
+    {
+        QString cName = QString("PageFlip_%1").arg(r);
+        TElementWidgetCombo *combo = new TElementWidgetCombo(cName, ui->tableWidgetActions);
+
+        if (d.pf.pfType == mCommands1[CMD_HIDE_POPUP_ON_PAGE])
+            combo->addItems(TPageHandler::Current().getPages());
+        else if (d.pf.pfType == mCommands1[CMD_HIDE_ALL_POUPS])
+        {
+            combo->addItem(d.pf.pfName);
+            combo->setDisabled(true);
+        }
+        else
+            combo->addItems(mPopups);
+
+        int idx = mPopups.indexOf(d.pf.pfName);
+
+        if (idx >= 0)
+            combo->setCurrentIndex(idx);
+
+        connect(combo, &TElementWidgetCombo::selectionChanged, this, &TEventActionsDialog::onPageFlipSelectionChanged);
+        table->setCellWidget(r, 1, combo);
+    }
+    else if (d.pf.action == ObjHandler::BT_ACTION_LAUNCH)
+    {
+        QString cName = QString("Launch_%1").arg(r);
+        TElementWidgetCombo *combo = new TElementWidgetCombo(cName, ui->tableWidgetActions);
+        combo->addItem(d.pf.pfName);
+        combo->setDisabled(true);
+        connect(combo, &TElementWidgetCombo::selectionChanged, this, &TEventActionsDialog::onPageFlipSelectionChanged);
+        table->setCellWidget(r, 1, combo);
+    }
+    else if (d.pf.action == ObjHandler::BT_ACTION_COMMAND || d.pf.action == ObjHandler::BT_ACTION_STRING)
+    {
+        QString cName = QString("Action_%1").arg(r);
+
+        TElementSpinText *spt = new TElementSpinText(d.pf.port, d.pf.pfName, cName, ui->tableWidgetActions);
+        connect(spt, &TElementSpinText::contentChanged, this, &TEventActionsDialog::onLaunchOptionChanged);
+        ui->tableWidgetActions->setCellWidget(r, 1, spt);
+    }
+    else if (d.pf.action == ObjHandler::BT_ACTION_CUSTOM)
+    {
+        QString cName = QString("Action_%1").arg(r);
+
+        TElementSpinCustom *cust = new TElementSpinCustom(d.pf, cName, ui->tableWidgetActions);
+        connect(cust, &TElementSpinCustom::contentChanged, this, &TEventActionsDialog::onActionChanged);
+        ui->tableWidgetActions->setCellWidget(r, 1, cust);
+    }
+    else
+        MSG_WARNING("No line! " << d.pf.pfType.toStdString() << ", " << d.pf.pfAction.toStdString() << ", " << d.pf.pfName.toStdString());
+}
+
+void TEventActionsDialog::moveRow(int from, int to)
+{
+    DECL_TRACER("TEventActionsDialog::moveRow(int from, int to) ");
+
+    QTableWidget *table = ui->tableWidgetActions;
+
+    if (from == to || from < 0 || to < 0 || from >= table->rowCount() || to >= table->rowCount())
+        return;
+    // Move by snapshotting and reconstructing; avoids destroying of live widgets
+    RowData d = captureRow(from);
+    table->removeRow(from);
+    table->insertRow(to);
+    populateRow(to, d);
+}
+
+void TEventActionsDialog::renumberLines()
+{
+    DECL_TRACER("TEventActionsDialog::renumberLines()");
+
+    QList<LINE_EVENT_t>::Iterator iter;
+    int line = 0;
+
+    for (iter = mLines.begin(); iter != mLines.end(); ++iter)
+    {
+        iter->line = line;
+        line++;
+    }
+}
+
+void TEventActionsDialog::accept()
+{
+    DECL_TRACER("TEventActionsDialog::accept()");
+
+    mFuncs.clear();
+    QList<LINE_EVENT_t>::Iterator iter;
+    int item = 0;
+
+    for (iter = mLines.begin(); iter != mLines.end(); ++iter)
+    {
+        iter->pf.item = item;
+        mFuncs.append(iter->pf);
+        item++;
+    }
+
+    done(QDialog::Accepted);
 }

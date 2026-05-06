@@ -568,6 +568,7 @@ void TPropertiesEvents::assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUT
     pf->event = ev;
     pf->item = pEvent.item;
     pf->action = pEvent.evAction;
+    pf->pfName = pEvent.content;
 
     switch(pEvent.evCommand)
     {
@@ -591,11 +592,10 @@ void TPropertiesEvents::assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUT
         case ObjHandler::BT_ACTION_CUSTOM:  pf->pfAction = "custom"; break;
     }
 
-    pf->pfName = pEvent.content;
-    pf->ID = pEvent.ID;
-    pf->action = pEvent.evAction;
     pf->port = pEvent.port;
+    pf->ID = pEvent.ID;
     pf->key = pEvent.key;
+    pf->type = pEvent.type;
     pf->name = pEvent.name;
     pf->flag = pEvent.flag;
     pf->value1 = pEvent.value1;
@@ -770,7 +770,38 @@ void TPropertiesEvents::onEventsChanged(const QList<ObjHandler::PUSH_FUNC_T>& fu
     }
 
     MSG_DEBUG("Setting the commands for an object.");
-    mObject.pushFunc = funcs;
+    // First remove all events of a particular type
+    QList<ObjHandler::PUSH_FUNC_T>::Iterator iter;
+    bool found = true;
+
+    while(found)
+    {
+        found = false;
+
+        for (iter = mObject.pushFunc.begin(); iter != mObject.pushFunc.end(); ++iter)
+        {
+            if (iter->event == evt)
+            {
+                mObject.pushFunc.erase(iter);
+                found = true;
+                break;
+            }
+        }
+    }
+    // Now add the events
+    QList<ObjHandler::PUSH_FUNC_T>::ConstIterator cIter;
+
+    for (cIter = funcs.constBegin(); cIter != funcs.constEnd(); ++cIter)
+        mObject.pushFunc.append(*cIter);
+    // Renumber the items
+    int item = 0;
+
+    for (iter = mObject.pushFunc.begin(); iter != mObject.pushFunc.end(); ++iter)
+    {
+        iter->item = item;
+        item++;
+    }
+    // Finally save the object
     mPage->objects[mObjectIndex]->setObject(mObject);
     markChanged();
     mChanged = true;
