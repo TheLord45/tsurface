@@ -20,7 +20,7 @@
 
 #include <QWidget>
 
-class QLabel;
+class TLineEditElide;
 class QToolButton;
 
 class TElementSound : public QWidget
@@ -47,7 +47,7 @@ class TElementSound : public QWidget
     private:
         void init();
 
-        QLabel *mLine{nullptr};
+        TLineEditElide *mLine{nullptr};
         QToolButton *mButton{nullptr};
 
         QString mName;

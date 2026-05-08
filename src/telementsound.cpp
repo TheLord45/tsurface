@@ -16,11 +16,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QToolButton>
 
 #include "tsoundselectdialog.h"
 #include "telementsound.h"
+#include "tlineeditelide.h"
 #include "terror.h"
 
 TElementSound::TElementSound(QWidget *parent)
@@ -54,7 +54,8 @@ void TElementSound::init()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(2);
 
-    mLine = new QLabel;
+    mLine = new TLineEditElide;
+    mLine->setElide(true);
     mLine->setText(mSound);
     layout->addWidget(mLine, 1);
 

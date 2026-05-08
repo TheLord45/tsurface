@@ -158,6 +158,9 @@ qt_add_executable(tsurface
     teventactionsdialog.cpp
     teventactionsdialog.h
     teventactionsdialog.ui
+    tcustomactiondialog.cpp
+    tcustomactiondialog.h
+    tcustomactiondialog.ui
     telementbitmapselector.cpp
     telementbitmapselector.h
     telementwidgettext.cpp
@@ -184,6 +187,10 @@ qt_add_executable(tsurface
     telementlistviewcomponents.h
     telementevent.cpp
     telementevent.h
+    telementspintext.cpp
+    telementspintext.h
+    telementspincustom.cpp
+    telementspincustom.h
     tcheckerboardwidget.h
     tcheckerboardwidget.cpp
     tsubviewarea.cpp
@@ -206,6 +213,8 @@ qt_add_executable(tsurface
     tcustomitem.h
     tcombobutton.cpp
     tcombobutton.h
+    tlineeditelide.cpp
+    tlineeditelide.h
     tfsfreader.cpp
     tfsfreader.h
     readtp4.cpp
@@ -219,9 +228,6 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    tcustomactiondialog.h tcustomactiondialog.cpp tcustomactiondialog.ui
-    telementspintext.h telementspintext.cpp
-    telementspincustom.h telementspincustom.cpp
 )
 
 # Use the Widgets module from Qt 6.

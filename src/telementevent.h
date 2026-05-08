@@ -24,6 +24,7 @@
 
 class QLineEdit;
 class QToolButton;
+class TLineEditElide;
 
 class TElementEvent : public QWidget
 {
@@ -47,7 +48,7 @@ class TElementEvent : public QWidget
         void init();
         void setTextLine();
 
-        QLineEdit *mLine;
+        TLineEditElide *mLine;
         QToolButton *mButton;
         QString mName;
         int mInstance{-1};

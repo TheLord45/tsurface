@@ -30,6 +30,7 @@ TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWi
     QSignalBlocker sigBlock(this);
     mLine = new QLineEdit(this);
     mLine->setText(text);
+    mLine->setCursorPosition(0);
     connect(mLine, &QLineEdit::textEdited, this, &TElementLineEdit::onTextChanged);
     setFocusProxy(mLine);
 }
@@ -53,6 +54,7 @@ void TElementLineEdit::setText(const QString& text)
     }
 
     mLine->setText(text);
+    mLine->setCursorPosition(0);
 }
 
 void TElementLineEdit::onTextChanged(const QString& text)

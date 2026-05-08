@@ -221,31 +221,31 @@ void TPropertiesEvents::setTable(bool force)
                 mTable->setRowHidden(LIST_HIDE_PAGE, false);
 
                 assignAllEvent(mPage->eventShow, ObjHandler::EVENT_SHOW, &list);
-                setTableWidget(LIST_SHOW_PAGE, 1, filterEventType(ObjHandler::EVENT_SHOW));
+                setCellWidget(LIST_SHOW_PAGE, 1, filterEventType(ObjHandler::EVENT_SHOW));
 
                 assignAllEvent(mPage->eventHide, ObjHandler::EVENT_HIDE, &list);
-                setTableWidget(LIST_HIDE_PAGE, 1, filterEventType(ObjHandler::EVENT_HIDE));
+                setCellWidget(LIST_HIDE_PAGE, 1, filterEventType(ObjHandler::EVENT_HIDE));
 
                 assignAllEvent(mPage->guestureAny, ObjHandler::EVENT_GUESTURE_ANY, &list);
-                setTableWidget(LIST_GESTURE_ANY, 1, filterEventType(ObjHandler::EVENT_GUESTURE_ANY));
+                setCellWidget(LIST_GESTURE_ANY, 1, filterEventType(ObjHandler::EVENT_GUESTURE_ANY));
                 assignAllEvent(mPage->guestureUp, ObjHandler::EVENT_GUESTURE_UP, &list);
-                setTableWidget(LIST_GESTURE_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_UP));
+                setCellWidget(LIST_GESTURE_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_UP));
                 assignAllEvent(mPage->guestureDown, ObjHandler::EVENT_GUESTURE_DOWN, &list);
-                setTableWidget(LIST_GESTURE_DOWN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DOWN));
+                setCellWidget(LIST_GESTURE_DOWN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DOWN));
                 assignAllEvent(mPage->guestureLeft, ObjHandler::EVENT_GUESTURE_LEFT, &list);
-                setTableWidget(LIST_GESTURE_LEFT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_LEFT));
+                setCellWidget(LIST_GESTURE_LEFT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_LEFT));
                 assignAllEvent(mPage->guestureRight, ObjHandler::EVENT_GUESTURE_RIGHT, &list);
-                setTableWidget(LIST_GESTURE_RIGHT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
+                setCellWidget(LIST_GESTURE_RIGHT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
                 assignAllEvent(mPage->guestureDblTab, ObjHandler::EVENT_GUESTURE_DBLTAP, &list);
-                setTableWidget(LIST_GESTURE_DBL_TAP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
+                setCellWidget(LIST_GESTURE_DBL_TAP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
                 assignAllEvent(mPage->guesture2FUp, ObjHandler::EVENT_GUESTURE_2FUP, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FUP));
+                setCellWidget(LIST_GESTURE_2FINGER_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FUP));
                 assignAllEvent(mPage->guesture2FDn, ObjHandler::EVENT_GUESTURE_2FDN, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FDN));
+                setCellWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FDN));
                 assignAllEvent(mPage->guesture2FLt, ObjHandler::EVENT_GUESTURE_2FLT, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_LT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FLT));
+                setCellWidget(LIST_GESTURE_2FINGER_LT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FLT));
                 assignAllEvent(mPage->guesture2Frt, ObjHandler::EVENT_GUESTURE_2FRT, &list);
-                setTableWidget(LIST_GESTURE_2FINGER_RT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FRT));
+                setCellWidget(LIST_GESTURE_2FINGER_RT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FRT));
 
                 haveEvents = true;
             }
@@ -254,18 +254,18 @@ void TPropertiesEvents::setTable(bool force)
                 mTable->setRowHidden(LIST_BUTTON_PRESS, false);
                 mTable->setRowHidden(LIST_BUTTON_RELEASE, false);
 
-                setTableWidget(LIST_BUTTON_PRESS, 1, filterEventType(ObjHandler::EVENT_PRESS));
-                setTableWidget(LIST_BUTTON_RELEASE, 1, filterEventType(ObjHandler::EVENT_RELEASE));
-                setTableWidget(LIST_GESTURE_ANY, 1, filterEventType(ObjHandler::EVENT_GUESTURE_ANY));
-                setTableWidget(LIST_GESTURE_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_UP));
-                setTableWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DOWN));
-                setTableWidget(LIST_GESTURE_LEFT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_LEFT));
-                setTableWidget(LIST_GESTURE_RIGHT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
-                setTableWidget(LIST_GESTURE_DBL_TAP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DBLTAP));
-                setTableWidget(LIST_GESTURE_2FINGER_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FUP));
-                setTableWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FDN));
-                setTableWidget(LIST_GESTURE_2FINGER_LT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FLT));
-                setTableWidget(LIST_GESTURE_2FINGER_RT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FRT));
+                setCellWidget(LIST_BUTTON_PRESS, 1, filterEventType(ObjHandler::EVENT_PRESS));
+                setCellWidget(LIST_BUTTON_RELEASE, 1, filterEventType(ObjHandler::EVENT_RELEASE));
+                setCellWidget(LIST_GESTURE_ANY, 1, filterEventType(ObjHandler::EVENT_GUESTURE_ANY));
+                setCellWidget(LIST_GESTURE_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_UP));
+                setCellWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DOWN));
+                setCellWidget(LIST_GESTURE_LEFT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_LEFT));
+                setCellWidget(LIST_GESTURE_RIGHT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_RIGHT));
+                setCellWidget(LIST_GESTURE_DBL_TAP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_DBLTAP));
+                setCellWidget(LIST_GESTURE_2FINGER_UP, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FUP));
+                setCellWidget(LIST_GESTURE_2FINGER_DN, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FDN));
+                setCellWidget(LIST_GESTURE_2FINGER_LT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FLT));
+                setCellWidget(LIST_GESTURE_2FINGER_RT, 1, filterEventType(ObjHandler::EVENT_GUESTURE_2FRT));
                 haveEvents = true;
             }
 
@@ -281,8 +281,8 @@ void TPropertiesEvents::setTable(bool force)
                     mTable->setRowHidden(LIST_BUTTON_PRESS, false);
                     mTable->setRowHidden(LIST_BUTTON_RELEASE, false);
 
-                    setTableWidget(LIST_BUTTON_PRESS, 1, filterEventType(ObjHandler::EVENT_PRESS));
-                    setTableWidget(LIST_BUTTON_RELEASE, 1, filterEventType(ObjHandler::EVENT_RELEASE));
+                    setCellWidget(LIST_BUTTON_PRESS, 1, filterEventType(ObjHandler::EVENT_PRESS));
+                    setCellWidget(LIST_BUTTON_RELEASE, 1, filterEventType(ObjHandler::EVENT_RELEASE));
                     enableCommon();
                 }
                 else if (mObject.type == ObjHandler::LISTVIEW)
@@ -291,9 +291,9 @@ void TPropertiesEvents::setTable(bool force)
                     mTable->setRowHidden(LIST_SCROLLBAR_BEGIN, false);
                     mTable->setRowHidden(LIST_SCROLLBAR_END, false);
 
-                    setTableWidget(LIST_ITEM_SELECTED, 1, filterEventType(ObjHandler::EVENT_ITEM_SELECTED));
-                    setTableWidget(LIST_SCROLLBAR_BEGIN, 1, filterEventType(ObjHandler::EVENT_SCROLLBAR_BEGIN));
-                    setTableWidget(LIST_SCROLLBAR_END, 1, filterEventType(ObjHandler::EVENT_SCROLLBAR_END));
+                    setCellWidget(LIST_ITEM_SELECTED, 1, filterEventType(ObjHandler::EVENT_ITEM_SELECTED));
+                    setCellWidget(LIST_SCROLLBAR_BEGIN, 1, filterEventType(ObjHandler::EVENT_SCROLLBAR_BEGIN));
+                    setCellWidget(LIST_SCROLLBAR_END, 1, filterEventType(ObjHandler::EVENT_SCROLLBAR_END));
                 }
             }
     }
@@ -436,9 +436,9 @@ void TPropertiesEvents::createTable()
     mInitialized = true;
 }
 
-void TPropertiesEvents::setTableWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf)
+void TPropertiesEvents::setCellWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf)
 {
-    DECL_TRACER("TPropertiesEvents::setTableWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf)");
+    DECL_TRACER("TPropertiesEvents::setCellWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf)");
 
     if (!mTable || !mPage)
         return;

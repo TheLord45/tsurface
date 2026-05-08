@@ -15,12 +15,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#include <QLineEdit>
 #include <QToolButton>
 #include <QHBoxLayout>
 
 #include "telementevent.h"
 #include "teventactionsdialog.h"
+#include "tlineeditelide.h"
 #include "terror.h"
 
 TElementEvent::TElementEvent(const QString& name, int instance, QWidget *widget)
@@ -48,8 +48,9 @@ void TElementEvent::init()
 {
     DECL_TRACER("TElementEvent::init()");
 
-    mLine = new QLineEdit;
+    mLine = new TLineEditElide;
     mLine->setReadOnly(true);
+    mLine->setElide(true);
 
     mButton = new QToolButton;
     mButton->setText("...");
@@ -76,12 +77,40 @@ void TElementEvent::setTextLine()
 
     if (mFuncs.size() > 0)
     {
-        QString text = QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName);
+        QString text;
+
+        if (mFuncs[0].action == ObjHandler::BT_ACTION_PGFLIP)
+            text = QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName);
+        else if (mFuncs[0].action == ObjHandler::BT_ACTION_LAUNCH)
+        {
+            QStringList commands = { "show", "close", "close_all", "status_show", "status_hide" };
+            QStringList list = { "show", "close", "close all", "show status", "hide status" };
+            int idx = commands.indexOf(mFuncs[0].pfAction);
+
+            if (idx >= 0)
+                text = QString("[launch] %1").arg(list[idx]);
+            else
+                text = QString("[launch] %1").arg(mFuncs[0].pfAction);
+        }
+        else if (mFuncs[0].action == ObjHandler::BT_ACTION_CUSTOM)
+            text = QString("[custom] Port:%1, ID:%2, Type:%3, Flag:%4, Val1:%5, Val2:%6, Val3:%7")
+                   .arg(mFuncs[0].port)
+                   .arg(mFuncs[0].ID)
+                   .arg(mFuncs[0].type)
+                   .arg(mFuncs[0].flag)
+                   .arg(mFuncs[0].value1)
+                   .arg(mFuncs[0].value2)
+                   .arg(mFuncs[0].value3);
+        else if (mFuncs[0].action == ObjHandler::BT_ACTION_COMMAND)
+            text = "command";
+        else
+            text = "string";
 
         if (mFuncs.size() > 1)
             text.append(" +");
 
         mLine->setText(text);
+        mLine->setCursorPosition(0);
     }
     else
         mLine->clear();

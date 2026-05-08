@@ -55,7 +55,7 @@ class TPropertiesEvents : public QObject
         void createTable();
         void setTable(bool force=false);
         void enableCommon();
-        void setTableWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf);
+        void setCellWidget(int row, int col, const QList<ObjHandler::PUSH_FUNC_T>& pf);
         TElementEvent *makeEvent(ObjHandler::BUTTON_EVENT_t type);
         QList<ObjHandler::PUSH_FUNC_T> collectEvents();
         void assignAllEvent(const QList<Page::EVENT_t>& pEvent, ObjHandler::BUTTON_EVENT_t ev, QList<ObjHandler::PUSH_FUNC_T> *pf);
