@@ -2115,7 +2115,7 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
         {
             mPage->name = item->text();
             pageNameChanged(mPage->pageID, mPage->name);
-            markChanged();
+            markChanged(TBL_GENERAL);
             mChanged = true;
         }
     }
@@ -2130,7 +2130,7 @@ void TPropertiesGeneral::onCellChanged(int row, int column)
         {
             mPage->name = item->text();
             pageNameChanged(mPage->pageID, mPage->name);
-            markChanged();
+            markChanged(TBL_GENERAL);
             mChanged = true;
         }
     }
@@ -2199,7 +2199,7 @@ void TPropertiesGeneral::onComboButtonTypeChanged(const QString& text, const QVa
     mPage->objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
     mChanged = true;
-    markChanged();
+    markChanged(TBL_GENERAL);
     // TODO: Add code to change the view of the object accordingly
     objectTypeChanged(mActObject.type, mActObjectID);
 }
@@ -2218,7 +2218,7 @@ void TPropertiesGeneral::onComboLockButtonName(const QString& text, const QVaria
     mActObject.li = data.toBool();
     mPage->objects[mActObjectID]->setObject(mActObject);
     mChanged = true;
-    markChanged();
+    markChanged(TBL_GENERAL);
 }
 
 void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString& name)
@@ -2241,7 +2241,7 @@ void TPropertiesGeneral::onObjectNameChanged(const QString& text, const QString&
     }
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_GENERAL);
 }
 
 void TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString& name)
@@ -2261,7 +2261,7 @@ void TPropertiesGeneral::onDescriptionChanged(const QString& text, const QString
     }
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_GENERAL);
 }
 
 void TPropertiesGeneral::onSpinGeometryChanged(int value, const QString& name)
@@ -2468,7 +2468,7 @@ void TPropertiesGeneral::onComboObjectDragDropType(const QString& text, const QV
         mActObject.ddt = data.toString();
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     setTable(STATE_BUTTON);
 }
@@ -2498,7 +2498,7 @@ void TPropertiesGeneral::onComboObjectTouchStyle(const QString& text, const QVar
         mActObject.hs = val;
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2514,7 +2514,7 @@ void TPropertiesGeneral::onObjectBorderStyle(const QString& border, const QStrin
         mActObject.bs = border;
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2549,7 +2549,7 @@ void TPropertiesGeneral::onObjectYesNoSelection(const QString& text, const QVari
         mActObject.lva = data.toInt();
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
     update();
@@ -2565,7 +2565,7 @@ void TPropertiesGeneral::onObjectPasswordProtection(const QString& text, const Q
 
     mActObject.pp = data.toInt();
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2578,7 +2578,7 @@ void TPropertiesGeneral::onObjectStateCount(int value, const QString& name)
     mActObject.stateCount = value;
     mActObject.rm = value;          // Yes, this exists twice!
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2598,7 +2598,7 @@ void TPropertiesGeneral::onObjectAnimateTime(int value, const QString& name)
     }
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2611,7 +2611,7 @@ void TPropertiesGeneral::onObjectValueDirection(const QString& text, const QVari
 
     mActObject.dr = data.toString();
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2628,7 +2628,7 @@ void TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant&
         mActObject.sd = text;
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2640,7 +2640,7 @@ void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& n
     mActObject.sc = col;
 
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2658,7 +2658,7 @@ void TPropertiesGeneral::onObjectSubPageSet(const QString& group, const QVariant
     if (oldID != mActObject.st)
     {
         mPage->objects[mActObjectID]->setObject(mActObject);
-        markChanged();
+        markChanged(TBL_GENERAL);
         mChanged = true;
         requestRedraw(mPage);
     }
@@ -2674,7 +2674,7 @@ void TPropertiesGeneral::onObjectOrientation(const QString& ori, const QVariant&
     mActObject.on = data.toString();
     mPage->objects[mActObjectID]->setObject(mActObject);
     setTable(STATE_BUTTON);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2687,7 +2687,7 @@ void TPropertiesGeneral::onObjectSpacing(int value, const QString& name)
 
     mActObject.sa = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2701,7 +2701,7 @@ void TPropertiesGeneral::onObjectAnchorPosition(const QString& text, const QVari
 
     mActObject.we = data.toString();
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2714,7 +2714,7 @@ void TPropertiesGeneral::onObjectScrollbarOffset(int value, const QString& name)
 
     mActObject.bo = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2727,7 +2727,7 @@ void TPropertiesGeneral::onObjectInputType(const QString& group, const QVariant&
 
     mActObject.inputType = data.toInt();
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2739,7 +2739,7 @@ void TPropertiesGeneral::onObjectPasswordCharacter(const QString& text, const QS
 
     mActObject.pc = text[0];
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2752,7 +2752,7 @@ void TPropertiesGeneral::onObjectDisplayType(const QString& text, const QVariant
 
     mActObject.dt = data.toString();
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     setTable(STATE_INPUT);
 }
@@ -2765,7 +2765,7 @@ void TPropertiesGeneral::onObjectMaxTextLength(int value, const QString& name)
 
     mActObject.mt = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2777,7 +2777,7 @@ void TPropertiesGeneral::onObjectInputMask(const QString& text, const QString& n
 
     mActObject.im = text;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 
@@ -2789,7 +2789,7 @@ void TPropertiesGeneral::onListviewComponents(int components, const QString& nam
 
     mActObject.lvc = components;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2802,7 +2802,7 @@ void TPropertiesGeneral::onObjectItemHeight(int value, const QString& name)
 
     mActObject.lvh = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2815,7 +2815,7 @@ void TPropertiesGeneral::onListviewColumns(int value, const QString& name)
 
     mActObject.lvg = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2830,7 +2830,7 @@ void TPropertiesGeneral::onListviewItemLayout(const QString& text, const QVarian
     mActObject.lvl = data.toInt();
     MSG_DEBUG("Listview Item Layout: " << mActObject.lvl);
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2843,7 +2843,7 @@ void TPropertiesGeneral::onObjectPrimaryPartition(int value, const QString& name
 
     mActObject.lhp = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2856,7 +2856,7 @@ void TPropertiesGeneral::onObjectSecondaryPartition(int value, const QString& na
 
     mActObject.lvp = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2869,7 +2869,7 @@ void TPropertiesGeneral::onObjectFilterHeight(int value, const QString& name)
 
     mActObject.lsh = value;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
     requestRedraw(mPage);
 }
@@ -2882,7 +2882,7 @@ void TPropertiesGeneral::onObjectDynamicDataSource(const QString& text, const QS
 
     mActObject.lds = text;
     mPage->objects[mActObjectID]->setObject(mActObject);
-    markChanged();
+    markChanged(TBL_GENERAL);
     mChanged = true;
 }
 

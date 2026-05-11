@@ -426,7 +426,7 @@ namespace ObjHandler
         QString ldm;            // G5 Listview: Internal distinct name?
         int so{1};              // String output port
         int co{1};              // Command port
-        QList<QString> cm;      // Commands to send on each button hit
+        QList<QString> cm;      // G4: Commands to send on each button hit
         QString dr{"vertical"}; // Level "horizontal" or "vertical"
         int va{0};              // Level control value
         int stateCount{0};      // State count with multistate buttons (number of states)

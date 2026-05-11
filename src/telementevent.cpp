@@ -80,7 +80,25 @@ void TElementEvent::setTextLine()
         QString text;
 
         if (mFuncs[0].action == ObjHandler::BT_ACTION_PGFLIP)
-            text = QString("[%1] %2").arg(mFuncs[0].pfType).arg(mFuncs[0].pfName);
+        {
+            QStringList commands = { "sStan", "sPrev", "sShow", "sHide", "sToggle", "ClearG", "scPage", "scPanel" };
+            QStringList list = { "standard page", "previous page", "show popup", "hide popup", "toggle popup", "hide popup group", "hide popup on page", "hide all popups" };
+            QString cmdText;
+            int pos = 0;
+
+            for (QString cmd : commands)
+            {
+                if (mFuncs[0].pfType.contains(cmd, Qt::CaseInsensitive))
+                {
+                    cmdText = list[pos];
+                    break;
+                }
+
+                pos++;
+            }
+
+            text = QString("[%1] %2").arg(cmdText).arg(mFuncs[0].pfName);
+        }
         else if (mFuncs[0].action == ObjHandler::BT_ACTION_LAUNCH)
         {
             QStringList commands = { "show", "close", "close_all", "status_show", "status_hide" };

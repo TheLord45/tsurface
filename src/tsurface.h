@@ -21,7 +21,6 @@
 #include <QMainWindow>
 
 #include <memory>
-#include <vector>
 
 #include "tpagetree.h"
 #include "tpagehandler.h"

@@ -58,7 +58,7 @@ class TPropertiesGeneral : public QObject
         // Interface methods
         virtual void pageNameChanged(int id, const QString& name) = 0;
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
-        virtual void markChanged() = 0;
+        virtual void markChanged(const PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
         virtual ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;

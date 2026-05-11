@@ -50,17 +50,18 @@ class TPropertiesStates : public QObject
         TPropertiesStates(QTreeWidget *widget);
         ~TPropertiesStates();
 
-        void setPage(const Page::PAGE_t& page);
+        void setPage(Page::PAGE_t *page);
         void setObject(TObjectHandler *object, int index);
         void setActualObject(int index, STATE_TYPE stype);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         void setState(STATE_TYPE stype);
         bool isChanged() { return mChanged; }
+        void update();
 
     protected:
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
-        virtual void markChanged() = 0;
+        virtual void markChanged(const PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
         virtual void requestRedrawObject(const ObjHandler::TOBJECT_t& object, int pageID, int instance=0) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
@@ -121,7 +122,7 @@ class TPropertiesStates : public QObject
 
         QTreeWidget *mTreeWidget{nullptr};
         QWidget *mParent{nullptr};
-        Page::PAGE_t mPage;
+        Page::PAGE_t *mPage{nullptr};
         ObjHandler::TOBJECT_t mActObject;
         ObjHandler::SR_T mActSr;
         STATE_TYPE mSType{STATE_UNKNOWN};

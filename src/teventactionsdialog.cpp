@@ -46,6 +46,8 @@ TEventActionsDialog::TEventActionsDialog(QWidget *parent)
     : QDialog(parent),
       ui(new Ui::TEventActionsDialog)
 {
+    DECL_TRACER("TEventActionsDialog::TEventActionsDialog(QWidget *parent)");
+
     ui->setupUi(this);
 
     //               0        1        2        3         4          5         6         7
@@ -64,7 +66,10 @@ TEventActionsDialog::TEventActionsDialog(QWidget *parent)
     mGroups = TPageHandler::Current().getGroupNames();
 
     if (!mGroups.empty())
+    {
         disabled1.remove(2);
+        MSG_DEBUG("Have " << mGroups.size() << " groups.");
+    }
 
     mBlock = true;
     ui->comboButtonAddPageFlip->setItems(mList1);

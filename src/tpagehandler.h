@@ -60,12 +60,14 @@ namespace Page
     typedef enum
     {
         EV_CMD_NONE,
+        EV_CMD_STANDARD,            // sStan
+        EV_CMD_PREVIOUS,            // sPrev
         EV_CMD_SHOW,                // sShow
         EV_CMD_HIDE,                // sHide
         EV_CMD_TOGGLE,              // sToggle
+        EV_CMD_GROUP,               // ClearG
         EV_CMD_PAGE,                // scPage
         EV_CMD_PANEL,               // scPanel
-        EV_CMD_CLOSE_ALL            // close_all
     }EVENT_TYPE_t;
 
     typedef struct EVENT_t

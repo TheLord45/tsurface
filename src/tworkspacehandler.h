@@ -79,7 +79,7 @@ class TWorkSpaceHandler
     protected:
         void pageNameChanged(int id, const QString& name) override;
         void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop) override;
-        void markChanged() override;
+        void markChanged(const PROPERTIES_t prop=TBL_UNKNOWN) override;
         ObjHandler::TOBJECT_t getActualObject(const Page::PAGE_t& page) override;
         Page::PAGE_t getCurrentPage() override;
         void requestRedraw(Page::PAGE_t *page) override;

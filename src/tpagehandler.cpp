@@ -518,7 +518,7 @@ QStringList TPageHandler::getGroupNames()
     {
         if (iter->popupType == Page::PT_POPUP)
         {
-            if (!list.contains(iter->group))
+            if (!iter->group.isEmpty() && !list.contains(iter->group))
                 list.append(iter->group);
         }
     }
@@ -1880,7 +1880,7 @@ void TPageHandler::parseSR(ObjHandler::TOBJECT_t *object, const QDomElement &sr)
     lsr.ec = getColor(sr.firstChildElement("ec").text());
 
     if (!sr.firstChildElement("lc").isNull())
-        lsr.lc = sr.firstChildElement("lc").text();
+        lsr.lc = getColor(sr.firstChildElement("lc").text());
     else
         lsr.lc = qRgb(255, 255, 255);
 
@@ -2088,8 +2088,28 @@ void TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHand
     event.content = pf.text();
     // For G5
     event.evAction = ba;
+    event.item = pf.attribute("item").toInt();
+
     QString nodeName = pf.parentNode().nodeName();
 
+    if (ba == ObjHandler::BT_ACTION_PGFLIP)
+    {
+        QString cmd = pf.attribute("type");
+        QStringList commands = { "sStan", "sPrev", "sShow", "sHide", "sToggle", "ClearG", "scPage", "scPanel" };
+        QList<EVENT_TYPE_t> evt = { EV_CMD_STANDARD, EV_CMD_PREVIOUS, EV_CMD_SHOW, EV_CMD_HIDE, EV_CMD_TOGGLE, EV_CMD_GROUP, EV_CMD_PAGE,  EV_CMD_PANEL };
+        int pos = 0;
+
+        for (QString c : commands)
+        {
+            if (cmd.contains(c, Qt::CaseInsensitive))
+            {
+                event.evCommand = evt[pos];
+                break;
+            }
+
+            pos++;
+        }
+    }
     if (pf.hasAttribute("item"))
         event.item = pf.attribute("item").toInt();
 
@@ -2141,25 +2161,25 @@ void TPageHandler::parseEvent(Page::PAGE_t *page, const QDomElement &pf, ObjHand
         page->eventShow.append(event);
     else if (nodeName == "eventHide")
         page->eventHide.append(event);
-    else if (nodeName == "gestureAny")
+    else if (nodeName == "ga")
         page->guestureAny.append(event);
-    else if (nodeName == "gestureUp")
+    else if (nodeName == "gu")
         page->guestureUp.append(event);
-    else if (nodeName == "gestureDown")
+    else if (nodeName == "gd")
         page->guestureDown.append(event);
-    else if (nodeName == "gestureRight")
+    else if (nodeName == "gr")
         page->guestureRight.append(event);
-    else if (nodeName == "gestureLeft")
+    else if (nodeName == "gl")
         page->guestureLeft.append(event);
-    else if (nodeName == "gestureDblTap")
+    else if (nodeName == "gt")
         page->guestureDblTab.append(event);
-    else if (nodeName == "gesture2FUp")
+    else if (nodeName == "tu")
         page->guesture2FUp.append(event);
-    else if (nodeName == "gesture2FDn")
+    else if (nodeName == "td")
         page->guesture2FDn.append(event);
-    else if (nodeName == "gesture2FRt")
+    else if (nodeName == "tr")
         page->guesture2Frt.append(event);
-    else if (nodeName == "gesture2FLt")
+    else if (nodeName == "tl")
         page->guesture2FLt.append(event);
 }
 
@@ -2371,10 +2391,10 @@ void TPageHandler::parseButton(PAGE_t *page, const QDomElement &button)
         object.cd = button.firstChildElement("cd").text();
 
     if (!button.firstChildElement("sc").isNull())
-        object.sc = QColor(button.firstChildElement("sc").text());
+        object.sc = getColor(button.firstChildElement("sc").text());
 
     if (!button.firstChildElement("cc").isNull())
-        object.cc = QColor(button.firstChildElement("cc").text());
+        object.cc = getColor(button.firstChildElement("cc").text());
 
     if (!button.firstChildElement("mt").isNull())
         object.mt = button.firstChildElement("mt").text().toInt();
@@ -2542,31 +2562,78 @@ int TPageHandler::parsePage(const QDomElement &page)
         mMaxPopupNumber = pg.pageID;
 
     pg.name = page.firstChildElement("name").text();
-    pg.description = page.firstChildElement("description").text();
-    pg.ap = page.firstChildElement("ap").text().toInt();
-    pg.ad = page.firstChildElement("ad").text().toInt();
-    pg.cp = page.firstChildElement("cp").text().toInt();
-    pg.ch = page.firstChildElement("ch").text().toInt();
-    pg.left = page.firstChildElement("left").text().toInt();
-    pg.top = page.firstChildElement("top").text().toInt();
+
+    if (!page.firstChildElement("description").isNull())
+        pg.description = page.firstChildElement("description").text();
+
+    if (!page.firstChildElement("description").isNull())
+        pg.ap = page.firstChildElement("ap").text().toInt();
+
+    if (!page.firstChildElement("ad").isNull())
+        pg.ad = page.firstChildElement("ad").text().toInt();
+
+    if (!page.firstChildElement("cp").isNull())
+        pg.cp = page.firstChildElement("cp").text().toInt();
+
+    if (!page.firstChildElement("ch").isNull())
+        pg.ch = page.firstChildElement("ch").text().toInt();
+
+    if (!page.firstChildElement("left").isNull())
+        pg.left = page.firstChildElement("left").text().toInt();
+
+    if (!page.firstChildElement("top").isNull())
+        pg.top = page.firstChildElement("top").text().toInt();
+
     pg.width = page.firstChildElement("width").text().toInt();
     pg.height = page.firstChildElement("height").text().toInt();
-    pg.modal = page.firstChildElement("modal").text().toInt();
-    pg.showLockX = page.firstChildElement("showLocX").text().toInt();
-    pg.collapseDirection = static_cast<COLDIR_t>(page.firstChildElement("collapseDirection").text().toInt());
-    pg.collapseOffset = page.firstChildElement("collapseOffset").text().toInt();
-    pg.collapsible = page.firstChildElement("collapsible").text().toInt() == 0 ? false : true;
-    pg.colState = static_cast<COLLAPS_STATE_t>(page.firstChildElement("colState").text().toInt());
-    pg.group = page.firstChildElement("group").text();
-    pg.timeout = page.firstChildElement("timeout").text().toInt();
-    pg.showEffect = static_cast<SHOWEFFECT>(page.firstChildElement("showEffect").text().toInt());
-    pg.showTime = page.firstChildElement("showTime").text().toInt();
-    pg.showX = page.firstChildElement("showX").text().toInt();
-    pg.showY = page.firstChildElement("showY").text().toInt();
-    pg.hideEffect = static_cast<SHOWEFFECT>(page.firstChildElement("hideEffect").text().toInt());
-    pg.hideTime = page.firstChildElement("hideTime").text().toInt();
-    pg.hideX = page.firstChildElement("hideX").text().toInt();
-    pg.hideY = page.firstChildElement("hideY").text().toInt();
+
+    if (!page.firstChildElement("modal").isNull())
+        pg.modal = page.firstChildElement("modal").text().toInt();
+
+    if (!page.firstChildElement("showLocX").isNull())
+        pg.showLockX = page.firstChildElement("showLocX").text().toInt();
+
+    if (!page.firstChildElement("collapseDirection").isNull())
+        pg.collapseDirection = static_cast<COLDIR_t>(page.firstChildElement("collapseDirection").text().toInt());
+
+    if (!page.firstChildElement("collapseOffset").isNull())
+        pg.collapseOffset = page.firstChildElement("collapseOffset").text().toInt();
+
+    if (!page.firstChildElement("collapsible").isNull())
+        pg.collapsible = page.firstChildElement("collapsible").text().toInt() == 0 ? false : true;
+
+    if (!page.firstChildElement("colState").isNull())
+        pg.colState = static_cast<COLLAPS_STATE_t>(page.firstChildElement("colState").text().toInt());
+
+    if (!page.firstChildElement("group").isNull())
+        pg.group = page.firstChildElement("group").text();
+
+    if (! page.firstChildElement("group").isNull())
+        pg.timeout = page.firstChildElement("timeout").text().toInt();
+
+    if (!page.firstChildElement("showEffect").isNull())
+        pg.showEffect = static_cast<SHOWEFFECT>(page.firstChildElement("showEffect").text().toInt());
+
+    if (!page.firstChildElement("showTime").isNull())
+        pg.showTime = page.firstChildElement("showTime").text().toInt();
+
+    if (!page.firstChildElement("showX").isNull())
+        pg.showX = page.firstChildElement("showX").text().toInt();
+
+    if (!page.firstChildElement("showY").isNull())
+        pg.showY = page.firstChildElement("showY").text().toInt();
+
+    if (!page.firstChildElement("hideEffect").isNull())
+        pg.hideEffect = static_cast<SHOWEFFECT>(page.firstChildElement("hideEffect").text().toInt());
+
+    if (!page.firstChildElement("hideTime").isNull())
+        pg.hideTime = page.firstChildElement("hideTime").text().toInt();
+
+    if (!page.firstChildElement("hideX").isNull())
+        pg.hideX = page.firstChildElement("hideX").text().toInt();
+
+    if (!page.firstChildElement("hideY").isNull())
+        pg.hideY = page.firstChildElement("hideY").text().toInt();
 
     // Parse buttons
     QDomNodeList buttons = page.elementsByTagName("button");
@@ -2631,7 +2698,6 @@ int TPageHandler::parsePage(const QDomElement &page)
                            "gestureDown", "gestureRight", "gestureLeft",
                            "gestureDblTap", "gesture2FUp", "gesture2FDn",
                            "gesture2FRt", "gesture2FLt" };
-
     QStringList cmdType = { "pgFlip", "launch", "command", "string", "custom" };
 
     QList<ObjHandler::BUTTON_ACTION_t> bAction = {
@@ -2642,9 +2708,27 @@ int TPageHandler::parsePage(const QDomElement &page)
         ObjHandler::BT_ACTION_CUSTOM
     };
 
+    int pos = 0;
+
     for (QString event : events)
     {
-        QDomElement ep = page.namedItem(event).toElement();
+        QDomElement epe = page.namedItem(event).toElement();
+
+        if (epe.isNull())
+        {
+            pos++;
+            continue;
+        }
+
+        QDomElement ep = pos < 2 ? epe : epe.firstChildElement();
+        MSG_DEBUG("ep node name: " << ep.tagName().toStdString());
+
+        if (ep.tagName().isEmpty())
+        {
+            pos++;
+            continue;
+        }
+
         int loop = 0;
 
         for (QString cmd : cmdType)
@@ -2665,6 +2749,8 @@ int TPageHandler::parsePage(const QDomElement &page)
 
             loop++;
         }
+
+        pos++;
     }
 
     mPages.append(pg);

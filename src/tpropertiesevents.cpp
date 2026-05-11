@@ -143,6 +143,13 @@ void TPropertiesEvents::reset()
     mTable->clear();
 }
 
+void TPropertiesEvents::update()
+{
+    DECL_TRACER("TPropertiesEvents::update()");
+
+    setTable();
+}
+
 void TPropertiesEvents::doConnect(QTableWidget *table)
 {
     DECL_TRACER("TPropertiesEvents::doConnect(QTableWidget *table)");
@@ -572,12 +579,14 @@ void TPropertiesEvents::assignEvent(const Page::EVENT_t& pEvent, ObjHandler::BUT
 
     switch(pEvent.evCommand)
     {
+        case Page::EV_CMD_STANDARD:     pf->pfType = "sStan"; break;
+        case Page::EV_CMD_PREVIOUS:     pf->pfType = "sPrev"; break;
         case Page::EV_CMD_SHOW:         pf->pfType = "sShow"; break;
         case Page::EV_CMD_HIDE:         pf->pfType = "sHide"; break;
         case Page::EV_CMD_TOGGLE:       pf->pfType = "sToggle"; break;
+        case Page::EV_CMD_GROUP:        pf->pfType = "ClearG"; break;
         case Page::EV_CMD_PAGE:         pf->pfType = "scPage"; break;
         case Page::EV_CMD_PANEL:        pf->pfType = "scPanel"; break;
-        case Page::EV_CMD_CLOSE_ALL:    pf->pfType = "close_all"; break;
 
         default:
         break;
@@ -764,7 +773,7 @@ void TPropertiesEvents::onEventsChanged(const QList<ObjHandler::PUSH_FUNC_T>& fu
             }
         }
 
-        markChanged();
+        markChanged(TBL_EVENTS);
         mChanged = true;
         return;
     }
@@ -803,6 +812,6 @@ void TPropertiesEvents::onEventsChanged(const QList<ObjHandler::PUSH_FUNC_T>& fu
     }
     // Finally save the object
     mPage->objects[mObjectIndex]->setObject(mObject);
-    markChanged();
+    markChanged(TBL_EVENTS);
     mChanged = true;
 }

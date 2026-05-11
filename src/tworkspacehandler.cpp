@@ -205,7 +205,7 @@ void TWorkSpaceHandler::setPage(int id, bool load, Page::PAGE_t *rpage)
 
     setGeneralPage(page, STATE_PAGE, mObjectIndex);
     TPropertiesProgramming::setPage(page);
-    TPropertiesStates::setPage(*page);
+    TPropertiesStates::setPage(page);
     TPropertiesEvents::setPage(page, mObjectIndex);
 }
 
@@ -235,7 +235,7 @@ void TWorkSpaceHandler::setPopup(int id, bool load, Page::PAGE_t *rpage)
 
     setGeneralPage(page, STATE_POPUP);
     TPropertiesProgramming::setPage(page);
-    TPropertiesStates::setPage(*page);
+    TPropertiesStates::setPage(page);
     TPropertiesEvents::setPage(page);
 }
 
@@ -263,7 +263,7 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t *page, STATE_TYPE stype, i
     if (st == STATE_PAGE || st == STATE_POPUP || st == STATE_SUBPAGE)
     {
         setProgrammingPage(page->pageID, false);     // Programming properties
-        TPropertiesStates::setPage(*page);           // State properties
+        TPropertiesStates::setPage(page);            // State properties
         TPropertiesEvents::setPage(page);
     }
 
@@ -385,12 +385,24 @@ void TWorkSpaceHandler::saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop)
     _markDirty();
 }
 
-void TWorkSpaceHandler::markChanged()
+void TWorkSpaceHandler::markChanged(const PROPERTIES_t prop)
 {
-    DECL_TRACER("TWorkSpaceHandler::markChanged()");
+    DECL_TRACER("TWorkSpaceHandler::markChanged(cont PROPERTIES_t prop)");
 
     if (_markDirty)
         _markDirty();
+
+    // Inform all the properties about the change. They must reload the object, if they use one.
+    switch(prop)
+    {
+        case TBL_GENERAL:   TPropertiesGeneral::update(); break;
+        case TBL_STATES:    TPropertiesStates::update(); break;
+        case TBL_PROGRAM:   TPropertiesProgramming::update(); break;
+        case TBL_EVENTS:    TPropertiesEvents::update(); break;
+
+        default:
+        break;
+    }
 }
 
 ObjHandler::TOBJECT_t TWorkSpaceHandler::getActualObject(const Page::PAGE_t& page)

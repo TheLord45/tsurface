@@ -97,12 +97,12 @@ TPropertiesStates::~TPropertiesStates()
  *
  * @param page  The new page
  */
-void TPropertiesStates::setPage(const Page::PAGE_t& page)
+void TPropertiesStates::setPage(Page::PAGE_t *page)
 {
-    DECL_TRACER("TPropertiesStates::setPage(const Page::PAGE_t& page)");
+    DECL_TRACER("TPropertiesStates::setPage(Page::PAGE_t *page)");
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_STATES);
+    if (mPage && mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_STATES);
 
     mChanged = false;
     mPage = page;
@@ -116,7 +116,7 @@ void TPropertiesStates::setActualObject(int index, STATE_TYPE stype)
 {
     DECL_TRACER("TPropertiesStates::setActualObject(int index, STATE_TYPE stype)");
 
-    if (index <= 0 || index >= mPage.objects.size() || mActObjectID == index)
+    if (!mPage || index <= 0 || index >= mPage->objects.size() || mActObjectID == index)
         return;
 
     mActObjectID = index;
@@ -125,8 +125,8 @@ void TPropertiesStates::setActualObject(int index, STATE_TYPE stype)
 
     if (isValidObjectIndex())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
-        mActSr = mPage.objects[mActObjectID]->getSrCommon();
+        mActObject = mPage->objects[mActObjectID]->getObject();
+        mActSr = mPage->objects[mActObjectID]->getSrCommon();
     }
 
     createPage(true);
@@ -144,20 +144,20 @@ void TPropertiesStates::setObject(TObjectHandler *object, int index)
 {
     DECL_TRACER("TPropertiesStates::setObject(const TObjectHandler *object, int index)");
 
-    if (!object)
+    if (!object || !mPage)
         return;
 
     int idx = index;
 
-    if (mPage.objects.size() <= index)
+    if (mPage->objects.size() <= index)
     {
         bool found =false;
 
-        for (int i = 0; i < mPage.objects.size(); ++i)
+        for (int i = 0; i < mPage->objects.size(); ++i)
         {
-            if (mPage.objects[i]->getButtonIndex() == object->getButtonIndex())
+            if (mPage->objects[i]->getButtonIndex() == object->getButtonIndex())
             {
-                mPage.objects[i] = object;
+                mPage->objects[i] = object;
                 idx = i;
                 found = true;
                 break;
@@ -166,8 +166,8 @@ void TPropertiesStates::setObject(TObjectHandler *object, int index)
 
         if (!found)
         {
-            mPage.objects.append(object);
-            idx = mPage.objects.size() - 1;
+            mPage->objects.append(object);
+            idx = mPage->objects.size() - 1;
         }
     }
 
@@ -187,7 +187,7 @@ void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 {
     DECL_TRACER("TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");
 
-    if (index < 0 || index >= mPage.objects.size())
+    if (!mPage || index < 0 || index >= mPage->objects.size())
         return;
 
     bool force = false;
@@ -200,10 +200,10 @@ void TPropertiesStates::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 
     mActObjectID = index;
 
-    if (mPage.objects[index]->getType() != btype)
+    if (mPage->objects[index]->getType() != btype)
     {
-        MSG_WARNING("Object " << index << " changed type from " << mPage.objects[index]->getType() << " to " << btype << "!");
-        mPage.objects[index]->setObjectType(btype);
+        MSG_WARNING("Object " << index << " changed type from " << mPage->objects[index]->getType() << " to " << btype << "!");
+        mPage->objects[index]->setObjectType(btype);
     }
 
     setSType();
@@ -223,15 +223,22 @@ void TPropertiesStates::setState(STATE_TYPE stype)
         createPage(false);
 }
 
+void TPropertiesStates::update()
+{
+    DECL_TRACER("TPropertiesStates::update()");
+
+    createPage(false);
+}
+
 void TPropertiesStates::clear()
 {
     DECL_TRACER("TPropertiesStates::clear()");
 
-    if (mPage.pageID > 0 && mChanged)
-        saveChangedData(&mPage, TBL_STATES);
+    if (mPage && mPage->pageID > 0 && mChanged)
+        saveChangedData(mPage, TBL_STATES);
 
-    mChanged = true;
-    mPage = Page::PAGE_t();
+    mChanged = false;
+    mPage = nullptr;
     mTreeWidget->clear();
     mTreeWidget->setColumnCount(0);
 }
@@ -240,7 +247,7 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 {
     DECL_TRACER("TPropertiesStates::setTable(QTableWidget *table, int instance)");
 
-    if (!table)
+    if (!table || !mPage)
         return;
 
     for (int i = 0; i < table->rowCount(); ++i)     // Hide all rows
@@ -253,46 +260,46 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
     if (!isValidObjectIndex())
     {
-        if (mPage.popupType == Page::PT_PAGE)
+        if (mPage->popupType == Page::PT_PAGE)
         {
-            MSG_DEBUG("Recreating table for page " << mPage.pageID);
+            MSG_DEBUG("Recreating table for page " << mPage->pageID);
             table->setRowHidden(TTEXT_FILL_TYPE, false);
-            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage->srPage.ft, W_COMBO, font);
 
-            if (!mPage.srPage.ft.isEmpty() && mPage.srPage.ft != "solid")
+            if (!mPage->srPage.ft.isEmpty() && mPage->srPage.ft != "solid")
             {
                 table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_GRADIENT_COLORS, 1, mPage.srPage.gradientColors, W_GRADIENTCOLORS);
+                totalHeight += setTableWidget(table, TTEXT_FILL_GRADIENT_COLORS, 1, mPage->srPage.gradientColors, W_GRADIENTCOLORS);
 
-                if (mPage.srPage.ft == "radial")
+                if (mPage->srPage.ft == "radial")
                 {
                     table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
 
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX, font);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gx, W_SPINBOX, font);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gy, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage->srPage.gr, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage->srPage.gx, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage->srPage.gy, W_SPINBOX, font);
                 }
             }
             else
             {
                 table->setRowHidden(TTEXT_FILL_COLOR, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR, font);
+                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage->srPage.cf, W_COLORSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_COLOR, false);
             table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR, font);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR, font);
-            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage->srPage.ct, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage->srPage.ec, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage->srPage.vf, W_COMBO, font);
 
-            if (mPage.srPage.vf == "100")
+            if (mPage->srPage.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT, font);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage->srPage.dv, W_TEXT, font);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -301,81 +308,81 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_TEXT, false);
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
-            totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage.srPage.bitmaps, W_BITMAPSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
-            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
-            font = TFonts::getFont(mPage.srPage.ff);
-            font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage->srPage.bitmaps, W_BITMAPSELECTOR);
+            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage->srPage.ff, W_FONT, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage->srPage.fs, W_SPINBOX, font);
+            font = TFonts::getFont(mPage->srPage.ff);
+            font.setPointSize(mPage->srPage.fs > 0 ? mPage->srPage.fs : TConfMain::Current().getFontBaseSize());
+            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage->srPage.te, W_TEXT, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage->srPage.jt, W_COMBO, font);
 
-            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            if (mPage->srPage.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX, font);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage->srPage.tx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage->srPage.ty, W_SPINBOX, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_EFFECT, false);
             table->setRowHidden(TTEXT_WORD_WRAP, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT, font);
-            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage->srPage.et, W_TEXTEFFECT, font);
+            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage->srPage.ty, W_COMBO, font);
         }
-        else if (mPage.popupType == Page::PT_POPUP || mPage.popupType == Page::PT_SUBPAGE)
+        else if (mPage->popupType == Page::PT_POPUP || mPage->popupType == Page::PT_SUBPAGE)
         {
-            MSG_DEBUG("Recreating table for popup " << mPage.pageID);
+            MSG_DEBUG("Recreating table for popup " << mPage->pageID);
             table->setRowHidden(TTEXT_BORDER_NAME, false);
-            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mPage.srPage.bs, W_BORDERNAME, font);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_NAME, 1, mPage->srPage.bs, W_BORDERNAME, font);
 
-            if (mPage.srPage.bs.isEmpty())
+            if (mPage->srPage.bs.isEmpty())
             {
                 table->setRowHidden(TTEXT_CHAMELEON_IMAGE, false);
-                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mPage.srPage.mi, W_BITMAPSELECTOR, font);
+                totalHeight += setTableWidget(table, TTEXT_CHAMELEON_IMAGE, 1, mPage->srPage.mi, W_BITMAPSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_BORDER_COLOR, false);
             table->setRowHidden(TTEXT_FILL_TYPE, false);
 
-            totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mPage.srPage.cb, W_COLORSELECTOR, font);
-            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage.srPage.ft, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_BORDER_COLOR, 1, mPage->srPage.cb, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_FILL_TYPE, 1, mPage->srPage.ft, W_COMBO, font);
 
-            if (!mPage.srPage.ft.isEmpty() && mPage.srPage.ft != "solid")
+            if (!mPage->srPage.ft.isEmpty() && mPage->srPage.ft != "solid")
             {
                 table->setRowHidden(TTEXT_FILL_GRADIENT_COLORS, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_GRADIENT_COLORS, 1, mPage.srPage.gradientColors, W_GRADIENTCOLORS);
+                totalHeight += setTableWidget(table, TTEXT_FILL_GRADIENT_COLORS, 1, mPage->srPage.gradientColors, W_GRADIENTCOLORS);
 
-                if (mPage.srPage.ft == "radial")
+                if (mPage->srPage.ft == "radial")
                 {
                     table->setRowHidden(TTEXT_GRADIENT_RADIUS, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_X, false);
                     table->setRowHidden(TTEXT_GRADIENT_CENTER_Y, false);
 
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage.srPage.gr, W_SPINBOX, font);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mPage.srPage.gx, W_SPINBOX, font);
-                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mPage.srPage.gy, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_RADIUS, 1, mPage->srPage.gr, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_X, 1, mPage->srPage.gx, W_SPINBOX, font);
+                    totalHeight += setTableWidget(table, TTEXT_GRADIENT_CENTER_Y, 1, mPage->srPage.gy, W_SPINBOX, font);
                 }
             }
             else
             {
                 table->setRowHidden(TTEXT_FILL_COLOR, false);
-                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage.srPage.cf, W_COLORSELECTOR, font);
+                totalHeight += setTableWidget(table, TTEXT_FILL_COLOR, 1, mPage->srPage.cf, W_COLORSELECTOR, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_COLOR, false);
             table->setRowHidden(TTEXT_TEXT_EFFECT_COLOR, false);
             table->setRowHidden(TTEXT_VIDEO_FILL, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage.srPage.ct, W_COLORSELECTOR, font);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage.srPage.ec, W_COLORSELECTOR, font);
-            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage.srPage.vf, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_COLOR, 1, mPage->srPage.ct, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT_COLOR, 1, mPage->srPage.ec, W_COLORSELECTOR, font);
+            totalHeight += setTableWidget(table, TTEXT_VIDEO_FILL, 1, mPage->srPage.vf, W_COMBO, font);
 
-            if (mPage.srPage.vf == "100")
+            if (mPage->srPage.vf == "100")
             {
                 table->setRowHidden(TTEXT_STREAMING_SOURCE, false);
-                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage.srPage.dv, W_TEXT, font);
+                totalHeight += setTableWidget(table, TTEXT_STREAMING_SOURCE, 1, mPage->srPage.dv, W_TEXT, font);
             }
 
             table->setRowHidden(TTEXT_BITMAPS, false);
@@ -384,34 +391,34 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
             table->setRowHidden(TTEXT_TEXT, false);
             table->setRowHidden(TTEXT_TEXT_JUSTIFICATION, false);
 
-            totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage.srPage.bitmaps, W_BITMAPSELECTOR);
-            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage.srPage.ff, W_FONT, font);
-            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage.srPage.fs, W_SPINBOX, font);
-            font = TFonts::getFont(mPage.srPage.ff);
-            font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
-            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage.srPage.te, W_TEXT, font);
-            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage.srPage.jt, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_BITMAPS, 1, mPage->srPage.bitmaps, W_BITMAPSELECTOR);
+            totalHeight += setTableWidget(table, TTEXT_FONT, 1, mPage->srPage.ff, W_FONT, font);
+            totalHeight += setTableWidget(table, TTEXT_FONT_SIZE, 1, mPage->srPage.fs, W_SPINBOX, font);
+            font = TFonts::getFont(mPage->srPage.ff);
+            font.setPointSize(mPage->srPage.fs > 0 ? mPage->srPage.fs : TConfMain::Current().getFontBaseSize());
+            totalHeight += setTableWidget(table, TTEXT_TEXT, 1, mPage->srPage.te, W_TEXT, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_JUSTIFICATION, 1, mPage->srPage.jt, W_COMBO, font);
 
-            if (mPage.srPage.jt == ObjHandler::ORI_ABSOLUT)
+            if (mPage->srPage.jt == ObjHandler::ORI_ABSOLUT)
             {
                 table->setRowHidden(TTEXT_TEXT_POSITION_X, false);
                 table->setRowHidden(TTEXT_TEXT_POSITION_Y, false);
 
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage.srPage.tx, W_SPINBOX, font);
-                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage.srPage.ty, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_X, 1, mPage->srPage.tx, W_SPINBOX, font);
+                totalHeight += setTableWidget(table, TTEXT_TEXT_POSITION_Y, 1, mPage->srPage.ty, W_SPINBOX, font);
             }
 
             table->setRowHidden(TTEXT_TEXT_EFFECT, false);
             table->setRowHidden(TTEXT_WORD_WRAP, false);
 
-            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage.srPage.et, W_TEXTEFFECT, font);
-            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage.srPage.ty, W_COMBO, font);
+            totalHeight += setTableWidget(table, TTEXT_TEXT_EFFECT, 1, mPage->srPage.et, W_TEXTEFFECT, font);
+            totalHeight += setTableWidget(table, TTEXT_WORD_WRAP, 1, mPage->srPage.ty, W_COMBO, font);
         }
     }
     else
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
-        mActSr = mPage.objects[mActObjectID]->getSrFromIndex(instance);
+        mActObject = mPage->objects[mActObjectID]->getObject();
+        mActSr = mPage->objects[mActObjectID]->getSrFromIndex(instance);
         MSG_DEBUG("Recreating table for object " << mActObject.bi << " (" << mActObject.na.toStdString() << ") and instance " << instance << ". Object type: " << mActObject.type);
 
         if (instance >= mActObject.sr.size())
@@ -561,7 +568,6 @@ void TPropertiesStates::setTable(QTableWidget *table, int instance)
 
     MSG_DEBUG("Table has minimum height " << totalHeight);
     table->setMinimumHeight(totalHeight);
-//    mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
     mTreeWidget->setMinimumHeight(totalHeight + mTreeWidget->height());
 }
 
@@ -582,13 +588,13 @@ void TPropertiesStates::createPage(bool force)
 {
     DECL_TRACER("TPropertiesStates::createPage(bool force)");
 
-    if (!mTreeWidget)
+    if (!mTreeWidget || !mPage)
     {
         MSG_WARNING("Tree widget is not initialized!")
         return;
     }
 
-    MSG_DEBUG("Creating page " << mPage.pageID << " " << (force ? "with" : "without") << " force.");
+    MSG_DEBUG("Creating page " << mPage->pageID << " " << (force ? "with" : "without") << " force.");
 
     if (mInitialized && !force)
     {
@@ -608,7 +614,7 @@ void TPropertiesStates::createPage(bool force)
     if (isAnyPage())
         name = tr("Off");
     else
-        name = getStateName(mPage.objects[mActObjectID]->getType(), -1);
+        name = getStateName(mPage->objects[mActObjectID]->getType(), -1);
 
     top->setText(0, name);
     QTreeWidgetItem *item = new QTreeWidgetItem(top);
@@ -622,9 +628,9 @@ void TPropertiesStates::createPage(bool force)
     int totalHeight = table->height();
 
     if (!isAnyPage() && isValidObjectIndex() &&
-            mPage.objects[mActObjectID]->getObject().type != ObjHandler::SUBPAGE_VIEW)
+            mPage->objects[mActObjectID]->getObject().type != ObjHandler::SUBPAGE_VIEW)
     {
-        ObjHandler::TOBJECT_t obj = mPage.objects[mActObjectID]->getObject();
+        ObjHandler::TOBJECT_t obj = mPage->objects[mActObjectID]->getObject();
 
         for (int i = 0; i < obj.sr.size(); ++i)
         {
@@ -680,26 +686,29 @@ void TPropertiesStates::createPage(QTableWidget *table, int instance)
 {
     DECL_TRACER("TPropertiesStates::createTablePage(QTableWidget *table, int instance)");
 
+    if (!mPage)
+        return;
+
     mActObject = ObjHandler::TOBJECT_t();
     mActSr = ObjHandler::SR_T();
 
     if (mSType == STATE_PAGE || mSType == STATE_POPUP || mSType == STATE_SUBPAGE)
     {
-        if (mPage.srPage.ff.isEmpty())
+        if (mPage->srPage.ff.isEmpty())
         {
             QFont font = mParent->font();
-            mPage.srPage.ff = TFonts::getFontName(font);
+            mPage->srPage.ff = TFonts::getFontName(font);
         }
 
-        if (mPage.srPage.fs <= 0)
-            mPage.srPage.fs = 10;
+        if (mPage->srPage.fs <= 0)
+            mPage->srPage.fs = 10;
     }
-    else if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    else if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
 
         if (instance < 0)
-            mActSr = mPage.objects[mActObjectID]->getSrFromIndex(instance);
+            mActSr = mPage->objects[mActObjectID]->getSrFromIndex(instance);
 
         if (mActSr.ff.isEmpty())
         {
@@ -896,13 +905,16 @@ void TPropertiesStates::setSType()
 {
     DECL_TRACER("TPropertiesStates::setSType()");
 
+    if (!mPage)
+        return;
+
     if (!isValidObjectIndex())
     {
-        if (mPage.popupType == Page::PT_PAGE)
+        if (mPage->popupType == Page::PT_PAGE)
             mSType = STATE_PAGE;
-        else if (mPage.popupType == Page::PT_POPUP)
+        else if (mPage->popupType == Page::PT_POPUP)
             mSType = STATE_POPUP;
-        else if (mPage.popupType == Page::PT_SUBPAGE)
+        else if (mPage->popupType == Page::PT_SUBPAGE)
             mSType = STATE_SUBPAGE;
         else
             mSType = STATE_UNKNOWN;
@@ -911,7 +923,7 @@ void TPropertiesStates::setSType()
         return;
     }
 
-    ObjHandler::BUTTONTYPE btype = mPage.objects[mActObjectID]->getType();
+    ObjHandler::BUTTONTYPE btype = mPage->objects[mActObjectID]->getType();
 
     switch(btype)
     {
@@ -958,7 +970,7 @@ bool TPropertiesStates::isValidObjectIndex()
 {
     DECL_TRACER("TPropertiesStates::isValidObjectIndex()");
 
-    if (mActObjectID >= 0 && mActObjectID < mPage.objects.size())
+    if (mActObjectID >= 0 && mActObjectID < mPage->objects.size())
         return true;
 
     return false;
@@ -1205,10 +1217,13 @@ TElementBorderName *TPropertiesStates::makeBorderName(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeBorderName(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QString border;
 
     if (isAnyPage())
-        border = mPage.srPage.bs;
+        border = mPage->srPage.bs;
     else if (isValidObjectIndex())
         border = mActSr.bs;
 
@@ -1221,6 +1236,9 @@ TElementBorderName *TPropertiesStates::makeBorderName(const QString& name)
 QComboBox *TPropertiesStates::makeFillType(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFillType(const QString& name)");
+
+    if (!mPage)
+        return nullptr;
 
     QList<QString> list = {
         "solid", "radial", "sweep", "left to right",
@@ -1247,7 +1265,7 @@ QComboBox *TPropertiesStates::makeFillType(const QString& name)
     QString ftype;
 
     if (isAnyPage())
-        ftype = mPage.srPage.ft;
+        ftype = mPage->srPage.ft;
     else if (isValidObjectIndex())
         ftype = mActSr.ft;
 
@@ -1264,6 +1282,9 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeColorSelector(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QColor col;
 
     if (isAnyPage())
@@ -1271,13 +1292,13 @@ QWidget *TPropertiesStates::makeColorSelector(const QString& name)
         MSG_DEBUG("Changing a page parameter ...");
 
         if (name == "BorderColor")
-            col = mPage.srPage.cb;
+            col = mPage->srPage.cb;
         if (name == "FillColor")
-            col = mPage.srPage.cf;
+            col = mPage->srPage.cf;
         else if (name == "TextColor")
-            col = mPage.srPage.ct;
+            col = mPage->srPage.ct;
         else if (name == "TextEffectColor")
-            col = mPage.srPage.ec;
+            col = mPage->srPage.ec;
     }
     else if (isValidObjectIndex())
     {
@@ -1308,12 +1329,15 @@ QWidget *TPropertiesStates::makeVideoFill(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeVideoFill(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QList<QString> items = { "none", "streaming video", "MXA-MPL" };
     QList<QVariant> data = { "", "100", "101" };
     QString vf;
 
     if (isAnyPage())
-        vf = mPage.srPage.vf;
+        vf = mPage->srPage.vf;
     else if (isValidObjectIndex())
         vf = mActSr.vf;
 
@@ -1335,14 +1359,17 @@ TElementBitmapSelector *TPropertiesStates::makeBitmapSelector(const QString& nam
 {
     DECL_TRACER("TPropertiesStates::makeBitmapSelector(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QList<ObjHandler::BITMAPS_t> bitmaps;
 
     if (isAnyPage())
-        bitmaps = mPage.srPage.bitmaps;
+        bitmaps = mPage->srPage.bitmaps;
     else if (isValidObjectIndex())
         bitmaps = mActSr.bitmaps;
 
-    MSG_DEBUG("Number bitmaps on page " << mPage.pageID << ": " << bitmaps.size() << ". First bitmap: " << (bitmaps.size() > 0 ? bitmaps[0].fileName.toStdString() : "(none)"));
+    MSG_DEBUG("Number bitmaps on page " << mPage->pageID << ": " << bitmaps.size() << ". First bitmap: " << (bitmaps.size() > 0 ? bitmaps[0].fileName.toStdString() : "(none)"));
     TElementBitmapSelector *bs = new TElementBitmapSelector(name, bitmaps, mTreeWidget);
     bs->setInstance(mActInstance);
     connect(bs, &TElementBitmapSelector::bitmapsChangedInst, this, &TPropertiesStates::onBitmapsChanged);
@@ -1353,12 +1380,15 @@ TElementSingleBitmap *TPropertiesStates::makeSingleBitmapSelector(const QString&
 {
     DECL_TRACER("TPropertiesStates::makeSingleBitmapSelector(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QString pixName;
 
     if (isAnyPage())
     {
         if (name == "ChameleonImage")
-            pixName = mPage.srPage.mi;
+            pixName = mPage->srPage.mi;
     }
     else if (isValidObjectIndex())
     {
@@ -1376,10 +1406,13 @@ TElementWidgetFont *TPropertiesStates::makeFontSelector(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeFontSelector(const QString& fname, const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QString ff;
 
     if (isAnyPage())
-        ff = mPage.srPage.ff;
+        ff = mPage->srPage.ff;
     else if (isValidObjectIndex())
         ff = mActSr.ff;
 
@@ -1393,24 +1426,27 @@ TElementSpinBox *TPropertiesStates::makeValueSelector(const QString& name, int m
 {
     DECL_TRACER("TPropertiesStates::makeValueSelector(const QString& name, int max)");
 
+    if (!mPage)
+        return nullptr;
+
     int value = 0;
 
     if (isAnyPage())
     {
         if (name == "GradientRadius")
-            value = mPage.srPage.gr;
+            value = mPage->srPage.gr;
         else if (name == "GradientCenterX")
-            value = mPage.srPage.gx;
+            value = mPage->srPage.gx;
         else if (name == "GradientCenterX")
-            value = mPage.srPage.gy;
+            value = mPage->srPage.gy;
         else if (name == "OverallOpacity")
-            value = mPage.srPage.oo < 0 ? 255 : mPage.srPage.oo;
+            value = mPage->srPage.oo < 0 ? 255 : mPage->srPage.oo;
         else if (name == "FontSize")
-            value = mPage.srPage.fs;
+            value = mPage->srPage.fs;
         else if (name == "TextPositionX")
-            value = mPage.srPage.tx;
+            value = mPage->srPage.tx;
         else if (name == "TextPositionY")
-            value = mPage.srPage.ty;
+            value = mPage->srPage.ty;
     }
     else
     {
@@ -1441,6 +1477,9 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextValue(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QString text;
     QFont font;
     bool simple = false;
@@ -1449,14 +1488,14 @@ QWidget *TPropertiesStates::makeTextValue(const QString& name)
     {
         if (name == "StreamingSource")
         {
-            text = mPage.srPage.dv;
+            text = mPage->srPage.dv;
             simple = true;
         }
         else if (name == "Text")
-            text = mPage.srPage.te;
+            text = mPage->srPage.te;
 
-        font = TFonts::getFont(mPage.srPage.ff);
-        font.setPointSize(mPage.srPage.fs > 0 ? mPage.srPage.fs : TConfMain::Current().getFontBaseSize());
+        font = TFonts::getFont(mPage->srPage.ff);
+        font.setPointSize(mPage->srPage.fs > 0 ? mPage->srPage.fs : TConfMain::Current().getFontBaseSize());
     }
     else
     {
@@ -1484,6 +1523,9 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& nam
 {
     DECL_TRACER("TPropertiesStates::makeTextJustification(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     QList<QString> items = { "absolute", "top-left", "top-middle", "top-right",
                             "center-left", "center-middle", "center-right",
                             "bottom-left", "bottom-middle", "bottom-right" };
@@ -1492,7 +1534,7 @@ TElementWidgetCombo *TPropertiesStates::makeTextJustification(const QString& nam
     ObjHandler::ORIENTATION ori;
 
     if (isAnyPage())
-        ori = mPage.srPage.jt;
+        ori = mPage->srPage.jt;
     else
         ori = mActSr.jt;
 
@@ -1509,10 +1551,13 @@ TElementTextEffect *TPropertiesStates::makeTextEffect(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeTextEffect(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     int et = 0;
 
     if (isAnyPage())
-        et = mPage.srPage.et;
+        et = mPage->srPage.et;
     else
         et = mActSr.et;
 
@@ -1526,10 +1571,13 @@ TElementWidgetCombo *TPropertiesStates::makeWordWrap(const QString& name)
 {
     DECL_TRACER("TPropertiesStates::makeWordWrap(const QString& name)");
 
+    if (!mPage)
+        return nullptr;
+
     bool ww = false;
 
     if (isAnyPage())
-        ww = mPage.srPage.ww;
+        ww = mPage->srPage.ww;
     else
         ww = mActSr.ww;
 
@@ -1555,7 +1603,7 @@ TElementGradientColors *TPropertiesStates::makeGradientColors(const QString& nam
     QList<QColor> color;
 
     if (isAnyPage())
-        color = mPage.srPage.gradientColors;
+        color = mPage->srPage.gradientColors;
     else
         color = mActSr.gradientColors;
 
@@ -1584,105 +1632,108 @@ void TPropertiesStates::setValue(const QString& name, const QVariant& value)
 {
     DECL_TRACER("TPropertiesStates::setValue(const QString& name, const QVariant& value)");
 
+    if (!mPage)
+        return;
+
     if (isAnyPage())
     {
-        MSG_DEBUG("Setting value on page " << mPage.pageID << " for value " << name.toStdString());
+        MSG_DEBUG("Setting value on page " << mPage->pageID << " for value " << name.toStdString());
 
         if (name == "FillType")
-            mPage.srPage.ft = value.toString();
+            mPage->srPage.ft = value.toString();
         else if (name == "FillColor")
-            mPage.srPage.cf = value.toString();
+            mPage->srPage.cf = value.toString();
         else if (name == "TextColor")
-            mPage.srPage.ct = value.toString();
+            mPage->srPage.ct = value.toString();
         else if (name == "TextEffectColor")
-            mPage.srPage.ec = value.toString();
+            mPage->srPage.ec = value.toString();
         else if (name == "VideoFill")
-            mPage.srPage.vf = value.toString();
+            mPage->srPage.vf = value.toString();
         else if (name == "FontSelector")
-            mPage.srPage.ff = value.toString();
+            mPage->srPage.ff = value.toString();
         else if (name == "FontSize")
-            mPage.srPage.fs = value.toInt();
+            mPage->srPage.fs = value.toInt();
         else if (name == "Text")
-            mPage.srPage.te = value.toString();
+            mPage->srPage.te = value.toString();
         else if (name == "TextOrientation")
-            mPage.srPage.jt = static_cast<ObjHandler::ORIENTATION>(value.toInt());
+            mPage->srPage.jt = static_cast<ObjHandler::ORIENTATION>(value.toInt());
         else if (name == "TextEffect")
-            mPage.srPage.et = value.toInt();
+            mPage->srPage.et = value.toInt();
         else if (name == "WordWrap")
-            mPage.srPage.ww = (value.toBool() ? 1 : 0);
+            mPage->srPage.ww = (value.toBool() ? 1 : 0);
         else if (name == "GradientRadius")
-            mPage.srPage.gr = value.toInt();
+            mPage->srPage.gr = value.toInt();
         else if (name == "GradientCenterX")
-            mPage.srPage.gx = value.toInt();
+            mPage->srPage.gx = value.toInt();
         else if (name == "GradientCenterY")
-            mPage.srPage.gy = value.toInt();
+            mPage->srPage.gy = value.toInt();
         else if (name == "TextPositionX")
-            mPage.srPage.tx = value.toInt();
+            mPage->srPage.tx = value.toInt();
         else if (name == "TextPositionY")
-            mPage.srPage.ty = value.toInt();
+            mPage->srPage.ty = value.toInt();
         else if (name == "BorderName")
-            mPage.srPage.bs = value.toString();
+            mPage->srPage.bs = value.toString();
         else if (name == "BorderColor")
-            mPage.srPage.cb = value.toString();
+            mPage->srPage.cb = value.toString();
         else if (name == "OverallOpacity")
-            mPage.srPage.oo = value.toInt();
+            mPage->srPage.oo = value.toInt();
     }
     else
     {
-        MSG_DEBUG("Setting value on page " << mPage.pageID << ", at object " << mActObjectID << " for value " << name.toStdString());
+        MSG_DEBUG("Setting value on page " << mPage->pageID << ", at object " << mActObjectID << " for value " << name.toStdString());
 
         if (name == "BorderName")
-            mPage.objects[mActObjectID]->setBorder(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setBorder(value.toString(), mActInstance);
         else if (name == "BorderColor")
-            mPage.objects[mActObjectID]->setBorderColor(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setBorderColor(value.toString(), mActInstance);
         else if (name == "FillType")
-            mPage.objects[mActObjectID]->setGradientFillType(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setGradientFillType(value.toString(), mActInstance);
         else if (name == "FillColor")
-            mPage.objects[mActObjectID]->setFillColor(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setFillColor(value.toString(), mActInstance);
         else if (name == "TextColor")
-            mPage.objects[mActObjectID]->setTextColor(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setTextColor(value.toString(), mActInstance);
         else if (name == "TextEffectColor")
-            mPage.objects[mActObjectID]->setTextEffectColor(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setTextEffectColor(value.toString(), mActInstance);
         else if (name == "GradientRadius")
-            mPage.objects[mActObjectID]->setGradientRadius(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setGradientRadius(value.toInt(), mActInstance);
         else if (name == "GradientCenterX")
-            mPage.objects[mActObjectID]->setGradientCenterX(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setGradientCenterX(value.toInt(), mActInstance);
         else if (name == "GradientCenterY")
-            mPage.objects[mActObjectID]->setGradientCenterY(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setGradientCenterY(value.toInt(), mActInstance);
         else if (name == "Text")
-            mPage.objects[mActObjectID]->setText(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setText(value.toString(), mActInstance);
         else if (name == "TextOrientation")
-            mPage.objects[mActObjectID]->setTextOrientation(static_cast<ObjHandler::ORIENTATION>(value.toInt()), mActInstance);
+            mPage->objects[mActObjectID]->setTextOrientation(static_cast<ObjHandler::ORIENTATION>(value.toInt()), mActInstance);
         else if (name == "TextPositionX")
-            mPage.objects[mActObjectID]->setTextAbsoluteX(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setTextAbsoluteX(value.toInt(), mActInstance);
         else if (name == "TextPositionY")
-            mPage.objects[mActObjectID]->setTextAbsoluteY(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setTextAbsoluteY(value.toInt(), mActInstance);
         else if (name == "FontSelector")
-            mPage.objects[mActObjectID]->setFontFile(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setFontFile(value.toString(), mActInstance);
         else if (name == "FontSize")
-            mPage.objects[mActObjectID]->setFontSize(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setFontSize(value.toInt(), mActInstance);
         else if (name == "WordWrap")
-            mPage.objects[mActObjectID]->setWordWrap(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setWordWrap(value.toInt(), mActInstance);
         else if (name == "TextEffect")
-            mPage.objects[mActObjectID]->setTextEffect(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setTextEffect(value.toInt(), mActInstance);
         else if (name == "OverallOpacity")
-            mPage.objects[mActObjectID]->setOverallOpacity(value.toInt(), mActInstance);
+            mPage->objects[mActObjectID]->setOverallOpacity(value.toInt(), mActInstance);
         else if (name == "VideoFill")
-            mPage.objects[mActObjectID]->setVideoFill(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setVideoFill(value.toString(), mActInstance);
         else if (name == "SubPageLayoutColor")
-            mPage.objects[mActObjectID]->setSubPageLayoutColor(value.toString(), mActInstance);
+            mPage->objects[mActObjectID]->setSubPageLayoutColor(value.toString(), mActInstance);
 
-        mActObject = mPage.objects[mActObjectID]->getObject();
+        mActObject = mPage->objects[mActObjectID]->getObject();
     }
 
     mChanged = true;
-    saveChangedData(&mPage, TBL_STATES);
+    saveChangedData(mPage, TBL_STATES);
     rebuildTree();
     // Call to draw immediately
     if (isAnyPage())
-        requestRedraw(&mPage);
+        requestRedraw(mPage);
     else
-        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
+        requestRedrawObject(mPage->objects[mActObjectID]->getObject(), mPage->pageID, mActInstance);
 }
 
 void TPropertiesStates::setColor(QLabel *label, QColor& color)
@@ -1729,42 +1780,48 @@ void TPropertiesStates::onBitmapsChanged(const QList<ObjHandler::BITMAPS_t>& bit
 
     MSG_DEBUG("Bitmap for name: " << name.toStdString());
 
-    if (isAnyPage())
-        mPage.srPage.bitmaps = bitmaps;
-    else
-        mPage.objects[mActObjectID]->setBitmaps(bitmaps, instance);
+    if (!mPage)
+        return;
 
-    saveChangedData(&mPage, TBL_STATES);
+    if (isAnyPage())
+        mPage->srPage.bitmaps = bitmaps;
+    else
+        mPage->objects[mActObjectID]->setBitmaps(bitmaps, instance);
+
+    saveChangedData(mPage, TBL_STATES);
     mChanged = false;
     // Call to draw immediately
     if (isAnyPage())
-        requestRedraw(&mPage);
+        requestRedraw(mPage);
     else
-        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
+        requestRedrawObject(mPage->objects[mActObjectID]->getObject(), mPage->pageID, mActInstance);
 }
 
 void TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& name, int instance)
 {
     DECL_TRACER("TPropertiesStates::onPixmapNameChanged(const QString& bm, const QString& name, int instance)");
 
+    if (!mPage)
+        return;
+
     if (isAnyPage())
     {
         if (name == "ChameleonImage")
-            mPage.srPage.mi = bm;
+            mPage->srPage.mi = bm;
     }
     else
     {
         if (name == "ChameleonImage")
-            mPage.objects[mActObjectID]->setChameleonImage(bm, instance);
+            mPage->objects[mActObjectID]->setChameleonImage(bm, instance);
     }
 
-    saveChangedData(&mPage, TBL_STATES);
+    saveChangedData(mPage, TBL_STATES);
     mChanged = false;
     // Call to draw immediately
     if (isAnyPage())
-        requestRedraw(&mPage);
+        requestRedraw(mPage);
     else
-        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
+        requestRedrawObject(mPage->objects[mActObjectID]->getObject(), mPage->pageID, mActInstance);
 }
 
 void TPropertiesStates::onOrientationChanged(const QString& text, const QVariant& data, const QString& name, int instance)
@@ -1818,18 +1875,21 @@ void TPropertiesStates::onGradientColorChanged(const QList<QColor>& colors, cons
 
     MSG_DEBUG("Name: " << name.toStdString());
 
-    if (isAnyPage())
-        mPage.srPage.gradientColors = colors;
-    else
-        mPage.objects[mActObjectID]->setGradientColors(colors, instance);
+    if (!mPage)
+        return;
 
-    saveChangedData(&mPage, TBL_STATES);
+    if (isAnyPage())
+        mPage->srPage.gradientColors = colors;
+    else
+        mPage->objects[mActObjectID]->setGradientColors(colors, instance);
+
+    saveChangedData(mPage, TBL_STATES);
     mChanged = false;
     // Call to draw immediately
     if (isAnyPage())
-        requestRedraw(&mPage);
+        requestRedraw(mPage);
     else
-        requestRedrawObject(mPage.objects[mActObjectID]->getObject(), mPage.pageID, mActInstance);
+        requestRedrawObject(mPage->objects[mActObjectID]->getObject(), mPage->pageID, mActInstance);
 }
 
 void TPropertiesStates::onSoundChanged(const QString& file, const QString& name, int instance)
@@ -1838,12 +1898,12 @@ void TPropertiesStates::onSoundChanged(const QString& file, const QString& name,
 
     Q_UNUSED(name);
 
-    if (isAnyPage())
+    if (!mPage || isAnyPage())
         return;         // Pages can't play sounds
 
-    mPage.objects[mActObjectID]->setSound(file, instance);
+    mPage->objects[mActObjectID]->setSound(file, instance);
     mChanged = true;
-    markChanged();
+    markChanged(TBL_STATES);
 }
 
 void TPropertiesStates::onVideoFillChanged(const QString& text, const QVariant& data, const QString& name, int instance)

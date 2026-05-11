@@ -274,6 +274,13 @@ void TPropertiesProgramming::setObjectID(int id)
     setSType();
 }
 
+void TPropertiesProgramming::update()
+{
+    DECL_TRACER("TPropertiesProgramming::update()");
+
+    setTable();
+}
+
 void TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int index)
 {
     DECL_TRACER("TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int index)");
@@ -689,7 +696,7 @@ void TPropertiesProgramming::onComboObjectFeedback(const QString& text, const QV
     mActObject.fb = static_cast<ObjHandler::FEEDBACK_t>(data.toInt());
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)
@@ -704,7 +711,7 @@ void TPropertiesProgramming::onSpinAddressPort(int value, const QString& name)
         mActObject.ap = value;
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)
@@ -719,7 +726,7 @@ void TPropertiesProgramming::onSpinAddressCode(int value, const QString& name)
         mActObject.ad = value;
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)
@@ -734,7 +741,7 @@ void TPropertiesProgramming::onSpinChannelPort(int value, const QString& name)
         mActObject.cp = value;
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
@@ -749,7 +756,7 @@ void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
         mActObject.ch = value;
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboLevelControlType(const QString& text, const QVariant& data, const QString& name)
@@ -762,7 +769,7 @@ void TPropertiesProgramming::onComboLevelControlType(const QString& text, const 
     mActObject.vt = data.toString();
     setTable();
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinLevelPort(int value, const QString& name)
@@ -773,7 +780,7 @@ void TPropertiesProgramming::onSpinLevelPort(int value, const QString& name)
 
     mActObject.lp = value;
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinLevelCode(int value, const QString& name)
@@ -784,7 +791,7 @@ void TPropertiesProgramming::onSpinLevelCode(int value, const QString& name)
 
     mActObject.lv = value;
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinLevelControlValue(int value, const QString& name)
@@ -795,7 +802,7 @@ void TPropertiesProgramming::onSpinLevelControlValue(int value, const QString& n
 
     mActObject.va = value;
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinControlRepeatTime(int value, const QString& name)
@@ -806,7 +813,7 @@ void TPropertiesProgramming::onSpinControlRepeatTime(int value, const QString& n
 
     mActObject.rv = value;
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboLevelFunction(const QString& text, const QVariant& data, const QString& name)
@@ -819,7 +826,7 @@ void TPropertiesProgramming::onComboLevelFunction(const QString& text, const QVa
     mActObject.lf = data.toString();
     setTable();
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinRangeLowHigh(int value, const QString& name)
@@ -832,7 +839,7 @@ void TPropertiesProgramming::onSpinRangeLowHigh(int value, const QString& name)
         mActObject.rh = value;
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinRangeDragIncrement(int value, const QString& name)
@@ -843,7 +850,7 @@ void TPropertiesProgramming::onSpinRangeDragIncrement(int value, const QString& 
 
     mActObject.rn = value;
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onComboRangeInverted(const QString& text, const QVariant& data, const QString& name)
@@ -855,7 +862,7 @@ void TPropertiesProgramming::onComboRangeInverted(const QString& text, const QVa
 
     mActObject.ri = data.toInt();
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 void TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& name)
@@ -878,7 +885,7 @@ void TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& nam
     }
 
     mChanged = true;
-    markChanged();
+    markChanged(TBL_PROGRAM);
 }
 
 TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& name)

@@ -50,6 +50,7 @@ class TPropertiesProgramming : public QObject
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t *getActualPage() { return mPage; }
+        void update();
 
     protected:
         void setTable(STATE_TYPE stype=STATE_UNKNOWN);
@@ -73,7 +74,7 @@ class TPropertiesProgramming : public QObject
         void onSpinRangeTimeUpDown(int value, const QString& name);
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
-        virtual void markChanged() = 0;
+        virtual void markChanged(const PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void requestRedraw(Page::PAGE_t *page) = 0;
         virtual Page::PAGE_t getCurrentPage() = 0;
 
