@@ -32,7 +32,6 @@ TElementWidgetText::TElementWidgetText(const QString& text, const QString& name,
     DECL_TRACER("TElementWidgetText::TElementWidgetText(const QString& text, QWidget *parent)");
 
     mFont = this->font();
-    QSignalBlocker sigBlock(this);
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(2);
@@ -72,7 +71,10 @@ void TElementWidgetText::setText(const QString& text)
 {
     DECL_TRACER("TElementWidgetText::setText(const QString& text)");
 
-    QSignalBlocker sigBlock(this);
+    if (mText == text)
+        return;
+
+    QSignalBlocker sigBlock(mLine);
     mText = text;
     mLine->setText(text);
 }
@@ -80,6 +82,9 @@ void TElementWidgetText::setText(const QString& text)
 void TElementWidgetText::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementWidgetText::onLineEditTextChanged(const QString& text)");
+
+    if (mText == text)
+        return;
 
     mText = text;
     emit textChanged(text, mName);
@@ -89,6 +94,8 @@ void TElementWidgetText::onLineEditTextChanged(const QString& text)
 void TElementWidgetText::onPushButtonClicked()
 {
     DECL_TRACER("TElementWidgetText::onPushButtonClicked()");
+
+    QSignalBlocker sigBlock(mLine);
 
     if (mSimple)
     {

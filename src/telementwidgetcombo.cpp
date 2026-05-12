@@ -24,6 +24,7 @@ TElementWidgetCombo::TElementWidgetCombo(QWidget *parent)
     DECL_TRACER("TElementWidgetCombo::TElementWidgetCombo(QWidget *parent)");
 
     init();
+    mInitialized = true;
 }
 
 TElementWidgetCombo::TElementWidgetCombo(const QString& name, QWidget *parent)
@@ -36,6 +37,7 @@ TElementWidgetCombo::TElementWidgetCombo(const QString& name, QWidget *parent)
         setObjectName(name);
 
     init();
+    mInitialized = true;
 }
 
 TElementWidgetCombo::~TElementWidgetCombo()
@@ -47,8 +49,11 @@ void TElementWidgetCombo::init()
 {
     DECL_TRACER("TElementWidgetCombo::init()");
 
+    mBlock = true;
+    QSignalBlocker sigBlock(QComboBox);
     connect(this, &QComboBox::currentTextChanged, this, &TElementWidgetCombo::onCurrentTextChanged);
     connect(this, &QComboBox::currentIndexChanged, this, &TElementWidgetCombo::onCurrentIndexChanged);
+    mBlock = false;
 }
 
 void TElementWidgetCombo::addData(const QList<QVariant>& data)
@@ -59,6 +64,7 @@ void TElementWidgetCombo::addData(const QList<QVariant>& data)
         return;
 
     mBlock = true;
+    QSignalBlocker sigBlock(this);
     int idx = 0;
 
     for (QVariant d : data)
@@ -76,6 +82,7 @@ void TElementWidgetCombo::setDefaultData(const QVariant& data)
     DECL_TRACER("TElementWidgetCombo::setDefaultData(const QVariant& data)");
 
     mBlock = true;
+    QSignalBlocker sigBlock(this);
     int idx = findData(data);
 
     if (idx >= 0)
@@ -88,16 +95,23 @@ void TElementWidgetCombo::setDefaultText(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text)");
 
+    if (mActText == text)
+        return;
+
+    mActText = text;
     mBlock = true;
+    QSignalBlocker sigBlock(this);
     int idx = findText(text);
 
     if (idx >= 0)
     {
         setCurrentIndex(idx);
+        mActIndex = idx;
         mBlock = false;
         return;
     }
 
+    mActIndex = 0;
     insertItem(0, text);
     setCurrentIndex(0);
     mBlock = false;
@@ -108,16 +122,20 @@ void TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& da
     DECL_TRACER("TElementWidgetCombo::setDefaultText(const QString& text, const QVariant& data)");
 
     mBlock = true;
+    QSignalBlocker sigBlock(this);
+    mActText = text;
     int idx = findText(text);
 
     if (idx >= 0)
     {
         setCurrentIndex(idx);
         setItemData(idx, data);
+        mActIndex = idx;
         mBlock = false;
         return;
     }
 
+    mActIndex = 0;
     insertItem(0, text, data);
     setCurrentIndex(0);
     mBlock = false;
@@ -127,11 +145,19 @@ void TElementWidgetCombo::selectItem(const QString& text)
 {
     DECL_TRACER("TElementWidgetCombo::selectItem(const QString& text)");
 
+    if (mActText == text)
+        return;
+
     mBlock = true;
+    QSignalBlocker sigBlock(this);
     int idx = findText(text);
 
     if (idx >= 0)
+    {
+        mActText = text;
+        mActIndex = idx;
         setCurrentIndex(idx);
+    }
 
     mBlock = false;
 }
@@ -141,10 +167,16 @@ void TElementWidgetCombo::selectItem(const QVariant& data)
     DECL_TRACER("TElementWidgetCombo::selectItem(const QVariant& data)");
 
     mBlock = true;
+    QSignalBlocker sigBlock(this);
     int idx = findData(data);
 
-    if (idx >= 0)
+    if (idx >= 0 && mActIndex != idx)
+    {
+        mActIndex = idx;
+        mActData = data;
+        mActText = itemText(idx);
         setCurrentIndex(idx);
+    }
 
     mBlock = false;
 }
@@ -153,7 +185,7 @@ void TElementWidgetCombo::onCurrentTextChanged(const QString &text)
 {
     DECL_TRACER("TElementWidgetCombo::onCurrentTextChanged(const QString &text)");
 
-    if (mBlock || mActText == text)
+    if (mBlock || !mInitialized || mActText == text)
         return;
 
     mActText = text;
@@ -174,7 +206,7 @@ void TElementWidgetCombo::onCurrentIndexChanged(int index)
 {
     DECL_TRACER("TElementWidgetCombo::onCurrentIndexChanged(int index)");
 
-    if (mBlock)
+    if (mBlock || !mInitialized)
         return;
 
     mActText = itemText(index);

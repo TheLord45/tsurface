@@ -75,6 +75,8 @@ void TElementEvent::setTextLine()
 {
     DECL_TRACER("TElementEvent::setTextLine()");
 
+    QSignalBlocker sigBlock(mLine);
+
     if (mFuncs.size() > 0)
     {
         QString text;
@@ -134,6 +136,40 @@ void TElementEvent::setTextLine()
         mLine->clear();
 }
 
+bool TElementEvent::hasChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs)
+{
+    DECL_TRACER("TElementEvent::hasChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs)");
+
+    if (funcs.size() != mFuncs.size())
+        return true;
+
+    QList<ObjHandler::PUSH_FUNC_T>::ConstIterator iter;
+    int pos = 0;
+
+    for (iter = funcs.constBegin(); iter != funcs.constEnd(); ++iter)
+    {
+        if (iter->ID != mFuncs[pos].ID ||
+            iter->action != mFuncs[pos].action ||
+            iter->pfAction != mFuncs[pos].pfAction ||
+            iter->encode != mFuncs[pos].encode ||
+            iter->event != mFuncs[pos].event ||
+            iter->flag != mFuncs[pos].flag ||
+            iter->item != mFuncs[pos].item ||
+            iter->key != mFuncs[pos].key ||
+            iter->name != mFuncs[pos].name ||
+            iter->port != mFuncs[pos].port ||
+            iter->pfType != mFuncs[pos].pfType ||
+            iter->pfName != mFuncs[pos].pfName ||
+            iter->value1 != mFuncs[pos].value1 ||
+            iter->value2 != mFuncs[pos].value2 ||
+            iter->value3 != mFuncs[pos].value3 ||
+            iter->text != mFuncs[pos].text)
+            return true;
+    }
+
+    return false;
+}
+
 void TElementEvent::onClicked()
 {
     DECL_TRACER("TElementEvent::onClicked()");
@@ -145,8 +181,12 @@ void TElementEvent::onClicked()
     if (dlg.exec() == QDialog::Rejected)
         return;
 
-    mFuncs = dlg.getFuncs();
-    setTextLine();
+    QList<ObjHandler::PUSH_FUNC_T> funcs = dlg.getFuncs();
 
-    emit eventChanged(mFuncs, mEventType, mName, mInstance);
+    if (hasChanged(funcs))
+    {
+        mFuncs = funcs;
+        setTextLine();
+        emit eventChanged(mFuncs, mEventType, mName, mInstance);
+    }
 }

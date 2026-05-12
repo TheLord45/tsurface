@@ -386,6 +386,8 @@ void TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& da
     if (!w)
         return;
 
+    QSignalBlocker sigBlock(w);
+
     switch(etype)
     {
         case W_COMBO:
@@ -565,9 +567,10 @@ void TPropertiesProgramming::createPage()
 {
     DECL_TRACER("TPropertiesProgramming::createPage()");
 
-    if (mInitialized)
+    if (mInitialized || !mTable)
         return;
 
+    QSignalBlocker sigBlock(mTable);
     mTable->clear();
     mTable->setColumnCount(2);
     mTable->setRowCount(gMessages.size());

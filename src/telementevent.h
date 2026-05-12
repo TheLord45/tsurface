@@ -47,6 +47,7 @@ class TElementEvent : public QWidget
     private:
         void init();
         void setTextLine();
+        bool hasChanged(const QList<ObjHandler::PUSH_FUNC_T>& funcs);
 
         TLineEditElide *mLine;
         QToolButton *mButton;

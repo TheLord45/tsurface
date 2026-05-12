@@ -105,6 +105,6 @@ void TElementWidgetFont::setFontName()
 
     QString fntName = TFonts::getFontName(mFont);
 
-    QSignalBlocker block(this);
+    QSignalBlocker block(mLine);
     mLine->setText(fntName);
 }

@@ -46,6 +46,9 @@ void TLineEditElide::TLineEditElide::onTextChanged(const QString& text)
 {
     DECL_TRACER("TLineEditElide::TLineEditElide::onTextChanged(const QString& text)");
 
+    if (mText == text)
+        return;
+
     mText = text;
     emit textChanged(text, elideWithThreeDots(text));
 }
@@ -54,7 +57,11 @@ void TLineEditElide::setText(const QString& text)
 {
     DECL_TRACER("TLineEditElide::setText(const QString& text)");
 
+    if (mText == text)
+        return;
+
     mText = text;
+    QSignalBlocker sigBlock(this);
 
     if (mElideEnabled)
         QLineEdit::setText(elideWithThreeDots(mText));
@@ -79,7 +86,10 @@ void TLineEditElide::setElide(bool state, const QString& el)
         mElideString = el;
 
     if (state && !mText.isEmpty())
+    {
+        QSignalBlocker sigBlock(this);
         QLineEdit::setText(elideWithThreeDots(mText));
+    }
 }
 
 QString TLineEditElide::elideWithThreeDots(const QString& s)

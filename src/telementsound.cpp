@@ -77,7 +77,11 @@ void TElementSound::setSound(const QString& sound)
 {
     DECL_TRACER("TElementSound::setSound(const QString &sound)");
 
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(mLine);
+
+    if (mSound == sound)
+        return;
+
     mSound = sound;
     mLine->setText(sound);
 }
@@ -91,7 +95,11 @@ void TElementSound::onPushButtonClicked()
     if (ss.exec() == QDialog::Rejected)
         return;
 
+    if (mSound == ss.getSound())
+        return;
+
     mSound = ss.getSound();
+    QSignalBlocker sigBlock(mLine);
     mLine->setText(mSound);
     emit soundFileChanged(mSound, mName);
     emit soundFileChangedInst(mSound, mName, mInstance);

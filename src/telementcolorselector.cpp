@@ -62,7 +62,6 @@ void TElementColorSelector::init()
 {
     DECL_TRACER("TElementColorSelector::init()");
 
-    QSignalBlocker sigBlock(this);
     QHBoxLayout *layout = nullptr;
 
     if (mNoLayout && mParent)
@@ -95,7 +94,6 @@ void TElementColorSelector::setColor(const QColor& color)
 {
     DECL_TRACER("TElementColorSelector::setColor(const QColor& color)");
 
-    QSignalBlocker sigBlock(this);
     mColor = color;
     mLabel->setStyleSheet(QString("background-color: %1").arg(mColor.name(QColor::HexArgb)));
 }

@@ -57,7 +57,7 @@ void TElementListviewComponents::setProperty(int setting)
         return;
 
     mSetting = setting;
-    QSignalBlocker sBlock(this);
+    QSignalBlocker sBlock(mLine);
     mLine->setText(makeText());
 }
 
@@ -84,7 +84,7 @@ void TElementListviewComponents::onButtonClicked()
     if (lvcd.secondaryText())
         setting |= LISTVIEW_TEXT_SECONDARY;
 
-    if (setting > 0)
+    if (mSetting != setting && setting > 0)
     {
         setProperty(setting);
         emit componentChanged(setting, mName);

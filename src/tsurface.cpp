@@ -2004,6 +2004,11 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
     MSG_DEBUG("New position: " << pt.x() << ", " << pt.y());
     geom.setX(pt.x());
     geom.setY(pt.y());
+    bool change = false;
+
+    if (object->getSize() != geom)
+        change = true;
+
     object->setSize(geom);
     int index = TPageHandler::Current().getObjectIndex(*page, w->getId());
 
@@ -2014,7 +2019,9 @@ void TSurface::onObjectMoved(TResizableWidget *w, QPoint pt)
     }
 
     TWorkSpaceHandler::Current().setActualObject(object, index);
-    mProjectChanged = true;
+
+    if (change)
+        mProjectChanged = true;
 }
 
 void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
@@ -2038,7 +2045,12 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
     if (!object)
         return;
 
+    bool change = false;
     QRect rect = object->getSize();
+
+    if (rect != geom)
+        change = true;
+
     MSG_DEBUG("Original size: " << rect.width() << " x " << rect.height());
     MSG_DEBUG("New size     : " << geom.width() << " x " << geom.height());
     object->setSize(geom);
@@ -2052,7 +2064,9 @@ void TSurface::onObjectSizeChanged(TResizableWidget *w, QSize size)
 
     TWorkSpaceHandler::Current().setActualObject(object, index);
     onRedrawObject(object->getObject(), w->getPageId());
-    mProjectChanged = true;
+
+    if (change)
+        mProjectChanged = true;
 }
 
 void TSurface::onAddNewPage()

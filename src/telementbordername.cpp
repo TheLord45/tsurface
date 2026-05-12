@@ -34,7 +34,6 @@ TElementBorderName::TElementBorderName(const QString& brd, const QString& name, 
 
     QList<FAMILY_t> borders = TGraphics::Current().getBorders();
 
-    QSignalBlocker sigBlock(this);
     mCombo = new QComboBox(this);
     mTreeView = new QTreeView(mCombo);
     mTreeView->setHeaderHidden(true);
@@ -91,7 +90,7 @@ void TElementBorderName::setBorder(const QString& border)
 {
     DECL_TRACER("TElementBorderName::setBorder(const QString& border)");
 
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(mCombo);
     mBorder = border;
 
     const QModelIndexList matches = mModel->match(mModel->index(0, 0), Qt::DisplayRole, border, 1, Qt::MatchExactly | Qt::MatchRecursive);
@@ -111,6 +110,9 @@ void TElementBorderName::onComboTextChanged(const QString& text)
 {
     DECL_TRACER("TElementBorderName::onComboTextChanged(const QString& text)");
 
+    if (mBorder == text)
+        return;
+
     mBorder = text;
     emit borderChanged(text, mName);
     emit borderChangedInst(text, mName, mInstance);
@@ -124,6 +126,9 @@ void TElementBorderName::onComboIndexChanged(int index)
     int number = mCombo->itemData(index).toInt();
     MSG_DEBUG("Data changed: " << number << " at index " << index);
 
-    if (number > 0)
+    if (mSelected != number && number > 0)
+    {
+        mSelected = number;
         emit borderDataChanged(number, mName, mInstance);
+    }
 }

@@ -101,7 +101,7 @@ void TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitm
 {
     DECL_TRACER("TElementBitmapSelector::setBitmaps(const QList<ObjHandler::BITMAPS_t>& bitmaps)");
 
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(mLine);
     mBitmaps = bitmaps;
 
     if (mLine && !bitmaps.empty())

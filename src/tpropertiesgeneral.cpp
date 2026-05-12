@@ -757,7 +757,7 @@ int TPropertiesGeneral::setTableWidget(int row, int col, const QVariant& data, E
     if (!w)
         return 0;
 
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(w);
 
     switch(etype)
     {
@@ -771,6 +771,7 @@ int TPropertiesGeneral::setTableWidget(int row, int col, const QVariant& data, E
 
                 if (widget)
                 {
+                    QSignalBlocker sigCombo(widget);
                     TElementWidgetCombo *combo = static_cast<TElementWidgetCombo *>(widget);
                     QStringList items;
                     QList<QVariant> states = { "l/t", "", "r/b" };

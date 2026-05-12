@@ -27,7 +27,6 @@ TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWi
 {
     DECL_TRACER("TElementLineEdit::TElementLineEdit(const QString& text, const QString& name, QWidget *parent)");
 
-    QSignalBlocker sigBlock(this);
     mLine = new QLineEdit(this);
     mLine->setText(text);
     mLine->setCursorPosition(0);
@@ -45,7 +44,7 @@ void TElementLineEdit::setText(const QString& text)
     DECL_TRACER("TElementLineEdit::setText(const QString& text)");
 
     mText = text;
-    QSignalBlocker block(this);
+    QSignalBlocker block(mLine);
 
     if (!mLine)
     {
@@ -61,6 +60,9 @@ void TElementLineEdit::onTextChanged(const QString& text)
 {
     DECL_TRACER("TElementLineEdit::onTextChanged(const QString& text)");
 
+    if (text == mText)
+        return;
+
     mText = text;
     emit inputTextChanged(text, mName);
     emit inputTextChangedInst(text, mName, mInstance);
@@ -73,5 +75,6 @@ void TElementLineEdit::setMaxCharacters(int max)
     if (max < 1)
         return;
 
+    QSignalBlocker sigBlock(mLine);
     mLine->setMaxLength(max);
 }

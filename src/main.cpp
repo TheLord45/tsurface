@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
     TSurface w;
     w.show();
 
-    return app.exec();
+    int r = app.exec();
+    MSG_INFO("Exiting with code: " << r);
+    return r;
 }
 

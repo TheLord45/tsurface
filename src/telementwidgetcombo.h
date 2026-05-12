@@ -60,6 +60,7 @@ class TElementWidgetCombo : public QComboBox
         bool mHaveData{false};
         int mInstance{-2};
         bool mBlock{false};
+        bool mInitialized{false};
 };
 
 #endif // TELEMENTWIDGETCOMBO_H

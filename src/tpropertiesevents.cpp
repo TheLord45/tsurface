@@ -455,7 +455,7 @@ void TPropertiesEvents::setCellWidget(int row, int col, const QList<ObjHandler::
     if (!w)
         return;
 
-    QSignalBlocker sigBlock(mTable);
+    QSignalBlocker sigBlock(w);
 
     TElementEvent *p = static_cast<TElementEvent *>(w);
     p->setFuncs(pf);

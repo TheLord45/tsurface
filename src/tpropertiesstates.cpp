@@ -227,7 +227,14 @@ void TPropertiesStates::update()
 {
     DECL_TRACER("TPropertiesStates::update()");
 
-    createPage(false);
+    // Show the states of the object
+    int inst = -1;
+
+    for (QTableWidget *w : mStates)
+    {
+        setTable(w, inst);
+        inst++;
+    }
 }
 
 void TPropertiesStates::clear()
@@ -655,7 +662,6 @@ void TPropertiesStates::createPage(bool force)
     if (totalHeight > 0)
         mTreeWidget->setMaximumHeight(totalHeight + mTreeWidget->height());
 
-
     top->setExpanded(true);
     rebuildTree();
     mInitialized = true;
@@ -1050,7 +1056,7 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
     if (!w)
         return 0;
 
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(w);
 
     switch(etype)
     {
@@ -1142,6 +1148,8 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
     if (!w)
         return 0;
 
+    QSignalBlocker sigBlocker(w);
+
     if (etype == W_BITMAPSELECTOR)
     {
         TElementBitmapSelector *p = static_cast<TElementBitmapSelector *>(w);
@@ -1168,6 +1176,8 @@ int TPropertiesStates::setTableWidget(QTableWidget *table, int row, int col, con
     if (!w)
         return 0;
 
+    QSignalBlocker sigBlocker(w);
+
     if (etype == W_GRADIENTCOLORS)
     {
         TElementGradientColors *p = static_cast<TElementGradientColors *>(w);
@@ -1193,6 +1203,8 @@ int TPropertiesStates::setTableWidgetFont(QTableWidget *table, int row, int col,
 
     if (!w)
         return 0;
+
+    QSignalBlocker sigBlocker(w);
 
     if (etype == W_FONT)
     {

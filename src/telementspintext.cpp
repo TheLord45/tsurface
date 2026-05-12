@@ -32,7 +32,6 @@ TElementSpinText::TElementSpinText(int port, const QString& cmd, const QString& 
 
     setContentsMargins(0, 0, 0, 0);
 
-    mBlock = true;
     mSpinPort = new QSpinBox;
     mSpinPort->setRange(0, 999999);
     mSpinPort->setValue(port);
@@ -50,7 +49,6 @@ TElementSpinText::TElementSpinText(int port, const QString& cmd, const QString& 
     layout->addWidget(mLineEdit);
     connect(mSpinPort, &QSpinBox::valueChanged, this, &TElementSpinText::onValueChanged);
     connect(mLineEdit, &QLineEdit::textEdited, this, &TElementSpinText::onTextChanged);
-    mBlock = false;
 }
 
 void TElementSpinText::setRange(int start, int end)
@@ -60,9 +58,8 @@ void TElementSpinText::setRange(int start, int end)
     if (start > end || start == end)
         return;
 
-    mBlock = true;
+    QSignalBlocker sigBlock(mSpinPort);
     mSpinPort->setRange(start, end);
-    mBlock = false;
 }
 
 void TElementSpinText::setContent(int port, const QString& cmd)
@@ -71,17 +68,19 @@ void TElementSpinText::setContent(int port, const QString& cmd)
 
     mPort = port;
     mCommand = cmd;
-    mBlock = true;
+
+    QSignalBlocker sigSpin(mSpinPort);
+    QSignalBlocker sigLine(mLineEdit);
+
     mSpinPort->setValue(port);
     mLineEdit->setText(cmd);
-    mBlock = false;
 }
 
 void TElementSpinText::onValueChanged(int value)
 {
     DECL_TRACER("TElementSpinText::onValueChanged(int value)");
 
-    if (mBlock)
+    if (mBlock || mPort == value)
         return;
 
     mPort = value;
@@ -92,17 +91,16 @@ void TElementSpinText::onTextChanged(const QString& text)
 {
     DECL_TRACER("TElementSpinText::onTextChanged(const QString& text)");
 
-    if (mBlock)
+    if (mBlock || mCommand == text)
         return;
 
     mCommand = text;
 
     if (mCommand.isEmpty())
     {
-        mBlock = true;
         mCommand = "none";
+        QSignalBlocker sigBlock(mLineEdit);
         mLineEdit->setText(mCommand);
-        mBlock = false;
     }
 
     emit contentChanged(mPort, mCommand, mName);

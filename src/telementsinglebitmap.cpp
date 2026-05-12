@@ -51,8 +51,6 @@ void TElementSingleBitmap::init()
 {
     DECL_TRACER("TElementSingleBitmap::init()");
 
-    QSignalBlocker sigBlock(this);
-
     if (!mName.isEmpty() && mName != objectName())
         setObjectName(mName);
 
@@ -80,7 +78,7 @@ void TElementSingleBitmap::setPixmapName(const QString& bm)
     DECL_TRACER("TElementSingleBitmap::setPixmapName(const QString& bm)");
 
     mPixmapName = bm;
-    QSignalBlocker sigBlock(this);
+    QSignalBlocker sigBlock(mLine);
 
     if (mLine)
         mLine->setText(bm);
@@ -89,6 +87,9 @@ void TElementSingleBitmap::setPixmapName(const QString& bm)
 void TElementSingleBitmap::onLineEditTextChanged(const QString& text)
 {
     DECL_TRACER("TElementBitmapSelector::onLineEditTextChanged(const QString& text)");
+
+    if (mPixmapName == text)
+        return;
 
     mPixmapName = text;
 
@@ -112,10 +113,11 @@ void TElementSingleBitmap::onPushButtonClicked()
 
     QList<ObjHandler::BITMAPS_t> bm = bmDialog.getSelected();
 
-    if (bm.empty())
+    if (bm.empty() || mPixmapName == bm[0].fileName)
         return;
 
     mPixmapName = bm[0].fileName;
+    QSignalBlocker sigBlocker(mLine);
     mLine->setText(mPixmapName);
 
     emit bitmapChanged(mPixmapName, mName);
