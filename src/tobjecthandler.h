@@ -22,6 +22,8 @@
 #include <QColor>
 #include <QPixmap>
 
+#include "tmisc.h"
+
 class TCanvasWidget;
 class QLabel;
 
@@ -510,6 +512,7 @@ class TObjectHandler
         static int getButtonTypeIndex(ObjHandler::BUTTONTYPE bt);
         ObjHandler::SR_T getSrCommon();
         bool drawObject(TResizableWidget *widget, int instance);
+        ObjHandler::TOBJECT_t& assignSmart(const ObjHandler::TOBJECT_t& obj, const PROPERTIES_t& prop);
 
         inline void setSize(const QRect& rect)
         {

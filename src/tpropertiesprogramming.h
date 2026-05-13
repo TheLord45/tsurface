@@ -41,12 +41,7 @@ class TPropertiesProgramming : public QObject
 
         void setParent(QWidget *parent) { mParent = parent; };
         void setPage(Page::PAGE_t *page);
-        void setProgrammingPage(const QString& name);
-        void setProgrammingPage(int id, bool loaded=false);
-        void setProgrammingPopup(const QString& name);
-        void setProgrammingPopup(int id, bool loaded=false);
-        void setObject(ObjHandler::TOBJECT_t& object, int id);
-        void setObjectID(int id);
+        void setObject(int id);
         void setObjectType(ObjHandler::BUTTONTYPE btype, int index);
         bool isChanged() { return mChanged; }
         Page::PAGE_t *getActualPage() { return mPage; }

@@ -92,18 +92,33 @@ TPropertiesProgramming::~TPropertiesProgramming()
     delete mIntValidator;
 }
 
+/**
+ * @brief TPropertiesProgramming::setPage
+ *
+ * Sets the page to the given @b page. If there were already a page assigned
+ * and this page were marked as changed, it will be saved first. Then the new
+ * page is assigned. Because this is for assigning a page only, no objects are
+ * selected. The index @b mActObjectID is set to -1 to mark that no object is
+ * selected.
+ *
+ * The last step is to set all values in the table so that the settings for a
+ * page are visible.
+ *
+ * @param page
+ */
 void TPropertiesProgramming::setPage(Page::PAGE_t *page)
 {
     DECL_TRACER("TPropertiesProgramming::setPage(Page::PAGE_t *page)");
 
-    if (!page || !mPage || page->pageID == mPage->pageID)
+    if (!page)
         return;
 
-    if (mPage->pageID > 0 && mChanged)
+    if (mPage && mPage->pageID > 0 && mChanged)
         saveChangedData(mPage, TBL_PROGRAM);
 
     mChanged = false;
     mPage = page;
+    mActObjectID = -1;
 
     switch (page->popupType)
     {
@@ -118,162 +133,47 @@ void TPropertiesProgramming::setPage(Page::PAGE_t *page)
     setTable();
 }
 
-void TPropertiesProgramming::setProgrammingPage(const QString& name)
+/**
+ * @brief TPropertiesProgramming::setObject
+ *
+ * Sets a new object. If the actual loaded object is marked as changed, all
+ * values who differ from the newly retrieved object are assigned to the actual
+ * one. Then the actual object is saved.
+ *
+ * @param id    The ID (index) of an object.
+ */
+void TPropertiesProgramming::setObject(int id)
 {
-    DECL_TRACER("TPropertiesProgramming::setProgrammingPage(const QString& name)");
-
-    if (!mTable)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTableWidget\"!")
-        return;
-    }
-
-    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
-
-    if (!page || page->pageID == mPage->pageID)
-        return;
-
-    if (mPage->pageID > 0 && mChanged)
-        saveChangedData(mPage, TBL_PROGRAM);
-
-    mChanged = false;
-    mPage = page;
-    setProgrammingPage(mPage->pageID, true);
-}
-
-void TPropertiesProgramming::setProgrammingPage(int id, bool loaded)
-{
-    DECL_TRACER("TPropertiesProgramming::setProgrammingPage(int id, bool loaded)");
-
-    if (!mTable)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTableWidget\"!")
-        return;
-    }
-
-    Page::PAGE_t *page = nullptr;
-    bool equal = false;
-
-    if (!loaded)
-    {
-        page = TPageHandler::Current().getPage(id);
-
-        if (!page)
-            return;
-
-        if (mPage && page->pageID == mPage->pageID)
-            equal = true;
-    }
-
-    if (mPage && !loaded && !equal && mPage->pageID > 0 && mChanged)
-        saveChangedData(mPage, TBL_PROGRAM);
-
-    mChanged = false;
-
-    if (page->pageID > 0)
-        mPage = page;
-
-    if (!mPage || mPage->pageID <= 0)
-        return;
-
-    mStype = STATE_PAGE;
-    setTable();
-}
-
-void TPropertiesProgramming::setProgrammingPopup(const QString& name)
-{
-    DECL_TRACER("TPropertiesProgramming::setProgrammingPopup(const QString& name)");
-
-    if (!mTable)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTableWidget\"!")
-        return;
-    }
-
-    bool equal = false;
-    Page::PAGE_t *page = TPageHandler::Current().getPage(name);
-
-    if (!page || !mPage)
-        return;
-
-    if (page->pageID == mPage->pageID)
-        equal = true;
-
-    if (!equal && mPage->pageID > 0 && mChanged)
-        saveChangedData(mPage, TBL_PROGRAM);
-
-    mChanged = false;
-    mPage = page;
-    setProgrammingPopup(mPage->pageID, true);
-}
-
-void TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)
-{
-    DECL_TRACER("TPropertiesProgramming::setProgrammingPopup(int id, bool loaded)");
-
-    if (!mTable)
-    {
-        MSG_ERROR("Class was not properly initialized. Missing pointer to \"QTableWidget\"!")
-        return;
-    }
-
-    Page::PAGE_t *page = nullptr;
-    bool equal = false;
-
-    if (!loaded)
-    {
-        page = TPageHandler::Current().getPage(id);
-
-        if (!page)
-            return;
-
-        if (page->pageID == mPage->pageID)
-            equal = true;
-    }
-
-    if (mPage && !loaded && !equal && mPage->pageID > 0 && mChanged)
-        saveChangedData(mPage, TBL_PROGRAM);
-
-    mChanged = false;
-
-    if (page->pageID > 0)
-        mPage = page;
-
-    if (!mPage || mPage->pageID <= 0)
-        return;
-
-    mStype = STATE_POPUP;
-    setTable();
-}
-
-void TPropertiesProgramming::setObjectID(int id)
-{
-    DECL_TRACER("TPropertiesProgramming::setObjectID(int id)");
+    DECL_TRACER("TPropertiesProgramming::setObject(int id)");
 
     if (!mPage)
         return;
 
+    // Check if the new ID is in range.
     if (id < 0 || id >= mPage->objects.size())
     {
-        MSG_WARNING("Invalid object ID: " << id << ", Number objects: " << mPage->objects.size());
+        MSG_ERROR("ID " << id << " is out of range from objects for page " << mPage->pageID << "!");
         return;
     }
 
-    MSG_DEBUG("Old ID: " << mActObjectID << ", new ID: " << id);
-
-    if (mActObjectID != id)
+    if (mChanged && mActObjectID >= 0 && mActObjectID < mPage->objects.size())
     {
-        if (mChanged)
-            mPage->objects[mActObjectID]->setObject(mActObject);
-
-        mActObjectID = id;
-        mActObject = mPage->objects[id]->getObject();
+        mPage->objects[mActObjectID]->assignSmart(mActObject, TBL_PROGRAM);
         mChanged = false;
     }
 
+    mActObject = mPage->objects[id]->getObject();
+    mActObjectID = id;
     setSType();
 }
 
+/**
+ * @brief TPropertiesProgramming::update
+ *
+ * This method calls @b setTable() to update the values in the table widget. It
+ * is a wrapper method to be compatible with the other properties classes.
+ * Beside that the name of the method makes the purpose more clear.
+ */
 void TPropertiesProgramming::update()
 {
     DECL_TRACER("TPropertiesProgramming::update()");
@@ -299,41 +199,6 @@ void TPropertiesProgramming::setObjectType(ObjHandler::BUTTONTYPE btype, int ind
     setSType();
     requestRedraw(mPage);
     mChanged = true;
-}
-
-void TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)
-{
-    DECL_TRACER("TPropertiesProgramming::setObject(ObjHandler::TOBJECT_t& object, int id)");
-
-    MSG_DEBUG("Changed: " << (mChanged ? "YES" : "NO") << ", BI: " << object.bi << ", new ID: " << id << ", old ID: " << mActObjectID);
-
-    if (!mPage)
-        return;
-
-    if (id >= 0 && mActObjectID != id)
-    {
-        if (mChanged && mActObjectID >= 0 && mActObjectID < mPage->objects.size())
-        {
-            mPage->objects[mActObjectID]->setObject(mActObject);
-            saveChangedData(mPage, TBL_PROGRAM);
-        }
-        // Check if the new ID is in range. If not, reload page.
-        if (id >= mPage->objects.size())
-            mPage = TPageHandler::Current().getPage(mPage->pageID);
-
-        mActObject = object;
-        mActObjectID = id;
-        mChanged = false;
-    }
-    else if (id >= 0)
-    {
-        mActObject = object;
-        mActObjectID = id;
-    }
-    else
-        mActObjectID = -1;
-
-    setSType();
 }
 
 void TPropertiesProgramming::setSType()

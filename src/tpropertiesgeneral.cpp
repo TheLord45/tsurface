@@ -205,8 +205,8 @@ TPropertiesGeneral::~TPropertiesGeneral()
 
     if (mTable && mConnected)
     {
-        disconnect(mTable, &QTableWidget::cellChanged, this, &TPropertiesGeneral::onCellChanged);
-        disconnect(mTable, &QTableWidget::cellActivated, this, &TPropertiesGeneral::onCellActivated);
+//        disconnect(mTable, &QTableWidget::cellChanged, this, &TPropertiesGeneral::onCellChanged);
+//        disconnect(mTable, &QTableWidget::cellActivated, this, &TPropertiesGeneral::onCellActivated);
         mConnected = false;
     }
 }

@@ -1935,23 +1935,25 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
     if (!w)
         return;
 
-    MSG_DEBUG("Page: " << w->getPageId() << " with object: " << w->getId());
-    Page::PAGE_t *page = TPageHandler::Current().getPage(w->getPageId());
+    int buttonIndex = w->getId();
+    int pageID = w->getPageId();
+    MSG_DEBUG("Page: " << w->getPageId() << " with object: " << buttonIndex);
+    Page::PAGE_t *page = TPageHandler::Current().getPage(pageID);
 
     if (!page)
     {
-        MSG_DEBUG("Page " << w->getPageId() << " not found!");
+        MSG_DEBUG("Page " << pageID << " not found!");
         return;
     }
 
     if (selected)
     {
-        TObjectHandler *object = TPageHandler::Current().getObjectHandler(w->getPageId(), w->getId());
+        TObjectHandler *object = TPageHandler::Current().getObjectHandler(pageID, buttonIndex);
 
         if (!object)
             return;
 
-        TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+        TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, buttonIndex));
         m_ui->actionDelete->setEnabled(true);
     }
     else
@@ -1977,7 +1979,7 @@ void TSurface::onObjectSelectChanged(TResizableWidget *w, bool selected)
                     return;
                 }
                 // Here we have a valid object. We set the properties to reflect this.
-                TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, w->getId()));
+                TWorkSpaceHandler::Current().setActualObject(object, TPageHandler::Current().getObjectIndex(*page, buttonIndex));
                 m_ui->actionDelete->setEnabled(true);
             }
         }

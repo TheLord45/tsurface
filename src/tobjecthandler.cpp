@@ -268,6 +268,116 @@ bool TObjectHandler::drawObject(TResizableWidget *widget, int instance)
     // TODO: Add code to save images so they must not be drawn new every time.
 }
 
+ObjHandler::TOBJECT_t& TObjectHandler::assignSmart(const ObjHandler::TOBJECT_t& obj, const PROPERTIES_t& prop)
+{
+    DECL_TRACER("TObjectHandler::assignSmart(const ObjHandler::TOBJECT_t& obj, const PROPERTIES_t& prop)");
+
+    if (mObject.bi != obj.bi)   // This must not change!
+        return mObject;
+
+    if (prop == TBL_GENERAL || prop == TBL_UNKNOWN)
+    {
+        mObject.type = obj.type;
+        mObject.na = obj.na;
+        mObject.bd = obj.bd;
+        mObject.li = obj.li;
+        mObject.lt = obj.lt;
+        mObject.tp = obj.tp;
+        mObject.wt = obj.wt;
+        mObject.ht = obj.ht;
+        mObject.zo = obj.zo;
+        mObject.ddt = obj.ddt;
+        mObject.bs = obj.bs;
+        mObject.hs = obj.hs;
+        mObject.ti = obj.ti;
+        mObject.tr = obj.tr;
+        mObject.tc = obj.tc;
+        mObject.tj = obj.tj;
+        mObject.tk = obj.tk;
+        mObject.of = obj.of;
+        mObject.tg = obj.tg;
+        mObject.lvc = obj.lvc;
+        mObject.lvh = obj.lvh;
+        mObject.lvl = obj.lvl;
+        mObject.lvg = obj.lvg;
+        mObject.lhp = obj.lhp;
+        mObject.lvp = obj.lvp;
+        mObject.lvs = obj.lvs;
+        mObject.lsh = obj.lsh;
+        mObject.lva = obj.lva;
+        mObject.lds = obj.lds;
+        mObject.ldm = obj.ldm;
+        mObject.dr = obj.dr;
+        mObject.stateCount = obj.stateCount;
+        mObject.rm = obj.rm;
+        mObject.nu = obj.nu;
+        mObject.nd = obj.nd;
+        mObject.ar = obj.ar;
+        mObject.ru = obj.ru;
+        mObject.rd = obj.rd;
+        mObject.lu = obj.lu;
+        mObject.ld = obj.ld;
+        mObject.rv = obj.rv;
+        mObject.ji = obj.ji;    // ? (joystick not available for G5)
+        mObject.cd = obj.cd;
+        mObject.hd = obj.hd;
+        mObject.da = obj.da;
+        mObject.pp = obj.pp;
+        mObject.sd = obj.sd;
+        mObject.sc = obj.sc;
+        mObject.cc = obj.cc;
+        mObject.mt = obj.mt;
+        mObject.dt = obj.dt;
+        mObject.inputType = obj.inputType;
+        mObject.im = obj.im;
+        mObject.st = obj.st;
+        mObject.ws = obj.ws;
+        mObject.on = obj.on;
+        mObject.sa = obj.sa;
+        mObject.dy = obj.dy;
+        mObject.rs = obj.rs;
+        mObject.ba = obj.ba;
+        mObject.bo = obj.bo;
+        mObject.sw = obj.sw;
+        mObject.ds = obj.ds;
+        mObject.sdd = obj.sdd;
+        mObject.we = obj.we;
+        mObject.pc = obj.pc;
+        mObject.ac_di = obj.ac_di;
+    }
+
+    if (prop == TBL_PROGRAM || prop == TBL_UNKNOWN)
+    {
+        mObject.fb = obj.fb;
+        mObject.ap = obj.ap;
+        mObject.ad = obj.ad;
+        mObject.ch = obj.ch;
+        mObject.cp = obj.cp;
+        mObject.lp = obj.lp;
+        mObject.lv = obj.lv;
+        mObject.ta = obj.ta;
+        mObject.so = obj.so;
+        mObject.co = obj.co;
+        mObject.cm = obj.cm;
+        mObject.va = obj.va;
+        mObject.rl = obj.rl;
+        mObject.rh = obj.rh;
+        mObject.ri = obj.ri;
+        mObject.rn = obj.rn;
+        mObject.lf = obj.lf;
+        mObject.vt = obj.vt;        // TODO: Check!
+        mObject.op = obj.op;
+    }
+
+    if (prop == TBL_STATES || prop == TBL_UNKNOWN)
+        mObject.sr = obj.sr;
+
+    if (prop == TBL_EVENTS)
+        mObject.pushFunc = obj.pushFunc;
+
+    return mObject;
+}
+
 // Getter / Setter
 void TObjectHandler::setDrawOrder(const QString& _do, int instance)
 {

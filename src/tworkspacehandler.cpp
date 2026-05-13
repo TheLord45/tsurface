@@ -142,7 +142,7 @@ void TWorkSpaceHandler::setActualObject(TObjectHandler *object, int index)
         return;
 
     TPropertiesGeneral::setGeneralObjectID(index);
-    TPropertiesProgramming::setObject(object->getObject(), index);
+    TPropertiesProgramming::setObject(index);
     TPropertiesStates::setObject(object, index);
     TPropertiesEvents::setObjectIndex(index);
 }
@@ -262,16 +262,16 @@ void TWorkSpaceHandler::setAllProperties(Page::PAGE_t *page, STATE_TYPE stype, i
 
     if (st == STATE_PAGE || st == STATE_POPUP || st == STATE_SUBPAGE)
     {
-        setProgrammingPage(page->pageID, false);     // Programming properties
+        TPropertiesProgramming::setPage(page);       // Programming properties
         TPropertiesStates::setPage(page);            // State properties
         TPropertiesEvents::setPage(page);
     }
 
     if (objectID >= 0 && objectID < page->objects.size())
     {
-        TPropertiesProgramming::setObjectID(objectID);      // Programming properties objects
+        TPropertiesProgramming::setObject(objectID);        // Programming properties objects
         TPropertiesStates::setActualObject(objectID, st);   // State properties objects
-        TPropertiesEvents::setObjectIndex(objectID);
+        TPropertiesEvents::setObjectIndex(objectID);        // Event properties objects
         TPropertiesEvents::setState(st);
     }
 }
