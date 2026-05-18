@@ -205,6 +205,8 @@ qt_add_executable(tsurface
     tdrawimage.cpp
     tdrawborder.cpp
     tdrawborder.h
+    tdrawbgslider.cpp
+    tdrawbgslider.h
     tconverticons.cpp
     tconverticons.h
     tconvertcolors.cpp

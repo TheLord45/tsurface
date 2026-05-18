@@ -64,6 +64,7 @@ class TDrawObject
         bool buttonFill(QPixmap* bm, ObjHandler::SR_T sr);
         bool drawBackgroundColor(QPixmap* bm, ObjHandler::SR_T& sr, QList<QColor>& gradients);
         bool isValidVf(const QString& vf);
+        void drawSlider(QPixmap *bm, ObjHandler::SR_T& sr);
 
         TObjectHandler *mObject{nullptr};       // A pointer to the object
         TResizableWidget *mWidget{nullptr};     // The widget to place the pixmap representing the object

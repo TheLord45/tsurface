@@ -15,34 +15,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
-#ifndef TDRAWBORDER_H
-#define TDRAWBORDER_H
+#ifndef TDRAWBGSLIDER_H
+#define TDRAWBGSLIDER_H
 
 #include "tobjecthandler.h"
 
+class QString;
 class QPixmap;
 
-class TDrawBorder
+class TDrawBgSlider
 {
     public:
-        TDrawBorder(QPixmap *bm);
+        TDrawBgSlider();
 
-        bool draw(const ObjHandler::TOBJECT_t& object, int instance);
-        int getBorderWidth() { return mBorderWidth; }
+        static TDrawBgSlider& Current();
+
+        bool drawSliderButton(QPixmap *bm, const QString& slider, const ObjHandler::TOBJECT_t& obj);
 
     protected:
-        bool getBorderFragment(const QString& path, const QString& pathAlpha, QPixmap* image, QColor color);
-        bool retrieveImage(const QString& path, QPixmap *image);
+        bool combineImages(QPixmap *bm, const QPixmap& base, const QPixmap& alpha, QColor col);
         bool stretchImageWidth(QPixmap *bm, int width);
         bool stretchImageHeight(QPixmap *bm, int height);
-        bool stretchImageWH(QPixmap *bm, int width, int height);
-        void erasePart(QPixmap *bm, const QPixmap& mask, const QRect& clip);
 
     private:
-        bool setPixel(QImage *img, QColor col, int x, int y);
-
-        QPixmap *mPixmap{nullptr};
-        int mBorderWidth{0};
+        static TDrawBgSlider *mCurrent;
 };
 
-#endif // TDRAWBORDER_H
+#endif // TDRAWBGSLIDER_H

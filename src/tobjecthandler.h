@@ -202,6 +202,35 @@ namespace ObjHandler
         SUBPAGE_VIEW
     } BUTTONTYPE;
 
+    typedef enum SLIDER_GRTYPE_t
+    {
+        SGR_TOP,
+        SGR_BOTTOM,
+        SGR_LEFT,
+        SGR_RIGHT,
+        SGR_HORIZONTAL,
+        SGR_VERTICAL
+    }SLIDER_GRTYPE_t;
+
+    typedef struct SLIDER_STYLE_t
+    {
+        std::string name;
+        std::string baseFile;
+        int multiColor;
+        int incRepeat;
+        int minSize;
+        int fixedSize;
+        std::vector<int> g3Equiv;
+
+        void init()
+        {
+            multiColor = 0;
+            incRepeat = 0;
+            minSize = 0;
+            fixedSize = 0;
+        }
+    }SLIDER_STYLE_t;
+
     /**
      * Justification values:
      *    0 = absolut
@@ -478,6 +507,13 @@ namespace ObjHandler
         QList<PUSH_FUNC_T> pushFunc;  // Push functions: This are executed on button press
         QList<SR_T> sr;         // The elements the button consists of
     }TOBJECT_t;
+
+    typedef struct SLIDER_t
+    {
+        SLIDER_GRTYPE_t type;   //<! The type of the file the path is pointing to
+        std::string path;       //<! The path and file name of the graphics mask file.
+        std::string pathAlpha;  //<! The path and file name of the graphics file containing the alpha part of the image.
+    }SLIDER_t;
 };
 
 class TResizableWidget;

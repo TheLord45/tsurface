@@ -308,6 +308,9 @@ class TGraphics
         QString getEffectStyleName(int number);
         Graphics::EFFECT_STYLE_t getEffectDetails(int number);
         QStringList getSliderNames();
+        bool existSlider(const QString& slider);
+        bool getSlider(const QString& slider, Graphics::SLIDER_STYLE_t* style);
+        std::vector<Graphics::SLIDER_t> getSliderFiles(const QString& slider);
         bool writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath);
 
     protected:

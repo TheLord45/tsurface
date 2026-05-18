@@ -27,6 +27,7 @@
 
 #include "terror.h"
 #include "tgraphics.h"
+#include "tconfmain.h"
 
 TGraphics *TGraphics::mCurrent{nullptr};
 
@@ -8714,6 +8715,148 @@ QStringList TGraphics::getSliderNames()
     }
 
     return sliders;
+}
+
+bool TGraphics::existSlider(const QString& slider)
+{
+    DECL_TRACER("TGraphics::existSlider(const QString& slider)");
+
+    if (slider.isEmpty() || mDraw.sliderStyles.empty())
+    {
+        MSG_ERROR("Slider " << slider.toStdString() << " has " << mDraw.sliderStyles.size() << " entries.");
+        return false;
+    }
+
+    vector<SLIDER_STYLE_t>::iterator iter;
+
+    for (iter = mDraw.sliderStyles.begin(); iter != mDraw.sliderStyles.end(); ++iter)
+    {
+        if (iter->name == slider)
+            return true;
+    }
+
+    return false;
+}
+
+bool TGraphics::getSlider(const QString& slider, SLIDER_STYLE_t *style)
+{
+    DECL_TRACER("TGraphics::getSlider(const QString& slider, SLIDER_STYLE_t *style)");
+
+    if (slider.isEmpty() || mDraw.sliderStyles.empty())
+    {
+        MSG_ERROR("Slider " << slider.toStdString() << " has " << mDraw.sliderStyles.size() << " entries.");
+        return false;
+    }
+
+    if (!style)
+        return existSlider(slider);
+
+    vector<SLIDER_STYLE_t>::iterator iter;
+
+    for (iter = mDraw.sliderStyles.begin(); iter != mDraw.sliderStyles.end(); ++iter)
+    {
+        if (iter->name == slider)
+        {
+            *style = *iter;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+vector<SLIDER_t> TGraphics::getSliderFiles(const QString& slider)
+{
+    DECL_TRACER("TGrapics::getSliderFiles(const QString& slider)");
+
+    vector<SLIDER_t> list;
+
+    if (slider.isEmpty())
+        return list;
+
+    SLIDER_STYLE_t sst;
+
+    if (!getSlider(slider, &sst))
+        return list;
+
+    QString fbase = sst.baseFile;
+    SLIDER_t slid;
+    QString path = TConfMain::Current().getPathTemporary() + "/__system/graphics/sliders";
+    QString myPath = path + "/";
+
+    slid.type = SGR_TOP;
+    slid.path = myPath + fbase + "_t.png";
+    slid.pathAlpha = myPath + fbase + "_t_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    slid.type = SGR_BOTTOM;
+    slid.path = myPath + fbase + "_b.png";
+    slid.pathAlpha = myPath + fbase + "_b_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    slid.type = SGR_LEFT;
+    slid.path = myPath + fbase + "_l.png";
+    slid.pathAlpha = myPath + fbase + "_l_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    slid.type = SGR_RIGHT;
+    slid.path = myPath + fbase + "_r.png";
+    slid.pathAlpha = myPath + fbase + "_r_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    slid.type = SGR_HORIZONTAL;
+    slid.path = myPath + fbase + "_h.png";
+    slid.pathAlpha = myPath + fbase + "_h_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    slid.type = SGR_VERTICAL;
+    slid.path = myPath + fbase + "_v.png";
+    slid.pathAlpha = myPath + fbase + "_v_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+
+    list.push_back(slid);
+
+    return list;
 }
 
 bool TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)

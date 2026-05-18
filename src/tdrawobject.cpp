@@ -452,6 +452,13 @@ bool TDrawObject::drawBackgroundColor(QPixmap* bm, SR_T& sr, QList<QColor>& grad
     return true;
 }
 
+void TDrawObject::drawSlider(QPixmap *bm, ObjHandler::SR_T& sr)
+{
+    DECL_TRACER("TDrawObject::drawSlider(QPixmap *bm, ObjHandler::SR_T& sr)");
+
+
+}
+
 bool TDrawObject::isValidVf(const QString& vf)
 {
     DECL_TRACER("TDrawObject::isValidVf(const QString& vf)");
