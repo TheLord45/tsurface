@@ -161,10 +161,10 @@ namespace Graphics
     {
         QString name;
         QString baseFile;
-        int multiColor;
-        int incRepeat;
-        int minSize;
-        int fixedSize;
+        int multiColor{0};
+        int incRepeat{0};
+        int minSize{0};
+        int fixedSize{0};
         std::vector<int> g3Equiv;
 
         void init()
@@ -255,6 +255,8 @@ namespace Graphics
         SLIDER_GRTYPE_t type;   //<! The type of the file the path is pointing to
         QString path;           //<! The path and file name of the graphics mask file.
         QString pathAlpha;      //<! The path and file name of the graphics file containing the alpha part of the image.
+        int width{0};           //<! The width of the image. This is equal for normal and alpha image.
+        int height{0};          //<! The height of the image. This is equal for normal and alpha image.
     }SLIDER_t;
 
     typedef struct CURSOR_t
@@ -338,6 +340,7 @@ class TGraphics
         int scanBorderFiles(const QString& name);
         QString getBorderFile(const QString& part, bool alpha=true);
         QString getEntryWithPart(const QString& part, bool precise);
+        Graphics::SLIDER_t fillSlider(Graphics::SLIDER_GRTYPE_t gr, const QString& file);
 
     private:
         static TGraphics *mCurrent;

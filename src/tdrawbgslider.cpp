@@ -60,21 +60,6 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
         return false;
     }
 
-    int width, height;
-    bool horizontal = false;
-
-    if (obj.dr != "horizontal")
-    {
-        width = (sst.fixedSize / 2) * 2 + sst.fixedSize;
-        height = sst.fixedSize;
-    }
-    else
-    {
-        width = sst.fixedSize;
-        height = (sst.fixedSize / 2) * 2 + sst.fixedSize;
-        horizontal = true;
-    }
-
     vector<Graphics::SLIDER_t> sltList = TGraphics::Current().getSliderFiles(slider);
 
     if (sltList.empty())
@@ -83,8 +68,24 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
         return false;
     }
 
+    int width = 0, height = 0;
+    bool horizontal = false;
+
+    if (obj.dr != "horizontal")
+    {
+        width = sst.fixedSize * 3;
+        height = sst.fixedSize;
+    }
+    else
+    {
+        width = sst.fixedSize;
+        height = sst.fixedSize * 3;
+        horizontal = true;
+    }
+
+
     QPixmap px(width, height);
-    px.fill(obj.sc);
+    px.fill(Qt::transparent);
     QPainter paint(&px);
 
     vector<Graphics::SLIDER_t>::iterator iter;
@@ -125,7 +126,6 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
             {
                 slPartAlpha = QPixmap(slPart.width(), slPart.height());
                 QColor white = Qt::white;
-                white.setAlpha(128);
                 slPartAlpha.fill(white);
             }
 
@@ -136,12 +136,19 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
 
             switch(iter->type)
             {
-                case Graphics::SGR_LEFT:    dst = QRect(0, 0, sl.width(), sl.height()); break;
-                case Graphics::SGR_RIGHT:   dst = QRect((sst.fixedSize / 2) + sst.fixedSize, 0, sl.width(), sl.height()); break;
+                case Graphics::SGR_LEFT:
+                    stretchImageWidth(&sl, sst.fixedSize);
+                    dst = QRect(0, 0, sl.width(), sl.height());
+                break;
+
+                case Graphics::SGR_RIGHT:
+                    stretchImageWidth(&sl, sst.fixedSize);
+                    dst = QRect(sst.fixedSize * 2, 0, sl.width(), sl.height());
+                break;
 
                 case Graphics::SGR_VERTICAL:
                     stretchImageWidth(&sl, sst.fixedSize);
-                    dst = QRect(sst.fixedSize / 2, 0, sl.width(), sl.height());
+                    dst = QRect(sst.fixedSize, 0, sl.width(), sl.height());
                 break;
 
                 default:
@@ -158,7 +165,7 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
                 return false;
             }
 
-            if (!iter->path.isEmpty() && !slPartAlpha.load(iter->pathAlpha))
+            if (!iter->pathAlpha.isEmpty() && !slPartAlpha.load(iter->pathAlpha))
             {
                 MSG_ERROR("Missing slider button alpha image " << iter->pathAlpha.toStdString());
                 return false;
@@ -180,7 +187,6 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
             {
                 slPartAlpha = QPixmap(slPart.width(), slPart.height());
                 QColor white = Qt::white;
-                white.setAlpha(128);
                 slPartAlpha.fill(white);
             }
 
@@ -191,14 +197,20 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
 
             switch (iter->type)
             {
-                case Graphics::SGR_TOP:     dst = QRect(0, 0, sl.width(), sl.height()); break;
-                case Graphics::SGR_BOTTOM:  dst = QRect(0, (sst.fixedSize / 2) + sst.fixedSize, sl.width(), sl.height()); break;
+                case Graphics::SGR_TOP:
+                    stretchImageHeight(&sl, sst.fixedSize);
+                    dst = QRect(0, 0, sl.width(), sl.height());
+                break;
+
+                case Graphics::SGR_BOTTOM:
+                    stretchImageHeight(&sl, sst.fixedSize);
+                    dst = QRect(0, sst.fixedSize * 2, sl.width(), sl.height());
+                break;
 
                 case Graphics::SGR_HORIZONTAL:
                     stretchImageHeight(&sl, sst.fixedSize);
-                    dst = QRect(0, sst.fixedSize / 2, sl.width(), sl.height());
+                    dst = QRect(0, sst.fixedSize, sl.width(), sl.height());
                 break;
-
 
                 default:
                     MSG_WARNING("Invalid type " << iter->type << " found!");
@@ -212,9 +224,9 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
     QPainter finalPainter(bm);
 
     if (!horizontal)
-        finalPainter.drawPixmap(0, (obj.ht - px.height()) / 2, px);
+        finalPainter.drawPixmap(0, obj.ht / 2 - px.height() / 2, px.scaled(obj.wt, px.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     else
-        finalPainter.drawPixmap((obj.wt - px.width()) / 2, 0, px);
+        finalPainter.drawPixmap(obj.wt / 2 - px.width() / 2, 0, px.scaled(px.width(), obj.ht, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     finalPainter.end();
     return true;
@@ -281,15 +293,10 @@ bool TDrawBgSlider::stretchImageWidth(QPixmap *bm, int width)
         return false;
     }
 
-    int rwidth = width;
+    if (bm->width() == width)
+        return true;
 
-    if (width <= 0)
-        rwidth = bm->width() + width;
-
-    if (rwidth <= 0)
-        rwidth = 1;
-
-    *bm = bm->scaled(rwidth, bm->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    *bm = bm->scaled(width, bm->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     return true;
 }
 
@@ -303,14 +310,9 @@ bool TDrawBgSlider::stretchImageHeight(QPixmap *bm, int height)
         return false;
     }
 
-    int rheight = height;
+    if (bm->height() == height)
+        return true;
 
-    if (height <= 0)
-        rheight = bm->height() + height;
-
-    if (rheight <= 0)
-        rheight = 1;
-
-    *bm = bm->scaled(bm->width(), rheight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    *bm = bm->scaled(bm->width(), height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     return true;
 }
