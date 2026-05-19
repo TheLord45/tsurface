@@ -7345,6 +7345,8 @@ void TGraphics::initSliderFamily()
 
     FAMILY_t slider;
     slider.name = "Sliders";
+    slider.member.push_back("Aqua");
+    slider.member.push_back("Aqua -S");
     slider.member.push_back("Ball");
     slider.member.push_back("Line -S");
     slider.member.push_back("Line -M");
@@ -7353,7 +7355,11 @@ void TGraphics::initSliderFamily()
     slider.member.push_back("Circle -M");
     slider.member.push_back("Circle -L");
     slider.member.push_back("Precision");
+    slider.member.push_back("Rectangle -S");
+    slider.member.push_back("Rectangle -M");
+    slider.member.push_back("Rectangle -L");
     slider.member.push_back("Windows");
+    slider.member.push_back("Windows Active");
     slider.member.push_back("Smart Button Bubbled Large");
     slider.member.push_back("Smart Button Bubbled Small");
     mDraw.sliders.push_back(slider);
@@ -7370,6 +7376,24 @@ void TGraphics::initSliderStyle()
     style.incRepeat = 1;
     style.minSize = 15;
     style.fixedSize = 15;
+    mDraw.sliderStyles.push_back(style);
+
+    style.init();
+    style.name = "Aqua";
+    style.baseFile = "aqua";
+    style.multiColor = 1;
+    style.incRepeat = 1;
+    style.minSize = 25;
+    style.fixedSize = 25;
+    mDraw.sliderStyles.push_back(style);
+
+    style.init();
+    style.name = "Aqua -S";
+    style.baseFile = "aquaS";
+    style.multiColor = 1;
+    style.incRepeat = 1;
+    style.minSize = 25;
+    style.fixedSize = 25;
     mDraw.sliderStyles.push_back(style);
 
     style.init();

@@ -26,19 +26,14 @@
 
 using std::vector;
 
-TDrawBgSlider *TDrawBgSlider::mCurrent = nullptr;
-
 TDrawBgSlider::TDrawBgSlider()
 {
     DECL_TRACER("TDrawBgSlider::TDrawBgSlider()");
 }
 
-TDrawBgSlider& TDrawBgSlider::Current()
+TDrawBgSlider::~TDrawBgSlider()
 {
-    if (!mCurrent)
-        mCurrent = new TDrawBgSlider;
-
-    return *mCurrent;
+    DECL_TRACER("TDrawBgSlider::~TDrawBgSlider()");
 }
 
 bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const ObjHandler::TOBJECT_t& obj)
@@ -68,16 +63,16 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
     int width, height;
     bool horizontal = false;
 
-    if (obj.dr == "horizontal")
+    if (obj.dr != "horizontal")
     {
         width = (sst.fixedSize / 2) * 2 + sst.fixedSize;
         height = sst.fixedSize;
-        horizontal = true;
     }
     else
     {
         width = sst.fixedSize;
         height = (sst.fixedSize / 2) * 2 + sst.fixedSize;
+        horizontal = true;
     }
 
     vector<Graphics::SLIDER_t> sltList = TGraphics::Current().getSliderFiles(slider);
@@ -88,9 +83,9 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
         return false;
     }
 
-    *bm = QPixmap(width, height);
-    bm->fill(Qt::transparent);
-    QPainter paint(bm);
+    QPixmap px(width, height);
+    px.fill(obj.sc);
+    QPainter paint(&px);
 
     vector<Graphics::SLIDER_t>::iterator iter;
 
@@ -100,7 +95,7 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
         QPixmap slPartAlpha;
         QRect dst;
 
-        if (horizontal && (iter->type == Graphics::SGR_LEFT || iter->type == Graphics::SGR_RIGHT || iter->type == Graphics::SGR_VERTICAL))
+        if (!horizontal && (iter->type == Graphics::SGR_LEFT || iter->type == Graphics::SGR_RIGHT || iter->type == Graphics::SGR_VERTICAL))
         {
             if (!iter->path.isEmpty() && !slPart.load(iter->path))
             {
@@ -112,6 +107,26 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
             {
                 MSG_ERROR("Missing slider button image " << iter->pathAlpha.toStdString());
                 return false;
+            }
+
+            if (slPart.isNull() && slPartAlpha.isNull())
+            {
+                MSG_ERROR("No valid slider button images defined for " << slider.toStdString());
+                return false;
+            }
+
+            if (slPart.isNull() && !slPartAlpha.isNull())
+            {
+                slPart = QPixmap(slPartAlpha.width(), slPartAlpha.height());
+                slPart.fill(Qt::transparent);
+            }
+
+            if (!slPart.isNull() && slPartAlpha.isNull())
+            {
+                slPartAlpha = QPixmap(slPart.width(), slPart.height());
+                QColor white = Qt::white;
+                white.setAlpha(128);
+                slPartAlpha.fill(white);
             }
 
             QPixmap sl;
@@ -134,19 +149,82 @@ bool TDrawBgSlider::drawSliderButton(QPixmap *bm, const QString& slider, const O
             }
 
             paint.drawPixmap(dst, sl);
-            paint.end();
+        }
+        else if (horizontal && (iter->type == Graphics::SGR_TOP || iter->type == Graphics::SGR_BOTTOM || iter->type == Graphics::SGR_HORIZONTAL)) // horizontal slider
+        {
+            if (!iter->path.isEmpty() && !slPart.load(iter->path))
+            {
+                MSG_ERROR("Missing slider button image " << iter->path.toStdString());
+                return false;
+            }
+
+            if (!iter->path.isEmpty() && !slPartAlpha.load(iter->pathAlpha))
+            {
+                MSG_ERROR("Missing slider button alpha image " << iter->pathAlpha.toStdString());
+                return false;
+            }
+
+            if (slPart.isNull() && slPartAlpha.isNull())
+            {
+                MSG_ERROR("No valid slider button images defined for " << slider.toStdString());
+                return false;
+            }
+
+            if (slPart.isNull() && !slPartAlpha.isNull())
+            {
+                slPart = QPixmap(slPartAlpha.width(), slPartAlpha.height());
+                slPart.fill(Qt::transparent);
+            }
+
+            if (!slPart.isNull() && slPartAlpha.isNull())
+            {
+                slPartAlpha = QPixmap(slPart.width(), slPart.height());
+                QColor white = Qt::white;
+                white.setAlpha(128);
+                slPartAlpha.fill(white);
+            }
+
+            QPixmap sl;
+
+            if (!combineImages(&sl, slPart, slPartAlpha, obj.sc))
+                return false;
+
+            switch (iter->type)
+            {
+                case Graphics::SGR_TOP:     dst = QRect(0, 0, sl.width(), sl.height()); break;
+                case Graphics::SGR_BOTTOM:  dst = QRect(0, (sst.fixedSize / 2) + sst.fixedSize, sl.width(), sl.height()); break;
+
+                case Graphics::SGR_HORIZONTAL:
+                    stretchImageHeight(&sl, sst.fixedSize);
+                    dst = QRect(0, sst.fixedSize / 2, sl.width(), sl.height());
+                break;
+
+
+                default:
+                    MSG_WARNING("Invalid type " << iter->type << " found!");
+            }
+
+            paint.drawPixmap(dst, sl);
         }
     }
 
-    // TODO: Add rest of slider drawing (TButton)
-    return false;
+    paint.end();
+    QPainter finalPainter(bm);
+
+    if (!horizontal)
+        finalPainter.drawPixmap(0, (obj.ht - px.height()) / 2, px);
+    else
+        finalPainter.drawPixmap((obj.wt - px.width()) / 2, 0, px);
+
+    finalPainter.end();
+    return true;
 }
 
 bool TDrawBgSlider::combineImages(QPixmap *bm, const QPixmap& base, const QPixmap& alpha, QColor col)
 {
     DECL_TRACER("TDrawBgSlider::combineImages(QPixmap *bm, const QPixmap& base, const QPixmap& alpha, QColor col)");
 
-    if (!bm || bm->isNull())
+    if (!bm)
     {
         MSG_ERROR("No valid pixmap defined!");
         return false;
@@ -174,14 +252,19 @@ bool TDrawBgSlider::combineImages(QPixmap *bm, const QPixmap& base, const QPixma
         for (int iy = 0; iy < height; iy++)
         {
             QColor pixelAlpha = imgAlpha.pixelColor(ix, iy);
+            QColor color = col;
 
             if (pixelAlpha.alpha() == 0)
                 imgBm.setPixelColor(ix, iy, Qt::transparent);
             else
-                imgBm.setPixelColor(ix, iy, pixelAlpha);
+            {
+                color.setAlpha(pixelAlpha.alpha());
+                imgBm.setPixelColor(ix, iy, color);
+            }
         }
     }
 
+    *bm = QPixmap::fromImage(imgBm);
     QPainter painter(bm);
     painter.drawImage(0, 0, imgBase);
     painter.end();

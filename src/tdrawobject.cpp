@@ -25,6 +25,7 @@
 #include "tdrawimage.h"
 #include "tdrawtext.h"
 #include "tdrawborder.h"
+#include "tdrawbgslider.h"
 #include "tsubviewarea.h"
 #include "tlistviewmock.h"
 #include "tfonts.h"
@@ -173,7 +174,12 @@ void TDrawObject::draw(int instance)
             break;
 
             default:
-                if (object.type == SUBPAGE_VIEW)
+                if (object.type == BARGRAPH && !object.sd.isEmpty())
+                {
+                    TDrawBgSlider slider;
+                    slider.drawSliderButton(&button, object.sd, object);
+                }
+                else if (object.type == SUBPAGE_VIEW)
                 {
                     if (mWidget)
                     {

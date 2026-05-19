@@ -2631,6 +2631,7 @@ void TPropertiesGeneral::onObjectSliderName(const QString& text, const QVariant&
     mPage->objects[mActObjectID]->setObject(mActObject);
     markChanged(TBL_GENERAL);
     mChanged = true;
+    requestRedraw(mPage);
 }
 
 void TPropertiesGeneral::onObjectSliderColor(const QColor& col, const QString& name)
