@@ -7345,8 +7345,6 @@ void TGraphics::initSliderFamily()
 
     FAMILY_t slider;
     slider.name = "Sliders";
-    slider.member.push_back("Aqua");
-    slider.member.push_back("Aqua -S");
     slider.member.push_back("Ball");
     slider.member.push_back("Line -S");
     slider.member.push_back("Line -M");
@@ -7355,9 +7353,6 @@ void TGraphics::initSliderFamily()
     slider.member.push_back("Circle -M");
     slider.member.push_back("Circle -L");
     slider.member.push_back("Precision");
-    slider.member.push_back("Rectangle -S");
-    slider.member.push_back("Rectangle -M");
-    slider.member.push_back("Rectangle -L");
     slider.member.push_back("Windows");
     slider.member.push_back("Windows Active");
     slider.member.push_back("Smart Button Bubbled Large");
@@ -7379,24 +7374,6 @@ void TGraphics::initSliderStyle()
     mDraw.sliderStyles.push_back(style);
 
     style.init();
-    style.name = "Aqua";
-    style.baseFile = "aqua";
-    style.multiColor = 1;
-    style.incRepeat = 1;
-    style.minSize = 25;
-    style.fixedSize = 25;
-    mDraw.sliderStyles.push_back(style);
-
-    style.init();
-    style.name = "Aqua -S";
-    style.baseFile = "aquaS";
-    style.multiColor = 1;
-    style.incRepeat = 1;
-    style.minSize = 25;
-    style.fixedSize = 25;
-    mDraw.sliderStyles.push_back(style);
-
-    style.init();
     style.name = "Smart Button Bubbled Large";
     style.baseFile = "aqua";
     style.multiColor = 1;
@@ -7415,7 +7392,7 @@ void TGraphics::initSliderStyle()
     mDraw.sliderStyles.push_back(style);
 
     style.init();
-    style.name = "Rectangle -S";
+    style.name = "Line -S";
     style.baseFile = "LineS";
     style.multiColor = 1;
     style.incRepeat = 1;
@@ -7425,7 +7402,7 @@ void TGraphics::initSliderStyle()
     mDraw.sliderStyles.push_back(style);
 
     style.init();
-    style.name = "Rectangle -M";
+    style.name = "Line -M";
     style.baseFile = "LineM";
     style.multiColor = 1;
     style.incRepeat = 1;
@@ -7434,7 +7411,7 @@ void TGraphics::initSliderStyle()
     mDraw.sliderStyles.push_back(style);
 
     style.init();
-    style.name = "Rectangle -L";
+    style.name = "Line -L";
     style.baseFile = "LineL";
     style.multiColor = 1;
     style.incRepeat = 1;
@@ -8803,84 +8780,57 @@ vector<SLIDER_t> TGraphics::getSliderFiles(const QString& slider)
     if (!getSlider(slider, &sst))
         return list;
 
-    QString fbase = sst.baseFile;
-    SLIDER_t slid;
-    QString path = TConfMain::Current().getPathTemporary() + "/__system/graphics/sliders";
-    QString myPath = path + "/";
+    QList<SLIDER_GRTYPE_t> grTypes = { SGR_TOP, SGR_BOTTOM, SGR_LEFT, SGR_RIGHT, SGR_HORIZONTAL, SGR_VERTICAL };
 
-    slid.type = SGR_TOP;
-    slid.path = myPath + fbase + "_t.png";
-    slid.pathAlpha = myPath + fbase + "_t_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
-
-    slid.type = SGR_BOTTOM;
-    slid.path = myPath + fbase + "_b.png";
-    slid.pathAlpha = myPath + fbase + "_b_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
-
-    slid.type = SGR_LEFT;
-    slid.path = myPath + fbase + "_l.png";
-    slid.pathAlpha = myPath + fbase + "_l_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
-
-    slid.type = SGR_RIGHT;
-    slid.path = myPath + fbase + "_r.png";
-    slid.pathAlpha = myPath + fbase + "_r_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
-
-    slid.type = SGR_HORIZONTAL;
-    slid.path = myPath + fbase + "_h.png";
-    slid.pathAlpha = myPath + fbase + "_h_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
-
-    slid.type = SGR_VERTICAL;
-    slid.path = myPath + fbase + "_v.png";
-    slid.pathAlpha = myPath + fbase + "_v_alpha.png";
-
-    if (!fs::exists(slid.path.toStdString()))
-        slid.path.clear();
-
-    if (!fs::exists(slid.pathAlpha.toStdString()))
-        slid.pathAlpha.clear();
-
-    list.push_back(slid);
+    for (int i = 0; i < grTypes.size(); ++i)
+    {
+        SLIDER_t slid = fillSlider(grTypes[i], sst.baseFile);
+        list.push_back(slid);
+    }
 
     return list;
+}
+
+SLIDER_t TGraphics::fillSlider(SLIDER_GRTYPE_t gr, const QString& file)
+{
+    DECL_TRACER("TGraphics::fillSlider(SLIDER_GRTYPE_t gr, const QString& file)");
+
+    SLIDER_t slid;
+    QString myPath = TConfMain::Current().getPathTemporary() + "/__system/graphics/sliders/";
+    QPixmap px;
+    QString frame;
+
+    switch(gr)
+    {
+        case SGR_TOP:       frame = "t"; break;
+        case SGR_BOTTOM:    frame = "b"; break;
+        case SGR_LEFT:      frame = "l"; break;
+        case SGR_RIGHT:     frame = "r"; break;
+        case SGR_HORIZONTAL:frame = "h"; break;
+        case SGR_VERTICAL:  frame = "v"; break;
+    }
+
+    slid.type = gr;
+    slid.path = myPath + file + "_" + frame + ".png";
+    slid.pathAlpha = myPath + file + "_" + frame + "_alpha.png";
+
+    if (!fs::exists(slid.path.toStdString()))
+        slid.path.clear();
+    else
+        px.load(slid.path);
+
+    if (!fs::exists(slid.pathAlpha.toStdString()))
+        slid.pathAlpha.clear();
+    else if (px.isNull())
+        px.load(slid.pathAlpha);
+
+    if (!px.isNull())
+    {
+        slid.width = px.width();
+        slid.height = px.height();
+    }
+
+    return slid;
 }
 
 bool TGraphics::writeSystemFiles(Graphics::FILE_TYPE_t ft, const QString& basePath)
@@ -8956,7 +8906,7 @@ QJsonObject TGraphics::writeSystemBordersJson()
 
         vector<QString>::iterator bsIter;
 
-        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); bsIter++)
+        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); ++bsIter)
             family.append(QJsonValue(*bsIter));
 
         borderData.insert("members", family);
@@ -9041,7 +8991,7 @@ QJsonObject TGraphics::writeSystemCursorsJson()
 
         vector<QString>::iterator bsIter;
 
-        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); bsIter++)
+        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); ++bsIter)
             family.append(QJsonValue(*bsIter));
 
         cursorData.insert("members", family);
@@ -9096,7 +9046,7 @@ QJsonObject TGraphics::writeSystemSlidersJson()
 
         vector<QString>::iterator bsIter;
 
-        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); bsIter++)
+        for (bsIter = iter->member.begin(); bsIter != iter->member.end(); ++bsIter)
             family.append(QJsonValue(*bsIter));
 
         sliderData.insert("members", family);
@@ -9154,7 +9104,7 @@ QJsonObject TGraphics::writeSystemEffectsJson()
 
         vector<QString>::iterator efIter;
 
-        for (efIter = iter->member.begin(); efIter != iter->member.end(); efIter++)
+        for (efIter = iter->member.begin(); efIter != iter->member.end(); ++efIter)
             family.append(QJsonValue(*efIter));
 
         effectData.insert("members", family);
