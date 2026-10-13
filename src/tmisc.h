@@ -48,7 +48,8 @@ enum STATE_TYPE
     STATE_INPUT,
     STATE_LISTVIEW,
     STATE_SUBVIEW,
-    STATE_APP
+    STATE_APP,
+    STATE_MAP
 };
 
 typedef enum
@@ -61,6 +62,7 @@ typedef enum
     W_GRADIENTCOLORS,
     W_LINEEDIT,
     W_SPINBOX,
+    W_SPINBOXDOUBLE,
     W_TEXTEFFECT,
     W_COMBO,
     W_FONT,

@@ -29,6 +29,7 @@ class QIntValidator;
 class TValidatePort;
 class TElementWidgetCombo;
 class TElementSpinBox;
+class TElementSpinBoxDouble;
 
 class TPropertiesProgramming : public QObject
 {
@@ -67,6 +68,11 @@ class TPropertiesProgramming : public QObject
         void onSpinRangeDragIncrement(int value, const QString& name);
         void onComboRangeInverted(const QString& text, const QVariant& data, const QString& name);
         void onSpinRangeTimeUpDown(int value, const QString& name);
+        void onMapFixed(const QString& text, const QVariant& data, const QString& name);
+        void onMapZoom(int value, const QString& name);
+        void onMapProvider(const QString& text, const QVariant& data, const QString& name);
+        void onMapLat(double value, const QString& name);
+        void onMapLon(double value, const QString& name);
         // Interface methods
         virtual void saveChangedData(Page::PAGE_t *page, PROPERTIES_t prop=TBL_UNKNOWN) = 0;
         virtual void markChanged(const PROPERTIES_t prop=TBL_UNKNOWN) = 0;
@@ -89,6 +95,11 @@ class TPropertiesProgramming : public QObject
         TElementSpinBox *makeRangeDragIncrement(const QString& name);
         TElementWidgetCombo *makeRangeInverted(const QString& name);
         TElementSpinBox *makeRangeTimeUpDown(const QString& name);
+        TElementWidgetCombo *makeMapFixed(const QString& name);
+        TElementSpinBox *makeMapZoom(const QString& name);
+        TElementWidgetCombo *makeMapProvider(const QString& name);
+        TElementSpinBoxDouble *makeMapLat(const QString& name);
+        TElementSpinBoxDouble *makeMapLon(const QString& name);
 
         void createPage();
         bool isAnyPage();

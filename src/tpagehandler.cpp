@@ -1024,6 +1024,19 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
             bt.insert("ldm", e.ldm);        // G5 Listview: Internal distinct name?
         }
 
+        if (e.type == ObjHandler::MAP)
+        {
+            INSERTJ(bt, "map_fix", e.map_fixed, 0);     // 0 = Map shows real coordinates
+            INSERTJ(bt, "map_zoom", e.map_zoom, 16);    // The zoom level of the map
+            INSERTJ(bt, "map_prov", e.map_provider, 1); // The map provider; 1 = Google, 2 = Open Streetmap
+
+            if (e.map_fixed)
+            {
+                INSERTJ(bt, "map_lat", e.map_lat, 0.0); // Latitude
+                INSERTJ(bt, "map_lon", e.map_lon, 0.0); // Longitude
+            }
+        }
+
         INSERTJ(bt, "stateCount", e.stateCount, 0);
         INSERTJ(bt, "ddt", e.ddt, "");
         INSERTJ(bt, "rm", e.rm, 0);
@@ -1590,6 +1603,11 @@ void TPageHandler::parseObjects(PAGE_t *page, const QJsonArray& obj)
         object.we = jo.value("we").toString();
         object.pc = jo.value("pc").toString();
         object.op = jo.value("op").toString();
+        object.map_fixed = jo.value("map_fix").toInt(0);        // 0 = map shows real coordinates
+        object.map_zoom = jo.value("map_zoom").toInt(16);       // Zoom level of map
+        object.map_provider = jo.value("map_prov").toInt(1);    // Map provider; 1 = Google, 2 = Open Streetmap
+        object.map_lat = jo.value("map_lat").toDouble(0.0);     // Latitude
+        object.map_lon = jo.value("map_lon").toDouble(0.0);     // Longitude
 
         QJsonArray pushFunc = jo.value("pushFunc").toArray();
 

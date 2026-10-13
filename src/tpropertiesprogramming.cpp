@@ -25,6 +25,7 @@
 #include "tvalidateport.h"
 #include "telementwidgetcombo.h"
 #include "telementspinbox.h"
+#include "telementspinboxdouble.h"
 #include "terror.h"
 
 #define TTEXT_FEEDBACK                  0
@@ -44,6 +45,11 @@
 #define TTEXT_RANGE_INVERTED            14
 #define TTEXT_RANGE_TIME_UP             15
 #define TTEXT_RANGE_TIME_DOWN           16
+#define TTEXT_MAP_FIXED                 17  // TRUE = Map shows only defined coordinates. FALSE = Map shows real coordinates.
+#define TTEXT_MAP_ZOOM                  18  // Zoom level of map (16)
+#define TTEXT_MAP_PROVIDER              19  // The provider of the map (Google, Open Streetmap)
+#define TTEXT_MAP_LATITUDE              20  // Latitude of map (0.0)
+#define TTEXT_MAP_LONGITUDE             21  // Longitude of map (0.0)
 
 const QStringList gMessages = {
     "Feedback",                         //  0
@@ -62,7 +68,12 @@ const QStringList gMessages = {
     "Range Drag Increment",             // 13
     "Range Inverted",                   // 14
     "Range Time Up",                    // 15
-    "Range Time Down"                   // 16
+    "Range Time Down",                  // 16
+    "Map Fixed",                        // 17
+    "Map Zoom Level",                   // 18
+    "Map Provider",                     // 19
+    "Map Latitude",                     // 20
+    "Map Longitude"                     // 21
 };
 
 TPropertiesProgramming::TPropertiesProgramming()
@@ -232,6 +243,10 @@ void TPropertiesProgramming::setSType()
             mStype = STATE_SUBPAGE;
         break;
 
+        case ObjHandler::MAP:
+            mStype = STATE_MAP;
+        break;
+
         default:
             mStype = STATE_UNKNOWN;
     }
@@ -386,6 +401,33 @@ void TPropertiesProgramming::setTable(STATE_TYPE stype)
             setTableWidget(TTEXT_RANGE_TIME_DOWN, 1, mActObject.rd, W_SPINBOX);
         }
     }
+    else if (mStype == STATE_MAP)
+    {
+        mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
+        mTable->setRowHidden(TTEXT_ADDRESS_CODE, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_PORT, false);
+        mTable->setRowHidden(TTEXT_CHANNEL_CODE, false);
+        mTable->setRowHidden(TTEXT_MAP_FIXED, false);
+        mTable->setRowHidden(TTEXT_MAP_ZOOM, false);
+        mTable->setRowHidden(TTEXT_MAP_PROVIDER, false);
+
+        setTableWidget(TTEXT_ADDRESS_PORT, 1, mActObject.ap, W_SPINBOX);
+        setTableWidget(TTEXT_ADDRESS_CODE, 1, mActObject.ad, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_PORT, 1, mActObject.cp, W_SPINBOX);
+        setTableWidget(TTEXT_CHANNEL_CODE, 1, mActObject.ch, W_SPINBOX);
+        setTableWidget(TTEXT_MAP_FIXED, 1, mActObject.map_fixed, W_COMBO);
+        setTableWidget(TTEXT_MAP_ZOOM, 1, mActObject.map_zoom, W_SPINBOX);
+        setTableWidget(TTEXT_MAP_PROVIDER, 1, mActObject.map_provider, W_COMBO);
+
+        if (mActObject.map_fixed)
+        {
+            mTable->setRowHidden(TTEXT_MAP_LATITUDE, false);
+            mTable->setRowHidden(TTEXT_MAP_LONGITUDE, false);
+
+            setTableWidget(TTEXT_MAP_LATITUDE, 1, mActObject.map_lat, W_SPINBOXDOUBLE);
+            setTableWidget(TTEXT_MAP_LONGITUDE, 1, mActObject.map_lon, W_SPINBOXDOUBLE);
+        }
+    }
     else if (mStype == STATE_BARGRAPH)
     {
         mTable->setRowHidden(TTEXT_ADDRESS_PORT, false);
@@ -531,6 +573,31 @@ void TPropertiesProgramming::createPage()
             case TTEXT_RANGE_TIME_DOWN:
                 cell1->setText(gMessages[TTEXT_RANGE_TIME_DOWN]);
                 mTable->setCellWidget(i, 1, makeRangeTimeUpDown("ObjectRangeTimeDown"));
+            break;
+
+            case TTEXT_MAP_FIXED:
+                cell1->setText(gMessages[TTEXT_MAP_FIXED]);
+                mTable->setCellWidget(i, 1, makeMapFixed("ObjectMapFixed"));
+            break;
+
+            case TTEXT_MAP_ZOOM:
+                cell1->setText(gMessages[TTEXT_MAP_ZOOM]);
+                mTable->setCellWidget(i, 1, makeMapZoom("ObjectMapZoom"));
+            break;
+
+            case TTEXT_MAP_PROVIDER:
+                cell1->setText(gMessages[TTEXT_MAP_PROVIDER]);
+                mTable->setCellWidget(i, 1, makeMapProvider("ObjectMapProvider"));
+            break;
+
+            case TTEXT_MAP_LATITUDE:
+                cell1->setText(gMessages[TTEXT_MAP_LATITUDE]);
+                mTable->setCellWidget(i, 1, makeMapLat("ObjectMapLat"));
+            break;
+
+            case TTEXT_MAP_LONGITUDE:
+                cell1->setText(gMessages[TTEXT_MAP_LONGITUDE]);
+                mTable->setCellWidget(i, 1, makeMapLon("ObjectMapLat"));
             break;
         }
 
@@ -756,6 +823,63 @@ void TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& nam
     markChanged(TBL_PROGRAM);
 }
 
+void TPropertiesProgramming::onMapFixed(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onMapFixed(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.map_fixed = data.toInt();
+    mChanged = true;
+    markChanged(TBL_PROGRAM);
+}
+
+void TPropertiesProgramming::onMapZoom(int value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onMapZoom(int value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.map_zoom = value;
+    mChanged = true;
+    markChanged(TBL_PROGRAM);
+}
+
+void TPropertiesProgramming::onMapProvider(const QString& text, const QVariant& data, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onMapProvider(const QString& text, const QVariant& data, const QString& name)");
+
+    Q_UNUSED(text);
+    Q_UNUSED(name);
+
+    mActObject.map_provider = data.toInt();
+    mChanged = true;
+    markChanged(TBL_PROGRAM);
+}
+
+void TPropertiesProgramming::onMapLat(double value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onMapLat(double value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.map_lat = value;
+    mChanged = true;
+    markChanged(TBL_PROGRAM);
+}
+
+void TPropertiesProgramming::onMapLon(double value, const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::onMapLon(double value, const QString& name)");
+
+    Q_UNUSED(name);
+
+    mActObject.map_lon = value;
+    mChanged = true;
+    markChanged(TBL_PROGRAM);
+}
+
 TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& name)
 {
     DECL_TRACER("TPropertiesProgramming::makeObjectFeedback(const QString& name)");
@@ -966,6 +1090,65 @@ TElementSpinBox *TPropertiesProgramming::makeRangeTimeUpDown(const QString& name
 
     TElementSpinBox *spin = new TElementSpinBox(value, 0, 10000, name, mTable);
     connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onSpinRangeTimeUpDown);
+    return spin;
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeMapFixed(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeMapFixed(const QString& name)");
+
+    QStringList items = { tr("no"), tr("yes") };
+    QList<QVariant> data = { 0, 1 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    combo->setCurrentIndex(mActObject.map_fixed);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onMapFixed);
+    return combo;
+}
+
+TElementSpinBox *TPropertiesProgramming::makeMapZoom(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeMapZoom(const QString& name)");
+
+    TElementSpinBox *spin = new TElementSpinBox(mActObject.map_zoom, 1, 19, name, mTable);
+    connect(spin, &TElementSpinBox::valueChanged, this, &TPropertiesProgramming::onMapZoom);
+    return spin;
+}
+
+TElementWidgetCombo *TPropertiesProgramming::makeMapProvider(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeMapProvider(const QString& name)");
+
+    QStringList items = { tr("Google"), tr("Open Streetmap") };
+    QList<QVariant> data = { 1, 2 };
+
+    TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
+    combo->addItems(items);
+    combo->addData(data);
+    combo->setCurrentIndex(mActObject.map_fixed);
+    connect(combo, &TElementWidgetCombo::selectionChanged, this, &TPropertiesProgramming::onMapProvider);
+    return combo;
+}
+
+TElementSpinBoxDouble *TPropertiesProgramming::makeMapLat(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeMapLat(const QString& name)");
+
+    TElementSpinBoxDouble *spin = new TElementSpinBoxDouble(mActObject.map_lat, -90.0, 90.0, name, mTable);
+    spin->setDecimals(6);
+    connect(spin, &TElementSpinBoxDouble::valueChanged, this, &TPropertiesProgramming::onMapLat);
+    return spin;
+}
+
+TElementSpinBoxDouble *TPropertiesProgramming::makeMapLon(const QString& name)
+{
+    DECL_TRACER("TPropertiesProgramming::makeMapLon(const QString& name)");
+
+    TElementSpinBoxDouble *spin = new TElementSpinBoxDouble(mActObject.map_lon, -180.0, 180.0, name, mTable);
+    spin->setDecimals(6);
+    connect(spin, &TElementSpinBoxDouble::valueChanged, this, &TPropertiesProgramming::onMapLat);
     return spin;
 }
 

@@ -344,6 +344,11 @@ ObjHandler::TOBJECT_t& TObjectHandler::assignSmart(const ObjHandler::TOBJECT_t& 
         mObject.we = obj.we;
         mObject.pc = obj.pc;
         mObject.ac_di = obj.ac_di;
+        mObject.map_fixed = obj.map_fixed;
+        mObject.map_lat = obj.map_lat;
+        mObject.map_lon = obj.map_lon;
+        mObject.map_zoom = obj.map_zoom;
+        mObject.map_provider = obj.map_provider;
     }
 
     if (prop == TBL_PROGRAM || prop == TBL_UNKNOWN)
@@ -1424,6 +1429,7 @@ int TObjectHandler::getButtonTypeIndex(BUTTONTYPE bt)
         case TEXT_INPUT:            return 4;
         case SUBPAGE_VIEW:          return 5;
         case LISTVIEW:              return 6;
+        case MAP:                   return 7;
 
         default:
             return 0;

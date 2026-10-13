@@ -199,7 +199,8 @@ namespace ObjHandler
         LISTVIEW,
         COMPUTER_CONTROL,
         TAKE_NOTE,
-        SUBPAGE_VIEW
+        SUBPAGE_VIEW,
+        MAP
     } BUTTONTYPE;
 
     typedef enum SLIDER_GRTYPE_t
@@ -503,6 +504,11 @@ namespace ObjHandler
         QString we;             // SubPageView: Anchor position: Empty = Center, "l/t" = left/top, "r/b" = right/bottom
         QString pc;             // Password character for text area
         QString op;             // String the button send
+        int map_fixed{0};       // 0 = Map shows real coordinates
+        double map_lat{0.0};    // Map latitude
+        double map_lon{0.0};    // Map longitude
+        int map_zoom{16};       // Map zoom level (1 - 19)
+        int map_provider{1};    // Map provider; 1 = Google (default), 2 = Open Streetmap
         bool visible{true};     // TRUE=Button is visible
         QList<PUSH_FUNC_T> pushFunc;  // Push functions: This are executed on button press
         QList<SR_T> sr;         // The elements the button consists of

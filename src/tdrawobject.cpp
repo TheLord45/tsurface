@@ -30,6 +30,7 @@
 #include "tlistviewmock.h"
 #include "tfonts.h"
 #include "tconfmain.h"
+#include "tqmap.h"
 #include "terror.h"
 
 using namespace ObjHandler;
@@ -122,7 +123,9 @@ void TDrawObject::draw(int instance)
 
                 if (object.type != BARGRAPH)
                 {
-                    di.setBitmaps(object.sr[instance].bitmaps);
+                    if (object.type != MAP)
+                        di.setBitmaps(object.sr[instance].bitmaps);
+
                     di.setOpacity(object.sr[instance].oo);
                 }
 

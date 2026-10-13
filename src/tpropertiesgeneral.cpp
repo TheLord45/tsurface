@@ -1264,9 +1264,10 @@ TElementWidgetCombo *TPropertiesGeneral::makeButtonType(const QString& name)
 
     QStringList items = { "general", "multi-state general", "bargraph",
                           "multi-state bargraph", "text input",
-                          "sub-page view", "listview" };
+                          "sub-page view", "listview", "map" };
     QList<QVariant> data = { GENERAL, MULTISTATE_GENERAL, BARGRAPH,
-                             MULTISTATE_BARGRAPH, TEXT_INPUT, SUBPAGE_VIEW, LISTVIEW };
+                             MULTISTATE_BARGRAPH, TEXT_INPUT, SUBPAGE_VIEW,
+                             LISTVIEW, MAP };
 
     TElementWidgetCombo *combo = new TElementWidgetCombo(name, mTable);
     combo->addItems(items);

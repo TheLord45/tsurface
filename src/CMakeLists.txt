@@ -177,6 +177,8 @@ qt_add_executable(tsurface
     telementlineedit.h
     telementspinbox.cpp
     telementspinbox.h
+    telementspinboxdouble.cpp
+    telementspinboxdouble.h
     telementcolorselector.cpp
     telementcolorselector.h
     telementsound.cpp
@@ -217,6 +219,8 @@ qt_add_executable(tsurface
     tcombobutton.h
     tlineeditelide.cpp
     tlineeditelide.h
+    tqmap.cpp
+    tqmap.h
     tfsfreader.cpp
     tfsfreader.h
     readtp4.cpp
@@ -230,6 +234,14 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
+    map/mapglobal.cpp
+    map/mapglobal.h
+    map/mapitem.cpp
+    map/mapitem.h
+    map/maploader.cpp
+    map/maploader.h
+    map/mapview.cpp
+    map/mapview.h
 )
 
 # Use the Widgets module from Qt 6.
