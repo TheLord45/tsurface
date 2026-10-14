@@ -105,6 +105,7 @@ class TPropertiesProgramming : public QObject
         bool isAnyPage();
         void setSType();
         void setTableWidget(int row, int col, const QVariant& data, ELEMENT_TYPE_t etype);
+        void updateObject();
 
         QTableWidget *mTable{nullptr};
         QWidget *mParent{nullptr};

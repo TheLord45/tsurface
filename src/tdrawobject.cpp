@@ -109,44 +109,60 @@ void TDrawObject::draw(int instance)
         switch(order)
         {
             case ORD_ELEM_FILL:
-                if (object.type != BARGRAPH)
-                    buttonFill(&button, object.sr[instance]);
-                else
-                    buttonFill(&button, object.sr[0]);
+                if (object.type != MAP)
+                {
+                    if (object.type != BARGRAPH)
+                        buttonFill(&button, object.sr[instance]);
+                    else
+                        buttonFill(&button, object.sr[0]);
+                }
             break;
 
             case ORD_ELEM_BITMAP:
             {
-                TDrawImage di;
-                di.setPixmap(&button);
-                di.setSize(object.wt, object.ht);
-
-                if (object.type != BARGRAPH)
+                if (object.type != MAP)
                 {
-                    if (object.type != MAP)
+                    TDrawImage di;
+                    di.setPixmap(&button);
+                    di.setSize(object.wt, object.ht);
+
+                    if (object.type != BARGRAPH)
+                    {
                         di.setBitmaps(object.sr[instance].bitmaps);
+                        di.setOpacity(object.sr[instance].oo);
+                    }
 
-                    di.setOpacity(object.sr[instance].oo);
+                    QString border = !object.bs.isEmpty() ? object.bs : object.sr[instance].bs;
+                    di.setBorder(border);
+
+                    if (object.type != BARGRAPH && object.sr[instance].bs.isEmpty())
+                    {
+                        di.setChameleon(object.sr[instance].mi);
+                        di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
+                    }
+                    else if (object.type == BARGRAPH && object.sr[0].bs.isEmpty())
+                    {
+                        di.setChameleon(object.sr[0].mi);
+                        di.setChameleonColors(object.sr[0].cf, object.sr[0].cb);
+                    }
+
+                    if (object.type == BARGRAPH)
+                        di.drawBargraph(object);
+                    else
+                        di.draw();
                 }
-
-                QString border = !object.bs.isEmpty() ? object.bs : object.sr[instance].bs;
-                di.setBorder(border);
-
-                if (object.type != BARGRAPH && object.sr[instance].bs.isEmpty())
-                {
-                    di.setChameleon(object.sr[instance].mi);
-                    di.setChameleonColors(object.sr[instance].cf, object.sr[instance].cb);
-                }
-                else if (object.type == BARGRAPH && object.sr[0].bs.isEmpty())
-                {
-                    di.setChameleon(object.sr[0].mi);
-                    di.setChameleonColors(object.sr[0].cf, object.sr[0].cb);
-                }
-
-                if (object.type == BARGRAPH)
-                    di.drawBargraph(object);
                 else
-                    di.draw();
+                {
+                    TQMap map(mWidget);
+                    TQMap::PROVIDER_t pr = TQMap::PROV_GOOGLE_MAP;
+
+                    if (object.map_provider == 2)
+                        pr = TQMap::PROV_OSTREETMAP;
+
+                    map.setProvider(pr);
+                    map.drawMap(QSize(object.wt, object.ht), object.map_lat, object.map_lon, object.map_zoom, true);
+                    button = mWidget->grab();
+                }
             }
             break;
 

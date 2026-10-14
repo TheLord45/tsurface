@@ -1026,15 +1026,13 @@ QJsonArray TPageHandler::getObjects(const QList<TObjectHandler *>& objects)
 
         if (e.type == ObjHandler::MAP)
         {
+            MSG_DEBUG("Writing map credentials ...");
             INSERTJ(bt, "map_fix", e.map_fixed, 0);     // 0 = Map shows real coordinates
             INSERTJ(bt, "map_zoom", e.map_zoom, 16);    // The zoom level of the map
             INSERTJ(bt, "map_prov", e.map_provider, 1); // The map provider; 1 = Google, 2 = Open Streetmap
-
-            if (e.map_fixed)
-            {
-                INSERTJ(bt, "map_lat", e.map_lat, 0.0); // Latitude
-                INSERTJ(bt, "map_lon", e.map_lon, 0.0); // Longitude
-            }
+            MSG_DEBUG("Writing coordinates (" << e.map_lat << ", " << e.map_lon << ")");
+            INSERTJ(bt, "map_lat", e.map_lat, 0.0); // Latitude
+            INSERTJ(bt, "map_lon", e.map_lon, 0.0); // Longitude
         }
 
         INSERTJ(bt, "stateCount", e.stateCount, 0);

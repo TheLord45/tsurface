@@ -284,9 +284,25 @@ void TPropertiesProgramming::setTableWidget(int row, int col, const QVariant& da
         }
         break;
 
+        case W_SPINBOXDOUBLE:
+        {
+            TElementSpinBoxDouble *p = static_cast<TElementSpinBoxDouble *>(w);
+            p->setValue(data.toDouble());
+        }
+
         default:
             return;
     }
+}
+
+void TPropertiesProgramming::updateObject()
+{
+    DECL_TRACER("TPropertiesProgramming::updateObject()");
+
+    if (!mPage || mActObjectID < 0)
+        return;
+
+    mPage->objects[mActObjectID]->setObject(mActObject);
 }
 
 void TPropertiesProgramming::clear()
@@ -688,7 +704,10 @@ void TPropertiesProgramming::onSpinChannelCode(int value, const QString& name)
     if (isAnyPage())
         mPage->ch = value;
     else
+    {
         mActObject.ch = value;
+        updateObject();
+    }
 
     mChanged = true;
     markChanged(TBL_PROGRAM);
@@ -702,6 +721,7 @@ void TPropertiesProgramming::onComboLevelControlType(const QString& text, const 
     Q_UNUSED(name);
 
     mActObject.vt = data.toString();
+    updateObject();
     setTable();
     mChanged = true;
     markChanged(TBL_PROGRAM);
@@ -714,6 +734,7 @@ void TPropertiesProgramming::onSpinLevelPort(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.lp = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -725,6 +746,7 @@ void TPropertiesProgramming::onSpinLevelCode(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.lv = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -736,6 +758,7 @@ void TPropertiesProgramming::onSpinLevelControlValue(int value, const QString& n
     Q_UNUSED(name);
 
     mActObject.va = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -747,6 +770,7 @@ void TPropertiesProgramming::onSpinControlRepeatTime(int value, const QString& n
     Q_UNUSED(name);
 
     mActObject.rv = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -759,6 +783,7 @@ void TPropertiesProgramming::onComboLevelFunction(const QString& text, const QVa
     Q_UNUSED(name);
 
     mActObject.lf = data.toString();
+    updateObject();
     setTable();
     mChanged = true;
     markChanged(TBL_PROGRAM);
@@ -773,6 +798,7 @@ void TPropertiesProgramming::onSpinRangeLowHigh(int value, const QString& name)
     else
         mActObject.rh = value;
 
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -784,6 +810,7 @@ void TPropertiesProgramming::onSpinRangeDragIncrement(int value, const QString& 
     Q_UNUSED(name);
 
     mActObject.rn = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -796,6 +823,7 @@ void TPropertiesProgramming::onComboRangeInverted(const QString& text, const QVa
     Q_UNUSED(name);
 
     mActObject.ri = data.toInt();
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -819,6 +847,7 @@ void TPropertiesProgramming::onSpinRangeTimeUpDown(int value, const QString& nam
             mActObject.rd = value;
     }
 
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -831,6 +860,7 @@ void TPropertiesProgramming::onMapFixed(const QString& text, const QVariant& dat
     Q_UNUSED(name);
 
     mActObject.map_fixed = data.toInt();
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -842,6 +872,7 @@ void TPropertiesProgramming::onMapZoom(int value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.map_zoom = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -854,6 +885,7 @@ void TPropertiesProgramming::onMapProvider(const QString& text, const QVariant& 
     Q_UNUSED(name);
 
     mActObject.map_provider = data.toInt();
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -865,6 +897,7 @@ void TPropertiesProgramming::onMapLat(double value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.map_lat = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -876,6 +909,7 @@ void TPropertiesProgramming::onMapLon(double value, const QString& name)
     Q_UNUSED(name);
 
     mActObject.map_lon = value;
+    updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
 }
@@ -1148,7 +1182,7 @@ TElementSpinBoxDouble *TPropertiesProgramming::makeMapLon(const QString& name)
 
     TElementSpinBoxDouble *spin = new TElementSpinBoxDouble(mActObject.map_lon, -180.0, 180.0, name, mTable);
     spin->setDecimals(6);
-    connect(spin, &TElementSpinBoxDouble::valueChanged, this, &TPropertiesProgramming::onMapLat);
+    connect(spin, &TElementSpinBoxDouble::valueChanged, this, &TPropertiesProgramming::onMapLon);
     return spin;
 }
 
