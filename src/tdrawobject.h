@@ -72,7 +72,6 @@ class TDrawObject
         bool mHaveError{false};                 // In case of an error this is TRUE
 
         DRAW_ORDER_t mDOrder[ORD_ELEM_COUNT];   // The order to draw the elements of an object
-
 };
 
 #endif // TDRAWOBJECT_H

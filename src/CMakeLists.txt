@@ -234,14 +234,6 @@ qt_add_executable(tsurface
     sliders.qrc
     fonts.qrc
     sounds.qrc
-    map/mapglobal.cpp
-    map/mapglobal.h
-    map/mapitem.cpp
-    map/mapitem.h
-    map/maploader.cpp
-    map/maploader.h
-    map/mapview.cpp
-    map/mapview.h
 )
 
 # Use the Widgets module from Qt 6.

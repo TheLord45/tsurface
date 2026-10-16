@@ -16,7 +16,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 
+#include <QWidget>
+
 #include "tobjecthandler.h"
+#include "tresizablewidget.h"
 #include "tdrawobject.h"
 #include "terror.h"
 
@@ -34,6 +37,11 @@ TObjectHandler::TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString
     mObject.type = bt;
     mObject.bi = num;
     mObject.na = name;
+}
+
+TObjectHandler::~TObjectHandler()
+{
+    DECL_TRACER("TObjectHandler::~TObjectHandler()");
 }
 
 /**
@@ -263,9 +271,9 @@ bool TObjectHandler::drawObject(TResizableWidget *widget, int instance)
     DECL_TRACER("TObjectHandler::drawObject(TResizableWidget *widget, int instance)");
 
     TDrawObject drawObject(this, widget);
+
     drawObject.draw(instance);
     return drawObject.haveError();
-    // TODO: Add code to save images so they must not be drawn new every time.
 }
 
 ObjHandler::TOBJECT_t& TObjectHandler::assignSmart(const ObjHandler::TOBJECT_t& obj, const PROPERTIES_t& prop)

@@ -539,6 +539,7 @@ class TObjectHandler
     public:
         TObjectHandler();
         TObjectHandler(ObjHandler::BUTTONTYPE bt, int num, const QString& name);
+        ~TObjectHandler();
 
         int getButtonIndex() { return mObject.bi; }
         QString getButtonName() { return mObject.na; }

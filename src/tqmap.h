@@ -21,49 +21,55 @@
 #ifndef TQMAP_H
 #define TQMAP_H
 
-#include <QWidget>
+#include <QObject>
+#include <QNetworkAccessManager>
+#include <QPixmap>
+#include <QString>
 
-class MapView;
-class QResizeEvent;
-class MapItem;
-class QPointF;
-
-class TQMap : public QWidget
+class TQMap : public QObject
 {
-    Q_OBJECT
-
     public:
-        typedef enum
+        enum class Provider
         {
-            PROV_GOOGLE_MAP,    // Google: normal map
-            PROV_GOOGLE_SAT,    // Google: Satellite map
-            PROV_GOOGLE_LAND,   // Google: Land
-            PROV_BING_SAT,      // Bing: Satellite
-            PROV_BING_ROADS,    // Bing: Road map
-            PROV_OSTREETMAP     // Open Streetmap
-        }PROVIDER_t;
+            OpenStreetMap,
+            Google
+        };
 
-        TQMap(QWidget *parent);
-        ~TQMap();
+        TQMap(QObject *parent = nullptr);
+        explicit TQMap(const QString &cacheDirectory, QObject *parent = nullptr);
+        void setProvider(Provider provider);
 
-        void drawMap(const QSize& size, double lat, double lon, int zoom, bool sslIgnore=false);
-        void setProvider(PROVIDER_t prov);
+        // Example:
+        // https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=SESSION&key=API_KEY
+        //
+        // The template must contain {x}, {y}, and {z}.
+        void setGoogleUrlTemplate(const QString &urlTemplate);
+
+        QPixmap map(double latitude,
+                    double longitude,
+                    int zoom,
+                    const QSize &pixelSize,
+                    QString *errorMessage = nullptr);
 
     protected:
-        void resizeEvent(QResizeEvent *event);
+        void init();
+        QString getTileCache();
 
     private:
-        QString getTileCache();
-        QString getProvider(PROVIDER_t prov);
+        QImage tile(int x, int y, int zoom, QString *errorMessage);
+        QImage downloadTile(const QUrl &url, QString *errorMessage);
 
-        QWidget *mParent{nullptr};
-        MapView *mMapView{nullptr};
-        double mCenterLat{0.0};
-        double mCenterLon{0.0};
-        double mMapWidth{0.0};
-        double mMapHeight{0.0};
-        int mZoomLevel{0};
-        PROVIDER_t mProvider{PROV_GOOGLE_MAP};
+        QString tileUrl(int x, int y, int zoom) const;
+        QString cacheFileName(int x, int y, int zoom) const;
+
+        static double longitudeToPixelX(double longitude, int zoom);
+        static double latitudeToPixelY(double latitude, int zoom);
+        static int wrapTileX(int x, int zoom);
+
+        Provider provider_ = Provider::OpenStreetMap;
+        QString cacheDirectory_;
+        QString googleUrlTemplate_;
+        QNetworkAccessManager network_;
 };
 
 #endif // TQMAP_H

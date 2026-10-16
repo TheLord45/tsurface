@@ -308,7 +308,7 @@ void TWorkSpaceHandler::setPosition(const QRect& rect, Page::PAGE_t page, int id
 {
     DECL_TRACER("TWorkSpaceHandler::setPosition(const QRect& rect, Page::PAGE_t page, int idx, STATE_TYPE stype)");
 
-    if (stype == STATE_BUTTON)
+    if (stype == STATE_BUTTON || stype == STATE_MAP)
     {
         if (!page.baseObject.widget)
             return;

@@ -154,14 +154,13 @@ void TDrawObject::draw(int instance)
                 else
                 {
                     TQMap map(mWidget);
-                    TQMap::PROVIDER_t pr = TQMap::PROV_GOOGLE_MAP;
 
-                    if (object.map_provider == 2)
-                        pr = TQMap::PROV_OSTREETMAP;
+                    if (object.map_provider == 1)
+                        map.setProvider(TQMap::Provider::Google);
+                    else
+                        map.setProvider(TQMap::Provider::OpenStreetMap);
 
-                    map.setProvider(pr);
-                    map.drawMap(QSize(object.wt, object.ht), object.map_lat, object.map_lon, object.map_zoom, true);
-                    button = mWidget->grab();
+                    button = map.map(object.map_lat, object.map_lon, object.map_zoom, QSize(object.wt, object.ht));
                 }
             }
             break;

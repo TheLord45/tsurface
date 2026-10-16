@@ -875,6 +875,7 @@ void TPropertiesProgramming::onMapZoom(int value, const QString& name)
     updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
+    requestRedraw(mPage);
 }
 
 void TPropertiesProgramming::onMapProvider(const QString& text, const QVariant& data, const QString& name)
@@ -888,6 +889,7 @@ void TPropertiesProgramming::onMapProvider(const QString& text, const QVariant& 
     updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
+    requestRedraw(mPage);
 }
 
 void TPropertiesProgramming::onMapLat(double value, const QString& name)
@@ -900,6 +902,7 @@ void TPropertiesProgramming::onMapLat(double value, const QString& name)
     updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
+    requestRedraw(mPage);
 }
 
 void TPropertiesProgramming::onMapLon(double value, const QString& name)
@@ -912,6 +915,7 @@ void TPropertiesProgramming::onMapLon(double value, const QString& name)
     updateObject();
     mChanged = true;
     markChanged(TBL_PROGRAM);
+    requestRedraw(mPage);
 }
 
 TElementWidgetCombo *TPropertiesProgramming::makeObjectFeedback(const QString& name)
