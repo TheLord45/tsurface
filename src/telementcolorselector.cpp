@@ -74,6 +74,12 @@ void TElementColorSelector::init()
     else
         layout = new QHBoxLayout(this);
 
+    if (!layout)    // Should never be true but was inserted to satisfy Sonarqube.
+    {
+        MSG_ERROR("Couldn't allocate a new horizontal layout!");
+        return;
+    }
+
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(2);
 
